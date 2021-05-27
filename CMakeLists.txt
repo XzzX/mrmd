@@ -11,4 +11,5 @@ find_package(Kokkos REQUIRED)
 
 add_subdirectory(external/Cabana)
 
+option(ECAB_WERROR "Treat warnings as errors." OFF)
 add_subdirectory(src)
