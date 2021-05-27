@@ -39,9 +39,6 @@ jobs:
       - name: Build
         run: cmake --build ecab-build --target all -j 2
 
-      - name: Install
-        run: cmake --install ecab-build
-
       - name: Test
         working-directory: ecab-build
         run: ctest --rerun-failed --output-on-failure -j 2
