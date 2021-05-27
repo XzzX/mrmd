@@ -1,5 +1,6 @@
 #include <Cabana_Core.hpp>
 
+#include "checks.hpp"
 #include <iostream>
 
 void aosoa()
@@ -18,6 +19,8 @@ void aosoa()
     std::cout << &Cabana::get<0>(aosoa.access(0), 0, 0) << std::endl;
     std::cout << &Cabana::get<0>(aosoa.access(0), 0, 1) << std::endl;
     std::cout << &Cabana::get<0>(aosoa.access(0), 1, 0) << std::endl;
+
+    CHECK_EQUAL(1, 2, "Hallo");
 }
 
 int main(int argc, char* argv[])
