@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           path: 'ecab'
-          submodule: 'recursive'
+          submodules: 'recursive'
 
       - name: Configure
         run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} ${{ matrix.CMAKE_COMPILER }}
