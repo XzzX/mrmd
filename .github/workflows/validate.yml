@@ -14,12 +14,15 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
+      - name: install dependencies
+        run: sudo apt-get install -y openmpi-bin
+
       - uses: actions/checkout@v2
         with:
           repository: 'kokkos/kokkos'
           path: 'kokkos'
 
-      - name: Configure
+      - name: kokkos
         run: |
           cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} ${{ matrix.CMAKE_COMPILER }}
           cmake --build kokkos-build --target all -j 2
