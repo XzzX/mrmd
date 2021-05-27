@@ -1,0 +1,42 @@
+name: VALIDATE
+
+on:
+  push:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        BUILD_TYPE: [Release, Debug]
+        CMAKE_COMPILER: [
+            '-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++', 
+        ]
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: 'kokkos/kokkos'
+          path: 'kokkos'
+
+      - name: Configure
+        run: |
+          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} ${{ matrix.CMAKE_COMPILER }}
+          cmake --install kokkos-build
+
+      - uses: actions/checkout@v2
+        with:
+          path: 'ecab'
+
+      - name: Configure
+        run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} ${{ matrix.CMAKE_COMPILER }}
+
+      - name: Build
+        run: cmake --build ecab-build --target all -j 2
+
+      - name: Install
+        run: cmake --install ecab-build
+
+      - name: Test
+        working-directory: ecab-build
+        run: ctest --rerun-failed --output-on-failure -j 2
