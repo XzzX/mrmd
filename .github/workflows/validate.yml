@@ -22,7 +22,7 @@ jobs:
       - name: Configure
         run: |
           cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} ${{ matrix.CMAKE_COMPILER }}
-          cmake --install kokkos-build
+          sudo cmake --install kokkos-build
 
       - uses: actions/checkout@v2
         with:
