@@ -1,26 +1,18 @@
-#include <Cabana_Core.hpp>
-
 #include "checks.hpp"
+#include "Particles.hpp"
+
+#include <Kokkos_Core.hpp>
+
 #include <iostream>
 
 void aosoa()
 {
-    using DataTypes = Cabana::MemberTypes<double[2], double, double>;
+    Particles particles;
 
-    const int VectorLength = 4;
-
-    using MemorySpace = Kokkos::HostSpace;
-    using ExecutionSpace = Kokkos::Serial;
-    using DeviceType = Kokkos::Device<ExecutionSpace, MemorySpace>;
-
-    int num_tuple = 5;
-    Cabana::AoSoA<DataTypes, DeviceType, VectorLength> aosoa("my_aosoa", num_tuple);
-
-    std::cout << &Cabana::get<0>(aosoa.access(0), 0, 0) << std::endl;
-    std::cout << &Cabana::get<0>(aosoa.access(0), 0, 1) << std::endl;
-    std::cout << &Cabana::get<0>(aosoa.access(0), 1, 0) << std::endl;
-
-    CHECK_EQUAL(1, 2, "Hallo");
+    for ( std::size_t s = 0; s < particles.numSoA(); ++s )
+        for ( int d = 0; d < particles.dim; ++d )
+            for ( std::size_t a = 0; a < particles.arraySize(s); ++a )
+                particles.getPos().access( s, a, d ) += particles.getVel().access( s, a, d );
 }
 
 int main(int argc, char* argv[])
