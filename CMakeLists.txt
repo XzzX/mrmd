@@ -11,5 +11,7 @@ find_package(Kokkos REQUIRED)
 
 add_subdirectory(external/Cabana)
 
+option(ECAB_LOCAL_ARCHITECTURE "Use instruction set of the local architecture." OFF)
+option(ECAB_VEC_REPORT "Enable reporting of loop vectorization." OFF)
 option(ECAB_WERROR "Treat warnings as errors." OFF)
 add_subdirectory(src)
