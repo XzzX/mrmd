@@ -7,8 +7,6 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(Kokkos REQUIRED)
-
 add_subdirectory(external/Cabana)
 
 option(ECAB_LOCAL_ARCHITECTURE "Use instruction set of the local architecture." OFF)
