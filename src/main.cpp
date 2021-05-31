@@ -39,6 +39,27 @@ void aosoa()
     std::cout << pos.access( 0, 0, 0 ) << std::endl;
 }
 
+void cabana_simd()
+{
+    Particles particles;
+
+    auto pos = particles.getPos();
+    auto vel = particles.getVel();
+
+    auto vector_kernel =
+        KOKKOS_LAMBDA( const int s, const int a )
+        {
+          pos.access(s,a, 0) = vel.access(s,a, 0);
+        };
+
+    using ExecutionSpace = Kokkos::Serial;
+    Cabana::SimdPolicy<8,ExecutionSpace> simd_policy( 0, 100 );
+
+    Cabana::simd_parallel_for( simd_policy, vector_kernel, "vector_op" );
+
+    std::cout << pos.access( 0, 0, 0 ) << std::endl;
+}
+
 void kokkos()
 {
     using VecView = Kokkos::View<double**, Kokkos::LayoutRight>;
@@ -77,7 +98,7 @@ int main(int argc, char* argv[])
 {
     Kokkos::ScopeGuard scope_guard(argc, argv);
 
-    kokkos_for();
+    cabana_simd();
 
     return EXIT_SUCCESS;
 }
