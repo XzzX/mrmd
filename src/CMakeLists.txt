@@ -1,4 +1,4 @@
-add_executable(ecab main.cpp)
+add_executable(ecab main.cpp vectorization.cpp LJ.cpp)
 target_link_libraries(ecab PRIVATE Kokkos::kokkos Cabana::cabanacore)
 
 if(ECAB_WERROR)

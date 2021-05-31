@@ -1,7 +1,6 @@
 #pragma once
 
-namespace ecab
-{
+
 // convenience casting functions for unsigned ints
     template <typename T>
     inline constexpr unsigned int uint_c(const T &val)
@@ -64,12 +63,19 @@ namespace ecab
         return static_cast<int64_t>(val);
     }
 
+    using idx_t = int64_t;
+    template <typename T>
+    inline constexpr idx_t idx_c(const T &val)
+    {
+        return static_cast<idx_t>(val);
+    }
+
 // convenience casting functions for floating point
-    using real = double;
+    using real_t = double;
 
-    inline constexpr real_t operator"" _r(const long double &val) { return static_cast<real_t>(val); }
+    inline constexpr real_t operator"" _r(const long double val) { return static_cast<real_t>(val); }
 
-    inline constexpr real_t operator"" _r(const unsigned long long int &val)
+    inline constexpr real_t operator"" _r(const unsigned long long val)
     {
         return static_cast<real_t>(val);
     }
@@ -91,11 +97,3 @@ namespace ecab
     {
         return static_cast<float>(val);
     }
-
-    template <typename T>
-    real real_c(const T &val)
-    {
-        return static_cast<real>(val);
-    }
-
-}  // namespace ecab
