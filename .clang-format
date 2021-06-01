@@ -2,6 +2,6 @@ BasedOnStyle: Google
 ColumnLimit: 100
 AccessModifierOffset: '-4'
 BinPackParameters: 'false'
+BinPackArguments: 'false'
 BreakBeforeBraces: Allman
 IndentWidth: '4'
-SortIncludes: false
