@@ -2,12 +2,16 @@
 
 #include <Cabana_Core.hpp>
 
-class Particles{
+#include "datatypes.hpp"
+
+class Particles
+{
 public:
     constexpr static int dim = 3;
     constexpr static int VectorLength = 8;
 
-    enum Props {
+    enum Props
+    {
         POS = 0,
         VEL = 1,
         FORCE = 2
@@ -20,19 +24,20 @@ public:
     using vel_t = typename ParticlesT::template member_slice_type<VEL>;
     using force_t = typename ParticlesT::template member_slice_type<FORCE>;
 
-    pos_t getPos() {return Cabana::slice<POS>(particles_);}
-    vel_t getVel() {return Cabana::slice<VEL>(particles_);}
-    force_t getForce() {return Cabana::slice<FORCE>(particles_);}
+    pos_t getPos() { return Cabana::slice<POS>(particles_); }
+    real_t& getPos(const idx_t idx, const int dim) { return Cabana::slice<POS>(particles_)(idx, dim); }
+    vel_t getVel() { return Cabana::slice<VEL>(particles_); }
+    force_t getForce() { return Cabana::slice<FORCE>(particles_); }
 
-    auto size() const {return particles_.size();}
-    auto numSoA() const {return particles_.numSoA();}
-    auto arraySize(size_t s) const {return particles_.arraySize(s);}
+    auto size() const { return particles_.size(); }
+    auto numSoA() const { return particles_.numSoA(); }
+    auto arraySize(size_t s) const { return particles_.arraySize(s); }
 
-    void resize(size_t size)
-    {
-        particles_.resize(size);
-    }
+    void resize(size_t size) { particles_.resize(size); }
+
+    idx_t numLocalParticles = 0;
+    idx_t numGhostParticles = 0;
+
 private:
-
     ParticlesT particles_ = ParticlesT("particles", 40000);
 };
