@@ -1,7 +1,6 @@
 #include <Kokkos_Core.hpp>
 
 #include "Cabana_AoSoA.hpp"
-
 #include "checks.hpp"
 #include "datatypes.hpp"
 
@@ -36,7 +35,23 @@ private:
 };
 
 template <typename VECTOR_T>
-void test_vector()
+void native_loop()
+{
+    VECTOR_T vec;
+    for (idx_t idx = 0; idx < VECTOR_T::size; ++idx)
+    {
+        vec.get(idx, 0) += 5;
+        vec.get(idx, 1) += 6;
+        vec.get(idx, 2) += 7;
+    };
+    for (auto i = 0; i < 10; ++i)
+    {
+        std::cout << vec.get(i, 0) << " | " << vec.get(i, 1) << " | " << vec.get(i, 2) << std::endl;
+    }
+}
+
+template <typename VECTOR_T>
+void kokkos_loop()
 {
     VECTOR_T vec;
     Kokkos::parallel_for(
@@ -57,7 +72,7 @@ int main(int argc, char* argv[])
 {
     Kokkos::ScopeGuard scope_guard(argc, argv);
 
-    test_vector<CabanaVec>();
+    native_loop<KokkosVec>();
 
     return EXIT_SUCCESS;
 }
