@@ -18,7 +18,7 @@ option(ECAB_VEC_REPORT "Enable reporting of loop vectorization." OFF)
 option(ECAB_WERROR "Treat warnings as errors." OFF)
 add_subdirectory(src)
 
-add_subdirectory(app)
+add_subdirectory(examples)
 
 include(FetchContent)
 FetchContent_Declare(
