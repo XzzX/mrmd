@@ -39,5 +39,5 @@ public:
     idx_t numGhostParticles = 0;
 
 private:
-    ParticlesT particles_ = ParticlesT("particles", 80000);
+    ParticlesT particles_ = ParticlesT("particles", 100000);
 };

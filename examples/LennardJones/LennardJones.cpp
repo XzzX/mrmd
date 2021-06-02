@@ -1,11 +1,11 @@
-#include <Kokkos_Core.hpp>
+#include "LennardJones.hpp"
 
+#include <Kokkos_Core.hpp>
 #include <fstream>
 
 #include "Cabana_NeighborList.hpp"
 #include "HaloExchange.hpp"
 #include "Integrator.hpp"
-#include "LennardJones.hpp"
 #include "Subdomain.hpp"
 #include "checks.hpp"
 
@@ -35,44 +35,54 @@ Particles loadParticles(const std::string filename)
     return p;
 }
 
-size_t countWithinCutoff(Particles& particles, const real_t& cutoff, const double* box)
+size_t countWithinCutoff(Particles& particles,
+                         const real_t& cutoff,
+                         const double* box,
+                         const bool periodic)
 {
     auto rcSqr = cutoff * cutoff;
     auto pos = particles.getPos();
 
     size_t count = 0;
-    for (auto idx = 0; idx < particles.size(); ++idx)
-        for (auto jdx = idx + 1; jdx < particles.size(); ++jdx)
+    Kokkos::parallel_reduce(
+        Kokkos::RangePolicy(0, particles.numLocalParticles),
+        KOKKOS_LAMBDA(const idx_t idx, size_t& sum)
         {
-            auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
-            if (dx > box[0] * 0.5_r) dx -= box[0];
-            auto dy = std::abs(pos(idx, 1) - pos(jdx, 1));
-            if (dy > box[1] * 0.5_r) dy -= box[1];
-            auto dz = std::abs(pos(idx, 2) - pos(jdx, 2));
-            if (dz > box[2] * 0.5_r) dz -= box[2];
-            auto distSqr = dx * dx + dy * dy + dz * dz;
-            if (distSqr < rcSqr)
+            for (auto jdx = idx + 1;
+                 jdx < particles.numLocalParticles + particles.numGhostParticles;
+                 ++jdx)
             {
-                ++count;
+                auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
+                if (periodic && (dx > box[0] * 0.5_r)) dx -= box[0];
+                auto dy = std::abs(pos(idx, 1) - pos(jdx, 1));
+                if (periodic && (dy > box[1] * 0.5_r)) dy -= box[1];
+                auto dz = std::abs(pos(idx, 2) - pos(jdx, 2));
+                if (periodic && (dz > box[2] * 0.5_r)) dz -= box[2];
+                auto distSqr = dx * dx + dy * dy + dz * dz;
+                if (distSqr < rcSqr)
+                {
+                    ++sum;
+                }
             }
-        }
+        },
+        count);
+
     return count;
 }
 
 void LJ()
 {
-    auto subdomain = Subdomain({0_r, 0_r, 0_r}, {33.8585, 33.8585, 33.8585}, 2.5_r);
-    Kokkos::Timer timer;
-    auto particles = loadParticles("positions.txt");
-    CHECK_EQUAL(particles.numLocalParticles, 32768);
-    std::cout << "load particles: " << timer.seconds() << std::endl;
-
     constexpr double nsteps = 100;
     constexpr double rc = 2.5;
     constexpr double skin = 0.3;
     constexpr double dt = 0.005;
 
-    double neighborhood_radius = 2.8_r;
+    auto subdomain = Subdomain({0_r, 0_r, 0_r}, {33.8585, 33.8585, 33.8585}, rc + skin);
+    Kokkos::Timer timer;
+    auto particles = loadParticles("positions.txt");
+    CHECK_EQUAL(particles.numLocalParticles, 32768);
+    std::cout << "load particles: " << timer.seconds() << std::endl;
+
     double cell_ratio = 0.5_r;
     using ListType = Cabana::VerletList<Kokkos::HostSpace,
                                         Cabana::HalfNeighborTag,
@@ -80,22 +90,33 @@ void LJ()
                                         Cabana::TeamOpTag>;
     auto positions = particles.getPos();
 
-    std::cout << "bf neighbors: "
-              //              << countWithinCutoff(particles, neighborhood_radius,
-              //              subdomain.diameter.data())
-              << std::endl;
+    auto bfParticlePairs =
+        countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), true);
+    CHECK_EQUAL(bfParticlePairs, 1310403);
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
-    Kokkos::parallel_for(
-        Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
-        HaloExchange(particles, subdomain));
-    std::cout << "local particles: " << particles.numLocalParticles << std::endl;
-    std::cout << "ghost particles: " << particles.numGhostParticles << std::endl;
+    auto haloExchange = HaloExchange(particles, subdomain);
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagX>(
+                             0, particles.numLocalParticles + particles.numGhostParticles),
+                         haloExchange);
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagY>(
+                             0, particles.numLocalParticles + particles.numGhostParticles),
+                         haloExchange);
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagZ>(
+                             0, particles.numLocalParticles + particles.numGhostParticles),
+                         haloExchange);
+    CHECK_EQUAL(particles.numLocalParticles, 32768);
+    CHECK_EQUAL(particles.numGhostParticles, 22104);
+
+    bfParticlePairs =
+        countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), false);
+    CHECK_EQUAL(bfParticlePairs, 1310403);
+    std::cout << "brute force: " << timer.seconds() << std::endl;
 
     ListType verlet_list(positions,
                          0,
-                         particles.numLocalParticles,
-                         neighborhood_radius,
+                         particles.numLocalParticles + particles.numGhostParticles,
+                         rc + skin,
                          cell_ratio,
                          subdomain.minGhostCorner.data(),
                          subdomain.maxGhostCorner.data());

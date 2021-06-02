@@ -38,7 +38,7 @@ add_executable(ecab_tests
         ${ECAB_TESTS}
         )
 target_link_libraries(ecab_tests
-        PRIVATE ecab gmock_main
+        PRIVATE ecab gtest
         )
 
 include(GoogleTest)
