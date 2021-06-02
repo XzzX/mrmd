@@ -8,7 +8,6 @@ class HaloExchange
 private:
     Particles& particles_;
     const Subdomain& subdomain_;
-    mutable idx_t nextParticle_;
 
 public:
     KOKKOS_INLINE_FUNCTION
@@ -18,20 +17,22 @@ public:
         {
             if (particles_.getPos(idx, dim) > subdomain_.maxInnerCorner[dim])
             {
-                particles_.getPos(nextParticle_, 0) = particles_.getPos(idx, 0);
-                particles_.getPos(nextParticle_, 1) = particles_.getPos(idx, 1);
-                particles_.getPos(nextParticle_, 2) = particles_.getPos(idx, 2);
+                auto nextParticle = particles_.numLocalParticles + particles_.numGhostParticles;
+                particles_.getPos(nextParticle, 0) = particles_.getPos(idx, 0);
+                particles_.getPos(nextParticle, 1) = particles_.getPos(idx, 1);
+                particles_.getPos(nextParticle, 2) = particles_.getPos(idx, 2);
                 particles_.getPos(idx, dim) -= subdomain_.diameter[dim];
-                ++nextParticle_;
+                ++particles_.numGhostParticles;
             }
 
             if (particles_.getPos(idx, dim) < subdomain_.minInnerCorner[dim])
             {
-                particles_.getPos(nextParticle_, 0) = particles_.getPos(idx, 0);
-                particles_.getPos(nextParticle_, 1) = particles_.getPos(idx, 1);
-                particles_.getPos(nextParticle_, 2) = particles_.getPos(idx, 2);
+                auto nextParticle = particles_.numLocalParticles + particles_.numGhostParticles;
+                particles_.getPos(nextParticle, 0) = particles_.getPos(idx, 0);
+                particles_.getPos(nextParticle, 1) = particles_.getPos(idx, 1);
+                particles_.getPos(nextParticle, 2) = particles_.getPos(idx, 2);
                 particles_.getPos(idx, dim) += subdomain_.diameter[dim];
-                ++nextParticle_;
+                ++particles_.numGhostParticles;
             }
         }
     }
@@ -39,8 +40,6 @@ public:
     HaloExchange(Particles& particles, const Subdomain& subdomain)
         : particles_(particles), subdomain_(subdomain)
     {
-        nextParticle_ = particles_.numLocalParticles;
+        particles_.numGhostParticles = 0;
     }
-
-    auto getNumParticles(){return nextParticle_;}
 };

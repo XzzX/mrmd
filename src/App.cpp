@@ -79,19 +79,20 @@ void LJ()
     auto positions = particles.getPos();
 
     std::cout << "bf neighbors: "
-//              << countWithinCutoff(particles, neighborhood_radius, subdomain.diameter.data())
+              //              << countWithinCutoff(particles, neighborhood_radius,
+              //              subdomain.diameter.data())
               << std::endl;
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
-    auto haloExchange = HaloExchange(particles, subdomain);
-    for (auto i = 0; i < particles.numLocalParticles; ++i)
-        haloExchange(i);
-    std::cout << "ghost particles: " << haloExchange.getNumParticles() - particles.numLocalParticles << std::endl;
-    particles.numGhostParticles = haloExchange.getNumParticles() - particles.numLocalParticles;
+    Kokkos::parallel_for(
+        Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
+        HaloExchange(particles, subdomain));
+    std::cout << "local particles: " << particles.numLocalParticles << std::endl;
+    std::cout << "ghost particles: " << particles.numGhostParticles << std::endl;
 
     ListType verlet_list(positions,
                          0,
-                         particles.numLocalParticles + particles.numGhostParticles,
+                         particles.numLocalParticles,
                          neighborhood_radius,
                          cell_ratio,
                          subdomain.minGhostCorner.data(),
@@ -112,7 +113,8 @@ void LJ()
         //        std::cout << "pre force integrate: " << timer.seconds() <<
         //        std::endl;
 
-        Kokkos::RangePolicy<Kokkos::Serial> policy(0, particles.numLocalParticles + particles.numGhostParticles);
+        Kokkos::RangePolicy<Kokkos::Serial> policy(
+            0, particles.numLocalParticles + particles.numGhostParticles);
         Cabana::neighbor_parallel_for(policy,
                                       LennardJones(particles, rc, 1_r, 1_r),
                                       verlet_list,
