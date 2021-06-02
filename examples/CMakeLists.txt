@@ -1,1 +1,2 @@
 add_subdirectory(LennardJones)
+add_subdirectory(Vectorization)
