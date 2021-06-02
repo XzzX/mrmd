@@ -1,3 +1,5 @@
+#include <Kokkos_Core.hpp>
+
 #include <fstream>
 
 #include "Cabana_NeighborList.hpp"
@@ -131,4 +133,13 @@ void LJ()
         //        std::endl;
     }
     std::cout << "finished: " << timer.seconds() << std::endl;
+}
+
+int main(int argc, char* argv[])
+{
+    Kokkos::ScopeGuard scope_guard(argc, argv);
+
+    LJ();
+
+    return EXIT_SUCCESS;
 }
