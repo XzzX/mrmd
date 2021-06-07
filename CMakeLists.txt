@@ -17,6 +17,7 @@ option(ECAB_WERROR "Treat warnings as errors." OFF)
 add_subdirectory(src)
 
 add_subdirectory(examples)
+add_subdirectory(tests)
 
 include(FetchContent)
 
