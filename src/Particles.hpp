@@ -35,6 +35,8 @@ public:
 
     void resize(size_t size) { particles_.resize(size); }
 
+    void copy(const idx_t src, const idx_t dst);
+
     idx_t numLocalParticles = 0;
     idx_t numGhostParticles = 0;
 

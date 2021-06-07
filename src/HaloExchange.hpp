@@ -26,9 +26,7 @@ public:
         if (particles_.getPos(idx, dim) > subdomain_.maxInnerCorner[dim])
         {
             auto nextParticle = particles_.numLocalParticles + particles_.numGhostParticles;
-            particles_.getPos(nextParticle, 0) = particles_.getPos(idx, 0);
-            particles_.getPos(nextParticle, 1) = particles_.getPos(idx, 1);
-            particles_.getPos(nextParticle, 2) = particles_.getPos(idx, 2);
+            particles_.copy(idx, nextParticle);
             particles_.getPos(nextParticle, dim) -= subdomain_.diameter[dim];
             ++particles_.numGhostParticles;
         }
@@ -36,9 +34,7 @@ public:
         if (particles_.getPos(idx, dim) < subdomain_.minInnerCorner[dim])
         {
             auto nextParticle = particles_.numLocalParticles + particles_.numGhostParticles;
-            particles_.getPos(nextParticle, 0) = particles_.getPos(idx, 0);
-            particles_.getPos(nextParticle, 1) = particles_.getPos(idx, 1);
-            particles_.getPos(nextParticle, 2) = particles_.getPos(idx, 2);
+            particles_.copy(idx, nextParticle);
             particles_.getPos(nextParticle, dim) += subdomain_.diameter[dim];
             ++particles_.numGhostParticles;
         }
@@ -54,6 +50,5 @@ public:
     HaloExchange(Particles& particles, const Subdomain& subdomain)
         : particles_(particles), subdomain_(subdomain)
     {
-        particles_.numGhostParticles = 0;
     }
 };

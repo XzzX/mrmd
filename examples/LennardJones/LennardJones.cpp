@@ -6,7 +6,9 @@
 #include "Cabana_NeighborList.hpp"
 #include "HaloExchange.hpp"
 #include "Integrator.hpp"
+#include "PeriodicMapping.hpp"
 #include "Subdomain.hpp"
+#include "Temperature.hpp"
 #include "checks.hpp"
 
 Particles loadParticles(const std::string& filename)
@@ -35,41 +37,6 @@ Particles loadParticles(const std::string& filename)
     return p;
 }
 
-size_t countWithinCutoff(Particles& particles,
-                         const real_t& cutoff,
-                         const double* box,
-                         const bool periodic)
-{
-    auto rcSqr = cutoff * cutoff;
-    auto pos = particles.getPos();
-
-    size_t count = 0;
-    Kokkos::parallel_reduce(
-        Kokkos::RangePolicy(0, particles.numLocalParticles),
-        KOKKOS_LAMBDA(const idx_t idx, size_t& sum)
-        {
-            for (auto jdx = idx + 1;
-                 jdx < particles.numLocalParticles + particles.numGhostParticles;
-                 ++jdx)
-            {
-                auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
-                if (periodic && (dx > box[0] * 0.5_r)) dx -= box[0];
-                auto dy = std::abs(pos(idx, 1) - pos(jdx, 1));
-                if (periodic && (dy > box[1] * 0.5_r)) dy -= box[1];
-                auto dz = std::abs(pos(idx, 2) - pos(jdx, 2));
-                if (periodic && (dz > box[2] * 0.5_r)) dz -= box[2];
-                auto distSqr = dx * dx + dy * dy + dz * dz;
-                if (distSqr < rcSqr)
-                {
-                    ++sum;
-                }
-            }
-        },
-        count);
-
-    return count;
-}
-
 void LJ()
 {
     constexpr double nsteps = 100;
@@ -88,48 +55,37 @@ void LJ()
                                         Cabana::HalfNeighborTag,
                                         Cabana::VerletLayoutCSR,
                                         Cabana::TeamOpTag>;
-    auto positions = particles.getPos();
 
-    auto bfParticlePairs =
-        countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), true);
-    CHECK_EQUAL(bfParticlePairs, 1310403);
-    std::cout << "brute force: " << timer.seconds() << std::endl;
-
-    auto haloExchange = HaloExchange(particles, subdomain);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagX>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagY>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagZ>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
-    CHECK_EQUAL(particles.numLocalParticles, 32768);
-    CHECK_EQUAL(particles.numGhostParticles, 22104);
-
-    bfParticlePairs =
-        countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), false);
-    CHECK_EQUAL(bfParticlePairs, 1310403);
-    std::cout << "brute force: " << timer.seconds() << std::endl;
-
-    ListType verlet_list(positions,
-                         0,
-                         particles.numLocalParticles + particles.numGhostParticles,
-                         rc + skin,
-                         cell_ratio,
-                         subdomain.minGhostCorner.data(),
-                         subdomain.maxGhostCorner.data());
-    size_t sum = 0;
-    Kokkos::parallel_reduce(
-        verlet_list._data.counts.size(),
-        KOKKOS_LAMBDA(const int idx, size_t& count) { count += verlet_list._data.counts(idx); },
-        sum);
-    std::cout << "found " << sum << " neighbors" << std::endl;
-    std::cout << "create verlet list: " << timer.seconds() << std::endl;
+    std::cout << "T: " << getTemperature(particles) << std::endl;
 
     for (auto i = 0; i < nsteps; ++i)
     {
+        particles.numGhostParticles = 0;
+
+        Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
+                             PeriodicMapping(particles, subdomain));
+
+        auto haloExchange = HaloExchange(particles, subdomain);
+        Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagX>(
+                                 0, particles.numLocalParticles + particles.numGhostParticles),
+                             haloExchange);
+        Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagY>(
+                                 0, particles.numLocalParticles + particles.numGhostParticles),
+                             haloExchange);
+        Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagZ>(
+                                 0, particles.numLocalParticles + particles.numGhostParticles),
+                             haloExchange);
+
+        auto positions = particles.getPos();
+
+        ListType verlet_list(positions,
+                             0,
+                             particles.numLocalParticles + particles.numGhostParticles,
+                             rc + skin,
+                             cell_ratio,
+                             subdomain.minGhostCorner.data(),
+                             subdomain.maxGhostCorner.data());
+
         Integrator integrator(dt);
         integrator.preForceIntegrate(particles);
         Kokkos::fence();
@@ -152,8 +108,12 @@ void LJ()
         Kokkos::fence();
         //        std::cout << "post force integrate: " << timer.seconds() <<
         //        std::endl;
+
+        std::cout << i << ": " << timer.seconds() << "s" << std::endl;
+        std::cout << "T: " << getTemperature(particles) << std::endl;
     }
     std::cout << "finished: " << timer.seconds() << std::endl;
+    std::cout << "T: " << getTemperature(particles) << std::endl;
 }
 
 int main(int argc, char* argv[])
