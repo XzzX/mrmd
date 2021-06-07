@@ -9,7 +9,7 @@
 #include "Subdomain.hpp"
 #include "checks.hpp"
 
-Particles loadParticles(const std::string filename)
+Particles loadParticles(const std::string& filename)
 {
     Particles p;
     auto pos = p.getPos();
