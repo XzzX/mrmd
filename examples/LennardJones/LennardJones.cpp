@@ -112,22 +112,26 @@ void LJ()
         integrator.postForceIntegrate(particles);
         Kokkos::fence();
 
-        std::cout << i << ": " << timer.seconds() << "s" << std::endl;
-        std::cout << "T: " << getTemperature(particles) << std::endl;
-
         auto countPairs = KOKKOS_LAMBDA(const int i, const int j, idx_t& sum) { ++sum; };
 
         idx_t numPairs = 0;
-        real_t totalEnergy = 0_r;
+        real_t E0 = 0_r;
         Cabana::neighbor_parallel_reduce(
             Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
             LennardJonesEnergy(particles, rc, 1_r, 1_r),
             verlet_list,
             Cabana::FirstNeighborsTag(),
             Cabana::SerialOpTag(),
-            totalEnergy,
+            E0,
             "LennardJonesEnergy");
-        std::cout << "E: " << totalEnergy << std::endl;
+
+//        std::cout << i << ": " << timer.seconds() << "s" << std::endl;
+        auto T = getTemperature(particles);
+        auto Ek = (3.0/2.0) * particles.numLocalParticles * T;
+        std::cout << "T : " << std::setw(10) << T << " | ";
+        std::cout << "Ek: " << std::setw(10) << Ek << " | ";
+        std::cout << "E0: " << std::setw(10) << E0 << " | ";
+        std::cout << "E : " << std::setw(10) << E0 + Ek << std::endl;
     }
 }
 

@@ -14,5 +14,5 @@ real_t getTemperature(Particles& particles)
         },
         velSqr);
 
-    return 0.5 * velSqr / (3.0 * particles.numLocalParticles);
+    return velSqr / (3.0 * particles.numLocalParticles);
 }
