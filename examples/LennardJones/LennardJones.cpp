@@ -3,6 +3,7 @@
 #include <Kokkos_Core.hpp>
 #include <fstream>
 
+#include "AccumulateForce.hpp"
 #include "Cabana_NeighborList.hpp"
 #include "HaloExchange.hpp"
 #include "Integrator.hpp"
@@ -61,6 +62,10 @@ void LJ()
     for (auto i = 0; i < nsteps; ++i)
     {
         particles.numGhostParticles = 0;
+        auto force = particles.getForce();
+        Cabana::deep_copy(force, 0_r);
+        auto ghost = particles.getGhost();
+        Cabana::deep_copy(ghost, idx_c(-1));
 
         Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
                              PeriodicMapping(particles, subdomain));
@@ -80,7 +85,7 @@ void LJ()
 
         ListType verlet_list(positions,
                              0,
-                             particles.numLocalParticles + particles.numGhostParticles,
+                             particles.numLocalParticles,
                              rc + skin,
                              cell_ratio,
                              subdomain.minGhostCorner.data(),
@@ -89,31 +94,41 @@ void LJ()
         Integrator integrator(dt);
         integrator.preForceIntegrate(particles);
         Kokkos::fence();
-        //        std::cout << "pre force integrate: " << timer.seconds() <<
-        //        std::endl;
 
-        Kokkos::RangePolicy<Kokkos::Serial> policy(
-            0, particles.numLocalParticles + particles.numGhostParticles);
-        Cabana::neighbor_parallel_for(policy,
-                                      LennardJones(particles, rc, 1_r, 1_r),
-                                      verlet_list,
-                                      Cabana::FirstNeighborsTag(),
-                                      Cabana::SerialOpTag(),
-                                      "LennardJones");
+        Cabana::neighbor_parallel_for(
+            Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
+            LennardJones(particles, rc, 1_r, 1_r),
+            verlet_list,
+            Cabana::FirstNeighborsTag(),
+            Cabana::SerialOpTag(),
+            "LennardJonesForce");
         Kokkos::fence();
-        //        std::cout << "lennard jones: " << timer.seconds() <<
-        //        std::endl;
+
+        Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(
+                                 particles.numLocalParticles,
+                                 particles.numLocalParticles + particles.numGhostParticles),
+                             AccumulateForce(particles));
 
         integrator.postForceIntegrate(particles);
         Kokkos::fence();
-        //        std::cout << "post force integrate: " << timer.seconds() <<
-        //        std::endl;
 
         std::cout << i << ": " << timer.seconds() << "s" << std::endl;
         std::cout << "T: " << getTemperature(particles) << std::endl;
+
+        auto countPairs = KOKKOS_LAMBDA(const int i, const int j, idx_t& sum) { ++sum; };
+
+        idx_t numPairs = 0;
+        real_t totalEnergy = 0_r;
+        Cabana::neighbor_parallel_reduce(
+            Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
+            LennardJonesEnergy(particles, rc, 1_r, 1_r),
+            verlet_list,
+            Cabana::FirstNeighborsTag(),
+            Cabana::SerialOpTag(),
+            totalEnergy,
+            "LennardJonesEnergy");
+        std::cout << "E: " << totalEnergy << std::endl;
     }
-    std::cout << "finished: " << timer.seconds() << std::endl;
-    std::cout << "T: " << getTemperature(particles) << std::endl;
 }
 
 int main(int argc, char* argv[])
