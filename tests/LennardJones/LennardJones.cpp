@@ -61,6 +61,7 @@ size_t countWithinCutoff(Particles& particles,
                  jdx < particles.numLocalParticles + particles.numGhostParticles;
                  ++jdx)
             {
+                if (idx==jdx) continue;
                 auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
                 if (periodic && (dx > box[0] * 0.5_r)) dx -= box[0];
                 auto dy = std::abs(pos(idx, 1) - pos(jdx, 1));
@@ -91,14 +92,8 @@ TEST(LennardJones, ESPPComparison)
     CHECK_EQUAL(particles.numLocalParticles, ESPP_REAL);
     std::cout << "load particles: " << timer.seconds() << std::endl;
 
-    double cell_ratio = 0.5_r;
-    using ListType = Cabana::VerletList<Kokkos::HostSpace,
-                                        Cabana::HalfNeighborTag,
-                                        Cabana::VerletLayoutCSR,
-                                        Cabana::TeamOpTag>;
-    auto positions = particles.getPos();
-
-    auto bfParticlePairs = countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), true);
+    auto bfParticlePairs = 0;
+    bfParticlePairs = countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), false);
     EXPECT_EQ(bfParticlePairs, ESPP_NEIGHBORS);
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
@@ -112,16 +107,23 @@ TEST(LennardJones, ESPPComparison)
     Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagZ>(
                              0, particles.numLocalParticles + particles.numGhostParticles),
                          haloExchange);
+    Kokkos::fence();
     EXPECT_EQ(particles.numLocalParticles, ESPP_REAL);
     EXPECT_EQ(particles.numGhostParticles, ESPP_GHOST);
+    particles.resize(particles.numLocalParticles + particles.numGhostParticles);
 
     bfParticlePairs = countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), false);
-    EXPECT_EQ(bfParticlePairs, 1426948);
+    EXPECT_EQ(bfParticlePairs, 1426948 - 1);
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
-    ListType verlet_list(positions,
+    double cell_ratio = 1.0_r;
+    using ListType = Cabana::VerletList<Kokkos::HostSpace,
+                                        Cabana::HalfNeighborTag,
+                                        Cabana::VerletLayoutCSR,
+                                        Cabana::TeamOpTag>;
+    ListType verlet_list(particles.getPos(),
                          0,
-                         particles.numLocalParticles /* + particles.numGhostParticles*/,
+                         particles.numLocalParticles + particles.numGhostParticles,
                          rc + skin,
                          cell_ratio,
                          subdomain.minGhostCorner.data(),
@@ -131,7 +133,7 @@ TEST(LennardJones, ESPPComparison)
         verlet_list._data.counts.size(),
         KOKKOS_LAMBDA(const int idx, size_t& count) { count += verlet_list._data.counts(idx); },
         vlParticlePairs);
-    EXPECT_EQ(vlParticlePairs, ESPP_NEIGHBORS);
+    EXPECT_EQ(vlParticlePairs, ESPP_NEIGHBORS-1);
     std::cout << "create verlet list: " << timer.seconds() << std::endl;
 
     Integrator integrator(dt);

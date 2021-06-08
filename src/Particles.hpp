@@ -14,20 +14,23 @@ public:
     {
         POS = 0,
         VEL = 1,
-        FORCE = 2
+        FORCE = 2,
+        GHOST = 3
     };
     using DeviceType = Kokkos::Device<Kokkos::Serial, Kokkos::HostSpace>;
-    using DataTypes = Cabana::MemberTypes<double[dim], double[dim], double[dim]>;
+    using DataTypes = Cabana::MemberTypes<double[dim], double[dim], double[dim], idx_t>;
     using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VectorLength>;
 
     using pos_t = typename ParticlesT::template member_slice_type<POS>;
     using vel_t = typename ParticlesT::template member_slice_type<VEL>;
     using force_t = typename ParticlesT::template member_slice_type<FORCE>;
+    using ghost_t = typename ParticlesT::template member_slice_type<GHOST>;
 
     pos_t getPos() { return Cabana::slice<POS>(particles_); }
     real_t& getPos(const idx_t idx, const int dim) { return Cabana::slice<POS>(particles_)(idx, dim); }
     vel_t getVel() { return Cabana::slice<VEL>(particles_); }
     force_t getForce() { return Cabana::slice<FORCE>(particles_); }
+    ghost_t getGhost() { return Cabana::slice<GHOST>(particles_); }
 
     auto size() const { return particles_.size(); }
     auto numSoA() const { return particles_.numSoA(); }

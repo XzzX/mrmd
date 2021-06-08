@@ -28,6 +28,9 @@ public:
             auto nextParticle = particles_.numLocalParticles + particles_.numGhostParticles;
             particles_.copy(idx, nextParticle);
             particles_.getPos(nextParticle, dim) -= subdomain_.diameter[dim];
+            auto realIdx = idx;
+            while (particles_.getGhost()(realIdx) != -1) realIdx = particles_.getGhost()(realIdx);
+            particles_.getGhost()(nextParticle) = realIdx;
             ++particles_.numGhostParticles;
         }
 
@@ -36,6 +39,9 @@ public:
             auto nextParticle = particles_.numLocalParticles + particles_.numGhostParticles;
             particles_.copy(idx, nextParticle);
             particles_.getPos(nextParticle, dim) += subdomain_.diameter[dim];
+            auto realIdx = idx;
+            while (particles_.getGhost()(realIdx) != -1) realIdx = particles_.getGhost()(realIdx);
+            particles_.getGhost()(nextParticle) = realIdx;
             ++particles_.numGhostParticles;
         }
     }

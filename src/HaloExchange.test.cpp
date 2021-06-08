@@ -60,6 +60,8 @@ protected:
         EXPECT_EQ(idx, 27);
         particles.numLocalParticles = 27;
         particles.numGhostParticles = 0;
+        auto ghost = particles.getGhost();
+        Cabana::deep_copy(ghost, idx_c(-1));
     }
 
     // void TearDown() override {}
@@ -75,6 +77,17 @@ TEST_F(HaloExchangeTest, SelfExchangeX)
                              0, particles.numLocalParticles + particles.numGhostParticles),
                          haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 18);
+    for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
+    {
+        if (idx < particles.numLocalParticles)
+        {
+            EXPECT_EQ(particles.getGhost()(idx), -1);
+        }
+        else
+        {
+            EXPECT_LT(particles.getGhost()(idx), particles.numLocalParticles);
+        }
+    }
 }
 
 TEST_F(HaloExchangeTest, SelfExchangeY)
@@ -84,6 +97,17 @@ TEST_F(HaloExchangeTest, SelfExchangeY)
                              0, particles.numLocalParticles + particles.numGhostParticles),
                          haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 18);
+    for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
+    {
+        if (idx < particles.numLocalParticles)
+        {
+            EXPECT_EQ(particles.getGhost()(idx), -1);
+        }
+        else
+        {
+            EXPECT_LT(particles.getGhost()(idx), particles.numLocalParticles);
+        }
+    }
 }
 
 TEST_F(HaloExchangeTest, SelfExchangeZ)
@@ -93,6 +117,17 @@ TEST_F(HaloExchangeTest, SelfExchangeZ)
                              0, particles.numLocalParticles + particles.numGhostParticles),
                          haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 18);
+    for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
+    {
+        if (idx < particles.numLocalParticles)
+        {
+            EXPECT_EQ(particles.getGhost()(idx), -1);
+        }
+        else
+        {
+            EXPECT_LT(particles.getGhost()(idx), particles.numLocalParticles);
+        }
+    }
 }
 
 TEST_F(HaloExchangeTest, SelfExchangeXYZ)
@@ -110,6 +145,17 @@ TEST_F(HaloExchangeTest, SelfExchangeXYZ)
                              0, particles.numLocalParticles + particles.numGhostParticles),
                          haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 98);
+    for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
+    {
+        if (idx < particles.numLocalParticles)
+        {
+            EXPECT_EQ(particles.getGhost()(idx), -1);
+        }
+        else
+        {
+            EXPECT_LT(particles.getGhost()(idx), particles.numLocalParticles);
+        }
+    }
 }
 
 TEST_F(HaloExchangeTest, CountPairs)
