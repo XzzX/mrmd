@@ -17,11 +17,12 @@ constexpr idx_t ESPP_REAL = 32768;
 constexpr idx_t ESPP_GHOST = 22104;
 /// number of pairs in the neighbor list
 constexpr idx_t ESPP_NEIGHBORS = 1310403;
+/// initial lennard jones energy
+constexpr real_t ESPP_INITIAL_ENERGY = -94795.927_r;
 
 Particles loadParticles(const std::string& filename)
 {
     Particles p;
-    auto pos = p.getPos();
 
     std::ifstream fin(filename);
 
@@ -31,14 +32,16 @@ Particles loadParticles(const std::string& filename)
         double x, y, z;
         fin >> x >> y >> z;
         if (fin.eof()) break;
-        pos(idx, 0) = x;
-        pos(idx, 1) = y;
-        pos(idx, 2) = z;
+        p.getPos(idx, 0) = x;
+        p.getPos(idx, 1) = y;
+        p.getPos(idx, 2) = z;
         ++idx;
     }
 
     fin.close();
 
+    auto ghost = p.getGhost();
+    Cabana::deep_copy(ghost, -1);
     p.numLocalParticles = idx;
 
     return p;
@@ -61,7 +64,6 @@ size_t countWithinCutoff(Particles& particles,
                  jdx < particles.numLocalParticles + particles.numGhostParticles;
                  ++jdx)
             {
-                if (idx==jdx) continue;
                 auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
                 if (periodic && (dx > box[0] * 0.5_r)) dx -= box[0];
                 auto dy = std::abs(pos(idx, 1) - pos(jdx, 1));
@@ -93,7 +95,7 @@ TEST(LennardJones, ESPPComparison)
     std::cout << "load particles: " << timer.seconds() << std::endl;
 
     auto bfParticlePairs = 0;
-    bfParticlePairs = countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), false);
+    bfParticlePairs = countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), true);
     EXPECT_EQ(bfParticlePairs, ESPP_NEIGHBORS);
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
@@ -111,9 +113,10 @@ TEST(LennardJones, ESPPComparison)
     EXPECT_EQ(particles.numLocalParticles, ESPP_REAL);
     EXPECT_EQ(particles.numGhostParticles, ESPP_GHOST);
     particles.resize(particles.numLocalParticles + particles.numGhostParticles);
+    std::cout << "halo exchange: " << timer.seconds() << std::endl;
 
     bfParticlePairs = countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), false);
-    EXPECT_EQ(bfParticlePairs, 1426948 - 1);
+    EXPECT_EQ(bfParticlePairs, 1426948);
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
     double cell_ratio = 1.0_r;
@@ -123,7 +126,7 @@ TEST(LennardJones, ESPPComparison)
                                         Cabana::TeamOpTag>;
     ListType verlet_list(particles.getPos(),
                          0,
-                         particles.numLocalParticles + particles.numGhostParticles,
+                         particles.numLocalParticles,
                          rc + skin,
                          cell_ratio,
                          subdomain.minGhostCorner.data(),
@@ -133,22 +136,33 @@ TEST(LennardJones, ESPPComparison)
         verlet_list._data.counts.size(),
         KOKKOS_LAMBDA(const int idx, size_t& count) { count += verlet_list._data.counts(idx); },
         vlParticlePairs);
-    EXPECT_EQ(vlParticlePairs, ESPP_NEIGHBORS-1);
+    EXPECT_EQ(vlParticlePairs, ESPP_NEIGHBORS);
     std::cout << "create verlet list: " << timer.seconds() << std::endl;
+
+    real_t totalEnergy = 0_r;
+    Cabana::neighbor_parallel_reduce(
+        Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
+        LennardJonesEnergy(particles, rc, 1_r, 1_r),
+        verlet_list,
+        Cabana::FirstNeighborsTag(),
+        Cabana::SerialOpTag(),
+        totalEnergy,
+        "LennardJonesEnergy");
+    EXPECT_FLOAT_EQ(totalEnergy, ESPP_INITIAL_ENERGY);
+    std::cout << "starting energy: " << totalEnergy << std::endl;
 
     Integrator integrator(dt);
     integrator.preForceIntegrate(particles);
     Kokkos::fence();
     std::cout << "pre force integrate: " << timer.seconds() << std::endl;
 
-    Kokkos::RangePolicy<Kokkos::Serial> policy(
-        0, particles.numLocalParticles + particles.numGhostParticles);
-    Cabana::neighbor_parallel_for(policy,
-                                  LennardJones(particles, rc, 1_r, 1_r),
-                                  verlet_list,
-                                  Cabana::FirstNeighborsTag(),
-                                  Cabana::SerialOpTag(),
-                                  "LennardJones");
+    Cabana::neighbor_parallel_for(
+        Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
+        LennardJones(particles, rc, 1_r, 1_r),
+        verlet_list,
+        Cabana::FirstNeighborsTag(),
+        Cabana::SerialOpTag(),
+        "LennardJones");
     Kokkos::fence();
     std::cout << "lennard jones: " << timer.seconds() << std::endl;
 

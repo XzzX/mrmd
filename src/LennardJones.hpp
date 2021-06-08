@@ -25,9 +25,8 @@ public:
         auto dz = pos_(idx, 2) - pos_(jdx, 2);
         auto distSqr = dx * dx + dy * dy + dz * dz;
 
-        if (distSqr < rcSqr_) return;
+        if (distSqr > rcSqr_) return;
 
-        auto dist = std::sqrt(distSqr);
         auto frac2 = 1.0 / distSqr;
         auto frac6 = frac2 * frac2 * frac2;
         auto ffactor = frac6 * (ff1_ * frac6 - ff2_) * frac2;
@@ -78,7 +77,7 @@ public:
         auto dz = pos_(idx, 2) - pos_(jdx, 2);
         auto distSqr = dx * dx + dy * dy + dz * dz;
 
-//        if (distSqr < rcSqr_) return;
+        if (distSqr > rcSqr_) return;
 
         real_t frac2 = sigma_ * sigma_ / distSqr;
         real_t frac6 = frac2 * frac2 * frac2;
