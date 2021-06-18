@@ -34,6 +34,9 @@ public:
             auto realIdx = idx;
             while (particles_.getGhost()(realIdx) != -1) realIdx = particles_.getGhost()(realIdx);
             particles_.getGhost()(nextParticle) = realIdx;
+            CHECK_NOT_EQUAL(particles_.getGhost()(nextParticle), -1);
+            CHECK_GREATER_EQUAL(particles_.getGhost()(nextParticle), 0);
+            CHECK_LESS(particles_.getGhost()(nextParticle), particles_.numLocalParticles);
             ++particles_.numGhostParticles;
         }
 
@@ -46,6 +49,9 @@ public:
             auto realIdx = idx;
             while (particles_.getGhost()(realIdx) != -1) realIdx = particles_.getGhost()(realIdx);
             particles_.getGhost()(nextParticle) = realIdx;
+            CHECK_NOT_EQUAL(particles_.getGhost()(nextParticle), -1);
+            CHECK_GREATER_EQUAL(particles_.getGhost()(nextParticle), 0);
+            CHECK_LESS(particles_.getGhost()(nextParticle), particles_.numLocalParticles);
             ++particles_.numGhostParticles;
         }
     }

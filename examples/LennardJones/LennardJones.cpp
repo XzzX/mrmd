@@ -41,7 +41,7 @@ Particles loadParticles(const std::string& filename)
 
 void LJ()
 {
-    constexpr double nsteps = 1001;
+    constexpr double nsteps = 2001;
     constexpr double rc = 2.5;
     constexpr double skin = 0.3;
     constexpr double dt = 0.005;
@@ -61,7 +61,6 @@ void LJ()
     for (auto i = 0; i < nsteps; ++i)
     {
         particles.numGhostParticles = 0;
-
         auto ghost = particles.getGhost();
         Cabana::deep_copy(ghost, idx_c(-1));
 
@@ -78,6 +77,7 @@ void LJ()
         Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagZ>(
                                  0, particles.numLocalParticles + particles.numGhostParticles),
                              haloExchange);
+//        particles.resize(particles.numLocalParticles + particles.numGhostParticles);
 
         ListType verlet_list(particles.getPos(),
                              0,
