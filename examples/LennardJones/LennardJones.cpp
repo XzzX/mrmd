@@ -11,6 +11,7 @@
 #include "Subdomain.hpp"
 #include "Temperature.hpp"
 #include "checks.hpp"
+#include "io/DumpCSV.hpp"
 
 Particles loadParticles(const std::string& filename)
 {
@@ -111,6 +112,7 @@ void LJ()
 
         if (i % 100 == 0)
         {
+            dumpCSV("particles_" + std::to_string(i) + ".csv", particles);
             auto countPairs = KOKKOS_LAMBDA(const int i, const int j, idx_t& sum) { ++sum; };
 
             idx_t numPairs = 0;

@@ -3,6 +3,8 @@
 #include "Particles.hpp"
 #include "Subdomain.hpp"
 
+#include "checks.hpp"
+
 class HaloExchange
 {
 private:
@@ -28,6 +30,7 @@ public:
             auto nextParticle = particles_.numLocalParticles + particles_.numGhostParticles;
             particles_.copy(idx, nextParticle);
             particles_.getPos(nextParticle, dim) -= subdomain_.diameter[dim];
+            CHECK_LESS(particles_.getPos(nextParticle, dim), subdomain_.minCorner[dim]);
             auto realIdx = idx;
             while (particles_.getGhost()(realIdx) != -1) realIdx = particles_.getGhost()(realIdx);
             particles_.getGhost()(nextParticle) = realIdx;
@@ -39,6 +42,7 @@ public:
             auto nextParticle = particles_.numLocalParticles + particles_.numGhostParticles;
             particles_.copy(idx, nextParticle);
             particles_.getPos(nextParticle, dim) += subdomain_.diameter[dim];
+            CHECK_GREATER(particles_.getPos(nextParticle, dim), subdomain_.maxCorner[dim]);
             auto realIdx = idx;
             while (particles_.getGhost()(realIdx) != -1) realIdx = particles_.getGhost()(realIdx);
             particles_.getGhost()(nextParticle) = realIdx;
