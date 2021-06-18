@@ -40,12 +40,12 @@ Particles loadParticles(const std::string& filename)
 
 void LJ()
 {
-    constexpr double nsteps = 100;
+    constexpr double nsteps = 1001;
     constexpr double rc = 2.5;
     constexpr double skin = 0.3;
     constexpr double dt = 0.005;
 
-    auto subdomain = Subdomain({0_r, 0_r, 0_r}, {33.8585, 33.8585, 33.8585}, rc + skin);
+    auto subdomain = Subdomain({0_r, 0_r, 0_r}, {33.8585, 33.8585, 33.8585}, 2_r * (rc + skin));
     Kokkos::Timer timer;
     auto particles = loadParticles("positions.txt");
     CHECK_EQUAL(particles.numLocalParticles, 32768);
@@ -57,13 +57,10 @@ void LJ()
                                         Cabana::VerletLayoutCSR,
                                         Cabana::TeamOpTag>;
 
-    std::cout << "T: " << getTemperature(particles) << std::endl;
-
     for (auto i = 0; i < nsteps; ++i)
     {
         particles.numGhostParticles = 0;
-        auto force = particles.getForce();
-        Cabana::deep_copy(force, 0_r);
+
         auto ghost = particles.getGhost();
         Cabana::deep_copy(ghost, idx_c(-1));
 
@@ -81,9 +78,7 @@ void LJ()
                                  0, particles.numLocalParticles + particles.numGhostParticles),
                              haloExchange);
 
-        auto positions = particles.getPos();
-
-        ListType verlet_list(positions,
+        ListType verlet_list(particles.getPos(),
                              0,
                              particles.numLocalParticles,
                              rc + skin,
@@ -95,6 +90,8 @@ void LJ()
         integrator.preForceIntegrate(particles);
         Kokkos::fence();
 
+        auto force = particles.getForce();
+        Cabana::deep_copy(force, 0_r);
         Cabana::neighbor_parallel_for(
             Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
             LennardJones(particles, rc, 1_r, 1_r),
@@ -112,26 +109,29 @@ void LJ()
         integrator.postForceIntegrate(particles);
         Kokkos::fence();
 
-        auto countPairs = KOKKOS_LAMBDA(const int i, const int j, idx_t& sum) { ++sum; };
+        if (i % 100 == 0)
+        {
+            auto countPairs = KOKKOS_LAMBDA(const int i, const int j, idx_t& sum) { ++sum; };
 
-        idx_t numPairs = 0;
-        real_t E0 = 0_r;
-        Cabana::neighbor_parallel_reduce(
-            Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
-            LennardJonesEnergy(particles, rc, 1_r, 1_r),
-            verlet_list,
-            Cabana::FirstNeighborsTag(),
-            Cabana::SerialOpTag(),
-            E0,
-            "LennardJonesEnergy");
+            idx_t numPairs = 0;
+            real_t E0 = 0_r;
+            Cabana::neighbor_parallel_reduce(
+                Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
+                LennardJonesEnergy(particles, rc, 1_r, 1_r),
+                verlet_list,
+                Cabana::FirstNeighborsTag(),
+                Cabana::SerialOpTag(),
+                E0,
+                "LennardJonesEnergy");
 
-//        std::cout << i << ": " << timer.seconds() << "s" << std::endl;
-        auto T = getTemperature(particles);
-        auto Ek = (3.0/2.0) * particles.numLocalParticles * T;
-        std::cout << "T : " << std::setw(10) << T << " | ";
-        std::cout << "Ek: " << std::setw(10) << Ek << " | ";
-        std::cout << "E0: " << std::setw(10) << E0 << " | ";
-        std::cout << "E : " << std::setw(10) << E0 + Ek << std::endl;
+            //        std::cout << i << ": " << timer.seconds() << "s" << std::endl;
+            auto T = getTemperature(particles);
+            auto Ek = (3.0 / 2.0) * particles.numLocalParticles * T;
+            std::cout << "T : " << std::setw(10) << T << " | ";
+            std::cout << "Ek: " << std::setw(10) << Ek << " | ";
+            std::cout << "E0: " << std::setw(10) << E0 << " | ";
+            std::cout << "E : " << std::setw(10) << E0 + Ek << std::endl;
+        }
     }
 }
 
