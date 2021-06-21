@@ -6,8 +6,7 @@
 class LennardJones
 {
 private:
-    real_t sigma_;
-    real_t epsilon_;
+    const real_t epsilon_;
     real_t sig2_;
     real_t sig6_;
     real_t ff1_;
@@ -46,35 +45,6 @@ public:
         force_(jdx, 2) -= dz * ffactor;
     }
 
-    LennardJones(Particles& particles, const real_t rc, const real_t& sigma, const real_t& epsilon)
-        : sigma_(sigma), epsilon_(epsilon)
-    {
-        pos_ = particles.getPos();
-        force_ = particles.getForce();
-
-        rcSqr_ = rc * rc;
-
-        sig2_ = sigma * sigma;
-        sig6_ = sig2_ * sig2_ * sig2_;
-        ff1_ = 48.0 * epsilon * sig6_ * sig6_;
-        ff2_ = 24.0 * epsilon * sig6_;
-    }
-};
-
-class LennardJonesEnergy
-{
-private:
-    real_t sigma_;
-    real_t epsilon_;
-    real_t sig2_;
-    real_t sig6_;
-    real_t ff1_;
-    real_t ff2_;
-    real_t rcSqr_;
-    Particles::pos_t pos_;
-    Particles::force_t force_;
-
-public:
     KOKKOS_INLINE_FUNCTION
     void operator()(const idx_t& idx, const idx_t& jdx, real_t& energy) const
     {
@@ -85,22 +55,47 @@ public:
 
         if (distSqr > rcSqr_) return;
 
-        real_t frac2 = sigma_ * sigma_ / distSqr;
+        real_t frac2 = sig2_ / distSqr;
         real_t frac6 = frac2 * frac2 * frac2;
         energy += 4.0 * epsilon_ * (frac6 * frac6 - frac6);
     }
 
-    LennardJonesEnergy(Particles& particles,
-                       const real_t rc,
-                       const real_t& sigma,
-                       const real_t& epsilon)
-        : sigma_(sigma), epsilon_(epsilon)
+    template <typename VERLET_LIST>
+    void applyForces(Particles& particles, VERLET_LIST& verletList)
     {
         pos_ = particles.getPos();
         force_ = particles.getForce();
 
-        rcSqr_ = rc * rc;
+        Cabana::neighbor_parallel_for(
+            Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
+            *this,
+            verletList,
+            Cabana::FirstNeighborsTag(),
+            Cabana::SerialOpTag(),
+            "LennardJonesForce");
+    }
 
+    template <typename VERLET_LIST>
+    real_t computeEnergy(Particles& particles, VERLET_LIST& verletList)
+    {
+        pos_ = particles.getPos();
+
+        real_t E0 = 0_r;
+        Cabana::neighbor_parallel_reduce(
+            Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
+            *this,
+            verletList,
+            Cabana::FirstNeighborsTag(),
+            Cabana::SerialOpTag(),
+            E0,
+            "LennardJonesEnergy");
+
+        return E0;
+    }
+
+    LennardJones(const real_t rc, const real_t& sigma, const real_t& epsilon)
+        : epsilon_(epsilon), rcSqr_(rc * rc)
+    {
         sig2_ = sigma * sigma;
         sig6_ = sig2_ * sig2_ * sig2_;
         ff1_ = 48.0 * epsilon * sig6_ * sig6_;

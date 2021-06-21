@@ -4,7 +4,7 @@
 #include <fstream>
 
 #include "Cabana_NeighborList.hpp"
-#include "action/Integrator.hpp"
+#include "action/VelocityVerlet.hpp"
 #include "analysis/Temperature.hpp"
 #include "checks.hpp"
 #include "communication/AccumulateForce.hpp"
@@ -61,13 +61,14 @@ void LJ()
                                         Cabana::VerletLayoutCSR,
                                         Cabana::TeamOpTag>;
 
+    VelocityVerlet integrator(dt);
+    LennardJones LJ(rc, 1_r, 1_r);
     for (auto i = 0; i < nsteps; ++i)
     {
         particles.numGhostParticles = 0;
         auto ghost = particles.getGhost();
         Cabana::deep_copy(ghost, idx_c(-1));
 
-        Integrator integrator(dt);
         integrator.preForceIntegrate(particles);
         Kokkos::fence();
 
@@ -96,14 +97,8 @@ void LJ()
 
         auto force = particles.getForce();
         Cabana::deep_copy(force, 0_r);
-        
-        Cabana::neighbor_parallel_for(
-            Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
-            LennardJones(particles, rc, 1_r, 1_r),
-            verlet_list,
-            Cabana::FirstNeighborsTag(),
-            Cabana::SerialOpTag(),
-            "LennardJonesForce");
+
+        LJ.applyForces(particles, verlet_list);
         Kokkos::fence();
 
         Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(
@@ -120,15 +115,7 @@ void LJ()
             auto countPairs = KOKKOS_LAMBDA(const int i, const int j, idx_t& sum) { ++sum; };
 
             idx_t numPairs = 0;
-            real_t E0 = 0_r;
-            Cabana::neighbor_parallel_reduce(
-                Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
-                LennardJonesEnergy(particles, rc, 1_r, 1_r),
-                verlet_list,
-                Cabana::FirstNeighborsTag(),
-                Cabana::SerialOpTag(),
-                E0,
-                "LennardJonesEnergy");
+            auto E0 = LJ.computeEnergy(particles, verlet_list);
 
             //        std::cout << i << ": " << timer.seconds() << "s" << std::endl;
             auto T = getTemperature(particles);
