@@ -2,7 +2,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#include "Particles.hpp"
+#include "data/Particles.hpp"
 #include "datatypes.hpp"
 
 class Integrator

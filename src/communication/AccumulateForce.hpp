@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Particles.hpp"
-#include "Subdomain.hpp"
+#include "data/Particles.hpp"
+#include "data/Subdomain.hpp"
 
 class AccumulateForce
 {

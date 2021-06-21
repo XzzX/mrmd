@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Particles.hpp"
+#include "data/Particles.hpp"
 
 real_t getTemperature(Particles& particles)
 {

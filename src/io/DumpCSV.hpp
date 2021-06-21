@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-#include "Particles.hpp"
+#include "data/Particles.hpp"
 
 inline void dumpCSV(const std::string& filename, Particles& particles)
 {

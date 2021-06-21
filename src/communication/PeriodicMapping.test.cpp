@@ -4,7 +4,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#include "Subdomain.hpp"
+#include "data/Subdomain.hpp"
 
 struct TestData
 {

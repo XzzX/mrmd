@@ -1,16 +1,18 @@
-#include "LennardJones.hpp"
+#include "action/LennardJones.hpp"
 
 #include <Kokkos_Core.hpp>
 #include <fstream>
 
-#include "AccumulateForce.hpp"
 #include "Cabana_NeighborList.hpp"
-#include "HaloExchange.hpp"
-#include "Integrator.hpp"
-#include "PeriodicMapping.hpp"
-#include "Subdomain.hpp"
-#include "Temperature.hpp"
+#include "action/Integrator.hpp"
+#include "analysis/Temperature.hpp"
 #include "checks.hpp"
+#include "communication/AccumulateForce.hpp"
+#include "communication/HaloExchange.hpp"
+#include "communication/PeriodicMapping.hpp"
+#include "data/Particles.hpp"
+#include "data/Subdomain.hpp"
+#include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
 
 Particles loadParticles(const std::string& filename)
@@ -77,7 +79,7 @@ void LJ()
         Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagZ>(
                                  0, particles.numLocalParticles + particles.numGhostParticles),
                              haloExchange);
-//        particles.resize(particles.numLocalParticles + particles.numGhostParticles);
+        //        particles.resize(particles.numLocalParticles + particles.numGhostParticles);
 
         ListType verlet_list(particles.getPos(),
                              0,
