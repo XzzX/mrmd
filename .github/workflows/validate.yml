@@ -8,15 +8,11 @@ jobs:
     strategy:
       matrix:
         BUILD_TYPE: [Release, Debug]
-        CMAKE_COMPILER: [
-            '-DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++', 
-        ]
+        CONTAINER: [ 'gcc', 'clang' ]
 
     runs-on: ubuntu-latest
+    container: xzzx/devel:${{ matrix.CONTAINER }}
     steps:
-      - name: install dependencies
-        run: sudo apt-get install -y openmpi-bin
-
       - uses: actions/checkout@v2
         with:
           repository: 'kokkos/kokkos'
@@ -24,17 +20,16 @@ jobs:
 
       - name: kokkos
         run: |
-          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} ${{ matrix.CMAKE_COMPILER }}
+          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }}
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
       - uses: actions/checkout@v2
         with:
           path: 'ecab'
-          submodules: 'recursive'
 
       - name: Configure
-        run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} ${{ matrix.CMAKE_COMPILER }}
+        run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }}
 
       - name: Build
         run: cmake --build ecab-build --target all -j 2
@@ -42,3 +37,26 @@ jobs:
       - name: Test
         working-directory: ecab-build
         run: ctest --rerun-failed --output-on-failure -j 2
+
+  clang-format:
+    runs-on: ubuntu-latest
+    container: xzzx/devel:clang
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: 'kokkos/kokkos'
+          path: 'kokkos'
+
+      - name: kokkos
+        run: |
+          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }}
+          cmake --build kokkos-build --target all -j 2
+          sudo cmake --install kokkos-build
+
+      - uses: actions/checkout@v2
+
+      - name: run formatter
+        run: ./format.sh
+
+      - name: check formatting
+        run: git diff --exit-code
