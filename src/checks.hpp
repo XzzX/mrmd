@@ -26,8 +26,8 @@ simple maths
 
 #include <iomanip>
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
 
 namespace ecab
 {
@@ -71,11 +71,11 @@ std::string generateAssertionMessage(const T& lhs,
     return ss.str();
 }
 
-#define LOG(msg)                   \
-    {                              \
-        std::stringstream ss;      \
-        ss << msg;                 \
-        ecab::log(ss.str()); \
+#define LOG(msg)              \
+    {                         \
+        std::stringstream ss; \
+        ss << msg;            \
+        ecab::log(ss.str());  \
     }
 
 // macro overloading (-> https://stackoverflow.com/a/24028231)
@@ -93,274 +93,270 @@ std::string generateAssertionMessage(const T& lhs,
 #define MACRO_OVERLOAD(name, ...) \
     GLUE(OVERLOAD_MACRO(name, COUNT_ARGS_MAX10(__VA_ARGS__)), (__VA_ARGS__))
 
-#define CHECK_TRUE_1(X)                                                                   \
-    {                                                                                     \
-        do                                                                                \
-        {                                                                                 \
-            if (!((X)))                                                                   \
-            {                                                                             \
-                LOG(ecab::generateAssertionMessage((X), #X, "", __FILE__, __LINE__, \
-                                                         __func__));                      \
-                exit(EXIT_FAILURE);                                                       \
-            }                                                                             \
-        } while (0);                                                                      \
+#define CHECK_TRUE_1(X)                                                                         \
+    {                                                                                           \
+        do                                                                                      \
+        {                                                                                       \
+            if (!((X)))                                                                         \
+            {                                                                                   \
+                LOG(ecab::generateAssertionMessage((X), #X, "", __FILE__, __LINE__, __func__)); \
+                exit(EXIT_FAILURE);                                                             \
+            }                                                                                   \
+        } while (0);                                                                            \
     }
-#define CHECK_TRUE_2(X, MSG)                                                              \
-    {                                                                                     \
-        do                                                                                \
-        {                                                                                 \
-            if (!((X)))                                                                   \
-            {                                                                             \
-                LOG(ecab::generateAssertionMessage((X), #X, "", __FILE__, __LINE__, \
-                                                         __func__)                        \
-                    << "\n"                                                               \
-                    << MSG);                                                              \
-                exit(EXIT_FAILURE);                                                       \
-            }                                                                             \
-        } while (0);                                                                      \
+#define CHECK_TRUE_2(X, MSG)                                                                  \
+    {                                                                                         \
+        do                                                                                    \
+        {                                                                                     \
+            if (!((X)))                                                                       \
+            {                                                                                 \
+                LOG(ecab::generateAssertionMessage((X), #X, "", __FILE__, __LINE__, __func__) \
+                    << "\n"                                                                   \
+                    << MSG);                                                                  \
+                exit(EXIT_FAILURE);                                                           \
+            }                                                                                 \
+        } while (0);                                                                          \
     }
 
-#define CHECK_FALSE_1(X)                                                                   \
-    {                                                                                      \
-        do                                                                                 \
-        {                                                                                  \
-            if (!(!(X)))                                                                   \
-            {                                                                              \
-                LOG(ecab::generateAssertionMessage((X), #X, "!", __FILE__, __LINE__, \
-                                                         __func__));                       \
-                exit(EXIT_FAILURE);                                                        \
-            }                                                                              \
-        } while (0);                                                                       \
+#define CHECK_FALSE_1(X)                                                                         \
+    {                                                                                            \
+        do                                                                                       \
+        {                                                                                        \
+            if (!(!(X)))                                                                         \
+            {                                                                                    \
+                LOG(ecab::generateAssertionMessage((X), #X, "!", __FILE__, __LINE__, __func__)); \
+                exit(EXIT_FAILURE);                                                              \
+            }                                                                                    \
+        } while (0);                                                                             \
     }
-#define CHECK_FALSE_2(X, MSG)                                                              \
-    {                                                                                      \
-        do                                                                                 \
-        {                                                                                  \
-            if (!(!(X)))                                                                   \
-            {                                                                              \
-                LOG(ecab::generateAssertionMessage((X), #X, "!", __FILE__, __LINE__, \
-                                                         __func__)                         \
-                    << "\n"                                                                \
-                    << MSG);                                                               \
-                exit(EXIT_FAILURE);                                                        \
-            }                                                                              \
-        } while (0);                                                                       \
+#define CHECK_FALSE_2(X, MSG)                                                                  \
+    {                                                                                          \
+        do                                                                                     \
+        {                                                                                      \
+            if (!(!(X)))                                                                       \
+            {                                                                                  \
+                LOG(ecab::generateAssertionMessage((X), #X, "!", __FILE__, __LINE__, __func__) \
+                    << "\n"                                                                    \
+                    << MSG);                                                                   \
+                exit(EXIT_FAILURE);                                                            \
+            }                                                                                  \
+        } while (0);                                                                           \
     }
 
-#define CHECK_NULLPTR_1(X)                                                                 \
-    {                                                                                      \
-        do                                                                                 \
-        {                                                                                  \
-            if (!((X) == nullptr))                                                         \
-            {                                                                              \
-                LOG(ecab::generateAssertionMessage((X), #X, "nullptr == ", __FILE__, \
-                                                         __LINE__, __func__));             \
-                exit(EXIT_FAILURE);                                                        \
-            }                                                                              \
-        } while (0);                                                                       \
+#define CHECK_NULLPTR_1(X)                                                  \
+    {                                                                       \
+        do                                                                  \
+        {                                                                   \
+            if (!((X) == nullptr))                                          \
+            {                                                               \
+                LOG(ecab::generateAssertionMessage(                         \
+                    (X), #X, "nullptr == ", __FILE__, __LINE__, __func__)); \
+                exit(EXIT_FAILURE);                                         \
+            }                                                               \
+        } while (0);                                                        \
     }
-#define CHECK_NULLPTR_2(X, MSG)                                                            \
-    {                                                                                      \
-        do                                                                                 \
-        {                                                                                  \
-            if (!((X) == nullptr))                                                         \
-            {                                                                              \
-                LOG(ecab::generateAssertionMessage((X), #X, "nullptr == ", __FILE__, \
-                                                         __LINE__, __func__)               \
-                    << "\n"                                                                \
-                    << MSG);                                                               \
-                exit(EXIT_FAILURE);                                                        \
-            }                                                                              \
-        } while (0);                                                                       \
-    }
-
-#define CHECK_NOT_NULLPTR_1(X)                                                             \
-    {                                                                                      \
-        do                                                                                 \
-        {                                                                                  \
-            if (!((X) != nullptr))                                                         \
-            {                                                                              \
-                LOG(ecab::generateAssertionMessage((X), #X, "nullptr != ", __FILE__, \
-                                                         __LINE__, __func__));             \
-                exit(EXIT_FAILURE);                                                        \
-            }                                                                              \
-        } while (0);                                                                       \
-    }
-#define CHECK_NOT_NULLPTR_2(X, MSG)                                                        \
-    {                                                                                      \
-        do                                                                                 \
-        {                                                                                  \
-            if (!((X) != nullptr))                                                         \
-            {                                                                              \
-                LOG(ecab::generateAssertionMessage((X), #X, "nullptr != ", __FILE__, \
-                                                         __LINE__, __func__)               \
-                    << "\n"                                                                \
-                    << MSG);                                                               \
-                exit(EXIT_FAILURE);                                                        \
-            }                                                                              \
-        } while (0);                                                                       \
+#define CHECK_NULLPTR_2(X, MSG)                                               \
+    {                                                                         \
+        do                                                                    \
+        {                                                                     \
+            if (!((X) == nullptr))                                            \
+            {                                                                 \
+                LOG(ecab::generateAssertionMessage(                           \
+                        (X), #X, "nullptr == ", __FILE__, __LINE__, __func__) \
+                    << "\n"                                                   \
+                    << MSG);                                                  \
+                exit(EXIT_FAILURE);                                           \
+            }                                                                 \
+        } while (0);                                                          \
     }
 
-#define CHECK_EQUAL_2(X, Y)                                                                  \
-    {                                                                                        \
-        do                                                                                   \
-        {                                                                                    \
-            if (!((X) == (Y)))                                                               \
-            {                                                                                \
-                LOG(ecab::generateAssertionMessage((X), (Y), #X, #Y, " == ", __FILE__, \
-                                                         __LINE__, __func__));               \
-                exit(EXIT_FAILURE);                                                          \
-            }                                                                                \
-        } while (0);                                                                         \
+#define CHECK_NOT_NULLPTR_1(X)                                              \
+    {                                                                       \
+        do                                                                  \
+        {                                                                   \
+            if (!((X) != nullptr))                                          \
+            {                                                               \
+                LOG(ecab::generateAssertionMessage(                         \
+                    (X), #X, "nullptr != ", __FILE__, __LINE__, __func__)); \
+                exit(EXIT_FAILURE);                                         \
+            }                                                               \
+        } while (0);                                                        \
     }
-#define CHECK_EQUAL_3(X, Y, MSG)                                                             \
-    {                                                                                        \
-        do                                                                                   \
-        {                                                                                    \
-            if (!((X) == (Y)))                                                               \
-            {                                                                                \
-                LOG(ecab::generateAssertionMessage((X), (Y), #X, #Y, " == ", __FILE__, \
-                                                         __LINE__, __func__)                 \
-                    << "\n"                                                                  \
-                    << MSG);                                                                 \
-                exit(EXIT_FAILURE);                                                          \
-            }                                                                                \
-        } while (0);                                                                         \
-    }
-
-#define CHECK_NOT_EQUAL_2(X, Y)                                                              \
-    {                                                                                        \
-        do                                                                                   \
-        {                                                                                    \
-            if (!((X) != (Y)))                                                               \
-            {                                                                                \
-                LOG(ecab::generateAssertionMessage((X), (Y), #X, #Y, " != ", __FILE__, \
-                                                         __LINE__, __func__));               \
-                exit(EXIT_FAILURE);                                                          \
-            }                                                                                \
-        } while (0);                                                                         \
-    }
-#define CHECK_NOT_EQUAL_3(X, Y, MSG)                                                         \
-    {                                                                                        \
-        do                                                                                   \
-        {                                                                                    \
-            if (!((X) != (Y)))                                                               \
-            {                                                                                \
-                LOG(ecab::generateAssertionMessage((X), (Y), #X, #Y, " != ", __FILE__, \
-                                                         __LINE__, __func__)                 \
-                    << "\n"                                                                  \
-                    << MSG);                                                                 \
-                exit(EXIT_FAILURE);                                                          \
-            }                                                                                \
-        } while (0);                                                                         \
+#define CHECK_NOT_NULLPTR_2(X, MSG)                                           \
+    {                                                                         \
+        do                                                                    \
+        {                                                                     \
+            if (!((X) != nullptr))                                            \
+            {                                                                 \
+                LOG(ecab::generateAssertionMessage(                           \
+                        (X), #X, "nullptr != ", __FILE__, __LINE__, __func__) \
+                    << "\n"                                                   \
+                    << MSG);                                                  \
+                exit(EXIT_FAILURE);                                           \
+            }                                                                 \
+        } while (0);                                                          \
     }
 
-#define CHECK_GREATER_2(X, Y)                                                               \
-    {                                                                                       \
-        do                                                                                  \
-        {                                                                                   \
-            if (!((X) > (Y)))                                                               \
-            {                                                                               \
-                LOG(ecab::generateAssertionMessage((X), (Y), #X, #Y, " > ", __FILE__, \
-                                                         __LINE__, __func__));              \
-                exit(EXIT_FAILURE);                                                         \
-            }                                                                               \
-        } while (0);                                                                        \
+#define CHECK_EQUAL_2(X, Y)                                                   \
+    {                                                                         \
+        do                                                                    \
+        {                                                                     \
+            if (!((X) == (Y)))                                                \
+            {                                                                 \
+                LOG(ecab::generateAssertionMessage(                           \
+                    (X), (Y), #X, #Y, " == ", __FILE__, __LINE__, __func__)); \
+                exit(EXIT_FAILURE);                                           \
+            }                                                                 \
+        } while (0);                                                          \
     }
-#define CHECK_GREATER_3(X, Y, MSG)                                                          \
-    {                                                                                       \
-        do                                                                                  \
-        {                                                                                   \
-            if (!((X) > (Y)))                                                               \
-            {                                                                               \
-                LOG(ecab::generateAssertionMessage((X), (Y), #X, #Y, " > ", __FILE__, \
-                                                         __LINE__, __func__)                \
-                    << "\n"                                                                 \
-                    << MSG);                                                                \
-                exit(EXIT_FAILURE);                                                         \
-            }                                                                               \
-        } while (0);                                                                        \
-    }
-
-#define CHECK_LESS_2(X, Y)                                                                  \
-    {                                                                                       \
-        do                                                                                  \
-        {                                                                                   \
-            if (!((X) < (Y)))                                                               \
-            {                                                                               \
-                LOG(ecab::generateAssertionMessage((X), (Y), #X, #Y, " < ", __FILE__, \
-                                                         __LINE__, __func__));              \
-                exit(EXIT_FAILURE);                                                         \
-            }                                                                               \
-        } while (0);                                                                        \
-    }
-#define CHECK_LESS_3(X, Y, MSG)                                                             \
-    {                                                                                       \
-        do                                                                                  \
-        {                                                                                   \
-            if (!((X) < (Y)))                                                               \
-            {                                                                               \
-                LOG(ecab::generateAssertionMessage((X), (Y), #X, #Y, " < ", __FILE__, \
-                                                         __LINE__, __func__)                \
-                    << "\n"                                                                 \
-                    << MSG);                                                                \
-                exit(EXIT_FAILURE);                                                         \
-            }                                                                               \
-        } while (0);                                                                        \
+#define CHECK_EQUAL_3(X, Y, MSG)                                                \
+    {                                                                           \
+        do                                                                      \
+        {                                                                       \
+            if (!((X) == (Y)))                                                  \
+            {                                                                   \
+                LOG(ecab::generateAssertionMessage(                             \
+                        (X), (Y), #X, #Y, " == ", __FILE__, __LINE__, __func__) \
+                    << "\n"                                                     \
+                    << MSG);                                                    \
+                exit(EXIT_FAILURE);                                             \
+            }                                                                   \
+        } while (0);                                                            \
     }
 
-#define CHECK_GREATER_EQUAL_2(X, Y)                                                          \
-    {                                                                                        \
-        do                                                                                   \
-        {                                                                                    \
-            if (!((X) >= (Y)))                                                               \
-            {                                                                                \
-                LOG(ecab::generateAssertionMessage((X), (Y), #X, #Y, " >= ", __FILE__, \
-                                                         __LINE__, __func__));               \
-                exit(EXIT_FAILURE);                                                          \
-            }                                                                                \
-        } while (0);                                                                         \
+#define CHECK_NOT_EQUAL_2(X, Y)                                               \
+    {                                                                         \
+        do                                                                    \
+        {                                                                     \
+            if (!((X) != (Y)))                                                \
+            {                                                                 \
+                LOG(ecab::generateAssertionMessage(                           \
+                    (X), (Y), #X, #Y, " != ", __FILE__, __LINE__, __func__)); \
+                exit(EXIT_FAILURE);                                           \
+            }                                                                 \
+        } while (0);                                                          \
     }
-#define CHECK_GREATER_EQUAL_3(X, Y, MSG)                                                     \
-    {                                                                                        \
-        do                                                                                   \
-        {                                                                                    \
-            if (!((X) >= (Y)))                                                               \
-            {                                                                                \
-                LOG(ecab::generateAssertionMessage((X), (Y), #X, #Y, " >= ", __FILE__, \
-                                                         __LINE__, __func__)                 \
-                    << "\n"                                                                  \
-                    << MSG);                                                                 \
-                exit(EXIT_FAILURE);                                                          \
-            }                                                                                \
-        } while (0);                                                                         \
+#define CHECK_NOT_EQUAL_3(X, Y, MSG)                                            \
+    {                                                                           \
+        do                                                                      \
+        {                                                                       \
+            if (!((X) != (Y)))                                                  \
+            {                                                                   \
+                LOG(ecab::generateAssertionMessage(                             \
+                        (X), (Y), #X, #Y, " != ", __FILE__, __LINE__, __func__) \
+                    << "\n"                                                     \
+                    << MSG);                                                    \
+                exit(EXIT_FAILURE);                                             \
+            }                                                                   \
+        } while (0);                                                            \
     }
 
-#define CHECK_LESS_EQUAL_2(X, Y)                                                             \
-    {                                                                                        \
-        do                                                                                   \
-        {                                                                                    \
-            if (!((X) <= (Y)))                                                               \
-            {                                                                                \
-                LOG(ecab::generateAssertionMessage((X), (Y), #X, #Y, " <= ", __FILE__, \
-                                                         __LINE__, __func__));               \
-                exit(EXIT_FAILURE);                                                          \
-            }                                                                                \
-        } while (0);                                                                         \
+#define CHECK_GREATER_2(X, Y)                                                \
+    {                                                                        \
+        do                                                                   \
+        {                                                                    \
+            if (!((X) > (Y)))                                                \
+            {                                                                \
+                LOG(ecab::generateAssertionMessage(                          \
+                    (X), (Y), #X, #Y, " > ", __FILE__, __LINE__, __func__)); \
+                exit(EXIT_FAILURE);                                          \
+            }                                                                \
+        } while (0);                                                         \
     }
-#define CHECK_LESS_EQUAL_3(X, Y, MSG)                                                        \
-    {                                                                                        \
-        do                                                                                   \
-        {                                                                                    \
-            if (!((X) <= (Y)))                                                               \
-            {                                                                                \
-                LOG(ecab::generateAssertionMessage((X), (Y), #X, #Y, " <= ", __FILE__, \
-                                                         __LINE__, __func__)                 \
-                    << "\n"                                                                  \
-                    << MSG);                                                                 \
-                exit(EXIT_FAILURE);                                                          \
-            }                                                                                \
-        } while (0);                                                                         \
+#define CHECK_GREATER_3(X, Y, MSG)                                             \
+    {                                                                          \
+        do                                                                     \
+        {                                                                      \
+            if (!((X) > (Y)))                                                  \
+            {                                                                  \
+                LOG(ecab::generateAssertionMessage(                            \
+                        (X), (Y), #X, #Y, " > ", __FILE__, __LINE__, __func__) \
+                    << "\n"                                                    \
+                    << MSG);                                                   \
+                exit(EXIT_FAILURE);                                            \
+            }                                                                  \
+        } while (0);                                                           \
+    }
+
+#define CHECK_LESS_2(X, Y)                                                   \
+    {                                                                        \
+        do                                                                   \
+        {                                                                    \
+            if (!((X) < (Y)))                                                \
+            {                                                                \
+                LOG(ecab::generateAssertionMessage(                          \
+                    (X), (Y), #X, #Y, " < ", __FILE__, __LINE__, __func__)); \
+                exit(EXIT_FAILURE);                                          \
+            }                                                                \
+        } while (0);                                                         \
+    }
+#define CHECK_LESS_3(X, Y, MSG)                                                \
+    {                                                                          \
+        do                                                                     \
+        {                                                                      \
+            if (!((X) < (Y)))                                                  \
+            {                                                                  \
+                LOG(ecab::generateAssertionMessage(                            \
+                        (X), (Y), #X, #Y, " < ", __FILE__, __LINE__, __func__) \
+                    << "\n"                                                    \
+                    << MSG);                                                   \
+                exit(EXIT_FAILURE);                                            \
+            }                                                                  \
+        } while (0);                                                           \
+    }
+
+#define CHECK_GREATER_EQUAL_2(X, Y)                                           \
+    {                                                                         \
+        do                                                                    \
+        {                                                                     \
+            if (!((X) >= (Y)))                                                \
+            {                                                                 \
+                LOG(ecab::generateAssertionMessage(                           \
+                    (X), (Y), #X, #Y, " >= ", __FILE__, __LINE__, __func__)); \
+                exit(EXIT_FAILURE);                                           \
+            }                                                                 \
+        } while (0);                                                          \
+    }
+#define CHECK_GREATER_EQUAL_3(X, Y, MSG)                                        \
+    {                                                                           \
+        do                                                                      \
+        {                                                                       \
+            if (!((X) >= (Y)))                                                  \
+            {                                                                   \
+                LOG(ecab::generateAssertionMessage(                             \
+                        (X), (Y), #X, #Y, " >= ", __FILE__, __LINE__, __func__) \
+                    << "\n"                                                     \
+                    << MSG);                                                    \
+                exit(EXIT_FAILURE);                                             \
+            }                                                                   \
+        } while (0);                                                            \
+    }
+
+#define CHECK_LESS_EQUAL_2(X, Y)                                              \
+    {                                                                         \
+        do                                                                    \
+        {                                                                     \
+            if (!((X) <= (Y)))                                                \
+            {                                                                 \
+                LOG(ecab::generateAssertionMessage(                           \
+                    (X), (Y), #X, #Y, " <= ", __FILE__, __LINE__, __func__)); \
+                exit(EXIT_FAILURE);                                           \
+            }                                                                 \
+        } while (0);                                                          \
+    }
+#define CHECK_LESS_EQUAL_3(X, Y, MSG)                                           \
+    {                                                                           \
+        do                                                                      \
+        {                                                                       \
+            if (!((X) <= (Y)))                                                  \
+            {                                                                   \
+                LOG(ecab::generateAssertionMessage(                             \
+                        (X), (Y), #X, #Y, " <= ", __FILE__, __LINE__, __func__) \
+                    << "\n"                                                     \
+                    << MSG);                                                    \
+                exit(EXIT_FAILURE);                                             \
+            }                                                                   \
+        } while (0);                                                            \
     }
 
 #define CHECK_TRUE(...) MACRO_OVERLOAD(CHECK_TRUE_, __VA_ARGS__) void(0)
@@ -551,4 +547,4 @@ std::string generateAssertionMessage(const T& lhs,
 #define ASSERT_GREATEREQUAL(...) MACRO_OVERLOAD(ASSERT_GREATER_EQUAL_, __VA_ARGS__) void(0)
 #define ASSERT_LESSEQUAL(...) MACRO_OVERLOAD(ASSERT_LESS_EQUAL_, __VA_ARGS__) void(0)
 
-}
+}  // namespace ecab

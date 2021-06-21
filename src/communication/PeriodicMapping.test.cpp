@@ -47,19 +47,20 @@ INSTANTIATE_TEST_SUITE_P(Inside,
 INSTANTIATE_TEST_SUITE_P(MappingX,
                          PeriodicMappingTest,
                          testing::Values(TestData{{1.1_r, 0.5_r, 0.6_r}, {0.1_r, 0.5_r, 0.6_r}},
-                         TestData{{-0.1_r, 0.5_r, 0.6_r}, {0.9_r, 0.5_r, 0.6_r}}));
+                                         TestData{{-0.1_r, 0.5_r, 0.6_r}, {0.9_r, 0.5_r, 0.6_r}}));
 
 INSTANTIATE_TEST_SUITE_P(MappingY,
                          PeriodicMappingTest,
                          testing::Values(TestData{{0.4_r, 1.1_r, 0.6_r}, {0.4_r, 0.1_r, 0.6_r}},
-                         TestData{{0.4_r, -0.1_r, 0.6_r}, {0.4_r, 0.9_r, 0.6_r}}));
+                                         TestData{{0.4_r, -0.1_r, 0.6_r}, {0.4_r, 0.9_r, 0.6_r}}));
 
 INSTANTIATE_TEST_SUITE_P(MappingZ,
                          PeriodicMappingTest,
                          testing::Values(TestData{{0.4_r, 0.5_r, 1.1_r}, {0.4_r, 0.5_r, 0.1_r}},
-                         TestData{{0.4_r, 0.5_r, -0.1_r}, {0.4_r, 0.5_r, 0.9_r}}));
+                                         TestData{{0.4_r, 0.5_r, -0.1_r}, {0.4_r, 0.5_r, 0.9_r}}));
 
 INSTANTIATE_TEST_SUITE_P(MappingXYZ,
                          PeriodicMappingTest,
                          testing::Values(TestData{{1.1_r, 1.2_r, 1.3_r}, {0.1_r, 0.2_r, 0.3_r}},
-                         TestData{{-0.3_r, -0.2_r, -0.1_r}, {0.7_r, 0.8_r, 0.9_r}}));
+                                         TestData{{-0.3_r, -0.2_r, -0.1_r},
+                                                  {0.7_r, 0.8_r, 0.9_r}}));

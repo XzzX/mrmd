@@ -54,7 +54,8 @@ public:
         vel_ = particles.getVel();
         force_ = particles.getForce();
 
-        Kokkos::parallel_for("preForceIntegrate", PreForcePolicy(0, particles.numLocalParticles), *this);
+        Kokkos::parallel_for(
+            "preForceIntegrate", PreForcePolicy(0, particles.numLocalParticles), *this);
     }
     void postForceIntegrate(Particles& particles)
     {
@@ -62,6 +63,7 @@ public:
         vel_ = particles.getVel();
         force_ = particles.getForce();
 
-        Kokkos::parallel_for("postForceIntegrate", PostForcePolicy(0, particles.numLocalParticles), *this);
+        Kokkos::parallel_for(
+            "postForceIntegrate", PostForcePolicy(0, particles.numLocalParticles), *this);
     }
 };

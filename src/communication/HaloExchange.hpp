@@ -1,9 +1,8 @@
 #pragma once
 
+#include "checks.hpp"
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
-
-#include "checks.hpp"
 
 class HaloExchange
 {
