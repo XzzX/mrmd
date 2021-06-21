@@ -2,6 +2,7 @@
 
 #include "data/Particles.hpp"
 
+inline
 real_t getTemperature(Particles& particles)
 {
     auto vel = particles.getVel();

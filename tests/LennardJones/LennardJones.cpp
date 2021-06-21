@@ -1,4 +1,4 @@
-#include "LennardJones.hpp"
+#include "action/LennardJones.hpp"
 
 #include <gtest/gtest.h>
 
@@ -6,9 +6,9 @@
 #include <fstream>
 
 #include "Cabana_NeighborList.hpp"
-#include "HaloExchange.hpp"
-#include "Integrator.hpp"
-#include "Subdomain.hpp"
+#include "communication/HaloExchange.hpp"
+#include "action/Integrator.hpp"
+#include "data/Subdomain.hpp"
 
 /// reference values from espressopp simulation
 /// number of real particles

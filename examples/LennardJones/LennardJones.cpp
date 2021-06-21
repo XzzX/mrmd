@@ -48,7 +48,8 @@ void LJ()
     constexpr double skin = 0.3;
     constexpr double dt = 0.005;
 
-    auto subdomain = Subdomain({0_r, 0_r, 0_r}, {33.8585, 33.8585, 33.8585}, 2_r * (rc + skin));
+    constexpr real_t Lx = 33.8585;
+    auto subdomain = Subdomain({0_r, 0_r, 0_r}, {Lx, Lx, Lx}, 2_r * (rc + skin));
     Kokkos::Timer timer;
     auto particles = loadParticles("positions.txt");
     CHECK_EQUAL(particles.numLocalParticles, 32768);
@@ -66,6 +67,10 @@ void LJ()
         auto ghost = particles.getGhost();
         Cabana::deep_copy(ghost, idx_c(-1));
 
+        Integrator integrator(dt);
+        integrator.preForceIntegrate(particles);
+        Kokkos::fence();
+
         Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
                              PeriodicMapping(particles, subdomain));
 
@@ -79,7 +84,7 @@ void LJ()
         Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagZ>(
                                  0, particles.numLocalParticles + particles.numGhostParticles),
                              haloExchange);
-        //        particles.resize(particles.numLocalParticles + particles.numGhostParticles);
+        particles.resize(particles.numLocalParticles + particles.numGhostParticles);
 
         ListType verlet_list(particles.getPos(),
                              0,
@@ -89,12 +94,9 @@ void LJ()
                              subdomain.minGhostCorner.data(),
                              subdomain.maxGhostCorner.data());
 
-        Integrator integrator(dt);
-        integrator.preForceIntegrate(particles);
-        Kokkos::fence();
-
         auto force = particles.getForce();
         Cabana::deep_copy(force, 0_r);
+        
         Cabana::neighbor_parallel_for(
             Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
             LennardJones(particles, rc, 1_r, 1_r),
@@ -134,7 +136,9 @@ void LJ()
             std::cout << "T : " << std::setw(10) << T << " | ";
             std::cout << "Ek: " << std::setw(10) << Ek << " | ";
             std::cout << "E0: " << std::setw(10) << E0 << " | ";
-            std::cout << "E : " << std::setw(10) << E0 + Ek << std::endl;
+            std::cout << "E : " << std::setw(10) << E0 + Ek << " | ";
+            std::cout << "Nlocal : " << std::setw(10) << particles.numLocalParticles << " | ";
+            std::cout << "Nghost : " << std::setw(10) << particles.numGhostParticles << std::endl;
         }
     }
 }
