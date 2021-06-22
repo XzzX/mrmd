@@ -23,6 +23,9 @@ constexpr real_t ESPP_INITIAL_ENERGY = -94795.927_r;
 Particles loadParticles(const std::string& filename)
 {
     Particles p;
+    auto d_AoSoA = p.getAoSoA();
+    auto h_AoSoA = Cabana::create_mirror_view(Kokkos::HostSpace(), d_AoSoA);
+    auto h_pos = Cabana::slice<Particles::POS>(h_AoSoA);
 
     std::ifstream fin(filename);
 
@@ -32,16 +35,17 @@ Particles loadParticles(const std::string& filename)
         double x, y, z;
         fin >> x >> y >> z;
         if (fin.eof()) break;
-        p.getPos(idx, 0) = x;
-        p.getPos(idx, 1) = y;
-        p.getPos(idx, 2) = z;
+        h_pos(idx, 0) = x;
+        h_pos(idx, 1) = y;
+        h_pos(idx, 2) = z;
         ++idx;
     }
 
     fin.close();
 
-    auto ghost = p.getGhost();
-    Cabana::deep_copy(ghost, -1);
+
+    Cabana::deep_copy(d_AoSoA, h_AoSoA);
+
     p.numLocalParticles = idx;
 
     return p;

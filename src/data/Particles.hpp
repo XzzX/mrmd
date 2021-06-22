@@ -27,10 +27,6 @@ public:
     using ghost_t = typename ParticlesT::template member_slice_type<GHOST>;
 
     pos_t getPos() { return Cabana::slice<POS>(particles_); }
-    real_t& getPos(const idx_t idx, const int dim)
-    {
-        return Cabana::slice<POS>(particles_)(idx, dim);
-    }
     vel_t getVel() { return Cabana::slice<VEL>(particles_); }
     force_t getForce() { return Cabana::slice<FORCE>(particles_); }
     ghost_t getGhost() { return Cabana::slice<GHOST>(particles_); }
@@ -48,6 +44,8 @@ public:
         numGhostParticles = 0;
         resize(numLocalParticles + numGhostParticles);
     }
+
+    auto getAoSoA() { return particles_; }
 
     idx_t numLocalParticles = 0;
     idx_t numGhostParticles = 0;

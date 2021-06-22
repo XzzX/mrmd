@@ -29,15 +29,16 @@ TEST_P(PeriodicMappingTest, Check)
 {
     Subdomain subdomain = Subdomain({0_r, 0_r, 0_r}, {1_r, 1_r, 1_r}, 0_r);
     Particles particles;
+    auto pos = particles.getPos();
     particles.numLocalParticles = 1;
-    particles.getPos(0, 0) = GetParam().initialPos[0];
-    particles.getPos(0, 1) = GetParam().initialPos[1];
-    particles.getPos(0, 2) = GetParam().initialPos[2];
+    pos(0, 0) = GetParam().initialPos[0];
+    pos(0, 1) = GetParam().initialPos[1];
+    pos(0, 2) = GetParam().initialPos[2];
     PeriodicMapping periodicMapping(subdomain);
     periodicMapping.mapIntoDomain(particles);
-    EXPECT_FLOAT_EQ(particles.getPos(0, 0), GetParam().mappedPos[0]);
-    EXPECT_FLOAT_EQ(particles.getPos(0, 1), GetParam().mappedPos[1]);
-    EXPECT_FLOAT_EQ(particles.getPos(0, 2), GetParam().mappedPos[2]);
+    EXPECT_FLOAT_EQ(pos(0, 0), GetParam().mappedPos[0]);
+    EXPECT_FLOAT_EQ(pos(0, 1), GetParam().mappedPos[1]);
+    EXPECT_FLOAT_EQ(pos(0, 2), GetParam().mappedPos[2]);
 }
 
 INSTANTIATE_TEST_SUITE_P(Inside,

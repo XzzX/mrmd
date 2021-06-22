@@ -46,15 +46,16 @@ class HaloExchangeTest : public ::testing::Test
 protected:
     void SetUp() override
     {
+        auto pos = particles.getPos();
         int64_t idx = 0;
         for (real_t x = subdomain.minCorner[0] + 0.5_r; x < subdomain.maxCorner[0]; x += 1_r)
             for (real_t y = subdomain.minCorner[1] + 0.5_r; y < subdomain.maxCorner[1]; y += 1_r)
                 for (real_t z = subdomain.minCorner[2] + 0.5_r; z < subdomain.maxCorner[2];
                      z += 1_r)
                 {
-                    particles.getPos(idx, 0) = x;
-                    particles.getPos(idx, 1) = y;
-                    particles.getPos(idx, 2) = z;
+                    pos(idx, 0) = x;
+                    pos(idx, 1) = y;
+                    pos(idx, 2) = z;
                     ++idx;
                 }
         EXPECT_EQ(idx, 27);
