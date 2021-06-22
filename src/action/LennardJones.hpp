@@ -66,13 +66,12 @@ public:
         pos_ = particles.getPos();
         force_ = particles.getForce();
 
-        Cabana::neighbor_parallel_for(
-            Kokkos::RangePolicy<>(0, particles.numLocalParticles),
-            *this,
-            verletList,
-            Cabana::FirstNeighborsTag(),
-            Cabana::TeamOpTag(),
-            "LennardJonesForce");
+        Cabana::neighbor_parallel_for(Kokkos::RangePolicy<>(0, particles.numLocalParticles),
+                                      *this,
+                                      verletList,
+                                      Cabana::FirstNeighborsTag(),
+                                      Cabana::TeamOpTag(),
+                                      "LennardJonesForce");
     }
 
     template <typename VERLET_LIST>
@@ -81,14 +80,13 @@ public:
         pos_ = particles.getPos();
 
         real_t E0 = 0_r;
-        Cabana::neighbor_parallel_reduce(
-            Kokkos::RangePolicy<>(0, particles.numLocalParticles),
-            *this,
-            verletList,
-            Cabana::FirstNeighborsTag(),
-            Cabana::TeamOpTag(),
-            E0,
-            "LennardJonesEnergy");
+        Cabana::neighbor_parallel_reduce(Kokkos::RangePolicy<>(0, particles.numLocalParticles),
+                                         *this,
+                                         verletList,
+                                         Cabana::FirstNeighborsTag(),
+                                         Cabana::TeamOpTag(),
+                                         E0,
+                                         "LennardJonesEnergy");
 
         return E0;
     }
