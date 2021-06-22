@@ -18,7 +18,8 @@
 Particles loadParticles(const std::string& filename)
 {
     Particles p;
-    auto pos = p.getPos();
+    auto d_pos = p.getPos();
+    auto h_pos = Cabana::create_mirror_view(Kokkos::HostSpace(), d_pos);
 
     std::ifstream fin(filename);
 
@@ -28,13 +29,16 @@ Particles loadParticles(const std::string& filename)
         double x, y, z;
         fin >> x >> y >> z;
         if (fin.eof()) break;
-        pos(idx, 0) = x;
-        pos(idx, 1) = y;
-        pos(idx, 2) = z;
+        h_pos(idx, 0) = x;
+        h_pos(idx, 1) = y;
+        h_pos(idx, 2) = z;
         ++idx;
     }
 
     fin.close();
+
+
+    Cabana::deep_copy(d_pos, h_pos);
 
     p.numLocalParticles = idx;
 
@@ -103,7 +107,7 @@ void LJ()
 
         if (i % 100 == 0)
         {
-            dumpCSV("particles_" + std::to_string(i) + ".csv", particles);
+            //dumpCSV("particles_" + std::to_string(i) + ".csv", particles);
 
             auto E0 = LJ.computeEnergy(particles, verlet_list);
 

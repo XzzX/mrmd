@@ -6,8 +6,8 @@
 #include <fstream>
 
 #include "Cabana_NeighborList.hpp"
+#include "action/VelocityVerlet.hpp"
 #include "communication/HaloExchange.hpp"
-#include "action/Integrator.hpp"
 #include "data/Subdomain.hpp"
 
 /// reference values from espressopp simulation
@@ -57,7 +57,7 @@ size_t countWithinCutoff(Particles& particles,
 
     size_t count = 0;
     Kokkos::parallel_reduce(
-        Kokkos::RangePolicy(0, particles.numLocalParticles),
+        Kokkos::RangePolicy<>(0, particles.numLocalParticles),
         KOKKOS_LAMBDA(const idx_t idx, size_t& sum)
         {
             for (auto jdx = idx + 1;
@@ -99,16 +99,8 @@ TEST(LennardJones, ESPPComparison)
     EXPECT_EQ(bfParticlePairs, ESPP_NEIGHBORS);
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
-    auto haloExchange = HaloExchange(particles, subdomain);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagX>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagY>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagZ>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
+    auto haloExchange = HaloExchange(subdomain);
+    haloExchange.createGhostsXYZ(particles);
     Kokkos::fence();
     EXPECT_EQ(particles.numLocalParticles, ESPP_REAL);
     EXPECT_EQ(particles.numGhostParticles, ESPP_GHOST);
@@ -139,30 +131,17 @@ TEST(LennardJones, ESPPComparison)
     EXPECT_EQ(vlParticlePairs, ESPP_NEIGHBORS);
     std::cout << "create verlet list: " << timer.seconds() << std::endl;
 
-    real_t totalEnergy = 0_r;
-    Cabana::neighbor_parallel_reduce(
-        Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
-        LennardJonesEnergy(particles, rc, 1_r, 1_r),
-        verlet_list,
-        Cabana::FirstNeighborsTag(),
-        Cabana::SerialOpTag(),
-        totalEnergy,
-        "LennardJonesEnergy");
+    LennardJones LJ(rc, 1_r, 1_r);
+    real_t totalEnergy = LJ.computeEnergy(particles, verlet_list);
     EXPECT_FLOAT_EQ(totalEnergy, ESPP_INITIAL_ENERGY);
     std::cout << "starting energy: " << totalEnergy << std::endl;
 
-    Integrator integrator(dt);
+    VelocityVerlet integrator(dt);
     integrator.preForceIntegrate(particles);
     Kokkos::fence();
     std::cout << "pre force integrate: " << timer.seconds() << std::endl;
 
-    Cabana::neighbor_parallel_for(
-        Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
-        LennardJones(particles, rc, 1_r, 1_r),
-        verlet_list,
-        Cabana::FirstNeighborsTag(),
-        Cabana::SerialOpTag(),
-        "LennardJones");
+    LJ.applyForces(particles, verlet_list);
     Kokkos::fence();
     std::cout << "lennard jones: " << timer.seconds() << std::endl;
 
