@@ -18,7 +18,7 @@ public:
         GHOST = 3
     };
     using DeviceType = Kokkos::Device<Kokkos::Serial, Kokkos::HostSpace>;
-    using DataTypes = Cabana::MemberTypes<double[dim], double[dim], double[dim], idx_t>;
+    using DataTypes = Cabana::MemberTypes<real_t[dim], real_t[dim], real_t[dim], idx_t>;
     using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VectorLength>;
 
     using pos_t = typename ParticlesT::template member_slice_type<POS>;
