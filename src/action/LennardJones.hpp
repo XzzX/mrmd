@@ -67,11 +67,11 @@ public:
         force_ = particles.getForce();
 
         Cabana::neighbor_parallel_for(
-            Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
+            Kokkos::RangePolicy<>(0, particles.numLocalParticles),
             *this,
             verletList,
             Cabana::FirstNeighborsTag(),
-            Cabana::SerialOpTag(),
+            Cabana::TeamOpTag(),
             "LennardJonesForce");
     }
 
@@ -82,11 +82,11 @@ public:
 
         real_t E0 = 0_r;
         Cabana::neighbor_parallel_reduce(
-            Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
+            Kokkos::RangePolicy<>(0, particles.numLocalParticles),
             *this,
             verletList,
             Cabana::FirstNeighborsTag(),
-            Cabana::SerialOpTag(),
+            Cabana::TeamOpTag(),
             E0,
             "LennardJonesEnergy");
 
