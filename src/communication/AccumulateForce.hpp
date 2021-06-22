@@ -21,7 +21,7 @@ public:
 
             auto realIdx = ghost(idx);
             ASSERT_EQUAL(ghost(realIdx), -1, "We do not want to add forces to ghost particles!");
-            for (auto dim = 0; dim < Particles::dim; ++dim)
+            for (auto dim = 0; dim < Particles::DIMENSIONS; ++dim)
             {
                 force(realIdx, dim) += force(idx, dim);
                 force(idx, dim) = 0_r;

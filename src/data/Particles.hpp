@@ -7,8 +7,9 @@
 class Particles
 {
 public:
-    constexpr static int dim = 3;
-    constexpr static int VectorLength = 8;
+    ///number of spatial dimensions
+    constexpr static int DIMENSIONS = 3;
+    constexpr static int VECTOR_LENGTH = 8;
 
     enum Props
     {
@@ -17,9 +18,9 @@ public:
         FORCE = 2,
         GHOST = 3
     };
-    using DeviceType = Kokkos::Device<Kokkos::Serial, Kokkos::HostSpace>;
-    using DataTypes = Cabana::MemberTypes<real_t[dim], real_t[dim], real_t[dim], idx_t>;
-    using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VectorLength>;
+    using DeviceType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace, Kokkos::HostSpace>;
+    using DataTypes = Cabana::MemberTypes<real_t[DIMENSIONS], real_t[DIMENSIONS], real_t[DIMENSIONS], idx_t>;
+    using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VECTOR_LENGTH>;
 
     using pos_t = typename ParticlesT::template member_slice_type<POS>;
     using vel_t = typename ParticlesT::template member_slice_type<VEL>;

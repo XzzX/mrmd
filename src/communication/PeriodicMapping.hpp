@@ -16,7 +16,7 @@ public:
         auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
         auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
         {
-            for (auto dim = 0; dim < Particles::dim; ++dim)
+            for (auto dim = 0; dim < Particles::DIMENSIONS; ++dim)
             {
                 auto& x = pos(idx, dim);
                 if (x > subdomain_.maxCorner[dim]) x -= subdomain_.diameter[dim];
