@@ -33,8 +33,8 @@ TEST_P(PeriodicMappingTest, Check)
     particles.getPos(0, 0) = GetParam().initialPos[0];
     particles.getPos(0, 1) = GetParam().initialPos[1];
     particles.getPos(0, 2) = GetParam().initialPos[2];
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
-                         PeriodicMapping(particles, subdomain));
+    PeriodicMapping periodicMapping(subdomain);
+    periodicMapping.mapIntoDomain(particles);
     EXPECT_FLOAT_EQ(particles.getPos(0, 0), GetParam().mappedPos[0]);
     EXPECT_FLOAT_EQ(particles.getPos(0, 1), GetParam().mappedPos[1]);
     EXPECT_FLOAT_EQ(particles.getPos(0, 2), GetParam().mappedPos[2]);
