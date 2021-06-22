@@ -43,6 +43,12 @@ public:
 
     void copy(const idx_t src, const idx_t dst);
 
+    void removeGhostParticles()
+    {
+        numGhostParticles = 0;
+        resize(numLocalParticles + numGhostParticles);
+    }
+
     idx_t numLocalParticles = 0;
     idx_t numGhostParticles = 0;
 

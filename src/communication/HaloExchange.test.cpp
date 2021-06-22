@@ -72,8 +72,9 @@ protected:
 
 TEST_F(HaloExchangeTest, SelfExchangeX)
 {
-    auto haloExchange = HaloExchange(particles, subdomain);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagX>(
+    EXPECT_EQ(particles.numGhostParticles, 0);
+    auto haloExchange = impl::HaloExchange(subdomain, particles);
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, impl::HaloExchange::TagX>(
                              0, particles.numLocalParticles + particles.numGhostParticles),
                          haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 18);
@@ -92,8 +93,8 @@ TEST_F(HaloExchangeTest, SelfExchangeX)
 
 TEST_F(HaloExchangeTest, SelfExchangeY)
 {
-    auto haloExchange = HaloExchange(particles, subdomain);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagY>(
+    auto haloExchange = impl::HaloExchange(subdomain, particles);
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, impl::HaloExchange::TagY>(
                              0, particles.numLocalParticles + particles.numGhostParticles),
                          haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 18);
@@ -112,8 +113,8 @@ TEST_F(HaloExchangeTest, SelfExchangeY)
 
 TEST_F(HaloExchangeTest, SelfExchangeZ)
 {
-    auto haloExchange = HaloExchange(particles, subdomain);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagZ>(
+    auto haloExchange = impl::HaloExchange(subdomain, particles);
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, impl::HaloExchange::TagZ>(
                              0, particles.numLocalParticles + particles.numGhostParticles),
                          haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 18);
@@ -132,16 +133,16 @@ TEST_F(HaloExchangeTest, SelfExchangeZ)
 
 TEST_F(HaloExchangeTest, SelfExchangeXYZ)
 {
-    auto haloExchange = HaloExchange(particles, subdomain);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagX>(
+    auto haloExchange = impl::HaloExchange(subdomain, particles);
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, impl::HaloExchange::TagX>(
                              0, particles.numLocalParticles + particles.numGhostParticles),
                          haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 18);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagY>(
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, impl::HaloExchange::TagY>(
                              0, particles.numLocalParticles + particles.numGhostParticles),
                          haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 48);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagZ>(
+    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, impl::HaloExchange::TagZ>(
                              0, particles.numLocalParticles + particles.numGhostParticles),
                          haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 98);
@@ -167,18 +168,8 @@ TEST_F(HaloExchangeTest, CountPairs)
     numPairs = countWithinCutoff(particles, 1.1_r, subdomain.diameter.data(), true);
     EXPECT_EQ(numPairs, 27 * 6 / 2);
 
-    auto haloExchange = HaloExchange(particles, subdomain);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagX>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
-    EXPECT_EQ(particles.numGhostParticles, 18);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagY>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
-    EXPECT_EQ(particles.numGhostParticles, 48);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagZ>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
+    auto haloExchange = HaloExchange(subdomain);
+    haloExchange.createGhostsXYZ(particles);
     EXPECT_EQ(particles.numGhostParticles, 98);
 
     numPairs = countWithinCutoff(particles, 1.1_r, subdomain.diameter.data(), false);

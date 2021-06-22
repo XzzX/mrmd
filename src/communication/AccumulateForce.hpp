@@ -1,28 +1,33 @@
 #pragma once
 
+#include <Kokkos_Core.hpp>
+
 #include "data/Particles.hpp"
-#include "data/Subdomain.hpp"
 
 class AccumulateForce
 {
-private:
-    Particles& particles_;
-
 public:
-    KOKKOS_INLINE_FUNCTION
-    void operator()(const idx_t& idx) const
+    void ghostToReal(Particles& particles)
     {
-        if (particles_.getGhost()(idx) == -1) return;
+        Particles::force_t::atomic_access_slice force = particles.getForce();
+        auto ghost = particles.getGhost();
 
-        auto realIdx = particles_.getGhost()(idx);
-        ASSERT_EQUAL(
-            particles_.getGhost()(realIdx), -1, "We do not want to add forces to ghost particles!");
-        for (auto dim = 0; dim < Particles::dim; ++dim)
+        auto policy = Kokkos::RangePolicy<>(
+            particles.numLocalParticles, particles.numLocalParticles + particles.numGhostParticles);
+
+        auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
         {
-            particles_.getForce()(realIdx, dim) += particles_.getForce()(idx, dim);
-            particles_.getForce()(idx, dim) = 0_r;
-        }
-    }
+            if (ghost(idx) == -1) return;
 
-    AccumulateForce(Particles& particles) : particles_(particles) {}
+            auto realIdx = ghost(idx);
+            ASSERT_EQUAL(ghost(realIdx), -1, "We do not want to add forces to ghost particles!");
+            for (auto dim = 0; dim < Particles::dim; ++dim)
+            {
+                force(realIdx, dim) += force(idx, dim);
+                force(idx, dim) = 0_r;
+            }
+        };
+
+        Kokkos::parallel_for(policy, kernel);
+    }
 };

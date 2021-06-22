@@ -43,13 +43,13 @@ Particles loadParticles(const std::string& filename)
 
 void LJ()
 {
-    constexpr double nsteps = 2001;
-    constexpr double rc = 2.5;
-    constexpr double skin = 0.3;
-    constexpr double dt = 0.005;
+    constexpr idx_t nsteps = 2001;
+    constexpr real_t rc = 2.5;
+    constexpr real_t skin = 0.3;
+    constexpr real_t dt = 0.005;
 
     constexpr real_t Lx = 33.8585;
-    auto subdomain = Subdomain({0_r, 0_r, 0_r}, {Lx, Lx, Lx}, 2_r * (rc + skin));
+    auto subdomain = Subdomain({0_r, 0_r, 0_r}, {Lx, Lx, Lx}, rc + skin);
     Kokkos::Timer timer;
     auto particles = loadParticles("positions.txt");
     CHECK_EQUAL(particles.numLocalParticles, 32768);
@@ -62,29 +62,23 @@ void LJ()
                                         Cabana::TeamOpTag>;
 
     VelocityVerlet integrator(dt);
+    PeriodicMapping periodicMapping(subdomain);
+    HaloExchange haloExchange(subdomain);
     LennardJones LJ(rc, 1_r, 1_r);
+    AccumulateForce accumulateForce;
     for (auto i = 0; i < nsteps; ++i)
     {
-        particles.numGhostParticles = 0;
+        particles.removeGhostParticles();
         auto ghost = particles.getGhost();
         Cabana::deep_copy(ghost, idx_c(-1));
 
         integrator.preForceIntegrate(particles);
         Kokkos::fence();
 
-        Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
-                             PeriodicMapping(particles, subdomain));
+        periodicMapping.mapIntoDomain(particles);
+        Kokkos::fence();
 
-        auto haloExchange = HaloExchange(particles, subdomain);
-        Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagX>(
-                                 0, particles.numLocalParticles + particles.numGhostParticles),
-                             haloExchange);
-        Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagY>(
-                                 0, particles.numLocalParticles + particles.numGhostParticles),
-                             haloExchange);
-        Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, HaloExchange::TagZ>(
-                                 0, particles.numLocalParticles + particles.numGhostParticles),
-                             haloExchange);
+        haloExchange.createGhostsXYZ(particles);
         particles.resize(particles.numLocalParticles + particles.numGhostParticles);
 
         ListType verlet_list(particles.getPos(),
@@ -101,10 +95,8 @@ void LJ()
         LJ.applyForces(particles, verlet_list);
         Kokkos::fence();
 
-        Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial>(
-                                 particles.numLocalParticles,
-                                 particles.numLocalParticles + particles.numGhostParticles),
-                             AccumulateForce(particles));
+        accumulateForce.ghostToReal(particles);
+        Kokkos::fence();
 
         integrator.postForceIntegrate(particles);
         Kokkos::fence();
@@ -112,12 +104,10 @@ void LJ()
         if (i % 100 == 0)
         {
             dumpCSV("particles_" + std::to_string(i) + ".csv", particles);
-            auto countPairs = KOKKOS_LAMBDA(const int i, const int j, idx_t& sum) { ++sum; };
 
-            idx_t numPairs = 0;
             auto E0 = LJ.computeEnergy(particles, verlet_list);
 
-            //        std::cout << i << ": " << timer.seconds() << "s" << std::endl;
+            std::cout << i << ": " << timer.seconds() << "s" << std::endl;
             auto T = getTemperature(particles);
             auto Ek = (3.0 / 2.0) * particles.numLocalParticles * T;
             std::cout << "T : " << std::setw(10) << T << " | ";
@@ -133,6 +123,8 @@ void LJ()
 int main(int argc, char* argv[])
 {
     Kokkos::ScopeGuard scope_guard(argc, argv);
+
+    std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
 
     LJ();
 
