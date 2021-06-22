@@ -26,16 +26,33 @@ public:
     using force_t = typename ParticlesT::template member_slice_type<FORCE>;
     using ghost_t = typename ParticlesT::template member_slice_type<GHOST>;
 
-    pos_t getPos() { return Cabana::slice<POS>(particles_); }
-    vel_t getVel() { return Cabana::slice<VEL>(particles_); }
-    force_t getForce() { return Cabana::slice<FORCE>(particles_); }
-    ghost_t getGhost() { return Cabana::slice<GHOST>(particles_); }
+    pos_t pos;
+    vel_t vel;
+    force_t force;
+    ghost_t ghost;
+
+    KOKKOS_INLINE_FUNCTION pos_t getPos() { return pos; }
+    KOKKOS_INLINE_FUNCTION vel_t getVel() { return vel; }
+    KOKKOS_INLINE_FUNCTION force_t getForce() { return force; }
+    KOKKOS_INLINE_FUNCTION ghost_t getGhost() { return ghost; }
+
+    void sliceAll()
+    {
+        pos = Cabana::slice<POS>(particles_);
+        vel = Cabana::slice<VEL>(particles_);
+        force = Cabana::slice<FORCE>(particles_);
+        ghost = Cabana::slice<GHOST>(particles_);
+    }
 
     auto size() const { return particles_.size(); }
     auto numSoA() const { return particles_.numSoA(); }
     auto arraySize(size_t s) const { return particles_.arraySize(s); }
 
-    void resize(size_t size) { particles_.resize(size); }
+    void resize(size_t size)
+    {
+        particles_.resize(size);
+        sliceAll();
+    }
 
     void copy(const idx_t src, const idx_t dst);
 
@@ -49,6 +66,8 @@ public:
 
     idx_t numLocalParticles = 0;
     idx_t numGhostParticles = 0;
+
+    Particles() { sliceAll(); }
 
 private:
     ParticlesT particles_ = ParticlesT("particles", 100000);
