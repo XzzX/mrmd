@@ -111,6 +111,7 @@ void LJ()
             auto E0 = LJ.computeEnergy(particles, verlet_list);
             auto T = getTemperature(particles);
             auto Ek = (3.0 / 2.0) * particles.numLocalParticles * T;
+            std::cout << i << ": " << timer.seconds() << std::endl;
             std::cout << "T : " << std::setw(10) << T << " | ";
             std::cout << "Ek: " << std::setw(10) << Ek << " | ";
             std::cout << "E0: " << std::setw(10) << E0 << " | ";
