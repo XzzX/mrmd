@@ -7,25 +7,28 @@
 class PeriodicMapping
 {
 private:
-    const Subdomain& subdomain_;
+    Particles::pos_t pos_;
+    const Subdomain subdomain_;
 
 public:
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const idx_t& idx) const
+    {
+        for (auto dim = 0; dim < Particles::DIMENSIONS; ++dim)
+        {
+            auto& x = pos_(idx, dim);
+            if (x > subdomain_.maxCorner[dim]) x -= subdomain_.diameter[dim];
+            if (x < subdomain_.minCorner[dim]) x += subdomain_.diameter[dim];
+            CHECK_LESS_EQUAL(x, subdomain_.maxCorner[dim]);
+            CHECK_GREATER_EQUAL(x, subdomain_.minCorner[dim]);
+        }
+    }
+
     void mapIntoDomain(Particles& particles)
     {
-        auto pos = particles.getPos();
+        pos_ = particles.getPos();
         auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
-        auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
-        {
-            for (auto dim = 0; dim < Particles::DIMENSIONS; ++dim)
-            {
-                auto& x = pos(idx, dim);
-                if (x > subdomain_.maxCorner[dim]) x -= subdomain_.diameter[dim];
-                if (x < subdomain_.minCorner[dim]) x += subdomain_.diameter[dim];
-                CHECK_LESS_EQUAL(x, subdomain_.maxCorner[dim]);
-                CHECK_GREATER_EQUAL(x, subdomain_.minCorner[dim]);
-            }
-        };
-        Kokkos::parallel_for(policy, kernel);
+        Kokkos::parallel_for(policy, *this);
     }
 
     PeriodicMapping(const Subdomain& subdomain) : subdomain_(subdomain) {}

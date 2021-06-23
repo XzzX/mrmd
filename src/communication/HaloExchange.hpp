@@ -10,7 +10,7 @@ class HaloExchange
 {
 private:
     Particles& particles_;
-    const Subdomain& subdomain_;
+    const Subdomain subdomain_;
 
     Particles::pos_t pos_;
     Particles::ghost_t ghost_;
@@ -79,7 +79,7 @@ public:
 class HaloExchange
 {
 private:
-    const Subdomain& subdomain_;
+    const Subdomain subdomain_;
 
 public:
     void createGhostsXYZ(Particles& particles)
