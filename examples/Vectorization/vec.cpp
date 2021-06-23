@@ -11,7 +11,7 @@ public:
     constexpr static idx_t dim = 3;
     constexpr static int VectorLength = 8;
 
-    using DeviceType = Kokkos::Device<Kokkos::Serial, Kokkos::HostSpace>;
+    using DeviceType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace, Kokkos::HostSpace>;
     using DataTypes = Cabana::MemberTypes<double[dim]>;
     using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VectorLength>;
 
