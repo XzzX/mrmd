@@ -16,13 +16,13 @@ private:
     Particles::ghost_t ghost_;
 
 public:
-    struct TagX
+    struct DIRECTION_X
     {
     };
-    struct TagY
+    struct DIRECTION_Y
     {
     };
-    struct TagZ
+    struct DIRECTION_Z
     {
     };
 
@@ -61,11 +61,19 @@ public:
     }
 
     KOKKOS_INLINE_FUNCTION
-    void operator()(TagX, const idx_t& idx) const { copySelf(idx, 0); }
+    void operator()(DIRECTION_X, const idx_t& idx) const { copySelf(idx, 0); }
     KOKKOS_INLINE_FUNCTION
-    void operator()(TagY, const idx_t& idx) const { copySelf(idx, 1); }
+    void operator()(DIRECTION_Y, const idx_t& idx) const { copySelf(idx, 1); }
     KOKKOS_INLINE_FUNCTION
-    void operator()(TagZ, const idx_t& idx) const { copySelf(idx, 2); }
+    void operator()(DIRECTION_Z, const idx_t& idx) const { copySelf(idx, 2); }
+
+    template <typename EXCHANGE_DIRECTION>
+    void exchangeGhosts()
+    {
+        auto policy = Kokkos::RangePolicy<EXCHANGE_DIRECTION>(
+            0, particles_.numLocalParticles + particles_.numGhostParticles);
+        Kokkos::parallel_for(policy, *this);
+    }
 
     HaloExchange(const Subdomain& subdomain, Particles& particles)
         : subdomain_(subdomain), particles_(particles)
@@ -82,23 +90,17 @@ private:
     const Subdomain subdomain_;
 
 public:
-    void createGhostsXYZ(Particles& particles)
+    void exchangeGhostsXYZ(Particles& particles)
     {
         impl::HaloExchange haloExchange(subdomain_, particles);
 
-        auto policyX = Kokkos::RangePolicy<impl::HaloExchange::TagX>(
-            0, particles.numLocalParticles + particles.numGhostParticles);
-        Kokkos::parallel_for(policyX, haloExchange);
+        haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_X>();
         Kokkos::fence();
 
-        auto policyY = Kokkos::RangePolicy<impl::HaloExchange::TagY>(
-            0, particles.numLocalParticles + particles.numGhostParticles);
-        Kokkos::parallel_for(policyY, haloExchange);
+        haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_Y>();
         Kokkos::fence();
 
-        auto policyZ = Kokkos::RangePolicy<impl::HaloExchange::TagZ>(
-            0, particles.numLocalParticles + particles.numGhostParticles);
-        Kokkos::parallel_for(policyZ, haloExchange);
+        haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_Z>();
         Kokkos::fence();
     }
 

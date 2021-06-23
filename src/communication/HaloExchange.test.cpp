@@ -16,7 +16,7 @@ size_t countWithinCutoff(Particles& particles,
 
     size_t count = 0;
     Kokkos::parallel_reduce(
-        Kokkos::RangePolicy<Kokkos::Serial>(0, particles.numLocalParticles),
+        Kokkos::RangePolicy<>(0, particles.numLocalParticles),
         KOKKOS_LAMBDA(const idx_t idx, size_t& sum)
         {
             for (auto jdx = idx + 1;
@@ -75,9 +75,7 @@ TEST_F(HaloExchangeTest, SelfExchangeX)
 {
     EXPECT_EQ(particles.numGhostParticles, 0);
     auto haloExchange = impl::HaloExchange(subdomain, particles);
-    auto policy = Kokkos::RangePolicy<impl::HaloExchange::TagX>(
-        0, particles.numLocalParticles + particles.numGhostParticles);
-    Kokkos::parallel_for(policy, haloExchange);
+    haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_X>();
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -95,9 +93,7 @@ TEST_F(HaloExchangeTest, SelfExchangeX)
 TEST_F(HaloExchangeTest, SelfExchangeY)
 {
     auto haloExchange = impl::HaloExchange(subdomain, particles);
-    auto policy = Kokkos::RangePolicy<impl::HaloExchange::TagY>(
-        0, particles.numLocalParticles + particles.numGhostParticles);
-    Kokkos::parallel_for(policy, haloExchange);
+    haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_Y>();
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -115,9 +111,7 @@ TEST_F(HaloExchangeTest, SelfExchangeY)
 TEST_F(HaloExchangeTest, SelfExchangeZ)
 {
     auto haloExchange = impl::HaloExchange(subdomain, particles);
-    auto policy = Kokkos::RangePolicy<impl::HaloExchange::TagZ>(
-        0, particles.numLocalParticles + particles.numGhostParticles);
-    Kokkos::parallel_for(policy, haloExchange);
+    haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_Z>();
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -135,17 +129,11 @@ TEST_F(HaloExchangeTest, SelfExchangeZ)
 TEST_F(HaloExchangeTest, SelfExchangeXYZ)
 {
     auto haloExchange = impl::HaloExchange(subdomain, particles);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, impl::HaloExchange::TagX>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
+    haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_X>();
     EXPECT_EQ(particles.numGhostParticles, 18);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, impl::HaloExchange::TagY>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
+    haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_Y>();
     EXPECT_EQ(particles.numGhostParticles, 48);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, impl::HaloExchange::TagZ>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
+    haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_Z>();
     EXPECT_EQ(particles.numGhostParticles, 98);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -170,7 +158,7 @@ TEST_F(HaloExchangeTest, CountPairs)
     EXPECT_EQ(numPairs, 27 * 6 / 2);
 
     auto haloExchange = HaloExchange(subdomain);
-    haloExchange.createGhostsXYZ(particles);
+    haloExchange.exchangeGhostsXYZ(particles);
     EXPECT_EQ(particles.numGhostParticles, 98);
 
     numPairs = countWithinCutoff(particles, 1.1_r, subdomain.diameter.data(), false);
