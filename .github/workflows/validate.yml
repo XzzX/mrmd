@@ -9,6 +9,7 @@ jobs:
       matrix:
         BUILD_TYPE: [Release, Debug]
         CONTAINER: [ 'gcc', 'clang', 'icx', 'icc' ]
+        BACKEND: [ 'Kokkos_ENABLE_SERIAL', 'Kokkos_ENABLE_OPENMP' ]
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
@@ -20,7 +21,7 @@ jobs:
 
       - name: kokkos
         run: |
-          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }}
+          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} -DKokkos_ENABLE_HWLOC=ON -D${{ matrix.BACKEND }}=ON
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
