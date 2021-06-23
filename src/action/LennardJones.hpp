@@ -17,12 +17,8 @@ private:
 
 public:
     KOKKOS_INLINE_FUNCTION
-    real_t computeForce(const real_t& dx, const real_t& dy, const real_t& dz) const
+    real_t computeForce_(const real_t& distSqr) const
     {
-        auto distSqr = dx * dx + dy * dy + dz * dz;
-
-        if (distSqr > rcSqr_) return 0_r;
-
         auto frac2 = 1.0 / distSqr;
         auto frac6 = frac2 * frac2 * frac2;
         return frac6 * (ff1_ * frac6 - ff2_) * std::sqrt(frac2);
@@ -34,7 +30,11 @@ public:
         auto dy = pos_(idx, 1) - pos_(jdx, 1);
         auto dz = pos_(idx, 2) - pos_(jdx, 2);
 
-        auto ffactor = computeForce(dx, dy, dz);
+        auto distSqr = dx * dx + dy * dy + dz * dz;
+
+        if (distSqr > rcSqr_) return;
+
+        auto ffactor = computeForce_(distSqr);
 
         force_(idx, 0) += dx * ffactor;
         force_(idx, 1) += dy * ffactor;
@@ -46,6 +46,13 @@ public:
     }
 
     KOKKOS_INLINE_FUNCTION
+    real_t computeEnergy_(const real_t& distSqr) const
+    {
+        real_t frac2 = sig2_ / distSqr;
+        real_t frac6 = frac2 * frac2 * frac2;
+        return 4.0 * epsilon_ * (frac6 * frac6 - frac6);
+    }
+    KOKKOS_INLINE_FUNCTION
     void operator()(const idx_t& idx, const idx_t& jdx, real_t& energy) const
     {
         auto dx = pos_(idx, 0) - pos_(jdx, 0);
@@ -55,9 +62,7 @@ public:
 
         if (distSqr > rcSqr_) return;
 
-        real_t frac2 = sig2_ / distSqr;
-        real_t frac6 = frac2 * frac2 * frac2;
-        energy += 4.0 * epsilon_ * (frac6 * frac6 - frac6);
+        energy += computeEnergy_(distSqr);
     }
 
     template <typename VERLET_LIST>
