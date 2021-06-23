@@ -75,9 +75,9 @@ TEST_F(HaloExchangeTest, SelfExchangeX)
 {
     EXPECT_EQ(particles.numGhostParticles, 0);
     auto haloExchange = impl::HaloExchange(subdomain, particles);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, impl::HaloExchange::TagX>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
+    auto policy = Kokkos::RangePolicy<impl::HaloExchange::TagX>(
+        0, particles.numLocalParticles + particles.numGhostParticles);
+    Kokkos::parallel_for(policy, haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -95,9 +95,9 @@ TEST_F(HaloExchangeTest, SelfExchangeX)
 TEST_F(HaloExchangeTest, SelfExchangeY)
 {
     auto haloExchange = impl::HaloExchange(subdomain, particles);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, impl::HaloExchange::TagY>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
+    auto policy = Kokkos::RangePolicy<impl::HaloExchange::TagY>(
+        0, particles.numLocalParticles + particles.numGhostParticles);
+    Kokkos::parallel_for(policy, haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -115,9 +115,9 @@ TEST_F(HaloExchangeTest, SelfExchangeY)
 TEST_F(HaloExchangeTest, SelfExchangeZ)
 {
     auto haloExchange = impl::HaloExchange(subdomain, particles);
-    Kokkos::parallel_for(Kokkos::RangePolicy<Kokkos::Serial, impl::HaloExchange::TagZ>(
-                             0, particles.numLocalParticles + particles.numGhostParticles),
-                         haloExchange);
+    auto policy = Kokkos::RangePolicy<impl::HaloExchange::TagZ>(
+        0, particles.numLocalParticles + particles.numGhostParticles);
+    Kokkos::parallel_for(policy, haloExchange);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
