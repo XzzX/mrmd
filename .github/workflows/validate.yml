@@ -4,10 +4,54 @@ on:
   push:
 
 jobs:
-  build:
+  debug-build:
     strategy:
       matrix:
-        BUILD_TYPE: [ Release, Debug ]
+        BUILD_TYPE: Debug
+        CONTAINER: [ 'gcc', 'clang', 'icx', 'icc' ]
+        BACKEND: [ 'Kokkos_ENABLE_SERIAL', 'Kokkos_ENABLE_OPENMP' ]
+
+    runs-on: ubuntu-latest
+    container: xzzx/devel:${{ matrix.CONTAINER }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: 'kokkos/kokkos'
+          path: 'kokkos'
+
+      - name: kokkos
+        run: |
+          cmake \
+            -S kokkos \
+            -B kokkos-build \
+            -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} \
+            -DKokkos_ENABLE_DEBUG=ON \
+            -DKokkos_ENABLE_DEBUG_BOUNDS_CHECK=ON \
+            -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
+            -DKokkos_ENABLE_HWLOC=ON \
+            -DKokkos_ENABLE_SERIAL=ON \
+            -D${{ matrix.BACKEND }}=ON
+          cmake --build kokkos-build --target all -j 2
+          sudo cmake --install kokkos-build
+
+      - uses: actions/checkout@v2
+        with:
+          path: 'ecab'
+
+      - name: Configure
+        run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }}
+
+      - name: Build
+        run: cmake --build ecab-build --target all -j 2
+
+      - name: Test
+        working-directory: ecab-build
+        run: ctest --rerun-failed --output-on-failure -j 2
+
+  release-build:
+    strategy:
+      matrix:
+        BUILD_TYPE: Release
         CONTAINER: [ 'gcc', 'clang', 'icx', 'icc' ]
         BACKEND: [ 'Kokkos_ENABLE_SERIAL', 'Kokkos_ENABLE_OPENMP' ]
 
