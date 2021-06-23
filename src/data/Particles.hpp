@@ -7,7 +7,7 @@
 class Particles
 {
 public:
-    ///number of spatial dimensions
+    /// number of spatial dimensions
     constexpr static int DIMENSIONS = 3;
     constexpr static int VECTOR_LENGTH = 8;
 
@@ -19,7 +19,8 @@ public:
         GHOST = 3
     };
     using DeviceType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace, Kokkos::HostSpace>;
-    using DataTypes = Cabana::MemberTypes<real_t[DIMENSIONS], real_t[DIMENSIONS], real_t[DIMENSIONS], idx_t>;
+    using DataTypes =
+        Cabana::MemberTypes<real_t[DIMENSIONS], real_t[DIMENSIONS], real_t[DIMENSIONS], idx_t>;
     using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VECTOR_LENGTH>;
 
     using pos_t = typename ParticlesT::template member_slice_type<POS>;
@@ -68,7 +69,10 @@ public:
     idx_t numLocalParticles = 0;
     idx_t numGhostParticles = 0;
 
-    Particles() { sliceAll(); }
+    explicit Particles(const idx_t numParticles = 100000) : particles_("particles", 100000)
+    {
+        sliceAll();
+    }
 
 private:
     ParticlesT particles_ = ParticlesT("particles", 100000);

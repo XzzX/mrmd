@@ -2,6 +2,7 @@
 
 #include <Kokkos_Core.hpp>
 
+#include "checks.hpp"
 #include "data/Particles.hpp"
 
 class AccumulateForce
