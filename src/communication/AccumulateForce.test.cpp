@@ -6,7 +6,7 @@
 
 TEST(AccumulateForceTest, ghostToReal)
 {
-    //accumulate all force on particle 0
+    // accumulate all force on particle 0
     Particles particles(101);
     particles.numLocalParticles = 1;
     particles.numGhostParticles = 100;
