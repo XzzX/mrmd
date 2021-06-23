@@ -1,6 +1,6 @@
 #include "Particles.hpp"
 
-void Particles::copy(const idx_t dst, const idx_t src)
+void Particles::copy(const idx_t dst, const idx_t src) const
 {
     for (auto dim = 0; dim < 3; ++dim)
     {

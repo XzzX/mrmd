@@ -55,7 +55,7 @@ public:
         sliceAll();
     }
 
-    void copy(const idx_t src, const idx_t dst);
+    void copy(const idx_t src, const idx_t dst) const;
 
     void removeGhostParticles()
     {

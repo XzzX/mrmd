@@ -74,8 +74,8 @@ protected:
 TEST_F(GhostExchangeTest, SelfExchangeX)
 {
     EXPECT_EQ(particles.numGhostParticles, 0);
-    auto ghostExchange = impl::GhostExchange(subdomain, particles);
-    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_X>();
+    auto ghostExchange = impl::GhostExchange(subdomain);
+    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_X>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -92,8 +92,8 @@ TEST_F(GhostExchangeTest, SelfExchangeX)
 
 TEST_F(GhostExchangeTest, SelfExchangeY)
 {
-    auto ghostExchange = impl::GhostExchange(subdomain, particles);
-    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Y>();
+    auto ghostExchange = impl::GhostExchange(subdomain);
+    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Y>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -110,8 +110,8 @@ TEST_F(GhostExchangeTest, SelfExchangeY)
 
 TEST_F(GhostExchangeTest, SelfExchangeZ)
 {
-    auto ghostExchange = impl::GhostExchange(subdomain, particles);
-    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Z>();
+    auto ghostExchange = impl::GhostExchange(subdomain);
+    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Z>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -128,12 +128,12 @@ TEST_F(GhostExchangeTest, SelfExchangeZ)
 
 TEST_F(GhostExchangeTest, SelfExchangeXYZ)
 {
-    auto ghostExchange = impl::GhostExchange(subdomain, particles);
-    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_X>();
+    auto ghostExchange = impl::GhostExchange(subdomain);
+    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_X>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
-    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Y>();
+    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Y>(particles);
     EXPECT_EQ(particles.numGhostParticles, 48);
-    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Z>();
+    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Z>(particles);
     EXPECT_EQ(particles.numGhostParticles, 98);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {

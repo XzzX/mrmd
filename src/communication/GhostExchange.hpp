@@ -9,11 +9,13 @@ namespace impl
 class GhostExchange
 {
 private:
-    Particles& particles_;
+    Particles particles_;
     const Subdomain subdomain_;
 
     Particles::pos_t pos_;
     Particles::ghost_t ghost_;
+
+    Kokkos::View<idx_t> newGhostCounter_;
 
 public:
     struct DIRECTION_X
@@ -31,8 +33,8 @@ public:
     {
         if (pos_(idx, dim) > subdomain_.maxInnerCorner[dim])
         {
-            auto nextParticle = particles_.numLocalParticles +
-                                Kokkos::atomic_fetch_add(&particles_.numGhostParticles, 1);
+            auto nextParticle = particles_.numLocalParticles + particles_.numGhostParticles +
+                                Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
             particles_.copy(nextParticle, idx);
             pos_(nextParticle, dim) -= subdomain_.diameter[dim];
             CHECK_LESS(pos_(nextParticle, dim), subdomain_.minCorner[dim]);
@@ -46,8 +48,8 @@ public:
 
         if (pos_(idx, dim) < subdomain_.minInnerCorner[dim])
         {
-            auto nextParticle = particles_.numLocalParticles +
-                                Kokkos::atomic_fetch_add(&particles_.numGhostParticles, 1);
+            auto nextParticle = particles_.numLocalParticles + particles_.numGhostParticles +
+                                Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
             particles_.copy(nextParticle, idx);
             pos_(nextParticle, dim) += subdomain_.diameter[dim];
             CHECK_GREATER(pos_(nextParticle, dim), subdomain_.maxCorner[dim]);
@@ -68,18 +70,25 @@ public:
     void operator()(DIRECTION_Z, const idx_t& idx) const { copySelf(idx, 2); }
 
     template <typename EXCHANGE_DIRECTION>
-    void exchangeGhosts()
+    void exchangeGhosts(Particles& particles)
     {
+        particles_ = particles;
+        pos_ = particles.getPos();
+        ghost_ = particles.getGhost();
+
         auto policy = Kokkos::RangePolicy<EXCHANGE_DIRECTION>(
             0, particles_.numLocalParticles + particles_.numGhostParticles);
         Kokkos::parallel_for(policy, *this);
+        Kokkos::fence();
+        auto hNewGhostCounter =
+            Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), newGhostCounter_);
+        particles.numGhostParticles += hNewGhostCounter();
+        Kokkos::deep_copy(newGhostCounter_, 0);
     }
 
-    GhostExchange(const Subdomain& subdomain, Particles& particles)
-        : subdomain_(subdomain), particles_(particles)
+    GhostExchange(const Subdomain& subdomain)
+        : subdomain_(subdomain), newGhostCounter_("newGhostCounter")
     {
-        pos_ = particles.getPos();
-        ghost_ = particles.getGhost();
     }
 };
 }  // namespace impl
@@ -92,16 +101,11 @@ private:
 public:
     void exchangeGhostsXYZ(Particles& particles)
     {
-        impl::GhostExchange ghostExchange(subdomain_, particles);
+        impl::GhostExchange ghostExchange(subdomain_);
 
-        ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_X>();
-        Kokkos::fence();
-
-        ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Y>();
-        Kokkos::fence();
-
-        ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Z>();
-        Kokkos::fence();
+        ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_X>(particles);
+        ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Y>(particles);
+        ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Z>(particles);
     }
 
     GhostExchange(const Subdomain& subdomain) : subdomain_(subdomain) {}
