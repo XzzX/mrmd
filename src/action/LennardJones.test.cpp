@@ -15,6 +15,8 @@ TEST(LennardJones, Force)
     EXPECT_GT(LJ.computeForce_(minimumSqr - eps) + 1_r, 1_r);
     EXPECT_FLOAT_EQ(LJ.computeForce_(minimumSqr) + 1_r, 1_r);
     EXPECT_LT(LJ.computeForce_(minimumSqr + eps) + 1_r, 1_r);
+
+    EXPECT_FLOAT_EQ(LJ.computeForce_(sigma * sigma), 8_r * epsilon / sigma);
 }
 
 TEST(LennardJones, Energy)

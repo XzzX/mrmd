@@ -47,7 +47,7 @@ Particles loadParticles(const std::string& filename)
 
 void LJ()
 {
-    constexpr bool bOutput = false;
+    constexpr bool bOutput = true;
 
     constexpr idx_t nsteps = 2001;
     constexpr real_t rc = 2.5;
@@ -106,7 +106,7 @@ void LJ()
         integrator.postForceIntegrate(particles);
         Kokkos::fence();
 
-        if (bOutput)
+        if (bOutput && (i%100 == 0))
         {
             auto E0 = LJ.computeEnergy(particles, verlet_list);
             auto T = getTemperature(particles);

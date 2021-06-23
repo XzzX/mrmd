@@ -21,7 +21,7 @@ public:
     {
         auto frac2 = 1.0 / distSqr;
         auto frac6 = frac2 * frac2 * frac2;
-        return frac6 * (ff1_ * frac6 - ff2_) * std::sqrt(frac2);
+        return frac6 * (ff1_ * frac6 - ff2_) * frac2;
     }
     KOKKOS_INLINE_FUNCTION
     void operator()(const idx_t& idx, const idx_t& jdx) const
