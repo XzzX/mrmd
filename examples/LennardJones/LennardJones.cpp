@@ -38,7 +38,6 @@ Particles loadParticles(const std::string& filename)
 
     fin.close();
 
-
     Cabana::deep_copy(d_AoSoA, h_AoSoA);
 
     p.numLocalParticles = idx;
@@ -48,6 +47,8 @@ Particles loadParticles(const std::string& filename)
 
 void LJ()
 {
+    constexpr bool bOutput = false;
+
     constexpr idx_t nsteps = 2001;
     constexpr real_t rc = 2.5;
     constexpr real_t skin = 0.3;
@@ -55,10 +56,8 @@ void LJ()
 
     constexpr real_t Lx = 33.8585;
     auto subdomain = Subdomain({0_r, 0_r, 0_r}, {Lx, Lx, Lx}, rc + skin);
-    Kokkos::Timer timer;
     auto particles = loadParticles("positions.txt");
     CHECK_EQUAL(particles.numLocalParticles, 32768);
-    std::cout << "load particles: " << timer.seconds() << std::endl;
 
     double cell_ratio = 0.5_r;
     using ListType = Cabana::VerletList<Kokkos::HostSpace,
@@ -71,6 +70,7 @@ void LJ()
     GhostExchange ghostExchange(subdomain);
     LennardJones LJ(rc, 1_r, 1_r);
     AccumulateForce accumulateForce;
+    Kokkos::Timer timer;
     for (auto i = 0; i < nsteps; ++i)
     {
         particles.removeGhostParticles();
@@ -106,13 +106,9 @@ void LJ()
         integrator.postForceIntegrate(particles);
         Kokkos::fence();
 
-        if (i % 100 == 0)
+        if (bOutput)
         {
-            //dumpCSV("particles_" + std::to_string(i) + ".csv", particles);
-
             auto E0 = LJ.computeEnergy(particles, verlet_list);
-
-            std::cout << i << ": " << timer.seconds() << "s" << std::endl;
             auto T = getTemperature(particles);
             auto Ek = (3.0 / 2.0) * particles.numLocalParticles * T;
             std::cout << "T : " << std::setw(10) << T << " | ";
@@ -123,6 +119,25 @@ void LJ()
             std::cout << "Nghost : " << std::setw(10) << particles.numGhostParticles << std::endl;
         }
     }
+    std::cout << timer.seconds() << std::endl;
+
+    // dumpCSV("particles_" + std::to_string(i) + ".csv", particles);
+
+    ListType verlet_list(particles.getPos(),
+                         0,
+                         particles.numLocalParticles,
+                         rc + skin,
+                         cell_ratio,
+                         subdomain.minGhostCorner.data(),
+                         subdomain.maxGhostCorner.data());
+    auto E0 = LJ.computeEnergy(particles, verlet_list);
+    auto T = getTemperature(particles);
+
+    CHECK_LESS(E0, -162000_r);
+    CHECK_GREATER(E0, -163000_r);
+
+    CHECK_LESS(T, 1.43_r);
+    CHECK_GREATER(T, 1.41_r);
 }
 
 int main(int argc, char* argv[])
