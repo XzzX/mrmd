@@ -7,7 +7,6 @@ jobs:
   debug-build:
     strategy:
       matrix:
-        BUILD_TYPE: Debug
         CONTAINER: [ 'gcc', 'clang', 'icx', 'icc' ]
         BACKEND: [ 'Kokkos_ENABLE_SERIAL', 'Kokkos_ENABLE_OPENMP' ]
 
@@ -24,7 +23,7 @@ jobs:
           cmake \
             -S kokkos \
             -B kokkos-build \
-            -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} \
+            -DCMAKE_BUILD_TYPE=Debug \
             -DKokkos_ENABLE_DEBUG=ON \
             -DKokkos_ENABLE_DEBUG_BOUNDS_CHECK=ON \
             -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
@@ -39,7 +38,7 @@ jobs:
           path: 'ecab'
 
       - name: Configure
-        run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }}
+        run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=Debug
 
       - name: Build
         run: cmake --build ecab-build --target all -j 2
@@ -51,7 +50,6 @@ jobs:
   release-build:
     strategy:
       matrix:
-        BUILD_TYPE: Release
         CONTAINER: [ 'gcc', 'clang', 'icx', 'icc' ]
         BACKEND: [ 'Kokkos_ENABLE_SERIAL', 'Kokkos_ENABLE_OPENMP' ]
 
@@ -68,7 +66,7 @@ jobs:
           cmake \
             -S kokkos \
             -B kokkos-build \
-            -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} \
+            -DCMAKE_BUILD_TYPE=Release \
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -D${{ matrix.BACKEND }}=ON
@@ -80,7 +78,7 @@ jobs:
           path: 'ecab'
 
       - name: Configure
-        run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }}
+        run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         run: cmake --build ecab-build --target all -j 2
@@ -100,7 +98,7 @@ jobs:
 
       - name: kokkos
         run: |
-          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }}
+          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=Debug
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
