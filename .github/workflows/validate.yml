@@ -8,7 +8,7 @@ jobs:
     strategy:
       matrix:
         BUILD_TYPE: [Release, Debug]
-        CONTAINER: [ 'gcc', 'clang' ]
+        CONTAINER: [ 'gcc', 'clang', 'icx', 'icc' ]
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
