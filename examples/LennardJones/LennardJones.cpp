@@ -49,7 +49,7 @@ void LJ()
 {
     constexpr bool bOutput = false;
 
-    constexpr idx_t nsteps = 201;
+    constexpr idx_t nsteps = 2001;
     constexpr real_t rc = 2.5;
     constexpr real_t skin = 0.3;
     constexpr real_t dt = 0.005;
