@@ -6,7 +6,7 @@
 
 namespace impl
 {
-class HaloExchange
+class GhostExchange
 {
 private:
     Particles& particles_;
@@ -75,7 +75,7 @@ public:
         Kokkos::parallel_for(policy, *this);
     }
 
-    HaloExchange(const Subdomain& subdomain, Particles& particles)
+    GhostExchange(const Subdomain& subdomain, Particles& particles)
         : subdomain_(subdomain), particles_(particles)
     {
         pos_ = particles.getPos();
@@ -84,7 +84,7 @@ public:
 };
 }  // namespace impl
 
-class HaloExchange
+class GhostExchange
 {
 private:
     const Subdomain subdomain_;
@@ -92,17 +92,17 @@ private:
 public:
     void exchangeGhostsXYZ(Particles& particles)
     {
-        impl::HaloExchange haloExchange(subdomain_, particles);
+        impl::GhostExchange ghostExchange(subdomain_, particles);
 
-        haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_X>();
+        ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_X>();
         Kokkos::fence();
 
-        haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_Y>();
+        ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Y>();
         Kokkos::fence();
 
-        haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_Z>();
+        ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Z>();
         Kokkos::fence();
     }
 
-    HaloExchange(const Subdomain& subdomain) : subdomain_(subdomain) {}
+    GhostExchange(const Subdomain& subdomain) : subdomain_(subdomain) {}
 };

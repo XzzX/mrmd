@@ -1,4 +1,4 @@
-#include "HaloExchange.hpp"
+#include "GhostExchange.hpp"
 
 #include <gtest/gtest.h>
 
@@ -41,7 +41,7 @@ size_t countWithinCutoff(Particles& particles,
     return count;
 }
 
-class HaloExchangeTest : public ::testing::Test
+class GhostExchangeTest : public ::testing::Test
 {
 protected:
     void SetUp() override
@@ -71,11 +71,11 @@ protected:
     Particles particles;
 };
 
-TEST_F(HaloExchangeTest, SelfExchangeX)
+TEST_F(GhostExchangeTest, SelfExchangeX)
 {
     EXPECT_EQ(particles.numGhostParticles, 0);
-    auto haloExchange = impl::HaloExchange(subdomain, particles);
-    haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_X>();
+    auto ghostExchange = impl::GhostExchange(subdomain, particles);
+    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_X>();
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -90,10 +90,10 @@ TEST_F(HaloExchangeTest, SelfExchangeX)
     }
 }
 
-TEST_F(HaloExchangeTest, SelfExchangeY)
+TEST_F(GhostExchangeTest, SelfExchangeY)
 {
-    auto haloExchange = impl::HaloExchange(subdomain, particles);
-    haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_Y>();
+    auto ghostExchange = impl::GhostExchange(subdomain, particles);
+    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Y>();
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -108,10 +108,10 @@ TEST_F(HaloExchangeTest, SelfExchangeY)
     }
 }
 
-TEST_F(HaloExchangeTest, SelfExchangeZ)
+TEST_F(GhostExchangeTest, SelfExchangeZ)
 {
-    auto haloExchange = impl::HaloExchange(subdomain, particles);
-    haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_Z>();
+    auto ghostExchange = impl::GhostExchange(subdomain, particles);
+    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Z>();
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -126,14 +126,14 @@ TEST_F(HaloExchangeTest, SelfExchangeZ)
     }
 }
 
-TEST_F(HaloExchangeTest, SelfExchangeXYZ)
+TEST_F(GhostExchangeTest, SelfExchangeXYZ)
 {
-    auto haloExchange = impl::HaloExchange(subdomain, particles);
-    haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_X>();
+    auto ghostExchange = impl::GhostExchange(subdomain, particles);
+    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_X>();
     EXPECT_EQ(particles.numGhostParticles, 18);
-    haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_Y>();
+    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Y>();
     EXPECT_EQ(particles.numGhostParticles, 48);
-    haloExchange.exchangeGhosts<impl::HaloExchange::DIRECTION_Z>();
+    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Z>();
     EXPECT_EQ(particles.numGhostParticles, 98);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -148,7 +148,7 @@ TEST_F(HaloExchangeTest, SelfExchangeXYZ)
     }
 }
 
-TEST_F(HaloExchangeTest, CountPairs)
+TEST_F(GhostExchangeTest, CountPairs)
 {
     size_t numPairs = 0;
     numPairs = countWithinCutoff(particles, 1.1_r, subdomain.diameter.data(), false);
@@ -157,8 +157,8 @@ TEST_F(HaloExchangeTest, CountPairs)
     numPairs = countWithinCutoff(particles, 1.1_r, subdomain.diameter.data(), true);
     EXPECT_EQ(numPairs, 27 * 6 / 2);
 
-    auto haloExchange = HaloExchange(subdomain);
-    haloExchange.exchangeGhostsXYZ(particles);
+    auto ghostExchange = GhostExchange(subdomain);
+    ghostExchange.exchangeGhostsXYZ(particles);
     EXPECT_EQ(particles.numGhostParticles, 98);
 
     numPairs = countWithinCutoff(particles, 1.1_r, subdomain.diameter.data(), false);
