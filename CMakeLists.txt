@@ -28,9 +28,17 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Cabana)
 
+get_target_property(TMP cabanacore INTERFACE_INCLUDE_DIRECTORIES)
+set_target_properties(cabanacore PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
+
 FetchContent_Declare(
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
         GIT_TAG release-1.10.0
 )
 FetchContent_MakeAvailable(googletest)
+
+get_target_property(TMP gtest INTERFACE_INCLUDE_DIRECTORIES)
+set_target_properties(gtest PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
+get_target_property(TMP gmock INTERFACE_INCLUDE_DIRECTORIES)
+set_target_properties(gmock PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
