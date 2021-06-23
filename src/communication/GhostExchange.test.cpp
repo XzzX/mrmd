@@ -128,12 +128,8 @@ TEST_F(GhostExchangeTest, SelfExchangeZ)
 
 TEST_F(GhostExchangeTest, SelfExchangeXYZ)
 {
-    auto ghostExchange = impl::GhostExchange(subdomain);
-    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_X>(particles);
-    EXPECT_EQ(particles.numGhostParticles, 18);
-    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Y>(particles);
-    EXPECT_EQ(particles.numGhostParticles, 48);
-    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Z>(particles);
+    auto ghostExchange = GhostExchange(subdomain);
+    ghostExchange.exchangeGhostsXYZ(particles);
     EXPECT_EQ(particles.numGhostParticles, 98);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
