@@ -9,7 +9,7 @@ namespace impl
 class GhostExchange
 {
 private:
-    Particles particles_;
+    Particles particles_ = Particles(0);
     const Subdomain subdomain_;
 
     Particles::pos_t pos_;

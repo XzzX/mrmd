@@ -8,7 +8,7 @@
 #include "analysis/Temperature.hpp"
 #include "checks.hpp"
 #include "communication/AccumulateForce.hpp"
-#include "communication/HaloExchange.hpp"
+#include "communication/GhostExchange.hpp"
 #include "communication/PeriodicMapping.hpp"
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
@@ -17,7 +17,7 @@
 
 Particles loadParticles(const std::string& filename)
 {
-    Particles p;
+    Particles p(100000);
     auto d_AoSoA = p.getAoSoA();
     auto h_AoSoA = Cabana::create_mirror_view(Kokkos::HostSpace(), d_AoSoA);
     auto h_pos = Cabana::slice<Particles::POS>(h_AoSoA);
@@ -68,7 +68,7 @@ void LJ()
 
     VelocityVerlet integrator(dt);
     PeriodicMapping periodicMapping(subdomain);
-    HaloExchange haloExchange(subdomain);
+    GhostExchange ghostExchange(subdomain);
     LennardJones LJ(rc, 1_r, 1_r);
     AccumulateForce accumulateForce;
     for (auto i = 0; i < nsteps; ++i)
@@ -83,7 +83,7 @@ void LJ()
         periodicMapping.mapIntoDomain(particles);
         Kokkos::fence();
 
-        haloExchange.createGhostsXYZ(particles);
+        ghostExchange.exchangeGhostsXYZ(particles);
         particles.resize(particles.numLocalParticles + particles.numGhostParticles);
 
         ListType verlet_list(particles.getPos(),

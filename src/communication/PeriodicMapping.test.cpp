@@ -28,7 +28,7 @@ class PeriodicMappingTest : public testing::TestWithParam<TestData>
 TEST_P(PeriodicMappingTest, Check)
 {
     Subdomain subdomain = Subdomain({0_r, 0_r, 0_r}, {1_r, 1_r, 1_r}, 0_r);
-    Particles particles;
+    Particles particles(1);
     auto pos = particles.getPos();
     particles.numLocalParticles = 1;
     pos(0, 0) = GetParam().initialPos[0];

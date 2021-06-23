@@ -69,7 +69,7 @@ public:
     idx_t numLocalParticles = 0;
     idx_t numGhostParticles = 0;
 
-    explicit Particles(const idx_t numParticles = 100000) : particles_("particles", 100000)
+    explicit Particles(const idx_t numParticles) : particles_("particles", numParticles)
     {
         sliceAll();
     }

@@ -68,7 +68,7 @@ protected:
     // void TearDown() override {}
 
     Subdomain subdomain = Subdomain({0_r, 0_r, 0_r}, {3_r, 3_r, 3_r}, 0.7_r);
-    Particles particles;
+    Particles particles = Particles(200);
 };
 
 TEST_F(GhostExchangeTest, SelfExchangeX)

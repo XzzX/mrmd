@@ -24,6 +24,7 @@ include(FetchContent)
 FetchContent_Declare(
         Cabana
         GIT_REPOSITORY https://github.com/ECP-copa/Cabana.git
+        GIT_TAG 98bc54fcb70c6ea6833095b7688d6b4b4e0a37c5
 )
 FetchContent_MakeAvailable(Cabana)
 

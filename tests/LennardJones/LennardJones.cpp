@@ -7,7 +7,7 @@
 
 #include "Cabana_NeighborList.hpp"
 #include "action/VelocityVerlet.hpp"
-#include "communication/HaloExchange.hpp"
+#include "communication/GhostExchange.hpp"
 #include "data/Subdomain.hpp"
 
 /// reference values from espressopp simulation
@@ -22,7 +22,7 @@ constexpr real_t ESPP_INITIAL_ENERGY = -94795.927_r;
 
 Particles loadParticles(const std::string& filename)
 {
-    Particles p;
+    Particles p(100000);
     auto d_AoSoA = p.getAoSoA();
     auto h_AoSoA = Cabana::create_mirror_view(Kokkos::HostSpace(), d_AoSoA);
     auto h_pos = Cabana::slice<Particles::POS>(h_AoSoA);
@@ -43,10 +43,11 @@ Particles loadParticles(const std::string& filename)
 
     fin.close();
 
-
     Cabana::deep_copy(d_AoSoA, h_AoSoA);
 
     p.numLocalParticles = idx;
+    auto ghost = p.getGhost();
+    Cabana::deep_copy(ghost, -1);
 
     return p;
 }
@@ -103,8 +104,8 @@ TEST(LennardJones, ESPPComparison)
     EXPECT_EQ(bfParticlePairs, ESPP_NEIGHBORS);
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
-    auto haloExchange = HaloExchange(subdomain);
-    haloExchange.createGhostsXYZ(particles);
+    auto ghostExchange = GhostExchange(subdomain);
+    ghostExchange.exchangeGhostsXYZ(particles);
     Kokkos::fence();
     EXPECT_EQ(particles.numLocalParticles, ESPP_REAL);
     EXPECT_EQ(particles.numGhostParticles, ESPP_GHOST);
