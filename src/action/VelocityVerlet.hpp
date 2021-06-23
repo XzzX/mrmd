@@ -15,42 +15,50 @@ private:
     Particles::force_t force_;
 
 public:
+    struct TagPreForce
+    {
+    };
+    struct TagPostForce
+    {
+    };
+
     VelocityVerlet(const real_t& dt) : dtf_(0.5_r * dt), dtv_(dt) {}
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(TagPreForce, const idx_t& idx) const
+    {
+        vel_(idx, 0) += dtf_ * force_(idx, 0);
+        vel_(idx, 1) += dtf_ * force_(idx, 1);
+        vel_(idx, 2) += dtf_ * force_(idx, 2);
+        pos_(idx, 0) += dtv_ * vel_(idx, 0);
+        pos_(idx, 1) += dtv_ * vel_(idx, 1);
+        pos_(idx, 2) += dtv_ * vel_(idx, 2);
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    void operator()(TagPostForce, const idx_t& idx) const
+    {
+        vel_(idx, 0) += dtf_ * force_(idx, 0);
+        vel_(idx, 1) += dtf_ * force_(idx, 1);
+        vel_(idx, 2) += dtf_ * force_(idx, 2);
+    }
 
     void preForceIntegrate(Particles& particles)
     {
-        auto dtv = dtv_;
-        auto dtf = dtf_;
-        auto pos = particles.getPos();
-        auto vel = particles.getVel();
-        auto force = particles.getForce();
+        pos_ = particles.getPos();
+        vel_ = particles.getVel();
+        force_ = particles.getForce();
 
-        auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
-        {
-            vel(idx, 0) += dtf * force(idx, 0);
-            vel(idx, 1) += dtf * force(idx, 1);
-            vel(idx, 2) += dtf * force(idx, 2);
-            pos(idx, 0) += dtv * vel(idx, 0);
-            pos(idx, 1) += dtv * vel(idx, 1);
-            pos(idx, 2) += dtv * vel(idx, 2);
-        };
-
-        Kokkos::parallel_for("preForceIntegrate", particles.numLocalParticles, kernel);
+        auto policy = Kokkos::RangePolicy<TagPreForce>(0, particles.numLocalParticles);
+        Kokkos::parallel_for("preForceIntegrate", policy, *this);
     }
 
     void postForceIntegrate(Particles& particles)
     {
-        auto dtf = dtf_;
-        auto vel = particles.getVel();
-        auto force = particles.getForce();
+        vel_ = particles.getVel();
+        force_ = particles.getForce();
 
-        auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
-        {
-            vel(idx, 0) += dtf * force(idx, 0);
-            vel(idx, 1) += dtf * force(idx, 1);
-            vel(idx, 2) += dtf * force(idx, 2);
-        };
-
-        Kokkos::parallel_for("postForceIntegrate", particles.numLocalParticles, kernel);
+        auto policy = Kokkos::RangePolicy<TagPostForce>(0, particles.numLocalParticles);
+        Kokkos::parallel_for("postForceIntegrate", policy, *this);
     }
 };
