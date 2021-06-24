@@ -57,7 +57,7 @@ public:
     }
 
     KOKKOS_INLINE_FUNCTION
-    void copy(const idx_t src, const idx_t dst) const
+    void copy(const idx_t dst, const idx_t src) const
     {
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
