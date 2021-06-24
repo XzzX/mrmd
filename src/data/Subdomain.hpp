@@ -22,7 +22,7 @@ struct Subdomain
 
             diameter[dim] = maxCorner[dim] - minCorner[dim];
             assert(diameter[dim] >= 0_r);
-            assert(diameter[dim] < ghostLayerThickness && "ghost layer to larger than subdomain");
+            assert(diameter[dim] > ghostLayerThickness && "ghost layer to larger than subdomain");
         }
     }
 
