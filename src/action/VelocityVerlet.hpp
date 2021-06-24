@@ -25,14 +25,20 @@ public:
     VelocityVerlet(const real_t& dt) : dtf_(0.5_r * dt), dtv_(dt) {}
 
     KOKKOS_INLINE_FUNCTION
-    void operator()(TagPreForce, const idx_t& idx) const
+    void operator()(TagPreForce, const idx_t& idx, real_t& maxDistSqr) const
     {
         vel_(idx, 0) += dtf_ * force_(idx, 0);
         vel_(idx, 1) += dtf_ * force_(idx, 1);
         vel_(idx, 2) += dtf_ * force_(idx, 2);
-        pos_(idx, 0) += dtv_ * vel_(idx, 0);
-        pos_(idx, 1) += dtv_ * vel_(idx, 1);
-        pos_(idx, 2) += dtv_ * vel_(idx, 2);
+        auto dx = dtv_ * vel_(idx, 0);
+        auto dy = dtv_ * vel_(idx, 1);
+        auto dz = dtv_ * vel_(idx, 2);
+        pos_(idx, 0) += dx;
+        pos_(idx, 1) += dy;
+        pos_(idx, 2) += dz;
+
+        auto distSqr = dx * dx + dy * dy + dz * dz;
+        if (distSqr > maxDistSqr) maxDistSqr = distSqr;
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -43,14 +49,16 @@ public:
         vel_(idx, 2) += dtf_ * force_(idx, 2);
     }
 
-    void preForceIntegrate(Particles& particles)
+    real_t preForceIntegrate(Particles& particles)
     {
         pos_ = particles.getPos();
         vel_ = particles.getVel();
         force_ = particles.getForce();
 
         auto policy = Kokkos::RangePolicy<TagPreForce>(0, particles.numLocalParticles);
-        Kokkos::parallel_for("preForceIntegrate", policy, *this);
+        real_t maxDistSqr = 0_r;
+        Kokkos::parallel_reduce("preForceIntegrate", policy, *this, Kokkos::Max<real_t>(maxDistSqr));
+        return std::sqrt(maxDistSqr);
     }
 
     void postForceIntegrate(Particles& particles)
