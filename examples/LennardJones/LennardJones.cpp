@@ -60,7 +60,7 @@ void LJ()
     CHECK_EQUAL(particles.numLocalParticles, 32768);
 
     double cell_ratio = 0.5_r;
-    using ListType = Cabana::VerletList<Kokkos::HostSpace,
+    using ListType = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
                                         Cabana::HalfNeighborTag,
                                         Cabana::VerletLayoutCSR,
                                         Cabana::TeamOpTag>;
