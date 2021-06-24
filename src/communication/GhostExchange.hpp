@@ -76,6 +76,7 @@ public:
         pos_ = particles.getPos();
         ghost_ = particles.getGhost();
 
+        Kokkos::deep_copy(newGhostCounter_, 0);
         auto policy = Kokkos::RangePolicy<EXCHANGE_DIRECTION>(
             0, particles_.numLocalParticles + particles_.numGhostParticles);
         Kokkos::parallel_for(policy, *this);
@@ -83,7 +84,6 @@ public:
         auto hNewGhostCounter =
             Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), newGhostCounter_);
         particles.numGhostParticles += hNewGhostCounter();
-        Kokkos::deep_copy(newGhostCounter_, 0);
     }
 
     GhostExchange(const Subdomain& subdomain)
