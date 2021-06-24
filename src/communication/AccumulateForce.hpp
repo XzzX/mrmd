@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Kokkos_Core.hpp>
+#include <cassert>
 
-#include "checks.hpp"
 #include "data/Particles.hpp"
 
 class AccumulateForce
@@ -21,7 +21,7 @@ public:
             if (ghost(idx) == -1) return;
 
             auto realIdx = ghost(idx);
-            ASSERT_EQUAL(ghost(realIdx), -1, "We do not want to add forces to ghost particles!");
+            assert(ghost(realIdx) == -1 && "We do not want to add forces to ghost particles!");
             for (auto dim = 0; dim < Particles::DIMENSIONS; ++dim)
             {
                 force(realIdx, dim) += force(idx, dim);

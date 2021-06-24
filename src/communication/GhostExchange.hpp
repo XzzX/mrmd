@@ -1,6 +1,5 @@
 #pragma once
 
-#include "checks.hpp"
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
 
@@ -37,13 +36,14 @@ public:
                                 Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
             particles_.copy(nextParticle, idx);
             pos_(nextParticle, dim) -= subdomain_.diameter[dim];
-            CHECK_LESS(pos_(nextParticle, dim), subdomain_.minCorner[dim]);
+            assert(pos_(nextParticle, dim) < subdomain_.minCorner[dim]);
+            assert(pos_(nextParticle, dim) > subdomain_.minGhostCorner[dim]);
             auto realIdx = idx;
             while (ghost_(realIdx) != -1) realIdx = ghost_(realIdx);
             ghost_(nextParticle) = realIdx;
-            CHECK_NOT_EQUAL(ghost_(nextParticle), -1);
-            CHECK_GREATER_EQUAL(ghost_(nextParticle), 0);
-            CHECK_LESS(ghost_(nextParticle), particles_.numLocalParticles);
+            assert(ghost_(nextParticle) != -1);
+            assert(ghost_(nextParticle) >= 0);
+            assert(ghost_(nextParticle) < particles_.numLocalParticles);
         }
 
         if (pos_(idx, dim) < subdomain_.minInnerCorner[dim])
@@ -52,13 +52,14 @@ public:
                                 Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
             particles_.copy(nextParticle, idx);
             pos_(nextParticle, dim) += subdomain_.diameter[dim];
-            CHECK_GREATER(pos_(nextParticle, dim), subdomain_.maxCorner[dim]);
+            assert(pos_(nextParticle, dim) > subdomain_.maxCorner[dim]);
+            assert(pos_(nextParticle, dim) < subdomain_.maxGhostCorner[dim]);
             auto realIdx = idx;
             while (ghost_(realIdx) != -1) realIdx = ghost_(realIdx);
             ghost_(nextParticle) = realIdx;
-            CHECK_NOT_EQUAL(ghost_(nextParticle), -1);
-            CHECK_GREATER_EQUAL(ghost_(nextParticle), 0);
-            CHECK_LESS(ghost_(nextParticle), particles_.numLocalParticles);
+            assert(ghost_(nextParticle) != -1);
+            assert(ghost_(nextParticle) >= 0);
+            assert(ghost_(nextParticle) < particles_.numLocalParticles);
         }
     }
 

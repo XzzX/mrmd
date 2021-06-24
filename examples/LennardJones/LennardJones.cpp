@@ -2,11 +2,12 @@
 
 #include <Kokkos_Core.hpp>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
 
 #include "Cabana_NeighborList.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/Temperature.hpp"
-#include "checks.hpp"
 #include "communication/AccumulateForce.hpp"
 #include "communication/GhostExchange.hpp"
 #include "communication/PeriodicMapping.hpp"
@@ -57,7 +58,7 @@ void LJ()
     constexpr real_t Lx = 33.8585;
     auto subdomain = Subdomain({0_r, 0_r, 0_r}, {Lx, Lx, Lx}, rc + skin);
     auto particles = loadParticles("positions.txt");
-    CHECK_EQUAL(particles.numLocalParticles, 32768);
+    assert(particles.numLocalParticles == 32768);
 
     double cell_ratio = 0.5_r;
     using ListType = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
@@ -106,7 +107,7 @@ void LJ()
         integrator.postForceIntegrate(particles);
         Kokkos::fence();
 
-        if (bOutput && (i%100 == 0))
+        if (bOutput && (i % 100 == 0))
         {
             auto E0 = LJ.computeEnergy(particles, verlet_list);
             auto T = getTemperature(particles);
@@ -123,10 +124,13 @@ void LJ()
     auto time = timer.seconds();
     std::cout << time << std::endl;
 
-    auto cores = std::getenv("OMP_NUM_THREADS") != nullptr ? std::string(std::getenv("OMP_NUM_THREADS")) : std::string("0");
+    auto cores = std::getenv("OMP_NUM_THREADS") != nullptr
+                     ? std::string(std::getenv("OMP_NUM_THREADS"))
+                     : std::string("0");
 
     std::ofstream fout("ecab.perf", std::ofstream::app);
-    fout << cores << ", " << time << ", " << particles.numLocalParticles << ", " << nsteps << std::endl;
+    fout << cores << ", " << time << ", " << particles.numLocalParticles << ", " << nsteps
+         << std::endl;
     fout.close();
 
     // dumpCSV("particles_" + std::to_string(i) + ".csv", particles);
@@ -141,11 +145,11 @@ void LJ()
     auto E0 = LJ.computeEnergy(particles, verlet_list);
     auto T = getTemperature(particles);
 
-//    CHECK_LESS(E0, -162000_r);
-//    CHECK_GREATER(E0, -163000_r);
-//
-//    CHECK_LESS(T, 1.43_r);
-//    CHECK_GREATER(T, 1.41_r);
+    //    CHECK_LESS(E0, -162000_r);
+    //    CHECK_GREATER(E0, -163000_r);
+    //
+    //    CHECK_LESS(T, 1.43_r);
+    //    CHECK_GREATER(T, 1.41_r);
 }
 
 int main(int argc, char* argv[])

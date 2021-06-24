@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 // convenience casting functions for unsigned ints
 template <typename T>
 inline constexpr unsigned int uint_c(const T &val)

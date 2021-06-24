@@ -96,7 +96,7 @@ TEST(LennardJones, ESPPComparison)
     auto subdomain = Subdomain({0_r, 0_r, 0_r}, {33.8585, 33.8585, 33.8585}, rc + skin);
     Kokkos::Timer timer;
     auto particles = loadParticles("positions.txt");
-    CHECK_EQUAL(particles.numLocalParticles, ESPP_REAL);
+    EXPECT_EQ(particles.numLocalParticles, ESPP_REAL);
     std::cout << "load particles: " << timer.seconds() << std::endl;
 
     auto bfParticlePairs = 0;

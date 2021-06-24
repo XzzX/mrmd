@@ -1,7 +1,6 @@
 #include <Kokkos_Core.hpp>
 
 #include "Cabana_AoSoA.hpp"
-#include "checks.hpp"
 #include "datatypes.hpp"
 
 class CabanaVec

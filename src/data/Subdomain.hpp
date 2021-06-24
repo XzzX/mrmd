@@ -1,6 +1,8 @@
 #pragma once
 
-#include "checks.hpp"
+#include <array>
+#include <cassert>
+
 #include "datatypes.hpp"
 
 struct Subdomain
@@ -19,9 +21,8 @@ struct Subdomain
             maxInnerCorner[dim] = maxCorner[dim] - ghostLayerThickness;
 
             diameter[dim] = maxCorner[dim] - minCorner[dim];
-            CHECK_GREATER_EQUAL(diameter[dim], 0_r);
-            CHECK_GREATER(
-                diameter[dim], ghostLayerThickness, "ghost layer to larger than subdomain");
+            assert(diameter[dim] >= 0_r);
+            assert(diameter[dim] < ghostLayerThickness && "ghost layer to larger than subdomain");
         }
     }
 
