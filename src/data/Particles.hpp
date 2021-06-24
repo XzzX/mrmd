@@ -56,7 +56,15 @@ public:
         sliceAll();
     }
 
-    void copy(const idx_t src, const idx_t dst) const;
+    KOKKOS_INLINE_FUNCTION
+    void copy(const idx_t src, const idx_t dst) const
+    {
+        for (auto dim = 0; dim < DIMENSIONS; ++dim)
+        {
+            pos(dst, dim) = pos(src, dim);
+            vel(dst, dim) = vel(src, dim);
+        }
+    }
 
     void removeGhostParticles()
     {
