@@ -117,7 +117,7 @@ TEST(LennardJones, ESPPComparison)
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
     double cell_ratio = 1.0_r;
-    using ListType = Cabana::VerletList<Kokkos::HostSpace,
+    using ListType = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
                                         Cabana::HalfNeighborTag,
                                         Cabana::VerletLayoutCSR,
                                         Cabana::TeamOpTag>;
