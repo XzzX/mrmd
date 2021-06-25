@@ -94,7 +94,9 @@ void LJ()
         periodicMapping.mapIntoDomain(particles);
         Kokkos::fence();
 
+        particles.resize(100000);
         ghostExchange.exchangeGhostsXYZ(particles);
+        Kokkos::fence();
         particles.resize(particles.numLocalParticles + particles.numGhostParticles);
 
         ListType verlet_list(particles.getPos(),
