@@ -13,7 +13,7 @@ private:
     real_t ff2_;
     real_t rcSqr_;
     Particles::pos_t pos_;
-    Particles::force_t force_;
+    Particles::force_t::atomic_access_slice force_;
 
 public:
     KOKKOS_INLINE_FUNCTION
