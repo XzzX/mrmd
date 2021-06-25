@@ -22,9 +22,7 @@ size_t countWithinCutoff(Particles particles,
         Kokkos::RangePolicy<>(0, particles.numLocalParticles),
         KOKKOS_LAMBDA(const idx_t idx, size_t& sum)
         {
-            for (auto jdx = idx + 1;
-                 jdx < numLocalParticles + numGhostParticles;
-                 ++jdx)
+            for (auto jdx = idx + 1; jdx < numLocalParticles + numGhostParticles; ++jdx)
             {
                 auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
                 if (periodic && (dx > box_diameter[0] * 0.5_r)) dx -= box_diameter[0];
