@@ -31,6 +31,11 @@ Particles loadParticles(const std::string& filename)
         double x, y, z;
         fin >> x >> y >> z;
         if (fin.eof()) break;
+        if (std::isnan(x) || std::isnan(y) || std::isnan(z))
+        {
+            std::cout << "invalid position: " << x << " " << y << " " << z << std::endl;
+            exit(EXIT_FAILURE);
+        }
         h_pos(idx, 0) = x;
         h_pos(idx, 1) = y;
         h_pos(idx, 2) = z;
@@ -40,8 +45,15 @@ Particles loadParticles(const std::string& filename)
     fin.close();
 
     Cabana::deep_copy(d_AoSoA, h_AoSoA);
-
     p.numLocalParticles = idx;
+    p.resize(p.numLocalParticles);
+
+    auto vel = p.getVel();
+    auto force = p.getForce();
+    auto ghost = p.getGhost();
+    Cabana::deep_copy(vel, 0_r);
+    Cabana::deep_copy(force, 0_r);
+    Cabana::deep_copy(ghost, idx_c(-1));
 
     return p;
 }
@@ -75,8 +87,6 @@ void LJ()
     for (auto i = 0; i < nsteps; ++i)
     {
         particles.removeGhostParticles();
-        auto ghost = particles.getGhost();
-        Cabana::deep_copy(ghost, idx_c(-1));
 
         integrator.preForceIntegrate(particles);
         Kokkos::fence();
