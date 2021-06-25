@@ -6,13 +6,16 @@
 
 #include "data/Subdomain.hpp"
 
-size_t countWithinCutoff(Particles& particles,
-                         const real_t& cutoff,
+size_t countWithinCutoff(Particles particles,
+                         const real_t cutoff,
                          const double* box,
                          const bool periodic)
 {
+    auto numLocalParticles = particles.numLocalParticles;
+    auto numGhostParticles = particles.numGhostParticles;
     auto rcSqr = cutoff * cutoff;
     auto pos = particles.getPos();
+    real_t box_diameter[3] = {box[0], box[1], box[2]};
 
     size_t count = 0;
     Kokkos::parallel_reduce(
@@ -20,15 +23,15 @@ size_t countWithinCutoff(Particles& particles,
         KOKKOS_LAMBDA(const idx_t idx, size_t& sum)
         {
             for (auto jdx = idx + 1;
-                 jdx < particles.numLocalParticles + particles.numGhostParticles;
+                 jdx < numLocalParticles + numGhostParticles;
                  ++jdx)
             {
                 auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
-                if (periodic && (dx > box[0] * 0.5_r)) dx -= box[0];
+                if (periodic && (dx > box_diameter[0] * 0.5_r)) dx -= box_diameter[0];
                 auto dy = std::abs(pos(idx, 1) - pos(jdx, 1));
-                if (periodic && (dy > box[1] * 0.5_r)) dy -= box[1];
+                if (periodic && (dy > box_diameter[1] * 0.5_r)) dy -= box_diameter[1];
                 auto dz = std::abs(pos(idx, 2) - pos(jdx, 2));
-                if (periodic && (dz > box[2] * 0.5_r)) dz -= box[2];
+                if (periodic && (dz > box_diameter[2] * 0.5_r)) dz -= box_diameter[2];
                 auto distSqr = dx * dx + dy * dy + dz * dz;
                 if (distSqr < rcSqr)
                 {

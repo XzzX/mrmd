@@ -40,6 +40,3 @@ add_executable(ecab_tests
 target_link_libraries(ecab_tests
         PRIVATE ecab gtest
         )
-
-include(GoogleTest)
-gtest_discover_tests(ecab_tests)
