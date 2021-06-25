@@ -34,32 +34,20 @@ public:
         {
             auto nextParticle = particles_.numLocalParticles + particles_.numGhostParticles +
                                 Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
-            particles_.copy(nextParticle, idx);
+            particles_.copyAsGhost(nextParticle, idx);
             pos_(nextParticle, dim) -= subdomain_.diameter[dim];
             assert(pos_(nextParticle, dim) < subdomain_.minCorner[dim]);
             assert(pos_(nextParticle, dim) > subdomain_.minGhostCorner[dim]);
-            auto realIdx = idx;
-            while (ghost_(realIdx) != -1) realIdx = ghost_(realIdx);
-            ghost_(nextParticle) = realIdx;
-            assert(ghost_(nextParticle) != -1);
-            assert(ghost_(nextParticle) >= 0);
-            assert(ghost_(nextParticle) < particles_.numLocalParticles);
         }
 
         if (pos_(idx, dim) < subdomain_.minInnerCorner[dim])
         {
             auto nextParticle = particles_.numLocalParticles + particles_.numGhostParticles +
                                 Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
-            particles_.copy(nextParticle, idx);
+            particles_.copyAsGhost(nextParticle, idx);
             pos_(nextParticle, dim) += subdomain_.diameter[dim];
             assert(pos_(nextParticle, dim) > subdomain_.maxCorner[dim]);
             assert(pos_(nextParticle, dim) < subdomain_.maxGhostCorner[dim]);
-            auto realIdx = idx;
-            while (ghost_(realIdx) != -1) realIdx = ghost_(realIdx);
-            ghost_(nextParticle) = realIdx;
-            assert(ghost_(nextParticle) != -1);
-            assert(ghost_(nextParticle) >= 0);
-            assert(ghost_(nextParticle) < particles_.numLocalParticles);
         }
     }
 

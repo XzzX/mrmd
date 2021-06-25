@@ -67,6 +67,22 @@ public:
         }
     }
 
+    KOKKOS_INLINE_FUNCTION
+    void copyAsGhost(const idx_t dst, const idx_t src) const
+    {
+        for (auto dim = 0; dim < DIMENSIONS; ++dim)
+        {
+            pos(dst, dim) = pos(src, dim);
+            vel(dst, dim) = vel(src, dim);
+            force(dst, dim) = 0_r;
+        }
+        auto realIdx = src;
+        while (ghost(realIdx) != -1) realIdx = ghost(realIdx);
+        ghost(dst) = realIdx;
+        assert(0 <= ghost(dst));
+        assert(ghost(dst) < numLocalParticles);
+    }
+
     void removeGhostParticles()
     {
         numGhostParticles = 0;
