@@ -25,18 +25,21 @@ public:
         assert(realIdx != idx);
         assert(correspondingRealParticle_(realIdx) == -1);
 
-        if (pos_(idx, 0) >= pos_(realIdx, 0))
-            pos_(idx, 0) = pos_(realIdx, 0) + subdomain_.diameter[0];
-        if (pos_(idx, 1) >= pos_(realIdx, 1))
-            pos_(idx, 1) = pos_(realIdx, 1) + subdomain_.diameter[1];
-        if (pos_(idx, 2) >= pos_(realIdx, 2))
-            pos_(idx, 2) = pos_(realIdx, 2) + subdomain_.diameter[2];
-        if (pos_(idx, 0) < pos_(realIdx, 0))
-            pos_(idx, 0) = pos_(realIdx, 0) - subdomain_.diameter[0];
-        if (pos_(idx, 1) < pos_(realIdx, 1))
-            pos_(idx, 1) = pos_(realIdx, 1) - subdomain_.diameter[1];
-        if (pos_(idx, 2) < pos_(realIdx, 2))
-            pos_(idx, 2) = pos_(realIdx, 2) - subdomain_.diameter[2];
+        real_t dx[3];
+        dx[0] = pos_(idx, 0) - pos_(realIdx, 0);
+        dx[1] = pos_(idx, 1) - pos_(realIdx, 1);
+        dx[2] = pos_(idx, 2) - pos_(realIdx, 2);
+
+        pos_(idx, 0) = pos_(realIdx, 0);
+        pos_(idx, 1) = pos_(realIdx, 1);
+        pos_(idx, 2) = pos_(realIdx, 2);
+
+        if (dx[0] > +1_r) pos_(idx, 0) += subdomain_.diameter[0];
+        if (dx[1] > +1_r) pos_(idx, 1) += subdomain_.diameter[1];
+        if (dx[2] > +1_r) pos_(idx, 2) += subdomain_.diameter[2];
+        if (dx[0] < -1_r) pos_(idx, 0) -= subdomain_.diameter[0];
+        if (dx[1] < -1_r) pos_(idx, 1) -= subdomain_.diameter[1];
+        if (dx[2] < -1_r) pos_(idx, 2) -= subdomain_.diameter[2];
     }
 
     void updateOnlyPos(Particles& particles, IndexView correspondingRealParticle)

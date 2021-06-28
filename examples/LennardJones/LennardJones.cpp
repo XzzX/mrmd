@@ -85,7 +85,7 @@ void LJ()
     {
         maxParticleDisplacement += integrator.preForceIntegrate(particles);
 
-        if (maxParticleDisplacement >= skin * 0.001_r)
+        if (maxParticleDisplacement >= skin * 0.5_r)
         {
             //reset displacement
             maxParticleDisplacement = 0_r;

@@ -44,7 +44,7 @@ public:
                 }
             }
             assert(x < subdomain_.maxCorner[dim]);
-            assert(subdomain_.minCorner[dim] <= subdomain_.minCorner[dim]);
+            assert(subdomain_.minCorner[dim] <= x);
         }
     }
 
