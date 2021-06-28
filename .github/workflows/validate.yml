@@ -115,11 +115,17 @@ jobs:
 
       - name: make kokkos-tools memory-events
         working-directory: kokkos-tools/profiling/memory-events
-        run: make
+        run: |
+          pwd
+          make
+          ls
 
       - name: make kokkos-tools simple-kernel-timer-json
         working-directory: kokkos-tools/profiling/simple-kernel-timer-json
-        run: make
+        run: |
+          pwd
+          make
+          ls
 
       - uses: actions/checkout@v2
         with:
@@ -136,7 +142,13 @@ jobs:
         env:
           KOKKOS_PROFILE_LIBRARY: /__w/ecab/ecab/kokkos-tools/profiling/simple-kernel-timer-json/kp_kernel_timer_json.so
           OMP_NUM_THREADS: 2
-        run: ./LennardJones
+        run: |
+          pwd
+          ls /__w/ecab/ecab/kokkos-tools/
+          ls /__w/ecab/ecab/kokkos-tools/profiling/
+          ls /__w/ecab/ecab/kokkos-tools/profiling/simple-kernel-timer-json
+          ./LennardJones
+          ls
 
       - name: run memory benchmark
         working-directory: ecab-build/examples/LennardJones
@@ -148,7 +160,10 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: performance-data
-          path: ecab-build/examples/LennardJones/*.json
+          path: |
+            ecab-build/examples/LennardJones/*.json
+            ecab-build/examples/LennardJones/*.memspace_usage
+            ecab-build/examples/LennardJones/*.mem_events
 
   clang-format:
     runs-on: ubuntu-latest
