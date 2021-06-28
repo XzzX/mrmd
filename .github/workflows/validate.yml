@@ -87,6 +87,62 @@ jobs:
         working-directory: ecab-build
         run: ctest --rerun-failed --output-on-failure -j 2
 
+  benchmark:
+    runs-on: ubuntu-latest
+    container: xzzx/devel:clang
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          repository: 'kokkos/kokkos'
+          path: 'kokkos'
+
+      - name: kokkos
+        run: |
+          cmake \
+            -S kokkos \
+            -B kokkos-build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DKokkos_ENABLE_HWLOC=ON \
+            -DKokkos_ENABLE_SERIAL=ON \
+            -DKokkos_ENABLE_OPENMP=ON
+          cmake --build kokkos-build --target all -j 2
+          sudo cmake --install kokkos-build
+
+      - uses: actions/checkout@v2
+        with:
+          repository: 'kokkos/kokkos-tools'
+          path: 'kokkos-tools'
+
+      - name: make kokkos-tools memory-events
+        working-directory: kokkos-tools/profiling/memory-events
+        run: make
+
+      - name: make kokkos-tools simple-kernel-timer-json
+        working-directory: kokkos-tools/profiling/simple-kernel-timer-json
+        run: make
+
+      - uses: actions/checkout@v2
+        with:
+          path: 'ecab'
+
+      - name: Configure
+        run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build ecab-build --target all -j 2
+
+      - name: run benchmark
+        working-directory: ecab-build/examples/LennardJones
+        env:
+          KOKKOS_PROFILE_LIBRARY: kokkos-tools/profiling/simple-kernel-timer-json/kp_kernel_timer_json.so
+          OMP_NUM_THREADS: 2
+        run: ./LennardJones
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: performance-data
+          path: ecab-build/examples/LennardJones/*.json
+
   clang-format:
     runs-on: ubuntu-latest
     container: xzzx/devel:clang
