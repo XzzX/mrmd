@@ -134,7 +134,7 @@ jobs:
       - name: run benchmark
         working-directory: ecab-build/examples/LennardJones
         env:
-          KOKKOS_PROFILE_LIBRARY: kokkos-tools/profiling/simple-kernel-timer-json/kp_kernel_timer_json.so
+          KOKKOS_PROFILE_LIBRARY: ~/kokkos-tools/profiling/simple-kernel-timer-json/kp_kernel_timer_json.so
           OMP_NUM_THREADS: 2
         run: ./LennardJones
 
