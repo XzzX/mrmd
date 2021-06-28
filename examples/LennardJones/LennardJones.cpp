@@ -79,15 +79,16 @@ void LJ()
     LennardJones LJ(rc, 1_r, 1_r);
     ListType verlet_list;
     Kokkos::Timer timer;
-    real_t maxParticleDisplacement = 0_r;
+    real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
+    idx_t rebuildCounter = 0;
     for (auto i = 0; i < nsteps; ++i)
     {
         maxParticleDisplacement += integrator.preForceIntegrate(particles);
 
-        if (maxParticleDisplacement >= -1_r)
+        if (maxParticleDisplacement >= skin * 0.001_r)
         {
             //reset displacement
-            maxParticleDisplacement = -1_r;
+            maxParticleDisplacement = 0_r;
 
             ghostLayer.exchangeRealParticles(particles);
             ghostLayer.createGhostParticles(particles);
@@ -98,6 +99,7 @@ void LJ()
                                    cell_ratio,
                                    subdomain.minGhostCorner.data(),
                                    subdomain.maxGhostCorner.data());
+            ++rebuildCounter;
         } else
         {
             ghostLayer.updateGhostParticles(particles);
@@ -118,6 +120,7 @@ void LJ()
             auto T = getTemperature(particles);
             auto Ek = (3.0 / 2.0) * particles.numLocalParticles * T;
             std::cout << i << ": " << timer.seconds() << std::endl;
+            std::cout << "rebuild counter: " << rebuildCounter << std::endl;
             std::cout << "T : " << std::setw(10) << T << " | ";
             std::cout << "Ek: " << std::setw(10) << Ek << " | ";
             std::cout << "E0: " << std::setw(10) << E0 << " | ";

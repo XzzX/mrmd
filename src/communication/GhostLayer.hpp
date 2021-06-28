@@ -32,9 +32,9 @@ public:
 
     void updateGhostParticles(Particles& particles)
     {
-        assert(correspondingRealParticle_.extend(0) >= particles.size());
+        assert(correspondingRealParticle_.extent(0) >= particles.size());
 
-        impl::UpdateGhostParticles update;
+        impl::UpdateGhostParticles update(subdomain_);
         update.updateOnlyPos(particles, correspondingRealParticle_);
         Kokkos::fence();
     }

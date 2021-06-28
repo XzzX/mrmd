@@ -101,7 +101,6 @@ public:
             if (newSize > particles.size())
             {
                 // resize
-                //                std::cout << "resizing to: " << newSize << std::endl;
                 particles.resize(newSize);
                 Kokkos::resize(correspondingRealParticle_, newSize);
             }
@@ -127,9 +126,9 @@ public:
 
     IndexView createGhostParticlesXYZ(Particles& particles)
     {
+        particles.removeGhostParticles();
         Kokkos::resize(correspondingRealParticle_, particles.size());
         Kokkos::deep_copy(correspondingRealParticle_, -1);
-        particles.removeGhostParticles();
 
         exchangeGhosts<impl::GhostExchange::DIRECTION_X>(particles);
         exchangeGhosts<impl::GhostExchange::DIRECTION_Y>(particles);
