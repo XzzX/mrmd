@@ -3,6 +3,10 @@
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
 
+namespace communication
+{
+namespace impl
+{
 class PeriodicMapping
 {
 private:
@@ -53,3 +57,6 @@ public:
 
     PeriodicMapping(const Subdomain& subdomain) : subdomain_(subdomain) {}
 };
+
+}  // namespace impl
+}  // namespace communication

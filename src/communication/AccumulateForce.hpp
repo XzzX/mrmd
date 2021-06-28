@@ -5,6 +5,10 @@
 
 #include "data/Particles.hpp"
 
+namespace communication
+{
+namespace impl
+{
 class AccumulateForce
 {
 public:
@@ -32,3 +36,6 @@ public:
         Kokkos::parallel_for(policy, kernel, "AccumulateForce::ghostToReal");
     }
 };
+
+}  // namespace impl
+}  // namespace communication

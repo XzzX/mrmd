@@ -8,9 +8,7 @@
 #include "Cabana_NeighborList.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/Temperature.hpp"
-#include "communication/AccumulateForce.hpp"
-#include "communication/GhostExchange.hpp"
-#include "communication/PeriodicMapping.hpp"
+#include "communication/GhostLayer.hpp"
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
@@ -79,7 +77,7 @@ void LJ()
                                         Cabana::TeamOpTag>;
 
     VelocityVerlet integrator(dt);
-    GhostExchange ghostExchange(subdomain);
+    communication::GhostLayer ghostLayer(subdomain);
     LennardJones LJ(rc, 1_r, 1_r);
     ListType verlet_list;
     Kokkos::Timer timer;
@@ -93,8 +91,8 @@ void LJ()
             //reset displacement
             maxParticleDisplacement = -1_r;
 
-            ghostExchange.exchangeRealParticles(particles);
-            ghostExchange.createGhostParticles(particles);
+            ghostLayer.exchangeRealParticles(particles);
+            ghostLayer.createGhostParticles(particles);
             verlet_list = ListType(particles.getPos(),
                                    0,
                                    particles.numLocalParticles,
@@ -104,7 +102,7 @@ void LJ()
                                    subdomain.maxGhostCorner.data());
         } else
         {
-            ghostExchange.updateGhostParticles(particles);
+            ghostLayer.updateGhostParticles(particles);
         }
 
         auto force = particles.getForce();
@@ -112,7 +110,7 @@ void LJ()
 
         LJ.applyForces(particles, verlet_list);
 
-        ghostExchange.contributeBackGhostToReal(particles);
+        ghostLayer.contributeBackGhostToReal(particles);
 
         integrator.postForceIntegrate(particles);
 
