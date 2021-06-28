@@ -3,6 +3,7 @@
 #include "communication/AccumulateForce.hpp"
 #include "communication/GhostExchange.hpp"
 #include "communication/PeriodicMapping.hpp"
+#include "communication/UpdateGhostParticles.hpp"
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
 
@@ -29,7 +30,14 @@ public:
         Kokkos::fence();
     }
 
-    void updateGhostParticles(Particles& particles) {}
+    void updateGhostParticles(Particles& particles)
+    {
+        assert(correspondingRealParticle_.extend(0) >= particles.size());
+
+        impl::UpdateGhostParticles update;
+        update.updateOnlyPos(particles, correspondingRealParticle_);
+        Kokkos::fence();
+    }
 
     void contributeBackGhostToReal(Particles& particles)
     {
