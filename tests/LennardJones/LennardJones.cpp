@@ -7,7 +7,7 @@
 
 #include "Cabana_NeighborList.hpp"
 #include "action/VelocityVerlet.hpp"
-#include "communication/GhostExchange.hpp"
+#include "communication/GhostLayer.hpp"
 #include "data/Subdomain.hpp"
 
 /// reference values from espressopp simulation
@@ -35,6 +35,11 @@ Particles loadParticles(const std::string& filename)
         double x, y, z;
         fin >> x >> y >> z;
         if (fin.eof()) break;
+        if (std::isnan(x) || std::isnan(y) || std::isnan(z))
+        {
+            std::cout << "invalid position: " << x << " " << y << " " << z << std::endl;
+            exit(EXIT_FAILURE);
+        }
         h_pos(idx, 0) = x;
         h_pos(idx, 1) = y;
         h_pos(idx, 2) = z;
@@ -44,10 +49,13 @@ Particles loadParticles(const std::string& filename)
     fin.close();
 
     Cabana::deep_copy(d_AoSoA, h_AoSoA);
-
     p.numLocalParticles = idx;
-    auto ghost = p.getGhost();
-    Cabana::deep_copy(ghost, -1);
+    p.resize(p.numLocalParticles);
+
+    auto vel = p.getVel();
+    auto force = p.getForce();
+    Cabana::deep_copy(vel, 0_r);
+    Cabana::deep_copy(force, 0_r);
 
     return p;
 }
@@ -104,8 +112,8 @@ TEST(LennardJones, ESPPComparison)
     EXPECT_EQ(bfParticlePairs, ESPP_NEIGHBORS);
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
-    auto ghostExchange = GhostExchange(subdomain);
-    ghostExchange.exchangeGhostsXYZ(particles);
+    auto ghostExchange = communication::GhostLayer(subdomain);
+    ghostExchange.createGhostParticles(particles);
     Kokkos::fence();
     EXPECT_EQ(particles.numLocalParticles, ESPP_REAL);
     EXPECT_EQ(particles.numGhostParticles, ESPP_GHOST);

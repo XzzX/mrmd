@@ -48,10 +48,8 @@ Particles loadParticles(const std::string& filename)
 
     auto vel = p.getVel();
     auto force = p.getForce();
-    auto ghost = p.getGhost();
     Cabana::deep_copy(vel, 0_r);
     Cabana::deep_copy(force, 0_r);
-    Cabana::deep_copy(ghost, idx_c(-1));
 
     return p;
 }
