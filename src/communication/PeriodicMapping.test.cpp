@@ -2,10 +2,12 @@
 
 #include <gtest/gtest.h>
 
-#include <Kokkos_Core.hpp>
-
 #include "data/Subdomain.hpp"
 
+namespace communication
+{
+namespace impl
+{
 struct TestData
 {
     std::array<real_t, 3> initialPos;
@@ -65,3 +67,6 @@ INSTANTIATE_TEST_SUITE_P(MappingXYZ,
                          testing::Values(TestData{{1.1_r, 1.2_r, 1.3_r}, {0.1_r, 0.2_r, 0.3_r}},
                                          TestData{{-0.3_r, -0.2_r, -0.1_r},
                                                   {0.7_r, 0.8_r, 0.9_r}}));
+
+}  // namespace impl
+}  // namespace communication

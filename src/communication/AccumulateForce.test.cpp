@@ -3,7 +3,10 @@
 #include <gtest/gtest.h>
 
 #include <data/Particles.hpp>
-
+namespace communication
+{
+namespace impl
+{
 TEST(AccumulateForceTest, ghostToReal)
 {
     // accumulate all force on particle 0
@@ -26,3 +29,6 @@ TEST(AccumulateForceTest, ghostToReal)
     EXPECT_FLOAT_EQ(force(0, 1), 101_r);
     EXPECT_FLOAT_EQ(force(0, 2), 101_r);
 }
+
+}  // namespace impl
+}  // namespace communication

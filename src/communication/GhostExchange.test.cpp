@@ -6,6 +6,10 @@
 
 #include "data/Subdomain.hpp"
 
+namespace communication
+{
+namespace impl
+{
 size_t countWithinCutoff(Particles particles,
                          const real_t cutoff,
                          const double* box,
@@ -62,6 +66,7 @@ protected:
         EXPECT_EQ(idx, 27);
         particles.numLocalParticles = 27;
         particles.numGhostParticles = 0;
+        particles.resize(particles.numLocalParticles + particles.numGhostParticles);
         auto ghost = particles.getGhost();
         Cabana::deep_copy(ghost, idx_c(-1));
     }
@@ -75,8 +80,8 @@ protected:
 TEST_F(GhostExchangeTest, SelfExchangeX)
 {
     EXPECT_EQ(particles.numGhostParticles, 0);
-    auto ghostExchange = impl::GhostExchange(subdomain);
-    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_X>(particles);
+    auto ghostExchange = GhostExchange(subdomain);
+    ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -93,8 +98,8 @@ TEST_F(GhostExchangeTest, SelfExchangeX)
 
 TEST_F(GhostExchangeTest, SelfExchangeY)
 {
-    auto ghostExchange = impl::GhostExchange(subdomain);
-    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Y>(particles);
+    auto ghostExchange = GhostExchange(subdomain);
+    ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -111,8 +116,8 @@ TEST_F(GhostExchangeTest, SelfExchangeY)
 
 TEST_F(GhostExchangeTest, SelfExchangeZ)
 {
-    auto ghostExchange = impl::GhostExchange(subdomain);
-    ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Z>(particles);
+    auto ghostExchange = GhostExchange(subdomain);
+    ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -130,7 +135,7 @@ TEST_F(GhostExchangeTest, SelfExchangeZ)
 TEST_F(GhostExchangeTest, SelfExchangeXYZ)
 {
     auto ghostExchange = GhostExchange(subdomain);
-    ghostExchange.exchangeGhostsXYZ(particles);
+    ghostExchange.createGhostParticlesXYZ(particles);
     EXPECT_EQ(particles.numGhostParticles, 98);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -155,9 +160,12 @@ TEST_F(GhostExchangeTest, CountPairs)
     EXPECT_EQ(numPairs, 27 * 6 / 2);
 
     auto ghostExchange = GhostExchange(subdomain);
-    ghostExchange.exchangeGhostsXYZ(particles);
+    ghostExchange.createGhostParticlesXYZ(particles);
     EXPECT_EQ(particles.numGhostParticles, 98);
 
     numPairs = countWithinCutoff(particles, 1.1_r, subdomain.diameter.data(), false);
     EXPECT_EQ(numPairs, 108);
 }
+
+}  // namespace impl
+}  // namespace communication
