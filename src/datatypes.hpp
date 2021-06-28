@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Kokkos_Core.hpp>
 #include <cstdint>
 
 // convenience casting functions for unsigned ints
@@ -98,3 +99,5 @@ inline constexpr float float_c(const T &val)
 {
     return static_cast<float>(val);
 }
+
+using IndexView = Kokkos::View<idx_t *>;

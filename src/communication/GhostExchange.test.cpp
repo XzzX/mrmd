@@ -67,8 +67,6 @@ protected:
         particles.numLocalParticles = 27;
         particles.numGhostParticles = 0;
         particles.resize(particles.numLocalParticles + particles.numGhostParticles);
-        auto ghost = particles.getGhost();
-        Cabana::deep_copy(ghost, idx_c(-1));
     }
 
     // void TearDown() override {}
@@ -81,17 +79,17 @@ TEST_F(GhostExchangeTest, SelfExchangeX)
 {
     EXPECT_EQ(particles.numGhostParticles, 0);
     auto ghostExchange = GhostExchange(subdomain);
-    ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X>(particles);
+    auto correspondingRealParticle = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
         if (idx < particles.numLocalParticles)
         {
-            EXPECT_EQ(particles.getGhost()(idx), -1);
+            EXPECT_EQ(correspondingRealParticle(idx), -1);
         }
         else
         {
-            EXPECT_LT(particles.getGhost()(idx), particles.numLocalParticles);
+            EXPECT_LT(correspondingRealParticle(idx), particles.numLocalParticles);
         }
     }
 }
@@ -99,17 +97,17 @@ TEST_F(GhostExchangeTest, SelfExchangeX)
 TEST_F(GhostExchangeTest, SelfExchangeY)
 {
     auto ghostExchange = GhostExchange(subdomain);
-    ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y>(particles);
+    auto correspondingRealParticle = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
         if (idx < particles.numLocalParticles)
         {
-            EXPECT_EQ(particles.getGhost()(idx), -1);
+            EXPECT_EQ(correspondingRealParticle(idx), -1);
         }
         else
         {
-            EXPECT_LT(particles.getGhost()(idx), particles.numLocalParticles);
+            EXPECT_LT(correspondingRealParticle(idx), particles.numLocalParticles);
         }
     }
 }
@@ -117,17 +115,17 @@ TEST_F(GhostExchangeTest, SelfExchangeY)
 TEST_F(GhostExchangeTest, SelfExchangeZ)
 {
     auto ghostExchange = GhostExchange(subdomain);
-    ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z>(particles);
+    auto correspondingRealParticle = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
         if (idx < particles.numLocalParticles)
         {
-            EXPECT_EQ(particles.getGhost()(idx), -1);
+            EXPECT_EQ(correspondingRealParticle(idx), -1);
         }
         else
         {
-            EXPECT_LT(particles.getGhost()(idx), particles.numLocalParticles);
+            EXPECT_LT(correspondingRealParticle(idx), particles.numLocalParticles);
         }
     }
 }
@@ -135,17 +133,17 @@ TEST_F(GhostExchangeTest, SelfExchangeZ)
 TEST_F(GhostExchangeTest, SelfExchangeXYZ)
 {
     auto ghostExchange = GhostExchange(subdomain);
-    ghostExchange.createGhostParticlesXYZ(particles);
+    auto correspondingRealParticle = ghostExchange.createGhostParticlesXYZ(particles);
     EXPECT_EQ(particles.numGhostParticles, 98);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
         if (idx < particles.numLocalParticles)
         {
-            EXPECT_EQ(particles.getGhost()(idx), -1);
+            EXPECT_EQ(correspondingRealParticle(idx), -1);
         }
         else
         {
-            EXPECT_LT(particles.getGhost()(idx), particles.numLocalParticles);
+            EXPECT_LT(correspondingRealParticle(idx), particles.numLocalParticles);
         }
     }
 }

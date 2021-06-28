@@ -12,20 +12,19 @@ namespace impl
 class AccumulateForce
 {
 public:
-    void ghostToReal(Particles& particles)
+    void ghostToReal(Particles& particles, IndexView correspondingRealParticle)
     {
         Particles::force_t::atomic_access_slice force = particles.getForce();
-        auto ghost = particles.getGhost();
 
         auto policy = Kokkos::RangePolicy<>(
             particles.numLocalParticles, particles.numLocalParticles + particles.numGhostParticles);
 
         auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
         {
-            if (ghost(idx) == -1) return;
+            if (correspondingRealParticle(idx) == -1) return;
 
-            auto realIdx = ghost(idx);
-            assert(ghost(realIdx) == -1 && "We do not want to add forces to ghost particles!");
+            auto realIdx = correspondingRealParticle(idx);
+            assert(correspondingRealParticle(realIdx) == -1 && "We do not want to add forces to ghost particles!");
             for (auto dim = 0; dim < Particles::DIMENSIONS; ++dim)
             {
                 force(realIdx, dim) += force(idx, dim);

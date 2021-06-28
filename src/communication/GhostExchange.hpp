@@ -2,6 +2,7 @@
 
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
+#include "datatypes.hpp"
 
 namespace communication
 {
@@ -14,11 +15,10 @@ private:
     const Subdomain subdomain_;
 
     Particles::pos_t pos_;
-    Particles::ghost_t ghost_;
 
     Kokkos::View<idx_t> newGhostCounter_;
     /// Stores the corresponding real particle index for every ghost particle.
-    Kokkos::View<idx_t*> correspondingRealParticle_;
+    IndexView correspondingRealParticle_;
 
 public:
     struct DIRECTION_X
@@ -53,7 +53,7 @@ public:
                                Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
             if (newGhostIdx < particles_.size())
             {
-                particles_.copyAsGhost(newGhostIdx, idx);
+                particles_.copy(newGhostIdx, idx);
                 pos_(newGhostIdx, dim) -= subdomain_.diameter[dim];
                 assert(pos_(newGhostIdx, dim) < subdomain_.minCorner[dim]);
                 assert(pos_(newGhostIdx, dim) > subdomain_.minGhostCorner[dim]);
@@ -67,7 +67,7 @@ public:
                                Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
             if (newGhostIdx < particles_.size())
             {
-                particles_.copyAsGhost(newGhostIdx, idx);
+                particles_.copy(newGhostIdx, idx);
                 pos_(newGhostIdx, dim) += subdomain_.diameter[dim];
                 assert(pos_(newGhostIdx, dim) > subdomain_.maxCorner[dim]);
                 assert(pos_(newGhostIdx, dim) < subdomain_.maxGhostCorner[dim]);
@@ -84,7 +84,7 @@ public:
     void operator()(DIRECTION_Z, const idx_t& idx) const { copySelf(idx, 2); }
 
     template <typename EXCHANGE_DIRECTION>
-    void exchangeGhosts(Particles& particles)
+    IndexView exchangeGhosts(Particles& particles)
     {
         if (correspondingRealParticle_.extent(0) < particles.numLocalParticles)
         {
@@ -108,7 +108,6 @@ public:
 
             particles_ = particles;
             pos_ = particles.getPos();
-            ghost_ = particles.getGhost();
 
             Kokkos::deep_copy(newGhostCounter_, 0);
 
@@ -123,9 +122,10 @@ public:
         } while (newSize > particles.size());  // resize and rerun
 
         particles.numGhostParticles += hNewGhostCounter();
+        return correspondingRealParticle_;
     }
 
-    Kokkos::View<idx_t*> createGhostParticlesXYZ(Particles& particles)
+    IndexView createGhostParticlesXYZ(Particles& particles)
     {
         Kokkos::resize(correspondingRealParticle_, particles.size());
         Kokkos::deep_copy(correspondingRealParticle_, -1);

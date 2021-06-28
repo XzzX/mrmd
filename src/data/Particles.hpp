@@ -21,30 +21,26 @@ public:
     using DeviceType =
         Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::DefaultExecutionSpace::memory_space>;
     using DataTypes =
-        Cabana::MemberTypes<real_t[DIMENSIONS], real_t[DIMENSIONS], real_t[DIMENSIONS], idx_t>;
+        Cabana::MemberTypes<real_t[DIMENSIONS], real_t[DIMENSIONS], real_t[DIMENSIONS]>;
     using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VECTOR_LENGTH>;
 
     using pos_t = typename ParticlesT::template member_slice_type<POS>;
     using vel_t = typename ParticlesT::template member_slice_type<VEL>;
     using force_t = typename ParticlesT::template member_slice_type<FORCE>;
-    using ghost_t = typename ParticlesT::template member_slice_type<GHOST>;
 
     pos_t pos;
     vel_t vel;
     force_t force;
-    ghost_t ghost;
 
     KOKKOS_INLINE_FUNCTION pos_t getPos() { return pos; }
     KOKKOS_INLINE_FUNCTION vel_t getVel() { return vel; }
     KOKKOS_INLINE_FUNCTION force_t getForce() { return force; }
-    KOKKOS_INLINE_FUNCTION ghost_t getGhost() { return ghost; }
 
     void sliceAll()
     {
         pos = Cabana::slice<POS>(particles_);
         vel = Cabana::slice<VEL>(particles_);
         force = Cabana::slice<FORCE>(particles_);
-        ghost = Cabana::slice<GHOST>(particles_);
     }
 
     auto size() const { return particles_.size(); }
@@ -64,23 +60,8 @@ public:
         {
             pos(dst, dim) = pos(src, dim);
             vel(dst, dim) = vel(src, dim);
+            force(dst, dim) = force(src, dim);
         }
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    void copyAsGhost(const idx_t dst, const idx_t src) const
-    {
-        for (auto dim = 0; dim < DIMENSIONS; ++dim)
-        {
-            pos(dst, dim) = pos(src, dim);
-            vel(dst, dim) = vel(src, dim);
-            force(dst, dim) = 0_r;
-        }
-        auto realIdx = src;
-        while (ghost(realIdx) != -1) realIdx = ghost(realIdx);
-        ghost(dst) = realIdx;
-        assert(0 <= ghost(dst));
-        assert(ghost(dst) < numLocalParticles);
     }
 
     void removeGhostParticles()

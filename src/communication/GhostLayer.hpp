@@ -12,6 +12,7 @@ class GhostLayer
 {
 private:
     const Subdomain subdomain_;
+    IndexView correspondingRealParticle_;
 
 public:
     void exchangeRealParticles(Particles& particles)
@@ -24,7 +25,7 @@ public:
     void createGhostParticles(Particles& particles)
     {
         impl::GhostExchange ghostExchange(subdomain_);
-        ghostExchange.createGhostParticlesXYZ(particles);
+        correspondingRealParticle_ = ghostExchange.createGhostParticlesXYZ(particles);
         Kokkos::fence();
     }
 
@@ -33,7 +34,7 @@ public:
     void contributeBackGhostToReal(Particles& particles)
     {
         impl::AccumulateForce accumulate;
-        accumulate.ghostToReal(particles);
+        accumulate.ghostToReal(particles, correspondingRealParticle_);
         Kokkos::fence();
     }
 
