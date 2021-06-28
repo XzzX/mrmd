@@ -79,7 +79,8 @@ TEST_F(GhostExchangeTest, SelfExchangeX)
 {
     EXPECT_EQ(particles.numGhostParticles, 0);
     auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealParticle = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X>(particles);
+    auto correspondingRealParticle =
+        ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -97,7 +98,8 @@ TEST_F(GhostExchangeTest, SelfExchangeX)
 TEST_F(GhostExchangeTest, SelfExchangeY)
 {
     auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealParticle = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y>(particles);
+    auto correspondingRealParticle =
+        ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
@@ -115,7 +117,8 @@ TEST_F(GhostExchangeTest, SelfExchangeY)
 TEST_F(GhostExchangeTest, SelfExchangeZ)
 {
     auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealParticle = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z>(particles);
+    auto correspondingRealParticle =
+        ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z>(particles);
     EXPECT_EQ(particles.numGhostParticles, 18);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {

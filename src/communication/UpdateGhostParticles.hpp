@@ -4,6 +4,7 @@
 #include <cassert>
 
 #include "data/Particles.hpp"
+#include "data/Subdomain.hpp"
 
 namespace communication
 {

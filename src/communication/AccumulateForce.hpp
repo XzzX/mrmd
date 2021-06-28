@@ -24,7 +24,8 @@ public:
             if (correspondingRealParticle(idx) == -1) return;
 
             auto realIdx = correspondingRealParticle(idx);
-            assert(correspondingRealParticle(realIdx) == -1 && "We do not want to add forces to ghost particles!");
+            assert(correspondingRealParticle(realIdx) == -1 &&
+                   "We do not want to add forces to ghost particles!");
             for (auto dim = 0; dim < Particles::DIMENSIONS; ++dim)
             {
                 force(realIdx, dim) += force(idx, dim);
