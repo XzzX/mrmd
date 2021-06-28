@@ -119,10 +119,7 @@ jobs:
 
       - name: make kokkos-tools simple-kernel-timer-json
         working-directory: kokkos-tools/profiling/simple-kernel-timer-json
-        run: |
-          pwd
-          make
-          ls
+        run: make
 
       - uses: actions/checkout@v2
         with:
@@ -134,10 +131,17 @@ jobs:
       - name: Build
         run: cmake --build ecab-build --target all -j 2
 
-      - name: run benchmark
+      - name: run performance benchmark
         working-directory: ecab-build/examples/LennardJones
         env:
-          KOKKOS_PROFILE_LIBRARY: ~/kokkos-tools/profiling/simple-kernel-timer-json/kp_kernel_timer_json.so
+          KOKKOS_PROFILE_LIBRARY: /__w/ecab/ecab/kokkos-tools/profiling/simple-kernel-timer-json/kp_kernel_timer_json.so
+          OMP_NUM_THREADS: 2
+        run: ./LennardJones
+
+      - name: run memory benchmark
+        working-directory: ecab-build/examples/LennardJones
+        env:
+          KOKKOS_PROFILE_LIBRARY: /__w/ecab/ecab/kokkos-tools/profiling/memory-events/kp_memory_events.so
           OMP_NUM_THREADS: 2
         run: ./LennardJones
 
