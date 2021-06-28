@@ -119,7 +119,10 @@ jobs:
 
       - name: make kokkos-tools simple-kernel-timer-json
         working-directory: kokkos-tools/profiling/simple-kernel-timer-json
-        run: make
+        run: |
+          pwd
+          make
+          ls
 
       - uses: actions/checkout@v2
         with:
