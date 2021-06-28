@@ -60,7 +60,7 @@ Particles loadParticles(const std::string& filename)
 
 void LJ()
 {
-    constexpr bool bOutput = false;
+    constexpr bool bOutput = true;
 
     constexpr idx_t nsteps = 2001;
     constexpr real_t rc = 2.5;
@@ -83,29 +83,36 @@ void LJ()
     GhostExchange ghostExchange(subdomain);
     LennardJones LJ(rc, 1_r, 1_r);
     AccumulateForce accumulateForce;
+    ListType verlet_list;
     Kokkos::Timer timer;
+    real_t maxParticleDisplacement = 0_r;
     for (auto i = 0; i < nsteps; ++i)
     {
-        particles.removeGhostParticles();
-
-        integrator.preForceIntegrate(particles);
+        maxParticleDisplacement += integrator.preForceIntegrate(particles);
         Kokkos::fence();
 
-        periodicMapping.mapIntoDomain(particles);
-        Kokkos::fence();
+        if (maxParticleDisplacement >= -1_r)
+        {
+            //reset displacement
+            maxParticleDisplacement = -1_r;
 
-        particles.resize(100000);
-        ghostExchange.exchangeGhostsXYZ(particles);
-        Kokkos::fence();
-        particles.resize(particles.numLocalParticles + particles.numGhostParticles);
+            periodicMapping.mapIntoDomain(particles);
+            Kokkos::fence();
 
-        ListType verlet_list(particles.getPos(),
-                             0,
-                             particles.numLocalParticles,
-                             rc + skin,
-                             cell_ratio,
-                             subdomain.minGhostCorner.data(),
-                             subdomain.maxGhostCorner.data());
+            particles.resize(100000);
+            particles.removeGhostParticles();
+            ghostExchange.exchangeGhostsXYZ(particles);
+            Kokkos::fence();
+            particles.resize(particles.numLocalParticles + particles.numGhostParticles);
+
+            verlet_list = ListType(particles.getPos(),
+                                   0,
+                                   particles.numLocalParticles,
+                                   rc + skin,
+                                   cell_ratio,
+                                   subdomain.minGhostCorner.data(),
+                                   subdomain.maxGhostCorner.data());
+        }
 
         auto force = particles.getForce();
         Cabana::deep_copy(force, 0_r);
@@ -147,13 +154,6 @@ void LJ()
 
     // dumpCSV("particles_" + std::to_string(i) + ".csv", particles);
 
-    ListType verlet_list(particles.getPos(),
-                         0,
-                         particles.numLocalParticles,
-                         rc + skin,
-                         cell_ratio,
-                         subdomain.minGhostCorner.data(),
-                         subdomain.maxGhostCorner.data());
     auto E0 = LJ.computeEnergy(particles, verlet_list);
     auto T = getTemperature(particles);
 
