@@ -35,12 +35,16 @@ public:
         pos_(idx, 1) = pos_(realIdx, 1);
         pos_(idx, 2) = pos_(realIdx, 2);
 
-        if (dx[0] > +1_r) pos_(idx, 0) += subdomain_.diameter[0];
-        if (dx[1] > +1_r) pos_(idx, 1) += subdomain_.diameter[1];
-        if (dx[2] > +1_r) pos_(idx, 2) += subdomain_.diameter[2];
-        if (dx[0] < -1_r) pos_(idx, 0) -= subdomain_.diameter[0];
-        if (dx[1] < -1_r) pos_(idx, 1) -= subdomain_.diameter[1];
-        if (dx[2] < -1_r) pos_(idx, 2) -= subdomain_.diameter[2];
+        real_t delta[3];
+        delta[0] = 0.1_r * subdomain_.diameter[0];
+        delta[1] = 0.1_r * subdomain_.diameter[1];
+        delta[2] = 0.1_r * subdomain_.diameter[2];
+        if (dx[0] > +delta[0]) pos_(idx, 0) += subdomain_.diameter[0];
+        if (dx[1] > +delta[1]) pos_(idx, 1) += subdomain_.diameter[1];
+        if (dx[2] > +delta[2]) pos_(idx, 2) += subdomain_.diameter[2];
+        if (dx[0] < -delta[0]) pos_(idx, 0) -= subdomain_.diameter[0];
+        if (dx[1] < -delta[1]) pos_(idx, 1) -= subdomain_.diameter[1];
+        if (dx[2] < -delta[2]) pos_(idx, 2) -= subdomain_.diameter[2];
     }
 
     void updateOnlyPos(Particles& particles, IndexView correspondingRealParticle)
