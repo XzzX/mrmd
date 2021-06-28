@@ -79,32 +79,22 @@ void LJ()
                                         Cabana::TeamOpTag>;
 
     VelocityVerlet integrator(dt);
-    PeriodicMapping periodicMapping(subdomain);
     GhostExchange ghostExchange(subdomain);
     LennardJones LJ(rc, 1_r, 1_r);
-    AccumulateForce accumulateForce;
     ListType verlet_list;
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = 0_r;
     for (auto i = 0; i < nsteps; ++i)
     {
         maxParticleDisplacement += integrator.preForceIntegrate(particles);
-        Kokkos::fence();
 
         if (maxParticleDisplacement >= -1_r)
         {
             //reset displacement
             maxParticleDisplacement = -1_r;
 
-            periodicMapping.mapIntoDomain(particles);
-            Kokkos::fence();
-
-            particles.resize(100000);
-            particles.removeGhostParticles();
-            ghostExchange.exchangeGhostsXYZ(particles);
-            Kokkos::fence();
-            particles.resize(particles.numLocalParticles + particles.numGhostParticles);
-
+            ghostExchange.exchangeRealParticles(particles);
+            ghostExchange.createGhostParticles(particles);
             verlet_list = ListType(particles.getPos(),
                                    0,
                                    particles.numLocalParticles,
@@ -112,19 +102,19 @@ void LJ()
                                    cell_ratio,
                                    subdomain.minGhostCorner.data(),
                                    subdomain.maxGhostCorner.data());
+        } else
+        {
+            ghostExchange.updateGhostParticles(particles);
         }
 
         auto force = particles.getForce();
         Cabana::deep_copy(force, 0_r);
 
         LJ.applyForces(particles, verlet_list);
-        Kokkos::fence();
 
-        accumulateForce.ghostToReal(particles);
-        Kokkos::fence();
+        ghostExchange.contributeBackGhostToReal(particles);
 
         integrator.postForceIntegrate(particles);
-        Kokkos::fence();
 
         if (bOutput && (i % 100 == 0))
         {

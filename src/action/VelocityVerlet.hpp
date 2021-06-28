@@ -59,6 +59,7 @@ public:
         real_t maxDistSqr = 0_r;
         Kokkos::parallel_reduce(
             "VelocityVerlet::postForceIntegrate", policy, *this, Kokkos::Max<real_t>(maxDistSqr));
+        Kokkos::fence();
         return std::sqrt(maxDistSqr);
     }
 
@@ -69,5 +70,6 @@ public:
 
         auto policy = Kokkos::RangePolicy<TagPostForce>(0, particles.numLocalParticles);
         Kokkos::parallel_for("VelocityVerlet::postForceIntegrate", policy, *this);
+        Kokkos::fence();
     }
 };

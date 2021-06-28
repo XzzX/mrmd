@@ -1,7 +1,9 @@
 #pragma once
 
+#include "communication/PeriodicMapping.hpp"
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
+#include "communication/AccumulateForce.hpp"
 
 namespace impl
 {
@@ -88,13 +90,34 @@ private:
     const Subdomain subdomain_;
 
 public:
-    void exchangeGhostsXYZ(Particles& particles)
+    void exchangeRealParticles(Particles& particles)
     {
-        impl::GhostExchange ghostExchange(subdomain_);
+        PeriodicMapping mapping(subdomain_);
+        mapping.mapIntoDomain(particles);
+        Kokkos::fence();
+    }
 
+    void createGhostParticles(Particles& particles)
+    {
+        particles.resize(100000);
+        particles.removeGhostParticles();
+
+        impl::GhostExchange ghostExchange(subdomain_);
         ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_X>(particles);
         ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Y>(particles);
         ghostExchange.exchangeGhosts<impl::GhostExchange::DIRECTION_Z>(particles);
+        Kokkos::fence();
+
+        particles.resize(particles.numLocalParticles + particles.numGhostParticles);
+    }
+
+    void updateGhostParticles(Particles& particles) {}
+
+    void contributeBackGhostToReal(Particles& particles)
+    {
+        AccumulateForce accumulate;
+        accumulate.ghostToReal(particles);
+        Kokkos::fence();
     }
 
     GhostExchange(const Subdomain& subdomain) : subdomain_(subdomain) {}

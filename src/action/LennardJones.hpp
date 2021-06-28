@@ -77,6 +77,7 @@ public:
                                       Cabana::FirstNeighborsTag(),
                                       Cabana::TeamOpTag(),
                                       "LennardJones::applyForces");
+        Kokkos::fence();
     }
 
     template <typename VERLET_LIST>
