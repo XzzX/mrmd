@@ -58,7 +58,7 @@ public:
         auto policy = Kokkos::RangePolicy<TagPreForce>(0, particles.numLocalParticles);
         real_t maxDistSqr = 0_r;
         Kokkos::parallel_reduce(
-            "preForceIntegrate", policy, *this, Kokkos::Max<real_t>(maxDistSqr));
+            "VelocityVerlet::postForceIntegrate", policy, *this, Kokkos::Max<real_t>(maxDistSqr));
         return std::sqrt(maxDistSqr);
     }
 
@@ -68,6 +68,6 @@ public:
         force_ = particles.getForce();
 
         auto policy = Kokkos::RangePolicy<TagPostForce>(0, particles.numLocalParticles);
-        Kokkos::parallel_for("postForceIntegrate", policy, *this);
+        Kokkos::parallel_for("VelocityVerlet::postForceIntegrate", policy, *this);
     }
 };

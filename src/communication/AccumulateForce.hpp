@@ -29,6 +29,6 @@ public:
             }
         };
 
-        Kokkos::parallel_for(policy, kernel);
+        Kokkos::parallel_for(policy, kernel, "AccumulateForce::ghostToReal");
     }
 };

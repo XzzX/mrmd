@@ -76,7 +76,7 @@ public:
                                       verletList,
                                       Cabana::FirstNeighborsTag(),
                                       Cabana::TeamOpTag(),
-                                      "LennardJonesForce");
+                                      "LennardJones::applyForces");
     }
 
     template <typename VERLET_LIST>
@@ -91,7 +91,7 @@ public:
                                          Cabana::FirstNeighborsTag(),
                                          Cabana::TeamOpTag(),
                                          E0,
-                                         "LennardJonesEnergy");
+                                         "LennardJones::computeEnergy");
 
         return E0;
     }

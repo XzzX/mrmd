@@ -68,7 +68,7 @@ public:
         Kokkos::deep_copy(newGhostCounter_, 0);
         auto policy = Kokkos::RangePolicy<EXCHANGE_DIRECTION>(
             0, particles_.numLocalParticles + particles_.numGhostParticles);
-        Kokkos::parallel_for(policy, *this);
+        Kokkos::parallel_for(policy, *this, "GhostExchange::exchangeGhosts");
         Kokkos::fence();
         auto hNewGhostCounter =
             Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), newGhostCounter_);
