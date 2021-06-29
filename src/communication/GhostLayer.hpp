@@ -20,10 +20,7 @@ private:
     impl::AccumulateForce accumulateForce_;
 
 public:
-    void exchangeRealParticles(Particles& particles)
-    {
-        periodicMapping_.mapIntoDomain(particles);
-    }
+    void exchangeRealParticles(Particles& particles) { periodicMapping_.mapIntoDomain(particles); }
 
     void createGhostParticles(Particles& particles)
     {
