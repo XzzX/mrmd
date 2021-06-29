@@ -14,19 +14,21 @@ class GhostLayer
 private:
     const Subdomain subdomain_;
     IndexView correspondingRealParticle_;
+    impl::PeriodicMapping periodicMapping_;
+    impl::GhostExchange ghostExchange_;
+    impl::UpdateGhostParticles updateGhostParticles_;
+    impl::AccumulateForce accumulateForce_;
 
 public:
     void exchangeRealParticles(Particles& particles)
     {
-        impl::PeriodicMapping mapping(subdomain_);
-        mapping.mapIntoDomain(particles);
+        periodicMapping_.mapIntoDomain(particles);
         Kokkos::fence();
     }
 
     void createGhostParticles(Particles& particles)
     {
-        impl::GhostExchange ghostExchange(subdomain_);
-        correspondingRealParticle_ = ghostExchange.createGhostParticlesXYZ(particles);
+        correspondingRealParticle_ = ghostExchange_.createGhostParticlesXYZ(particles);
         Kokkos::fence();
     }
 
@@ -34,19 +36,23 @@ public:
     {
         assert(correspondingRealParticle_.extent(0) >= particles.size());
 
-        impl::UpdateGhostParticles update(subdomain_);
-        update.updateOnlyPos(particles, correspondingRealParticle_);
+        updateGhostParticles_.updateOnlyPos(particles, correspondingRealParticle_);
         Kokkos::fence();
     }
 
     void contributeBackGhostToReal(Particles& particles)
     {
-        impl::AccumulateForce accumulate;
-        accumulate.ghostToReal(particles, correspondingRealParticle_);
+        accumulateForce_.ghostToReal(particles, correspondingRealParticle_);
         Kokkos::fence();
     }
 
-    GhostLayer(const Subdomain& subdomain) : subdomain_(subdomain) {}
+    GhostLayer(const Subdomain& subdomain)
+        : subdomain_(subdomain),
+          periodicMapping_(subdomain),
+          ghostExchange_(subdomain),
+          updateGhostParticles_(subdomain)
+    {
+    }
 };
 
 }  // namespace communication
