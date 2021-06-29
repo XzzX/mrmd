@@ -87,20 +87,21 @@ void LJ()
 
         if (maxParticleDisplacement >= skin * 0.5_r)
         {
-            //reset displacement
+            // reset displacement
             maxParticleDisplacement = 0_r;
 
             ghostLayer.exchangeRealParticles(particles);
             ghostLayer.createGhostParticles(particles);
-            verlet_list = ListType(particles.getPos(),
-                                   0,
-                                   particles.numLocalParticles,
-                                   rc + skin,
-                                   cell_ratio,
-                                   subdomain.minGhostCorner.data(),
-                                   subdomain.maxGhostCorner.data());
+            verlet_list.build(particles.getPos(),
+                              0,
+                              particles.numLocalParticles,
+                              rc + skin,
+                              cell_ratio,
+                              subdomain.minGhostCorner.data(),
+                              subdomain.maxGhostCorner.data());
             ++rebuildCounter;
-        } else
+        }
+        else
         {
             ghostLayer.updateGhostParticles(particles);
         }
