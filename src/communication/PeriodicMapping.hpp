@@ -53,6 +53,7 @@ public:
         pos_ = particles.getPos();
         auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
         Kokkos::parallel_for(policy, *this, "PeriodicMapping::mapIntoDomain");
+        Kokkos::fence();
     }
 
     PeriodicMapping(const Subdomain& subdomain) : subdomain_(subdomain) {}

@@ -55,6 +55,7 @@ public:
         auto policy = Kokkos::RangePolicy<>(
             particles.numLocalParticles, particles.numLocalParticles + particles.numGhostParticles);
         Kokkos::parallel_for(policy, *this, "UpdateGhostParticles::updateOnlyPos");
+        Kokkos::fence();
     }
 
     UpdateGhostParticles(const Subdomain& subdomain) : subdomain_(subdomain) {}

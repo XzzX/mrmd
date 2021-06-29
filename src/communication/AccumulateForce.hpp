@@ -34,6 +34,7 @@ public:
         };
 
         Kokkos::parallel_for(policy, kernel, "AccumulateForce::ghostToReal");
+        Kokkos::fence();
     }
 };
 

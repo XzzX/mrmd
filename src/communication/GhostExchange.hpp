@@ -17,6 +17,7 @@ private:
     Particles::pos_t pos_;
 
     Kokkos::View<idx_t> newGhostCounter_;
+    Kokkos::View<idx_t>::host_mirror_type hNewGhostCounter_;
     /// Stores the corresponding real particle index for every ghost particle.
     IndexView correspondingRealParticle_;
 
@@ -92,9 +93,8 @@ public:
             Kokkos::resize(correspondingRealParticle_, particles.numLocalParticles);
             Kokkos::deep_copy(correspondingRealParticle_, -1);
         }
-        assert(correspondingRealParticle_.extent(0) == particles.size());
+        assert(correspondingRealParticle_.extent(0) >= particles.size());
 
-        auto hNewGhostCounter = Kokkos::create_mirror_view(Kokkos::HostSpace(), newGhostCounter_);
         auto newSize = particles.numLocalParticles + particles.numGhostParticles;
         do
         {
@@ -102,7 +102,10 @@ public:
             {
                 // resize
                 particles.resize(newSize);
-                Kokkos::resize(correspondingRealParticle_, newSize);
+                if (correspondingRealParticle_.extent(0) < newSize)
+                {
+                    Kokkos::resize(correspondingRealParticle_, newSize);
+                }
             }
 
             particles_ = particles;
@@ -115,19 +118,20 @@ public:
             Kokkos::parallel_for(policy, *this, "GhostExchange::exchangeGhosts");
             Kokkos::fence();
 
-            Kokkos::deep_copy(hNewGhostCounter, newGhostCounter_);
+            Kokkos::deep_copy(hNewGhostCounter_, newGhostCounter_);
             newSize =
-                particles.numLocalParticles + particles.numGhostParticles + hNewGhostCounter();
+                particles.numLocalParticles + particles.numGhostParticles + hNewGhostCounter_();
         } while (newSize > particles.size());  // resize and rerun
 
-        particles.numGhostParticles += hNewGhostCounter();
+        particles.numGhostParticles += hNewGhostCounter_();
         return correspondingRealParticle_;
     }
 
     IndexView createGhostParticlesXYZ(Particles& particles)
     {
-        particles.removeGhostParticles();
-        Kokkos::resize(correspondingRealParticle_, particles.size());
+        particles.numGhostParticles = 0;
+        if (correspondingRealParticle_.extent(0) < particles.size())
+            Kokkos::resize(correspondingRealParticle_, particles.size());
         Kokkos::deep_copy(correspondingRealParticle_, -1);
 
         exchangeGhosts<impl::GhostExchange::DIRECTION_X>(particles);
@@ -142,6 +146,7 @@ public:
     GhostExchange(const Subdomain& subdomain)
         : subdomain_(subdomain),
           newGhostCounter_("newGhostCounter"),
+          hNewGhostCounter_("hNewGhostCounter"),
           correspondingRealParticle_("correspondingRealParticle", 0)
     {
     }

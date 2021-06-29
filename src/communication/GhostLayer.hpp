@@ -23,13 +23,11 @@ public:
     void exchangeRealParticles(Particles& particles)
     {
         periodicMapping_.mapIntoDomain(particles);
-        Kokkos::fence();
     }
 
     void createGhostParticles(Particles& particles)
     {
         correspondingRealParticle_ = ghostExchange_.createGhostParticlesXYZ(particles);
-        Kokkos::fence();
     }
 
     void updateGhostParticles(Particles& particles)
@@ -37,13 +35,11 @@ public:
         assert(correspondingRealParticle_.extent(0) >= particles.size());
 
         updateGhostParticles_.updateOnlyPos(particles, correspondingRealParticle_);
-        Kokkos::fence();
     }
 
     void contributeBackGhostToReal(Particles& particles)
     {
         accumulateForce_.ghostToReal(particles, correspondingRealParticle_);
-        Kokkos::fence();
     }
 
     GhostLayer(const Subdomain& subdomain)
