@@ -43,6 +43,7 @@ public:
         force = Cabana::slice<FORCE>(particles_);
     }
 
+    KOKKOS_INLINE_FUNCTION
     auto size() const { return particles_.size(); }
     auto numSoA() const { return particles_.numSoA(); }
     auto arraySize(size_t s) const { return particles_.arraySize(s); }
