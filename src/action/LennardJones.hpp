@@ -5,6 +5,13 @@
 
 class LennardJones
 {
+public:
+    using VERLET_LIST = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
+                                           Cabana::HalfNeighborTag,
+                                           Cabana::VerletLayoutCSR,
+                                           Cabana::TeamOpTag>;
+    using NEIGHBOR_LIST = Cabana::NeighborList<VERLET_LIST>;
+
 private:
     const real_t epsilon_;
     real_t sig2_;
@@ -15,6 +22,8 @@ private:
     Particles::pos_t pos_;
     Particles::force_t::atomic_access_slice force_;
 
+    VERLET_LIST verletList_;
+
 public:
     KOKKOS_INLINE_FUNCTION
     real_t computeForce_(const real_t& distSqr) const
@@ -24,25 +33,44 @@ public:
         return frac6 * (ff1_ * frac6 - ff2_) * frac2;
     }
     KOKKOS_INLINE_FUNCTION
-    void operator()(const idx_t& idx, const idx_t& jdx) const
+    void operator()(const idx_t& idx) const
     {
-        auto dx = pos_(idx, 0) - pos_(jdx, 0);
-        auto dy = pos_(idx, 1) - pos_(jdx, 1);
-        auto dz = pos_(idx, 2) - pos_(jdx, 2);
+        real_t posTmp[3];
+        posTmp[0] = pos_(idx, 0);
+        posTmp[1] = pos_(idx, 1);
+        posTmp[2] = pos_(idx, 2);
 
-        auto distSqr = dx * dx + dy * dy + dz * dz;
+        real_t forceTmp[3] = {0_r, 0_r, 0_r};
 
-        if (distSqr > rcSqr_) return;
+        const idx_t numNeighbors = NEIGHBOR_LIST::numNeighbor(verletList_, idx);
+        for (idx_t n = 0; n < numNeighbors; ++n)
+        {
+            idx_t jdx = static_cast<idx_t>(NEIGHBOR_LIST::getNeighbor(verletList_, idx, n));
+            assert(0 <= jdx);
+            assert(jdx < 60000);
 
-        auto ffactor = computeForce_(distSqr);
+            auto dx = posTmp[0] - pos_(jdx, 0);
+            auto dy = posTmp[1] - pos_(jdx, 1);
+            auto dz = posTmp[2] - pos_(jdx, 2);
 
-        force_(idx, 0) += dx * ffactor;
-        force_(idx, 1) += dy * ffactor;
-        force_(idx, 2) += dz * ffactor;
+            auto distSqr = dx * dx + dy * dy + dz * dz;
 
-        force_(jdx, 0) -= dx * ffactor;
-        force_(jdx, 1) -= dy * ffactor;
-        force_(jdx, 2) -= dz * ffactor;
+            if (distSqr > rcSqr_) continue;
+
+            auto ffactor = computeForce_(distSqr);
+
+            forceTmp[0] += dx * ffactor;
+            forceTmp[1] += dy * ffactor;
+            forceTmp[2] += dz * ffactor;
+
+            force_(jdx, 0) -= dx * ffactor;
+            force_(jdx, 1) -= dy * ffactor;
+            force_(jdx, 2) -= dz * ffactor;
+        }
+
+        force_(idx, 0) += forceTmp[0];
+        force_(idx, 1) += forceTmp[1];
+        force_(idx, 2) += forceTmp[2];
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -65,18 +93,15 @@ public:
         energy += computeEnergy_(distSqr);
     }
 
-    template <typename VERLET_LIST>
     void applyForces(Particles& particles, VERLET_LIST& verletList)
     {
         pos_ = particles.getPos();
         force_ = particles.getForce();
+        verletList_ = verletList;
 
-        Cabana::neighbor_parallel_for(Kokkos::RangePolicy<>(0, particles.numLocalParticles),
-                                      *this,
-                                      verletList,
-                                      Cabana::FirstNeighborsTag(),
-                                      Cabana::TeamOpTag(),
-                                      "LennardJones::applyForces");
+        auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
+        Kokkos::parallel_for(policy, *this, "LennardJones::applyForces");
+
         Kokkos::fence();
     }
 
