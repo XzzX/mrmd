@@ -71,7 +71,7 @@ void LJ()
     double cell_ratio = 0.5_r;
     using ListType = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
                                         Cabana::HalfNeighborTag,
-                                        Cabana::VerletLayoutCSR,
+                                        Cabana::VerletLayout2D,
                                         Cabana::TeamOpTag>;
 
     VelocityVerlet integrator(dt);
@@ -98,7 +98,8 @@ void LJ()
                               rc + skin,
                               cell_ratio,
                               subdomain.minGhostCorner.data(),
-                              subdomain.maxGhostCorner.data());
+                              subdomain.maxGhostCorner.data(),
+                              60);
             ++rebuildCounter;
         }
         else

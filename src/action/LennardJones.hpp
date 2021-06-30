@@ -8,7 +8,7 @@ class LennardJones
 public:
     using VERLET_LIST = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
                                            Cabana::HalfNeighborTag,
-                                           Cabana::VerletLayoutCSR,
+                                           Cabana::VerletLayout2D,
                                            Cabana::TeamOpTag>;
     using NEIGHBOR_LIST = Cabana::NeighborList<VERLET_LIST>;
 
