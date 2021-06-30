@@ -9,7 +9,7 @@ class Particles
 public:
     /// number of spatial dimensions
     constexpr static int DIMENSIONS = 3;
-    constexpr static int VECTOR_LENGTH = 8;
+    constexpr static int VECTOR_LENGTH = 1;
 
     enum Props
     {
