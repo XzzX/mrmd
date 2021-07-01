@@ -18,8 +18,6 @@ public:
         FORCE = 2,
         GHOST = 3
     };
-    using DeviceType =
-        Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::DefaultExecutionSpace::memory_space>;
     using DataTypes =
         Cabana::MemberTypes<real_t[DIMENSIONS], real_t[DIMENSIONS], real_t[DIMENSIONS]>;
     using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VECTOR_LENGTH>;
@@ -51,6 +49,12 @@ public:
     {
         particles_.resize(size);
         sliceAll();
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    void permute(LinkedCellList& linkedCellList) const
+    {
+        Cabana::permute(linkedCellList, particles_);
     }
 
     KOKKOS_INLINE_FUNCTION

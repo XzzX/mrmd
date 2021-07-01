@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Cabana_LinkedCellList.hpp>
 #include <Cabana_VerletList.hpp>
 #include <Kokkos_Core.hpp>
 #include <cstdint>
@@ -103,6 +104,9 @@ inline constexpr float float_c(const T &val)
 
 using IndexView = Kokkos::View<idx_t *>;
 
+using DeviceType =
+    Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::DefaultExecutionSpace::memory_space>;
+using LinkedCellList = Cabana::LinkedCellList<DeviceType>;
 using VerletList = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
                                       Cabana::HalfNeighborTag,
                                       Cabana::VerletLayout2D,

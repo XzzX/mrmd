@@ -61,19 +61,20 @@ void LJ()
     constexpr idx_t nsteps = 2001;
     constexpr real_t rc = 2.5;
     constexpr real_t skin = 0.3;
+    constexpr real_t neighborCutoff = rc + skin;
     constexpr real_t dt = 0.005;
 
     constexpr real_t Lx = 33.8585;
-    auto subdomain = Subdomain({0_r, 0_r, 0_r}, {Lx, Lx, Lx}, rc + skin);
+    auto subdomain = Subdomain({0_r, 0_r, 0_r}, {Lx, Lx, Lx}, neighborCutoff);
     auto particles = loadParticles("positions.txt");
     assert(particles.numLocalParticles == 32768);
 
-    double cell_ratio = 0.5_r;
+    real_t cell_ratio = 0.5_r;
 
     VelocityVerlet integrator(dt);
     communication::GhostLayer ghostLayer(subdomain);
     LennardJones LJ(rc, 1_r, 1_r);
-    VerletList verlet_list;
+    VerletList verletList;
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;
@@ -87,15 +88,25 @@ void LJ()
             maxParticleDisplacement = 0_r;
 
             ghostLayer.exchangeRealParticles(particles);
+
+            real_t gridDelta[3] = {neighborCutoff, neighborCutoff, neighborCutoff};
+            LinkedCellList linkedCellList(particles.getPos(),
+                                          0,
+                                          particles.numLocalParticles,
+                                          gridDelta,
+                                          subdomain.minCorner.data(),
+                                          subdomain.maxCorner.data());
+            particles.permute(linkedCellList);
+
             ghostLayer.createGhostParticles(particles);
-            verlet_list.build(particles.getPos(),
-                              0,
-                              particles.numLocalParticles,
-                              rc + skin,
-                              cell_ratio,
-                              subdomain.minGhostCorner.data(),
-                              subdomain.maxGhostCorner.data(),
-                              60);
+            verletList.build(particles.getPos(),
+                             0,
+                             particles.numLocalParticles,
+                             neighborCutoff,
+                             cell_ratio,
+                             subdomain.minGhostCorner.data(),
+                             subdomain.maxGhostCorner.data(),
+                             60);
             ++rebuildCounter;
         }
         else
@@ -106,7 +117,7 @@ void LJ()
         auto force = particles.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        LJ.applyForces(particles, verlet_list);
+        LJ.applyForces(particles, verletList);
 
         ghostLayer.contributeBackGhostToReal(particles);
 
@@ -114,7 +125,7 @@ void LJ()
 
         if (bOutput && (i % 100 == 0))
         {
-            auto E0 = LJ.computeEnergy(particles, verlet_list);
+            auto E0 = LJ.computeEnergy(particles, verletList);
             auto T = getTemperature(particles);
             auto Ek = (3.0 / 2.0) * particles.numLocalParticles * T;
             std::cout << i << ": " << timer.seconds() << std::endl;
@@ -141,7 +152,7 @@ void LJ()
 
     // dumpCSV("particles_" + std::to_string(i) + ".csv", particles);
 
-    auto E0 = LJ.computeEnergy(particles, verlet_list);
+    auto E0 = LJ.computeEnergy(particles, verletList);
     auto T = getTemperature(particles);
 
     //    CHECK_LESS(E0, -162000_r);
