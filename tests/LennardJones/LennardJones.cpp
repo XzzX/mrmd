@@ -129,13 +129,13 @@ TEST(LennardJones, ESPPComparison)
                                         Cabana::HalfNeighborTag,
                                         Cabana::VerletLayoutCSR,
                                         Cabana::TeamOpTag>;
-    ListType verlet_list(particles.getPos(),
-                         0,
-                         particles.numLocalParticles,
-                         rc + skin,
-                         cell_ratio,
-                         subdomain.minGhostCorner.data(),
-                         subdomain.maxGhostCorner.data());
+    VerletList verlet_list(particles.getPos(),
+                           0,
+                           particles.numLocalParticles,
+                           rc + skin,
+                           cell_ratio,
+                           subdomain.minGhostCorner.data(),
+                           subdomain.maxGhostCorner.data());
     size_t vlParticlePairs = 0;
     Kokkos::parallel_reduce(
         verlet_list._data.counts.size(),

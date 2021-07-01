@@ -69,15 +69,11 @@ void LJ()
     assert(particles.numLocalParticles == 32768);
 
     double cell_ratio = 0.5_r;
-    using ListType = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
-                                        Cabana::HalfNeighborTag,
-                                        Cabana::VerletLayout2D,
-                                        Cabana::TeamOpTag>;
 
     VelocityVerlet integrator(dt);
     communication::GhostLayer ghostLayer(subdomain);
     LennardJones LJ(rc, 1_r, 1_r);
-    ListType verlet_list;
+    VerletList verlet_list;
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;

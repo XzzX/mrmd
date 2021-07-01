@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Cabana_VerletList.hpp>
 #include <Kokkos_Core.hpp>
 #include <cstdint>
 
@@ -101,3 +102,9 @@ inline constexpr float float_c(const T &val)
 }
 
 using IndexView = Kokkos::View<idx_t *>;
+
+using VerletList = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
+                                      Cabana::HalfNeighborTag,
+                                      Cabana::VerletLayout2D,
+                                      Cabana::TeamOpTag>;
+using NeighborList = Cabana::NeighborList<VerletList>;

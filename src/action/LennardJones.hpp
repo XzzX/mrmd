@@ -5,13 +5,6 @@
 
 class LennardJones
 {
-public:
-    using VERLET_LIST = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
-                                           Cabana::HalfNeighborTag,
-                                           Cabana::VerletLayout2D,
-                                           Cabana::TeamOpTag>;
-    using NEIGHBOR_LIST = Cabana::NeighborList<VERLET_LIST>;
-
 private:
     const real_t epsilon_;
     real_t sig2_;
@@ -22,7 +15,7 @@ private:
     Particles::pos_t pos_;
     Particles::force_t::atomic_access_slice force_;
 
-    VERLET_LIST verletList_;
+    VerletList verletList_;
 
 public:
     KOKKOS_INLINE_FUNCTION
@@ -42,10 +35,10 @@ public:
 
         real_t forceTmp[3] = {0_r, 0_r, 0_r};
 
-        const idx_t numNeighbors = NEIGHBOR_LIST::numNeighbor(verletList_, idx);
+        const idx_t numNeighbors = NeighborList::numNeighbor(verletList_, idx);
         for (idx_t n = 0; n < numNeighbors; ++n)
         {
-            idx_t jdx = static_cast<idx_t>(NEIGHBOR_LIST::getNeighbor(verletList_, idx, n));
+            idx_t jdx = static_cast<idx_t>(NeighborList::getNeighbor(verletList_, idx, n));
             assert(0 <= jdx);
             assert(jdx < 60000);
 
@@ -93,7 +86,7 @@ public:
         energy += computeEnergy_(distSqr);
     }
 
-    void applyForces(Particles& particles, VERLET_LIST& verletList)
+    void applyForces(Particles& particles, VerletList& verletList)
     {
         pos_ = particles.getPos();
         force_ = particles.getForce();
