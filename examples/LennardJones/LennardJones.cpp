@@ -6,7 +6,9 @@
 #include <iostream>
 
 #include "Cabana_NeighborList.hpp"
+#include "action/LangevinThermostat.hpp"
 #include "action/VelocityVerlet.hpp"
+#include "analysis/SystemMomentum.hpp"
 #include "analysis/Temperature.hpp"
 #include "communication/GhostLayer.hpp"
 #include "data/Particles.hpp"
@@ -63,6 +65,8 @@ void LJ()
     constexpr real_t skin = 0.3;
     constexpr real_t neighborCutoff = rc + skin;
     constexpr real_t dt = 0.005;
+    constexpr real_t temperature = 1_r;
+    constexpr real_t gamma = 1_r;
 
     constexpr real_t Lx = 33.8585;
     auto subdomain = Subdomain({0_r, 0_r, 0_r}, {Lx, Lx, Lx}, neighborCutoff);
@@ -74,6 +78,7 @@ void LJ()
     VelocityVerlet integrator(dt);
     communication::GhostLayer ghostLayer(subdomain);
     LennardJones LJ(rc, 1_r, 1_r);
+    LangevinThermostat langevinThermostat(gamma, temperature, dt);
     VerletList verletList;
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
@@ -118,7 +123,7 @@ void LJ()
         Cabana::deep_copy(force, 0_r);
 
         LJ.applyForces(particles, verletList);
-
+        langevinThermostat.applyThermostat(particles);
         ghostLayer.contributeBackGhostToReal(particles);
 
         integrator.postForceIntegrate(particles);
@@ -127,8 +132,11 @@ void LJ()
         {
             auto E0 = LJ.computeEnergy(particles, verletList);
             auto T = getTemperature(particles);
+            auto systemMomentum = analysis::getSystemMomentum(particles);
             auto Ek = (3.0 / 2.0) * particles.numLocalParticles * T;
             std::cout << i << ": " << timer.seconds() << std::endl;
+            std::cout << "system momentum: " << systemMomentum[0] << " | " << systemMomentum[1]
+                      << " | " << systemMomentum[2] << std::endl;
             std::cout << "rebuild counter: " << rebuildCounter << std::endl;
             std::cout << "T : " << std::setw(10) << T << " | ";
             std::cout << "Ek: " << std::setw(10) << Ek << " | ";
