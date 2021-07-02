@@ -20,12 +20,12 @@ constexpr idx_t ESPP_NEIGHBORS = 1310403;
 /// initial lennard jones energy
 constexpr real_t ESPP_INITIAL_ENERGY = -94795.927_r;
 
-Particles loadParticles(const std::string& filename)
+data::Particles loadParticles(const std::string& filename)
 {
-    Particles p(100000);
+    data::Particles p(100000);
     auto d_AoSoA = p.getAoSoA();
     auto h_AoSoA = Cabana::create_mirror_view(Kokkos::HostSpace(), d_AoSoA);
-    auto h_pos = Cabana::slice<Particles::POS>(h_AoSoA);
+    auto h_pos = Cabana::slice<data::Particles::POS>(h_AoSoA);
 
     std::ifstream fin(filename);
 
@@ -60,7 +60,7 @@ Particles loadParticles(const std::string& filename)
     return p;
 }
 
-size_t countWithinCutoff(Particles& particles,
+size_t countWithinCutoff(data::Particles& particles,
                          const real_t& cutoff,
                          const double* box,
                          const bool periodic)
@@ -101,7 +101,7 @@ TEST(LennardJones, ESPPComparison)
     constexpr double skin = 0.3;
     constexpr double dt = 0.005;
 
-    auto subdomain = Subdomain({0_r, 0_r, 0_r}, {33.8585, 33.8585, 33.8585}, rc + skin);
+    auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {33.8585, 33.8585, 33.8585}, rc + skin);
     Kokkos::Timer timer;
     auto particles = loadParticles("positions.txt");
     EXPECT_EQ(particles.numLocalParticles, ESPP_REAL);
