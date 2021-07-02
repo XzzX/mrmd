@@ -4,6 +4,8 @@
 
 #include "data/Particles.hpp"
 
+namespace io
+{
 inline void dumpCSV(const std::string& filename, Particles& particles)
 {
     auto pos = particles.getPos();
@@ -18,3 +20,4 @@ inline void dumpCSV(const std::string& filename, Particles& particles)
     }
     fout.close();
 }
+}  // namespace io
