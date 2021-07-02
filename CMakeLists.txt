@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(ecab LANGUAGES C CXX)
+project(mrmd LANGUAGES C CXX)
 
 # set C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -11,9 +11,9 @@ enable_testing()
 
 find_package(Kokkos REQUIRED)
 
-option(ECAB_LOCAL_ARCHITECTURE "Use instruction set of the local architecture." OFF)
-option(ECAB_VEC_REPORT "Enable reporting of loop vectorization." OFF)
-option(ECAB_WERROR "Treat warnings as errors." OFF)
+option(MRMD_LOCAL_ARCHITECTURE "Use instruction set of the local architecture." OFF)
+option(MRMD_VEC_REPORT "Enable reporting of loop vectorization." OFF)
+option(MRMD_WERROR "Treat warnings as errors." OFF)
 add_subdirectory(src)
 
 add_subdirectory(examples)

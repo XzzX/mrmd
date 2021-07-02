@@ -35,16 +35,16 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
-          path: 'ecab'
+          path: 'mrmd'
 
       - name: Configure
-        run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=Debug
+        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Debug
 
       - name: Build
-        run: cmake --build ecab-build --target all -j 2
+        run: cmake --build mrmd-build --target all -j 2
 
       - name: Test
-        working-directory: ecab-build
+        working-directory: mrmd-build
         run: ctest --rerun-failed --output-on-failure -j 2
 
   release-build:
@@ -75,16 +75,16 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
-          path: 'ecab'
+          path: 'mrmd'
 
       - name: Configure
-        run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        run: cmake --build ecab-build --target all -j 2
+        run: cmake --build mrmd-build --target all -j 2
 
       - name: Test
-        working-directory: ecab-build
+        working-directory: mrmd-build
         run: ctest --rerun-failed --output-on-failure -j 2
 
   benchmark:
@@ -123,25 +123,25 @@ jobs:
 
       - uses: actions/checkout@v2
         with:
-          path: 'ecab'
+          path: 'mrmd'
 
       - name: Configure
-        run: cmake -S ecab -B ecab-build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        run: cmake --build ecab-build --target all -j 2
+        run: cmake --build mrmd-build --target all -j 2
 
       - name: run performance benchmark
-        working-directory: ecab-build/examples/LennardJones
+        working-directory: mrmd-build/examples/LennardJones
         env:
-          KOKKOS_PROFILE_LIBRARY: /__w/ecab/ecab/kokkos-tools/profiling/simple-kernel-timer-json/kp_kernel_timer.so
+          KOKKOS_PROFILE_LIBRARY: /__w/mrmd/mrmd/kokkos-tools/profiling/simple-kernel-timer-json/kp_kernel_timer.so
           OMP_NUM_THREADS: 2
         run: ./LennardJones
 
       - name: run memory benchmark
-        working-directory: ecab-build/examples/LennardJones
+        working-directory: mrmd-build/examples/LennardJones
         env:
-          KOKKOS_PROFILE_LIBRARY: /__w/ecab/ecab/kokkos-tools/profiling/memory-events/kp_memory_events.so
+          KOKKOS_PROFILE_LIBRARY: /__w/mrmd/mrmd/kokkos-tools/profiling/memory-events/kp_memory_events.so
           OMP_NUM_THREADS: 2
         run: ./LennardJones
 
@@ -149,9 +149,9 @@ jobs:
         with:
           name: performance-data
           path: |
-            ecab-build/examples/LennardJones/*.json
-            ecab-build/examples/LennardJones/*.memspace_usage
-            ecab-build/examples/LennardJones/*.mem_events
+            mrmd-build/examples/LennardJones/*.json
+            mrmd-build/examples/LennardJones/*.memspace_usage
+            mrmd-build/examples/LennardJones/*.mem_events
 
   clang-format:
     runs-on: ubuntu-latest

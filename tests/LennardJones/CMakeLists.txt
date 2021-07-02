@@ -3,7 +3,7 @@ add_executable(LennardJonesIntegrationTest
         LennardJones.cpp
         )
 target_link_libraries(LennardJonesIntegrationTest
-        PRIVATE ecab gtest
+        PRIVATE mrmd gtest
         )
 
 include(GoogleTest)
