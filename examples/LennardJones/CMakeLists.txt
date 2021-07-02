@@ -3,5 +3,5 @@ add_executable(LennardJones
         LennardJones.cpp
         )
 target_link_libraries(LennardJones
-        PRIVATE ecab
+        PRIVATE ecab CLI11::CLI11
         )

@@ -22,6 +22,16 @@ add_subdirectory(tests)
 include(FetchContent)
 
 FetchContent_Declare(
+        CLI11
+        GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+        GIT_TAG 2255619b0f8881de1270054f642accfab25fd597
+)
+FetchContent_MakeAvailable(CLI11)
+
+get_target_property(TMP CLI11 INTERFACE_INCLUDE_DIRECTORIES)
+set_target_properties(CLI11 PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
+
+FetchContent_Declare(
         Cabana
         GIT_REPOSITORY https://github.com/ECP-copa/Cabana.git
         GIT_TAG 98bc54fcb70c6ea6833095b7688d6b4b4e0a37c5

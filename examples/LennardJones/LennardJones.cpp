@@ -1,5 +1,8 @@
 #include "action/LennardJones.hpp"
 
+#include <CLI/App.hpp>
+#include <CLI/Config.hpp>
+#include <CLI/Formatter.hpp>
 #include <Kokkos_Core.hpp>
 #include <fstream>
 #include <iomanip>
@@ -58,7 +61,7 @@ Particles loadParticles(const std::string& filename)
 
 struct Config
 {
-    bool bOutput = true;
+    bool bOutput = false;
 
     idx_t nsteps = 2001;
     real_t rc = 2.5;
@@ -184,6 +187,11 @@ int main(int argc, char* argv[])
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
 
     Config config;
+    CLI::App app{"Lennard Jones Fluid benchmark application"};
+    app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
+    app.add_flag("-o,--output", config.bOutput, "print physical state regularly");
+    CLI11_PARSE(app, argc, argv);
+
     LJ(config);
 
     return EXIT_SUCCESS;
