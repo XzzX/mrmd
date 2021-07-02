@@ -2,6 +2,8 @@
 
 #include "data/Particles.hpp"
 
+namespace analysis
+{
 inline real_t getTemperature(Particles& particles)
 {
     auto vel = particles.getVel();
@@ -14,3 +16,5 @@ inline real_t getTemperature(Particles& particles)
     Kokkos::parallel_reduce("getTemperature", policy, kernel, velSqr);
     return velSqr / (3.0 * particles.numLocalParticles);
 }
+
+}  // namespace analysis

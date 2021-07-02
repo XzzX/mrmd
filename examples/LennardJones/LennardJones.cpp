@@ -131,7 +131,7 @@ void LJ()
         if (bOutput && (i % 100 == 0))
         {
             auto E0 = LJ.computeEnergy(particles, verletList);
-            auto T = getTemperature(particles);
+            auto T = analysis::getTemperature(particles);
             auto systemMomentum = analysis::getSystemMomentum(particles);
             auto Ek = (3.0 / 2.0) * particles.numLocalParticles * T;
             std::cout << i << ": " << timer.seconds() << std::endl;
@@ -161,7 +161,7 @@ void LJ()
     // dumpCSV("particles_" + std::to_string(i) + ".csv", particles);
 
     auto E0 = LJ.computeEnergy(particles, verletList);
-    auto T = getTemperature(particles);
+    auto T = analysis::getTemperature(particles);
 
     //    CHECK_LESS(E0, -162000_r);
     //    CHECK_GREATER(E0, -163000_r);
