@@ -56,45 +56,52 @@ Particles loadParticles(const std::string& filename)
     return p;
 }
 
-void LJ()
+struct Config
 {
-    constexpr bool bOutput = true;
+    bool bOutput = true;
 
-    constexpr idx_t nsteps = 2001;
-    constexpr real_t rc = 2.5;
-    constexpr real_t skin = 0.3;
-    constexpr real_t neighborCutoff = rc + skin;
-    constexpr real_t dt = 0.005;
-    constexpr real_t temperature = 1_r;
-    constexpr real_t gamma = 1_r;
+    idx_t nsteps = 2001;
+    real_t rc = 2.5;
+    real_t skin = 0.3;
+    real_t neighborCutoff = rc + skin;
+    real_t dt = 0.005;
+    real_t temperature = 1_r;
+    real_t gamma = 1_r;
 
-    constexpr real_t Lx = 33.8585;
-    auto subdomain = Subdomain({0_r, 0_r, 0_r}, {Lx, Lx, Lx}, neighborCutoff);
-    auto particles = loadParticles("positions.txt");
-    assert(particles.numLocalParticles == 32768);
+    real_t Lx = 33.8585;
 
     real_t cell_ratio = 0.5_r;
 
-    VelocityVerlet integrator(dt);
+    idx_t estimatedMaxNeighbors = 60;
+};
+
+void LJ(Config& config)
+{
+    auto subdomain =
+        Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
+    auto particles = loadParticles("positions.txt");
+
+    VelocityVerlet integrator(config.dt);
     communication::GhostLayer ghostLayer(subdomain);
-    LennardJones LJ(rc, 1_r, 1_r);
-    LangevinThermostat langevinThermostat(gamma, temperature, dt);
+    LennardJones LJ(config.rc, 1_r, 1_r);
+    LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     VerletList verletList;
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;
-    for (auto i = 0; i < nsteps; ++i)
+    for (auto i = 0; i < config.nsteps; ++i)
     {
         maxParticleDisplacement += integrator.preForceIntegrate(particles);
 
-        if (maxParticleDisplacement >= skin * 0.5_r)
+        if (maxParticleDisplacement >= config.skin * 0.5_r)
         {
             // reset displacement
             maxParticleDisplacement = 0_r;
 
             ghostLayer.exchangeRealParticles(particles);
 
-            real_t gridDelta[3] = {neighborCutoff, neighborCutoff, neighborCutoff};
+            real_t gridDelta[3] = {
+                config.neighborCutoff, config.neighborCutoff, config.neighborCutoff};
             LinkedCellList linkedCellList(particles.getPos(),
                                           0,
                                           particles.numLocalParticles,
@@ -107,11 +114,11 @@ void LJ()
             verletList.build(particles.getPos(),
                              0,
                              particles.numLocalParticles,
-                             neighborCutoff,
-                             cell_ratio,
+                             config.neighborCutoff,
+                             config.cell_ratio,
                              subdomain.minGhostCorner.data(),
                              subdomain.maxGhostCorner.data(),
-                             60);
+                             config.estimatedMaxNeighbors);
             ++rebuildCounter;
         }
         else
@@ -128,7 +135,7 @@ void LJ()
 
         integrator.postForceIntegrate(particles);
 
-        if (bOutput && (i % 100 == 0))
+        if (config.bOutput && (i % 100 == 0))
         {
             auto E0 = LJ.computeEnergy(particles, verletList);
             auto T = analysis::getTemperature(particles);
@@ -154,7 +161,7 @@ void LJ()
                      : std::string("0");
 
     std::ofstream fout("ecab.perf", std::ofstream::app);
-    fout << cores << ", " << time << ", " << particles.numLocalParticles << ", " << nsteps
+    fout << cores << ", " << time << ", " << particles.numLocalParticles << ", " << config.nsteps
          << std::endl;
     fout.close();
 
@@ -176,7 +183,8 @@ int main(int argc, char* argv[])
 
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
 
-    LJ();
+    Config config;
+    LJ(config);
 
     return EXIT_SUCCESS;
 }
