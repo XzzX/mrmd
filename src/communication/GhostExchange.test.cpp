@@ -10,7 +10,7 @@ namespace communication
 {
 namespace impl
 {
-size_t countWithinCutoff(Particles particles,
+size_t countWithinCutoff(data::Particles particles,
                          const real_t cutoff,
                          const double* box,
                          const bool periodic)
@@ -71,8 +71,8 @@ protected:
 
     // void TearDown() override {}
 
-    Subdomain subdomain = Subdomain({0_r, 0_r, 0_r}, {3_r, 3_r, 3_r}, 0.7_r);
-    Particles particles = Particles(200);
+    data::Subdomain subdomain = data::Subdomain({0_r, 0_r, 0_r}, {3_r, 3_r, 3_r}, 0.7_r);
+    data::Particles particles = data::Particles(200);
 };
 
 TEST_F(GhostExchangeTest, SelfExchangeX)

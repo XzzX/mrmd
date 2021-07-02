@@ -6,7 +6,7 @@
 
 TEST(SystemMomentum, Simple)
 {
-    Particles particles(2);
+    data::Particles particles(2);
     auto vel = particles.getVel();
     vel(0, 0) = +2_r;
     vel(0, 1) = +3_r;

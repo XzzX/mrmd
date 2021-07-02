@@ -28,7 +28,7 @@ protected:
 
     // void TearDown() override {}
 
-    Particles particles = Particles(1);
+    data::Particles particles = data::Particles(1);
 };
 
 TEST_F(VelocityVerletTest, preForceIntegration)

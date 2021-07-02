@@ -10,7 +10,7 @@ namespace impl
 TEST(AccumulateForceTest, ghostToReal)
 {
     // accumulate all force on particle 0
-    Particles particles(101);
+    data::Particles particles(101);
     particles.numLocalParticles = 1;
     particles.numGhostParticles = 100;
     particles.resize(101);

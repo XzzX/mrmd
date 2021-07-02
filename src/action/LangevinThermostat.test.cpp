@@ -6,7 +6,7 @@
 
 TEST(LangevinThermostat, Simple)
 {
-    Particles particles(1);
+    data::Particles particles(1);
     auto vel = particles.getVel();
     vel(0, 0) = +2_r;
     vel(0, 1) = +3_r;

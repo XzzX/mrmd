@@ -6,7 +6,7 @@
 
 TEST(Temperature, Simple)
 {
-    Particles particles(3);
+    data::Particles particles(3);
     auto vel = particles.getVel();
     vel(0, 0) = +2_r;
     vel(0, 1) = +0_r;

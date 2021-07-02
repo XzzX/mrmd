@@ -41,8 +41,8 @@ protected:
 
     // void TearDown() override {}
 
-    Subdomain subdomain = Subdomain({0_r, 0_r, 0_r}, {1_r, 1_r, 1_r}, 0.1_r);
-    Particles particles = Particles(2);
+    data::Subdomain subdomain = data::Subdomain({0_r, 0_r, 0_r}, {1_r, 1_r, 1_r}, 0.1_r);
+    data::Particles particles = data::Particles(2);
     IndexView correspondingRealParticle;
 };
 
