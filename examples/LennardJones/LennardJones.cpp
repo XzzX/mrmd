@@ -133,7 +133,10 @@ void LJ(Config& config)
         Cabana::deep_copy(force, 0_r);
 
         LJ.applyForces(particles, verletList);
-        langevinThermostat.applyThermostat(particles);
+        if (config.temperature >= 0)
+        {
+            langevinThermostat.applyThermostat(particles);
+        }
         ghostLayer.contributeBackGhostToReal(particles);
 
         integrator.postForceIntegrate(particles);
@@ -189,6 +192,10 @@ int main(int argc, char* argv[])
     Config config;
     CLI::App app{"Lennard Jones Fluid benchmark application"};
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
+    app.add_option(
+        "-T,--temperature",
+        config.temperature,
+        "temperature of the Langevin thermostat (negative numbers deactivate the thermostat)");
     app.add_flag("-o,--output", config.bOutput, "print physical state regularly");
     CLI11_PARSE(app, argc, argv);
 
