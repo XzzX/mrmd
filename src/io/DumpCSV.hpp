@@ -6,7 +6,7 @@
 
 namespace io
 {
-inline void dumpCSV(const std::string& filename, Particles& particles)
+inline void dumpCSV(const std::string& filename, data::Particles& particles)
 {
     auto pos = particles.getPos();
     auto vel = particles.getVel();

@@ -13,8 +13,8 @@ namespace impl
 class UpdateGhostParticles
 {
 private:
-    Particles::pos_t pos_;
-    Subdomain subdomain_;
+    data::Particles::pos_t pos_;
+    data::Subdomain subdomain_;
     IndexView correspondingRealParticle_;
 
 public:
@@ -47,7 +47,7 @@ public:
         if (dx[2] < -delta[2]) pos_(idx, 2) -= subdomain_.diameter[2];
     }
 
-    void updateOnlyPos(Particles& particles, IndexView correspondingRealParticle)
+    void updateOnlyPos(data::Particles& particles, IndexView correspondingRealParticle)
     {
         pos_ = particles.getPos();
         correspondingRealParticle_ = correspondingRealParticle;
@@ -58,7 +58,7 @@ public:
         Kokkos::fence();
     }
 
-    UpdateGhostParticles(const Subdomain& subdomain) : subdomain_(subdomain) {}
+    UpdateGhostParticles(const data::Subdomain& subdomain) : subdomain_(subdomain) {}
 };
 
 }  // namespace impl

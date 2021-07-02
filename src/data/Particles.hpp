@@ -4,6 +4,8 @@
 
 #include "datatypes.hpp"
 
+namespace data
+{
 class Particles
 {
 public:
@@ -87,3 +89,4 @@ public:
 private:
     ParticlesT particles_ = ParticlesT("particles", 100000);
 };
+}  // namespace data

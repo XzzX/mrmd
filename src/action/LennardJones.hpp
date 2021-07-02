@@ -12,8 +12,8 @@ private:
     real_t ff1_;
     real_t ff2_;
     real_t rcSqr_;
-    Particles::pos_t pos_;
-    Particles::force_t::atomic_access_slice force_;
+    data::Particles::pos_t pos_;
+    data::Particles::force_t::atomic_access_slice force_;
 
     VerletList verletList_;
 
@@ -86,7 +86,7 @@ public:
         energy += computeEnergy_(distSqr);
     }
 
-    void applyForces(Particles& particles, VerletList& verletList)
+    void applyForces(data::Particles& particles, VerletList& verletList)
     {
         pos_ = particles.getPos();
         force_ = particles.getForce();
@@ -99,7 +99,7 @@ public:
     }
 
     template <typename VERLET_LIST>
-    real_t computeEnergy(Particles& particles, VERLET_LIST& verletList)
+    real_t computeEnergy(data::Particles& particles, VERLET_LIST& verletList)
     {
         pos_ = particles.getPos();
 

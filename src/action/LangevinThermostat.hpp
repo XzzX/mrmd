@@ -9,8 +9,8 @@
 class LangevinThermostat
 {
 private:
-    Particles::vel_t vel_;
-    Particles::force_t force_;
+    data::Particles::vel_t vel_;
+    data::Particles::force_t force_;
 
     util::Random rng;
 
@@ -29,7 +29,7 @@ public:
         force_(idx, 2) += pref1 * vel_(idx, 2) * mass + pref2 * (rng.draw() - 0.5_r) * massSqrt;
     }
 
-    void applyThermostat(Particles& particles)
+    void applyThermostat(data::Particles& particles)
     {
         vel_ = particles.getVel();
         force_ = particles.getForce();

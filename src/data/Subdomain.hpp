@@ -5,6 +5,8 @@
 
 #include "datatypes.hpp"
 
+namespace data
+{
 struct Subdomain
 {
     Subdomain(const std::array<real_t, 3>& minCorner,
@@ -39,3 +41,5 @@ struct Subdomain
 
     std::array<real_t, 3> diameter;
 };
+
+}  // namespace data

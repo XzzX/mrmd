@@ -4,7 +4,7 @@
 
 namespace analysis
 {
-inline std::array<real_t, 3> getSystemMomentum(Particles& particles)
+inline std::array<real_t, 3> getSystemMomentum(data::Particles& particles)
 {
     auto vel = particles.getVel();
     std::array<real_t, 3> velSum = {0_r, 0_r, 0_r};

@@ -11,10 +11,10 @@ namespace impl
 class GhostExchange
 {
 private:
-    Particles particles_ = Particles(0);
-    const Subdomain subdomain_;
+    data::Particles particles_ = data::Particles(0);
+    const data::Subdomain subdomain_;
 
-    Particles::pos_t pos_;
+    data::Particles::pos_t pos_;
 
     Kokkos::View<idx_t> newGhostCounter_;
     Kokkos::View<idx_t>::host_mirror_type hNewGhostCounter_;
@@ -85,7 +85,7 @@ public:
     void operator()(DIRECTION_Z, const idx_t& idx) const { copySelf(idx, 2); }
 
     template <typename EXCHANGE_DIRECTION>
-    IndexView exchangeGhosts(Particles& particles)
+    IndexView exchangeGhosts(data::Particles& particles)
     {
         if (correspondingRealParticle_.extent(0) < particles.numLocalParticles)
         {
@@ -127,7 +127,7 @@ public:
         return correspondingRealParticle_;
     }
 
-    IndexView createGhostParticlesXYZ(Particles& particles)
+    IndexView createGhostParticlesXYZ(data::Particles& particles)
     {
         particles.numGhostParticles = 0;
         if (correspondingRealParticle_.extent(0) < particles.size())
@@ -143,7 +143,7 @@ public:
         return correspondingRealParticle_;
     }
 
-    GhostExchange(const Subdomain& subdomain)
+    GhostExchange(const data::Subdomain& subdomain)
         : subdomain_(subdomain),
           newGhostCounter_("newGhostCounter"),
           hNewGhostCounter_("hNewGhostCounter"),

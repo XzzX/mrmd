@@ -4,7 +4,7 @@
 
 namespace analysis
 {
-inline real_t getTemperature(Particles& particles)
+inline real_t getTemperature(data::Particles& particles)
 {
     auto vel = particles.getVel();
     real_t velSqr = 0_r;

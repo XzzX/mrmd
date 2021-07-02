@@ -10,8 +10,8 @@ namespace impl
 class PeriodicMapping
 {
 private:
-    Particles::pos_t pos_;
-    const Subdomain subdomain_;
+    data::Particles::pos_t pos_;
+    const data::Subdomain subdomain_;
 
 public:
     /**
@@ -24,7 +24,7 @@ public:
     KOKKOS_INLINE_FUNCTION
     void operator()(const idx_t& idx) const
     {
-        for (auto dim = 0; dim < Particles::DIMENSIONS; ++dim)
+        for (auto dim = 0; dim < data::Particles::DIMENSIONS; ++dim)
         {
             auto& x = pos_(idx, dim);
             if (subdomain_.maxCorner[dim] <= x)
@@ -48,7 +48,7 @@ public:
         }
     }
 
-    void mapIntoDomain(Particles& particles)
+    void mapIntoDomain(data::Particles& particles)
     {
         pos_ = particles.getPos();
         auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
@@ -56,7 +56,7 @@ public:
         Kokkos::fence();
     }
 
-    PeriodicMapping(const Subdomain& subdomain) : subdomain_(subdomain) {}
+    PeriodicMapping(const data::Subdomain& subdomain) : subdomain_(subdomain) {}
 };
 
 }  // namespace impl

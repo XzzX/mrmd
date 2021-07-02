@@ -19,12 +19,12 @@
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
 
-Particles loadParticles(const std::string& filename)
+data::Particles loadParticles(const std::string& filename)
 {
-    Particles p(100000);
+    data::Particles p(100000);
     auto d_AoSoA = p.getAoSoA();
     auto h_AoSoA = Cabana::create_mirror_view(Kokkos::HostSpace(), d_AoSoA);
-    auto h_pos = Cabana::slice<Particles::POS>(h_AoSoA);
+    auto h_pos = Cabana::slice<data::Particles::POS>(h_AoSoA);
 
     std::ifstream fin(filename);
 
@@ -81,7 +81,7 @@ struct Config
 void LJ(Config& config)
 {
     auto subdomain =
-        Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
+        data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
     auto particles = loadParticles("positions.txt");
 
     VelocityVerlet integrator(config.dt);

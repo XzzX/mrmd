@@ -10,9 +10,9 @@ class VelocityVerlet
 private:
     real_t dtf_ = 0;
     real_t dtv_ = 0;
-    Particles::pos_t pos_;
-    Particles::vel_t vel_;
-    Particles::force_t force_;
+    data::Particles::pos_t pos_;
+    data::Particles::vel_t vel_;
+    data::Particles::force_t force_;
 
 public:
     struct TagPreForce
@@ -49,7 +49,7 @@ public:
         vel_(idx, 2) += dtf_ * force_(idx, 2);
     }
 
-    real_t preForceIntegrate(Particles& particles)
+    real_t preForceIntegrate(data::Particles& particles)
     {
         pos_ = particles.getPos();
         vel_ = particles.getVel();
@@ -63,7 +63,7 @@ public:
         return std::sqrt(maxDistSqr);
     }
 
-    void postForceIntegrate(Particles& particles)
+    void postForceIntegrate(data::Particles& particles)
     {
         vel_ = particles.getVel();
         force_ = particles.getForce();

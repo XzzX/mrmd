@@ -6,7 +6,7 @@
 
 TEST(Subdomain, Constructor)
 {
-    Subdomain subdomain({1, 2, 3}, {3, 6, 9}, 0.5_r);
+    data::Subdomain subdomain({1, 2, 3}, {3, 6, 9}, 0.5_r);
 
     EXPECT_FLOAT_EQ(subdomain.minCorner[0], 1_r);
     EXPECT_FLOAT_EQ(subdomain.minCorner[1], 2_r);

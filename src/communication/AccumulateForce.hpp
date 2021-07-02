@@ -12,9 +12,9 @@ namespace impl
 class AccumulateForce
 {
 public:
-    void ghostToReal(Particles& particles, IndexView correspondingRealParticle)
+    void ghostToReal(data::Particles& particles, IndexView correspondingRealParticle)
     {
-        Particles::force_t::atomic_access_slice force = particles.getForce();
+        data::Particles::force_t::atomic_access_slice force = particles.getForce();
 
         auto policy = Kokkos::RangePolicy<>(
             particles.numLocalParticles, particles.numLocalParticles + particles.numGhostParticles);
@@ -26,7 +26,7 @@ public:
             auto realIdx = correspondingRealParticle(idx);
             assert(correspondingRealParticle(realIdx) == -1 &&
                    "We do not want to add forces to ghost particles!");
-            for (auto dim = 0; dim < Particles::DIMENSIONS; ++dim)
+            for (auto dim = 0; dim < data::Particles::DIMENSIONS; ++dim)
             {
                 force(realIdx, dim) += force(idx, dim);
                 force(idx, dim) = 0_r;
