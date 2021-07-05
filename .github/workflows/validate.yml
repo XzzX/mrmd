@@ -192,6 +192,8 @@ jobs:
           sudo cmake --install kokkos-build
 
       - uses: actions/checkout@v2
+        with:
+          path: 'mrmd'
 
       - name: Configure
         run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Debug -DMRMD_CLANG_TIDY=ON
