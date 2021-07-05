@@ -4,5 +4,5 @@
 
 namespace io
 {
-void dumpCSV(const std::string& filename, data::Particles& particles);
+data::Particles restoreParticles(const std::string& filename);
 }  // namespace io
