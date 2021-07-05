@@ -7,17 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-enable_testing()
-
 find_package(Kokkos REQUIRED)
-
-option(MRMD_LOCAL_ARCHITECTURE "Use instruction set of the local architecture." OFF)
-option(MRMD_VEC_REPORT "Enable reporting of loop vectorization." OFF)
-option(MRMD_WERROR "Treat warnings as errors." OFF)
-add_subdirectory(src)
-
-add_subdirectory(examples)
-add_subdirectory(tests)
 
 include(FetchContent)
 
@@ -52,3 +42,26 @@ get_target_property(TMP gtest INTERFACE_INCLUDE_DIRECTORIES)
 set_target_properties(gtest PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
 get_target_property(TMP gmock INTERFACE_INCLUDE_DIRECTORIES)
 set_target_properties(gmock PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
+
+enable_testing()
+
+option(MRMD_CLANG_TIDY "Run clang-tidy checks during compilation." OFF)
+option(MRMD_LOCAL_ARCHITECTURE "Use instruction set of the local architecture." OFF)
+option(MRMD_VEC_REPORT "Enable reporting of loop vectorization." OFF)
+option(MRMD_WERROR "Treat warnings as errors." OFF)
+
+if (MRMD_CLANG_TIDY)
+    find_program(CLANG_TIDY_COMMAND NAMES clang-tidy)
+    if (NOT CLANG_TIDY_COMMAND)
+        message(WARNING "MRMD_CLANG_TIDY is ON but clang-tidy is not found!")
+        set(CMAKE_CXX_CLANG_TIDY "" CACHE STRING "" FORCE)
+    else ()
+        configure_file(.clang-tidy .clang-tidy COPYONLY)
+        set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY_COMMAND})
+    endif ()
+endif ()
+
+add_subdirectory(src)
+
+add_subdirectory(examples)
+add_subdirectory(tests)

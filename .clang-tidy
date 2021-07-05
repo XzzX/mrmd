@@ -1,0 +1,13 @@
+---
+Checks: '
+
+-*,
+
+bugprone-*,
+
+'
+WarningsAsErrors: '*'
+HeaderFilterRegex: '.*'
+...
+
+
