@@ -32,9 +32,9 @@ public:
     vel_t vel;
     force_t force;
 
-    KOKKOS_INLINE_FUNCTION pos_t getPos() { return pos; }
-    KOKKOS_INLINE_FUNCTION vel_t getVel() { return vel; }
-    KOKKOS_INLINE_FUNCTION force_t getForce() { return force; }
+    KOKKOS_INLINE_FUNCTION pos_t getPos() const { return pos; }
+    KOKKOS_INLINE_FUNCTION vel_t getVel() const { return vel; }
+    KOKKOS_INLINE_FUNCTION force_t getForce() const { return force; }
 
     void sliceAll()
     {
@@ -87,6 +87,6 @@ public:
     }
 
 private:
-    ParticlesT particles_ = ParticlesT("particles", 100000);
+    ParticlesT particles_ = ParticlesT("particles");
 };
 }  // namespace data

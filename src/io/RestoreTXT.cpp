@@ -6,7 +6,8 @@ namespace io
 {
 data::Particles restoreParticles(const std::string& filename)
 {
-    data::Particles p(100000);
+    constexpr idx_t numInitiallyAllocatedParticles = 100000;
+    data::Particles p(numInitiallyAllocatedParticles);
     auto d_AoSoA = p.getAoSoA();
     auto h_AoSoA = Cabana::create_mirror_view(Kokkos::HostSpace(), d_AoSoA);
     auto h_pos = Cabana::slice<data::Particles::POS>(h_AoSoA);
@@ -16,7 +17,9 @@ data::Particles restoreParticles(const std::string& filename)
     idx_t idx = 0;
     while (!fin.eof())
     {
-        double x, y, z;
+        double x;
+        double y;
+        double z;
         fin >> x >> y >> z;
         if (fin.eof()) break;
         if (std::isnan(x) || std::isnan(y) || std::isnan(z))
