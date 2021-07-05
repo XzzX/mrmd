@@ -107,7 +107,7 @@ void LJ(Config& config)
             auto E0 = LJ.computeEnergy(particles, verletList);
             auto T = analysis::getTemperature(particles);
             auto systemMomentum = analysis::getSystemMomentum(particles);
-            auto Ek = (3.0 / 2.0) * particles.numLocalParticles * T;
+            auto Ek = (3_r / 2_r) * real_c(particles.numLocalParticles) * T;
             std::cout << i << ": " << timer.seconds() << std::endl;
             std::cout << "system momentum: " << systemMomentum[0] << " | " << systemMomentum[1]
                       << " | " << systemMomentum[2] << std::endl;
@@ -144,7 +144,7 @@ void LJ(Config& config)
     //    CHECK_GREATER(T, 1.41_r);
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char* argv[])  // NOLINT
 {
     Kokkos::ScopeGuard scope_guard(argc, argv);
 

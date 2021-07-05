@@ -21,18 +21,18 @@ constexpr idx_t ESPP_NEIGHBORS = 1310403;
 /// initial lennard jones energy
 constexpr real_t ESPP_INITIAL_ENERGY = -94795.927_r;
 
-size_t countWithinCutoff(data::Particles& particles,
-                         const real_t& cutoff,
-                         const double* box,
-                         const bool periodic)
+idx_t countWithinCutoff(data::Particles& particles,
+                        const real_t& cutoff,
+                        const double* box,
+                        const bool periodic)
 {
     auto rcSqr = cutoff * cutoff;
     auto pos = particles.getPos();
 
-    size_t count = 0;
+    idx_t count = 0;
     Kokkos::parallel_reduce(
         Kokkos::RangePolicy<>(0, particles.numLocalParticles),
-        KOKKOS_LAMBDA(const idx_t idx, size_t& sum)
+        KOKKOS_LAMBDA(const idx_t idx, idx_t& sum)
         {
             for (auto jdx = idx + 1;
                  jdx < particles.numLocalParticles + particles.numGhostParticles;
@@ -68,7 +68,7 @@ TEST(LennardJones, ESPPComparison)
     EXPECT_EQ(particles.numLocalParticles, ESPP_REAL);
     std::cout << "load particles: " << timer.seconds() << std::endl;
 
-    auto bfParticlePairs = 0;
+    idx_t bfParticlePairs = 0;
     bfParticlePairs = countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), true);
     EXPECT_EQ(bfParticlePairs, ESPP_NEIGHBORS);
     std::cout << "brute force: " << timer.seconds() << std::endl;

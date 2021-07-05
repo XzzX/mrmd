@@ -35,10 +35,10 @@ public:
 
         real_t forceTmp[3] = {0_r, 0_r, 0_r};
 
-        const idx_t numNeighbors = NeighborList::numNeighbor(verletList_, idx);
+        const auto numNeighbors = idx_c(NeighborList::numNeighbor(verletList_, idx));
         for (idx_t n = 0; n < numNeighbors; ++n)
         {
-            idx_t jdx = static_cast<idx_t>(NeighborList::getNeighbor(verletList_, idx, n));
+            idx_t jdx = idx_c(NeighborList::getNeighbor(verletList_, idx, n));
             assert(0 <= jdx);
             assert(jdx < 60000);
 

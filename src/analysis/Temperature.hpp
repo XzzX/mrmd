@@ -14,7 +14,7 @@ inline real_t getTemperature(data::Particles& particles)
         sum += vel(idx, 0) * vel(idx, 0) + vel(idx, 1) * vel(idx, 1) + vel(idx, 2) * vel(idx, 2);
     };
     Kokkos::parallel_reduce("getTemperature", policy, kernel, velSqr);
-    return velSqr / (3.0 * particles.numLocalParticles);
+    return velSqr / (3_r * real_c(particles.numLocalParticles));
 }
 
 }  // namespace analysis
