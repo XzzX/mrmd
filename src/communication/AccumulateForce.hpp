@@ -29,7 +29,7 @@ public:
             force_(idx, dim) = 0_r;
         }
     }
-    
+
     void ghostToReal(data::Particles& particles, IndexView correspondingRealParticle)
     {
         force_ = particles.getForce();
