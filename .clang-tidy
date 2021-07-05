@@ -5,6 +5,8 @@ Checks: '
 
 bugprone-*,
 
+portability-*,
+
 '
 WarningsAsErrors: '*'
 HeaderFilterRegex: '.*'
