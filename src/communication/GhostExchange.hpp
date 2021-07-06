@@ -25,13 +25,22 @@ private:
     IndexView correspondingRealParticle_;
 
 public:
-    struct DIRECTION_X
+    struct DIRECTION_X_HIGH
     {
     };
-    struct DIRECTION_Y
+    struct DIRECTION_X_LOW
     {
     };
-    struct DIRECTION_Z
+    struct DIRECTION_Y_HIGH
+    {
+    };
+    struct DIRECTION_Y_LOW
+    {
+    };
+    struct DIRECTION_Z_HIGH
+    {
+    };
+    struct DIRECTION_Z_LOW
     {
     };
 
@@ -49,22 +58,8 @@ public:
     }
 
     KOKKOS_INLINE_FUNCTION
-    void copySelf(const idx_t idx, const idx_t dim) const
+    void copySelfLow(const idx_t idx, const idx_t dim) const
     {
-        if (pos_(idx, dim) > subdomain_.maxInnerCorner[dim])
-        {
-            auto newGhostIdx = particles_.numLocalParticles + particles_.numGhostParticles +
-                               Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
-            if (newGhostIdx < particles_.size())
-            {
-                particles_.copy(newGhostIdx, idx);
-                pos_(newGhostIdx, dim) -= subdomain_.diameter[dim];
-                assert(pos_(newGhostIdx, dim) < subdomain_.minCorner[dim]);
-                assert(pos_(newGhostIdx, dim) > subdomain_.minGhostCorner[dim]);
-                correspondingRealParticle_(newGhostIdx) = findRealIdx(idx);
-            }
-        }
-
         if (pos_(idx, dim) < subdomain_.minInnerCorner[dim])
         {
             auto newGhostIdx = particles_.numLocalParticles + particles_.numGhostParticles +
@@ -81,14 +76,38 @@ public:
     }
 
     KOKKOS_INLINE_FUNCTION
-    void operator()(DIRECTION_X, const idx_t& idx) const { copySelf(idx, 0); }
+    void copySelfHigh(const idx_t idx, const idx_t dim) const
+    {
+        if (pos_(idx, dim) > subdomain_.maxInnerCorner[dim])
+        {
+            auto newGhostIdx = particles_.numLocalParticles + particles_.numGhostParticles +
+                               Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
+            if (newGhostIdx < particles_.size())
+            {
+                particles_.copy(newGhostIdx, idx);
+                pos_(newGhostIdx, dim) -= subdomain_.diameter[dim];
+                assert(pos_(newGhostIdx, dim) < subdomain_.minCorner[dim]);
+                assert(pos_(newGhostIdx, dim) > subdomain_.minGhostCorner[dim]);
+                correspondingRealParticle_(newGhostIdx) = findRealIdx(idx);
+            }
+        }
+    }
+
     KOKKOS_INLINE_FUNCTION
-    void operator()(DIRECTION_Y, const idx_t& idx) const { copySelf(idx, 1); }
+    void operator()(DIRECTION_X_HIGH, const idx_t& idx) const { copySelfHigh(idx, 0); }
     KOKKOS_INLINE_FUNCTION
-    void operator()(DIRECTION_Z, const idx_t& idx) const { copySelf(idx, 2); }
+    void operator()(DIRECTION_X_LOW, const idx_t& idx) const { copySelfLow(idx, 0); }
+    KOKKOS_INLINE_FUNCTION
+    void operator()(DIRECTION_Y_HIGH, const idx_t& idx) const { copySelfHigh(idx, 1); }
+    KOKKOS_INLINE_FUNCTION
+    void operator()(DIRECTION_Y_LOW, const idx_t& idx) const { copySelfLow(idx, 1); }
+    KOKKOS_INLINE_FUNCTION
+    void operator()(DIRECTION_Z_HIGH, const idx_t& idx) const { copySelfHigh(idx, 2); }
+    KOKKOS_INLINE_FUNCTION
+    void operator()(DIRECTION_Z_LOW, const idx_t& idx) const { copySelfLow(idx, 2); }
 
     template <typename EXCHANGE_DIRECTION>
-    IndexView exchangeGhosts(data::Particles& particles)
+    IndexView exchangeGhosts(data::Particles& particles, idx_t maxIdx)
     {
         if (correspondingRealParticle_.extent(0) < particles.numLocalParticles)
         {
@@ -113,8 +132,7 @@ public:
 
             Kokkos::deep_copy(newGhostCounter_, 0);
 
-            auto policy = Kokkos::RangePolicy<EXCHANGE_DIRECTION>(
-                0, particles.numLocalParticles + particles.numGhostParticles);
+            auto policy = Kokkos::RangePolicy<EXCHANGE_DIRECTION>(0, maxIdx);
             Kokkos::parallel_for(policy, *this, "GhostExchange::exchangeGhosts");
             Kokkos::fence();
 
@@ -133,9 +151,15 @@ public:
         util::grow(correspondingRealParticle_, idx_c(particles.size()));
         Kokkos::deep_copy(correspondingRealParticle_, -1);
 
-        exchangeGhosts<impl::GhostExchange::DIRECTION_X>(particles);
-        exchangeGhosts<impl::GhostExchange::DIRECTION_Y>(particles);
-        exchangeGhosts<impl::GhostExchange::DIRECTION_Z>(particles);
+        auto maxIdx = particles.numLocalParticles + particles.numGhostParticles;
+        exchangeGhosts<impl::GhostExchange::DIRECTION_X_HIGH>(particles, maxIdx);
+        exchangeGhosts<impl::GhostExchange::DIRECTION_X_LOW>(particles, maxIdx);
+        maxIdx = particles.numLocalParticles + particles.numGhostParticles;
+        exchangeGhosts<impl::GhostExchange::DIRECTION_Y_HIGH>(particles, maxIdx);
+        exchangeGhosts<impl::GhostExchange::DIRECTION_Y_LOW>(particles, maxIdx);
+        maxIdx = particles.numLocalParticles + particles.numGhostParticles;
+        exchangeGhosts<impl::GhostExchange::DIRECTION_Z_HIGH>(particles, maxIdx);
+        exchangeGhosts<impl::GhostExchange::DIRECTION_Z_LOW>(particles, maxIdx);
         Kokkos::fence();
 
         particles.resize(particles.numLocalParticles + particles.numGhostParticles);

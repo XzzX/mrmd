@@ -77,13 +77,13 @@ protected:
     data::Particles particles = data::Particles(200);
 };
 
-TEST_F(GhostExchangeTest, SelfExchangeX)
+TEST_F(GhostExchangeTest, SelfExchangeXHigh)
 {
     EXPECT_EQ(particles.numGhostParticles, 0);
     auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealParticle =
-        ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X>(particles);
-    EXPECT_EQ(particles.numGhostParticles, 18);
+    auto correspondingRealParticle = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X_HIGH>(
+        particles, particles.numLocalParticles);
+    EXPECT_EQ(particles.numGhostParticles, 9);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
         if (idx < particles.numLocalParticles)
@@ -97,12 +97,13 @@ TEST_F(GhostExchangeTest, SelfExchangeX)
     }
 }
 
-TEST_F(GhostExchangeTest, SelfExchangeY)
+TEST_F(GhostExchangeTest, SelfExchangeXLow)
 {
+    EXPECT_EQ(particles.numGhostParticles, 0);
     auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealParticle =
-        ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y>(particles);
-    EXPECT_EQ(particles.numGhostParticles, 18);
+    auto correspondingRealParticle = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X_LOW>(
+        particles, particles.numLocalParticles);
+    EXPECT_EQ(particles.numGhostParticles, 9);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
         if (idx < particles.numLocalParticles)
@@ -116,12 +117,69 @@ TEST_F(GhostExchangeTest, SelfExchangeY)
     }
 }
 
-TEST_F(GhostExchangeTest, SelfExchangeZ)
+TEST_F(GhostExchangeTest, SelfExchangeYHigh)
 {
     auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealParticle =
-        ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z>(particles);
-    EXPECT_EQ(particles.numGhostParticles, 18);
+    auto correspondingRealParticle = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y_HIGH>(
+        particles, particles.numLocalParticles);
+    EXPECT_EQ(particles.numGhostParticles, 9);
+    for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
+    {
+        if (idx < particles.numLocalParticles)
+        {
+            EXPECT_EQ(correspondingRealParticle(idx), -1);
+        }
+        else
+        {
+            EXPECT_LT(correspondingRealParticle(idx), particles.numLocalParticles);
+        }
+    }
+}
+
+TEST_F(GhostExchangeTest, SelfExchangeYLow)
+{
+    auto ghostExchange = GhostExchange(subdomain);
+    auto correspondingRealParticle = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y_LOW>(
+        particles, particles.numLocalParticles);
+    EXPECT_EQ(particles.numGhostParticles, 9);
+    for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
+    {
+        if (idx < particles.numLocalParticles)
+        {
+            EXPECT_EQ(correspondingRealParticle(idx), -1);
+        }
+        else
+        {
+            EXPECT_LT(correspondingRealParticle(idx), particles.numLocalParticles);
+        }
+    }
+}
+
+TEST_F(GhostExchangeTest, SelfExchangeZHigh)
+{
+    auto ghostExchange = GhostExchange(subdomain);
+    auto correspondingRealParticle = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z_HIGH>(
+        particles, particles.numLocalParticles);
+    EXPECT_EQ(particles.numGhostParticles, 9);
+    for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
+    {
+        if (idx < particles.numLocalParticles)
+        {
+            EXPECT_EQ(correspondingRealParticle(idx), -1);
+        }
+        else
+        {
+            EXPECT_LT(correspondingRealParticle(idx), particles.numLocalParticles);
+        }
+    }
+}
+
+TEST_F(GhostExchangeTest, SelfExchangeZLow)
+{
+    auto ghostExchange = GhostExchange(subdomain);
+    auto correspondingRealParticle = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z_LOW>(
+        particles, particles.numLocalParticles);
+    EXPECT_EQ(particles.numGhostParticles, 9);
     for (auto idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {
         if (idx < particles.numLocalParticles)
