@@ -20,8 +20,8 @@
 #include "io/DumpCSV.hpp"
 #include "io/RestoreTXT.hpp"
 
-namespace mrmd
-{
+using namespace mrmd;
+
 struct Config
 {
     bool bOutput = false;
@@ -146,15 +146,13 @@ void LJ(Config& config)
     //    CHECK_GREATER(T, 1.41_r);
 }
 
-}  // namespace mrmd
-
 int main(int argc, char* argv[])  // NOLINT
 {
     Kokkos::ScopeGuard scope_guard(argc, argv);
 
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
 
-    mrmd::Config config;
+    Config config;
     CLI::App app{"Lennard Jones Fluid benchmark application"};
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
     app.add_option(
@@ -164,7 +162,7 @@ int main(int argc, char* argv[])  // NOLINT
     app.add_flag("-o,--output", config.bOutput, "print physical state regularly");
     CLI11_PARSE(app, argc, argv);
 
-    mrmd::LJ(config);
+    LJ(config);
 
     return EXIT_SUCCESS;
 }

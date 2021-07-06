@@ -3,6 +3,8 @@
 #include "Cabana_AoSoA.hpp"
 #include "datatypes.hpp"
 
+using namespace mrmd;
+
 class CabanaVec
 {
 public:

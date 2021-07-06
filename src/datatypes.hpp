@@ -5,6 +5,8 @@
 #include <Kokkos_Core.hpp>
 #include <cstdint>
 
+namespace mrmd
+{
 // convenience casting functions for unsigned ints
 template <typename T>
 inline constexpr unsigned int uint_c(const T &val)
@@ -112,3 +114,5 @@ using VerletList = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_spac
                                       Cabana::VerletLayout2D,
                                       Cabana::TeamOpTag>;
 using NeighborList = Cabana::NeighborList<VerletList>;
+
+}  // namespace mrmd
