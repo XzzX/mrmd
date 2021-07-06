@@ -5,6 +5,8 @@
 
 #include "datatypes.hpp"
 
+namespace mrmd
+{
 namespace data
 {
 struct Subdomain
@@ -43,3 +45,4 @@ struct Subdomain
 };
 
 }  // namespace data
+}  // namespace mrmd

@@ -4,6 +4,8 @@
 
 #include "data/Particles.hpp"
 
+namespace mrmd
+{
 TEST(Temperature, Simple)
 {
     data::Particles particles(3);
@@ -24,3 +26,4 @@ TEST(Temperature, Simple)
 
     EXPECT_FLOAT_EQ(temperature, (4_r + 64_r + 256_r) / 9_r);
 }
+}  // namespace mrmd

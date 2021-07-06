@@ -5,6 +5,8 @@
 #include "data/Particles.hpp"
 #include "datatypes.hpp"
 
+namespace mrmd
+{
 namespace action
 {
 class VelocityVerlet
@@ -76,3 +78,4 @@ public:
     }
 };
 }  // namespace action
+}  // namespace mrmd

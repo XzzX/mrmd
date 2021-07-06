@@ -6,6 +6,8 @@
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
 
+namespace mrmd
+{
 namespace communication
 {
 namespace impl
@@ -63,3 +65,4 @@ public:
 
 }  // namespace impl
 }  // namespace communication
+}  // namespace mrmd

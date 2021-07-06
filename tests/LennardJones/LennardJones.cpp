@@ -11,6 +11,8 @@
 #include "data/Subdomain.hpp"
 #include "io/RestoreTXT.hpp"
 
+namespace mrmd
+{
 /// reference values from espressopp simulation
 /// number of real particles
 constexpr idx_t ESPP_REAL = 32768;
@@ -121,6 +123,8 @@ TEST(LennardJones, ESPPComparison)
 
     std::cout << "finished: " << timer.seconds() << std::endl;
 }
+
+}  // namespace mrmd
 
 int main(int argc, char** argv)
 {

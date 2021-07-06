@@ -4,6 +4,8 @@
 
 #include "data/Subdomain.hpp"
 
+namespace mrmd
+{
 namespace communication
 {
 namespace impl
@@ -70,3 +72,4 @@ INSTANTIATE_TEST_SUITE_P(MappingXYZ,
 
 }  // namespace impl
 }  // namespace communication
+}  // namespace mrmd

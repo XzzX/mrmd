@@ -4,6 +4,8 @@
 
 #include "data/Particles.hpp"
 
+namespace mrmd
+{
 namespace action
 {
 TEST(LangevinThermostat, Simple)
@@ -33,3 +35,4 @@ TEST(LangevinThermostat, Simple)
     EXPECT_LE(force(0, 2), 2_r + langevinThermostat.pref2 * 0.5_r);
 }
 }  // namespace action
+}  // namespace mrmd

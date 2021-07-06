@@ -2,6 +2,8 @@
 
 #include "data/Particles.hpp"
 
+namespace mrmd
+{
 namespace analysis
 {
 inline real_t getTemperature(data::Particles& particles)
@@ -18,3 +20,4 @@ inline real_t getTemperature(data::Particles& particles)
 }
 
 }  // namespace analysis
+}  // namespace mrmd

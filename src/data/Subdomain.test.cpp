@@ -4,6 +4,8 @@
 
 #include "datatypes.hpp"
 
+namespace mrmd
+{
 TEST(Subdomain, Constructor)
 {
     data::Subdomain subdomain({1, 2, 3}, {3, 6, 9}, 0.5_r);
@@ -38,3 +40,4 @@ TEST(Subdomain, Constructor)
     EXPECT_FLOAT_EQ(subdomain.maxGhostCorner[1], 6.5_r);
     EXPECT_FLOAT_EQ(subdomain.maxGhostCorner[2], 9.5_r);
 }
+}  // namespace mrmd

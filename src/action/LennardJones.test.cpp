@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+namespace mrmd
+{
 namespace action
 {
 TEST(LennardJones, Force)
@@ -35,3 +37,4 @@ TEST(LennardJones, Energy)
 }
 
 }  // namespace action
+}  // namespace mrmd

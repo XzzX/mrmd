@@ -3,6 +3,9 @@
 #include <gtest/gtest.h>
 
 #include <data/Particles.hpp>
+
+namespace mrmd
+{
 namespace communication
 {
 namespace impl
@@ -87,3 +90,4 @@ INSTANTIATE_TEST_SUITE_P(
 
 }  // namespace impl
 }  // namespace communication
+}  // namespace mrmd

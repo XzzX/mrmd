@@ -6,6 +6,8 @@
 #include "datatypes.hpp"
 #include "util/Random.hpp"
 
+namespace mrmd
+{
 namespace action
 {
 class LangevinThermostat
@@ -48,3 +50,4 @@ public:
     }
 };
 }  // namespace action
+}  // namespace mrmd

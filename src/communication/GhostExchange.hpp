@@ -4,6 +4,8 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 
+namespace mrmd
+{
 namespace communication
 {
 namespace impl
@@ -153,3 +155,4 @@ public:
 };
 }  // namespace impl
 }  // namespace communication
+}  // namespace mrmd

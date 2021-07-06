@@ -5,6 +5,8 @@
 #include "data/Particles.hpp"
 #include "datatypes.hpp"
 
+namespace mrmd
+{
 namespace util
 {
 struct Random
@@ -29,3 +31,4 @@ struct Random
     }
 };
 }  // namespace util
+}  // namespace mrmd

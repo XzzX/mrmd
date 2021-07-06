@@ -3,6 +3,9 @@
 #include <gtest/gtest.h>
 
 #include <data/Particles.hpp>
+
+namespace mrmd
+{
 namespace communication
 {
 namespace impl
@@ -32,3 +35,4 @@ TEST(AccumulateForceTest, ghostToReal)
 
 }  // namespace impl
 }  // namespace communication
+}  // namespace mrmd

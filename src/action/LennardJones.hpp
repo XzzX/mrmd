@@ -3,6 +3,8 @@
 #include "data/Particles.hpp"
 #include "datatypes.hpp"
 
+namespace mrmd
+{
 namespace action
 {
 class LennardJones
@@ -127,3 +129,4 @@ public:
     }
 };
 }  // namespace action
+}  // namespace mrmd

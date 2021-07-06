@@ -4,6 +4,8 @@
 
 #include "data/Particles.hpp"
 
+namespace mrmd
+{
 TEST(SystemMomentum, Simple)
 {
     data::Particles particles(2);
@@ -23,3 +25,4 @@ TEST(SystemMomentum, Simple)
     EXPECT_FLOAT_EQ(systemMomentum[1], -5_r);
     EXPECT_FLOAT_EQ(systemMomentum[2], -12_r);
 }
+}  // namespace mrmd

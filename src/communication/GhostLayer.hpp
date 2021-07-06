@@ -7,6 +7,8 @@
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
 
+namespace mrmd
+{
 namespace communication
 {
 class GhostLayer
@@ -52,3 +54,4 @@ public:
 };
 
 }  // namespace communication
+}  // namespace mrmd

@@ -4,6 +4,8 @@
 
 #include "datatypes.hpp"
 
+namespace mrmd
+{
 namespace data
 {
 class Particles
@@ -90,3 +92,4 @@ private:
     ParticlesT particles_ = ParticlesT("particles");
 };
 }  // namespace data
+}  // namespace mrmd

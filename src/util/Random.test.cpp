@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+namespace mrmd
+{
 namespace util
 {
 TEST(Random, Range)
@@ -15,3 +17,4 @@ TEST(Random, Range)
     }
 }
 }  // namespace util
+}  // namespace mrmd

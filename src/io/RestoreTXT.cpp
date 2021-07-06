@@ -2,6 +2,8 @@
 
 #include <fstream>
 
+namespace mrmd
+{
 namespace io
 {
 data::Particles restoreParticles(const std::string& filename)
@@ -47,3 +49,4 @@ data::Particles restoreParticles(const std::string& filename)
     return p;
 }
 }  // namespace io
+}  // namespace mrmd

@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+namespace mrmd
+{
 namespace action
 {
 class VelocityVerletTest : public ::testing::Test
@@ -70,3 +72,4 @@ TEST_F(VelocityVerletTest, postForceIntegration)
 }
 
 }  // namespace action
+}  // namespace mrmd
