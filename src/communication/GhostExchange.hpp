@@ -57,8 +57,11 @@ public:
         return realIdx;
     }
 
+    /**
+     * @return -1, if no ghost particle was created, idx of new ghost particle otherwise
+     */
     KOKKOS_INLINE_FUNCTION
-    void copySelfLow(const idx_t idx, const idx_t dim) const
+    idx_t copySelfLow(const idx_t idx, const idx_t dim) const
     {
         if (pos_(idx, dim) < subdomain_.minInnerCorner[dim])
         {
@@ -71,12 +74,18 @@ public:
                 assert(pos_(newGhostIdx, dim) > subdomain_.maxCorner[dim]);
                 assert(pos_(newGhostIdx, dim) < subdomain_.maxGhostCorner[dim]);
                 correspondingRealParticle_(newGhostIdx) = findRealIdx(idx);
+                return newGhostIdx;
             }
+            return -1;
         }
+        return -1;
     }
 
+    /**
+     * @return -1, if no ghost particle was created, idx of new ghost particle otherwise
+     */
     KOKKOS_INLINE_FUNCTION
-    void copySelfHigh(const idx_t idx, const idx_t dim) const
+    idx_t copySelfHigh(const idx_t idx, const idx_t dim) const
     {
         if (pos_(idx, dim) > subdomain_.maxInnerCorner[dim])
         {
@@ -89,8 +98,11 @@ public:
                 assert(pos_(newGhostIdx, dim) < subdomain_.minCorner[dim]);
                 assert(pos_(newGhostIdx, dim) > subdomain_.minGhostCorner[dim]);
                 correspondingRealParticle_(newGhostIdx) = findRealIdx(idx);
+                return newGhostIdx;
             }
+            return -1;
         }
+        return -1;
     }
 
     KOKKOS_INLINE_FUNCTION
