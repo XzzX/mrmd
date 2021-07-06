@@ -20,29 +20,38 @@ public:
         POS = 0,
         VEL = 1,
         FORCE = 2,
-        GHOST = 3
+        TYPE = 3,
+        OFFSET = 4,  // starting offset of high resolution elements
     };
-    using DataTypes =
-        Cabana::MemberTypes<real_t[DIMENSIONS], real_t[DIMENSIONS], real_t[DIMENSIONS]>;
+    using DataTypes = Cabana::
+        MemberTypes<real_t[DIMENSIONS], real_t[DIMENSIONS], real_t[DIMENSIONS], idx_t, idx_t>;
     using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VECTOR_LENGTH>;
 
     using pos_t = typename ParticlesT::template member_slice_type<POS>;
     using vel_t = typename ParticlesT::template member_slice_type<VEL>;
     using force_t = typename ParticlesT::template member_slice_type<FORCE>;
+    using type_t = typename ParticlesT::template member_slice_type<TYPE>;
+    using offset_t = typename ParticlesT::template member_slice_type<OFFSET>;
 
     pos_t pos;
     vel_t vel;
     force_t force;
+    type_t type;
+    offset_t offset;
 
-    KOKKOS_INLINE_FUNCTION pos_t getPos() const { return pos; }
-    KOKKOS_INLINE_FUNCTION vel_t getVel() const { return vel; }
-    KOKKOS_INLINE_FUNCTION force_t getForce() const { return force; }
+    KOKKOS_FORCEINLINE_FUNCTION pos_t getPos() const { return pos; }
+    KOKKOS_FORCEINLINE_FUNCTION vel_t getVel() const { return vel; }
+    KOKKOS_FORCEINLINE_FUNCTION force_t getForce() const { return force; }
+    KOKKOS_FORCEINLINE_FUNCTION type_t getType() const { return type; }
+    KOKKOS_FORCEINLINE_FUNCTION offset_t getOffset() const { return offset; }
 
     void sliceAll()
     {
         pos = Cabana::slice<POS>(particles_);
         vel = Cabana::slice<VEL>(particles_);
         force = Cabana::slice<FORCE>(particles_);
+        type = Cabana::slice<TYPE>(particles_);
+        offset = Cabana::slice<OFFSET>(particles_);
     }
 
     KOKKOS_INLINE_FUNCTION auto size() const { return particles_.size(); }
@@ -70,6 +79,8 @@ public:
             vel(dst, dim) = vel(src, dim);
             force(dst, dim) = force(src, dim);
         }
+        type(dst) = type(src);
+        offset(dst) = offset(src);
     }
 
     void removeGhostParticles()
