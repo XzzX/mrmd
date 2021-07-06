@@ -3,6 +3,7 @@
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
+#include "util/Kokkos_grow.hpp"
 
 namespace mrmd
 {
@@ -104,10 +105,7 @@ public:
             {
                 // resize
                 particles.resize(newSize);
-                if (correspondingRealParticle_.extent(0) < newSize)
-                {
-                    Kokkos::resize(correspondingRealParticle_, newSize);
-                }
+                util::grow(correspondingRealParticle_, newSize);
             }
 
             particles_ = particles;
@@ -132,8 +130,7 @@ public:
     IndexView createGhostParticlesXYZ(data::Particles& particles)
     {
         particles.numGhostParticles = 0;
-        if (correspondingRealParticle_.extent(0) < particles.size())
-            Kokkos::resize(correspondingRealParticle_, particles.size());
+        util::grow(correspondingRealParticle_, idx_c(particles.size()));
         Kokkos::deep_copy(correspondingRealParticle_, -1);
 
         exchangeGhosts<impl::GhostExchange::DIRECTION_X>(particles);
