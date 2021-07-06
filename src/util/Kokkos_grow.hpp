@@ -13,6 +13,8 @@ void grow(Kokkos::View<T, P...>& view, idx_t size, real_t safetyMargin = 1.1_r)
     using view_type = Kokkos::View<T, P...>;
     static_assert(view_type::Rank == 1);
 
+    assert(size >= 0);
+
     if (view.extent(0) <= size) Kokkos::resize(view, idx_c(real_c(size) * safetyMargin));
 
     assert(view.extent(0) >= size);
