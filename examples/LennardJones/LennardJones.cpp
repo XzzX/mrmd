@@ -45,10 +45,10 @@ void LJ(Config& config)
         data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
     auto particles = io::restoreParticles("positions.txt");
 
-    VelocityVerlet integrator(config.dt);
+    action::VelocityVerlet integrator(config.dt);
     communication::GhostLayer ghostLayer(subdomain);
-    LennardJones LJ(config.rc, 1_r, 1_r);
-    LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
+    action::LennardJones LJ(config.rc, 1_r, 1_r);
+    action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     VerletList verletList;
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();

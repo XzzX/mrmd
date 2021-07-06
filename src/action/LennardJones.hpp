@@ -3,6 +3,8 @@
 #include "data/Particles.hpp"
 #include "datatypes.hpp"
 
+namespace action
+{
 class LennardJones
 {
 private:
@@ -124,3 +126,4 @@ public:
         ff2_ = 24.0 * epsilon * sig6_;
     }
 };
+}  // namespace action

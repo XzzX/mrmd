@@ -4,6 +4,8 @@
 
 #include "data/Particles.hpp"
 
+namespace action
+{
 TEST(LangevinThermostat, Simple)
 {
     data::Particles particles(1);
@@ -30,3 +32,4 @@ TEST(LangevinThermostat, Simple)
     EXPECT_GE(force(0, 2), 2_r - langevinThermostat.pref2 * 0.5_r);
     EXPECT_LE(force(0, 2), 2_r + langevinThermostat.pref2 * 0.5_r);
 }
+}  // namespace action

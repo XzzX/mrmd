@@ -86,10 +86,6 @@ TEST(LennardJones, ESPPComparison)
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
     double cell_ratio = 1.0_r;
-    using ListType = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
-                                        Cabana::HalfNeighborTag,
-                                        Cabana::VerletLayoutCSR,
-                                        Cabana::TeamOpTag>;
     VerletList verlet_list(particles.getPos(),
                            0,
                            particles.numLocalParticles,
@@ -105,12 +101,12 @@ TEST(LennardJones, ESPPComparison)
     EXPECT_EQ(vlParticlePairs, ESPP_NEIGHBORS);
     std::cout << "create verlet list: " << timer.seconds() << std::endl;
 
-    LennardJones LJ(rc, 1_r, 1_r);
+    action::LennardJones LJ(rc, 1_r, 1_r);
     real_t totalEnergy = LJ.computeEnergy(particles, verlet_list);
     EXPECT_FLOAT_EQ(totalEnergy, ESPP_INITIAL_ENERGY);
     std::cout << "starting energy: " << totalEnergy << std::endl;
 
-    VelocityVerlet integrator(dt);
+    action::VelocityVerlet integrator(dt);
     integrator.preForceIntegrate(particles);
     Kokkos::fence();
     std::cout << "pre force integrate: " << timer.seconds() << std::endl;

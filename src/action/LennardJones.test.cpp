@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+namespace action
+{
 TEST(LennardJones, Force)
 {
     constexpr real_t epsilon = 2_r;
@@ -31,3 +33,5 @@ TEST(LennardJones, Energy)
     EXPECT_FLOAT_EQ(LJ.computeEnergy_(sigma * sigma), 0_r);
     EXPECT_FLOAT_EQ(LJ.computeEnergy_(minimumSqr), -epsilon);
 }
+
+}  // namespace action

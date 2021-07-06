@@ -2,6 +2,8 @@
 
 #include <gtest/gtest.h>
 
+namespace action
+{
 class VelocityVerletTest : public ::testing::Test
 {
 protected:
@@ -66,3 +68,5 @@ TEST_F(VelocityVerletTest, postForceIntegration)
     EXPECT_FLOAT_EQ(particles.getPos()(0, 1), 2_r);
     EXPECT_FLOAT_EQ(particles.getPos()(0, 2), 3_r);
 }
+
+}  // namespace action

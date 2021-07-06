@@ -5,6 +5,8 @@
 #include "data/Particles.hpp"
 #include "datatypes.hpp"
 
+namespace action
+{
 class VelocityVerlet
 {
 private:
@@ -73,3 +75,4 @@ public:
         Kokkos::fence();
     }
 };
+}  // namespace action

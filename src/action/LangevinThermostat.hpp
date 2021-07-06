@@ -6,6 +6,8 @@
 #include "datatypes.hpp"
 #include "util/Random.hpp"
 
+namespace action
+{
 class LangevinThermostat
 {
 private:
@@ -45,3 +47,4 @@ public:
     {
     }
 };
+}  // namespace action
