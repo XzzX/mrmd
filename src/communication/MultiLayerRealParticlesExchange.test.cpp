@@ -27,7 +27,7 @@ protected:
                     ++idx;
                 }
         EXPECT_EQ(idx, 8);
-        molecules.numLocalParticles = 27;
+        molecules.numLocalParticles = idx;
         molecules.numGhostParticles = 0;
         molecules.resize(molecules.numLocalParticles + molecules.numGhostParticles);
 
@@ -45,7 +45,7 @@ protected:
                     ++idx;
                 }
         EXPECT_EQ(idx, 8);
-        atoms.numLocalParticles = 8;
+        atoms.numLocalParticles = idx;
         atoms.numGhostParticles = 0;
         atoms.resize(atoms.numLocalParticles + atoms.numGhostParticles);
     }
@@ -58,7 +58,7 @@ protected:
     data::Particles atoms = data::Particles(200);
 };
 
-TEST_F(MultiLayerRealParticlesExchangeTest, SelfExchangeXHigh)
+TEST_F(MultiLayerRealParticlesExchangeTest, SingleAtomTest)
 {
     realParticlesExchange(subdomain, molecules, atoms);
 
