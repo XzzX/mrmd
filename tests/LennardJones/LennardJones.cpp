@@ -108,8 +108,7 @@ TEST(LennardJones, ESPPComparison)
     EXPECT_FLOAT_EQ(totalEnergy, ESPP_INITIAL_ENERGY);
     std::cout << "starting energy: " << totalEnergy << std::endl;
 
-    action::VelocityVerlet integrator(dt);
-    integrator.preForceIntegrate(particles);
+    action::VelocityVerlet::preForceIntegrate(particles, dt);
     Kokkos::fence();
     std::cout << "pre force integrate: " << timer.seconds() << std::endl;
 
@@ -117,7 +116,7 @@ TEST(LennardJones, ESPPComparison)
     Kokkos::fence();
     std::cout << "lennard jones: " << timer.seconds() << std::endl;
 
-    integrator.postForceIntegrate(particles);
+    action::VelocityVerlet::postForceIntegrate(particles, dt);
     Kokkos::fence();
     std::cout << "post force integrate: " << timer.seconds() << std::endl;
 

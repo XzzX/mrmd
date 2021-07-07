@@ -37,8 +37,8 @@ protected:
 
 TEST_F(VelocityVerletTest, preForceIntegration)
 {
-    VelocityVerlet vv(4_r);
-    vv.preForceIntegrate(particles);
+    auto dt = 4_r;
+    VelocityVerlet::preForceIntegrate(particles, dt);
 
     EXPECT_FLOAT_EQ(particles.getForce()(0, 0), 7_r);
     EXPECT_FLOAT_EQ(particles.getForce()(0, 1), 8_r);
@@ -55,8 +55,8 @@ TEST_F(VelocityVerletTest, preForceIntegration)
 
 TEST_F(VelocityVerletTest, postForceIntegration)
 {
-    VelocityVerlet vv(4_r);
-    vv.postForceIntegrate(particles);
+    auto dt = 4_r;
+    VelocityVerlet::postForceIntegrate(particles, dt);
 
     EXPECT_FLOAT_EQ(particles.getForce()(0, 0), 7_r);
     EXPECT_FLOAT_EQ(particles.getForce()(0, 1), 8_r);

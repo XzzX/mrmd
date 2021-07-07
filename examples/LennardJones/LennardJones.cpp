@@ -47,7 +47,6 @@ void LJ(Config& config)
         data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
     auto particles = io::restoreParticles("positions.txt");
 
-    action::VelocityVerlet integrator(config.dt);
     communication::GhostLayer ghostLayer(subdomain);
     action::LennardJones LJ(config.rc, 1_r, 1_r);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
@@ -57,7 +56,7 @@ void LJ(Config& config)
     idx_t rebuildCounter = 0;
     for (auto i = 0; i < config.nsteps; ++i)
     {
-        maxParticleDisplacement += integrator.preForceIntegrate(particles);
+        maxParticleDisplacement += action::VelocityVerlet::preForceIntegrate(particles, config.dt);
 
         if (maxParticleDisplacement >= config.skin * 0.5_r)
         {
@@ -102,7 +101,7 @@ void LJ(Config& config)
         }
         ghostLayer.contributeBackGhostToReal(particles);
 
-        integrator.postForceIntegrate(particles);
+        action::VelocityVerlet::postForceIntegrate(particles, config.dt);
 
         if (config.bOutput && (i % 100 == 0))
         {
