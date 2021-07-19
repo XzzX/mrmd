@@ -141,7 +141,7 @@ public:
                 data::Particles& molecules,
                 VerletList& verletList,
                 data::Particles& atoms,
-                WEIGHTING_FUNCTION& func)
+                const WEIGHTING_FUNCTION& func)
         : epsilon_(epsilon), rcSqr_(rc * rc), weightingFunction_(func)
     {
         sig2_ = sigma * sigma;
@@ -162,13 +162,13 @@ class LJ_IdealGas
 {
 public:
     template <typename WEIGHTING_FUNCTION>
-    static void applyForces(const real_t rc,
+    static void applyForces(const real_t& rc,
                             const real_t& sigma,
                             const real_t& epsilon,
                             data::Particles& molecules,
                             VerletList& verletList,
                             data::Particles& atoms,
-                            WEIGHTING_FUNCTION& func)
+                            const WEIGHTING_FUNCTION& func)
     {
         impl::LJ_IdealGas forceModel(rc, sigma, epsilon, molecules, verletList, atoms, func);
 
