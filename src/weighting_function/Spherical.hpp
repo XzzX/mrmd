@@ -18,7 +18,8 @@ private:
     const real_t coarseRadiusSqr_;
 
 public:
-    real_t operator()(const real_t x, const real_t y, const real_t z)
+    KOKKOS_INLINE_FUNCTION
+    real_t operator()(const real_t x, const real_t y, const real_t z) const
     {
         real_t dx[3] = {x - center_[0], y - center_[1], z - center_[2]};
         auto dxSqr = dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2];
@@ -30,6 +31,7 @@ public:
             std::cos(pi / (2_r * hybridRegionDiameter_) * (std::sqrt(dxSqr) - atomisticRadius_));
         return cos * cos;
     }
+
     Spherical(const std::array<real_t, 3>& center,
               const real_t atomisticRadius,
               const real_t hybridRegionDiameter)
