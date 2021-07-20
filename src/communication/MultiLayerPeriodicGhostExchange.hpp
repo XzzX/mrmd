@@ -25,6 +25,7 @@ private:
 
     data::Particles molecules_ = data::Particles(0);
     data::Particles::pos_t moleculePos_;
+    data::Particles::offset_t moleculesOffset_;
     Kokkos::View<idx_t> moleculeNewGhostCounter_;
     Kokkos::View<idx_t>::host_mirror_type hMoleculeNewGhostCounter_;
     /// Stores the corresponding real particle index for every ghost particle.
@@ -114,24 +115,32 @@ public:
     {
         if (moleculePos_(idx, dim) > subdomain_.maxInnerCorner[dim])
         {
+            auto atomsStart = (idx != 0 ? moleculesOffset_(idx - 1) : 0);  /// inclusive
+            auto atomsEnd = moleculesOffset_(idx);                         /// exclusive
+            auto moleculeSize = atomsEnd - atomsStart;
             auto moleculeNewGhostIdx = molecules_.numLocalParticles + molecules_.numGhostParticles +
                                        Kokkos::atomic_fetch_add(&moleculeNewGhostCounter_(), 1);
             if (moleculeNewGhostIdx < molecules_.size())
             {
                 molecules_.copy(moleculeNewGhostIdx, idx);
                 moleculePos_(moleculeNewGhostIdx, dim) -= subdomain_.diameter[dim];
+                moleculesOffset_(moleculeNewGhostIdx) = moleculeNewGhostIdx + 1;
                 assert(moleculePos_(moleculeNewGhostIdx, dim) < subdomain_.minCorner[dim]);
                 assert(moleculePos_(moleculeNewGhostIdx, dim) > subdomain_.minGhostCorner[dim]);
                 moleculeCorrespondingRealParticle_(moleculeNewGhostIdx) = moleculeFindRealIdx(idx);
             }
 
             auto atomNewGhostIdx = atoms_.numLocalParticles + atoms_.numGhostParticles +
-                                   Kokkos::atomic_fetch_add(&atomNewGhostCounter_(), 1);
-            if (atomNewGhostIdx < atoms_.size())
+                                   Kokkos::atomic_fetch_add(&atomNewGhostCounter_(), moleculeSize);
+            if (atomNewGhostIdx + moleculeSize - 1 < atoms_.size())
             {
-                atoms_.copy(atomNewGhostIdx, idx);
-                atomPos_(atomNewGhostIdx, dim) -= subdomain_.diameter[dim];
-                atomCorrespondingRealParticle_(atomNewGhostIdx) = atomFindRealIdx(idx);
+                for (idx_t atomIdx = 0; atomIdx < moleculeSize; ++atomIdx)
+                {
+                    atoms_.copy(atomNewGhostIdx + atomIdx, atomsStart + atomIdx);
+                    atomPos_(atomNewGhostIdx + atomIdx, dim) -= subdomain_.diameter[dim];
+                    atomCorrespondingRealParticle_(atomNewGhostIdx + atomIdx) =
+                        atomFindRealIdx(atomsStart + atomIdx);
+                }
             }
         }
     }
@@ -154,7 +163,7 @@ public:
     {
         if (atomCorrespondingRealParticle_.extent(0) < atoms.numLocalParticles)
         {
-            // initialize correspondingRealParticle_ for all real particles
+            // initialize atomCorrespondingRealParticle_ for all real particles
             Kokkos::resize(atomCorrespondingRealParticle_, atoms.numLocalParticles);
             Kokkos::deep_copy(atomCorrespondingRealParticle_, -1);
         }
@@ -162,11 +171,11 @@ public:
 
         if (moleculeCorrespondingRealParticle_.extent(0) < molecules.numLocalParticles)
         {
-            // initialize correspondingRealParticle_ for all real particles
+            // initialize moleculeCorrespondingRealParticle_ for all real particles
             Kokkos::resize(moleculeCorrespondingRealParticle_, molecules.numLocalParticles);
             Kokkos::deep_copy(moleculeCorrespondingRealParticle_, -1);
         }
-        assert(moleculeCorrespondingRealParticle_.extent(0) >= atoms.size());
+        assert(moleculeCorrespondingRealParticle_.extent(0) >= molecules.size());
 
         auto newMoleculesSize = molecules.numLocalParticles + molecules.numGhostParticles;
         auto newAtomsSize = atoms.numLocalParticles + atoms.numGhostParticles;
@@ -192,6 +201,7 @@ public:
 
             molecules_ = molecules;
             moleculePos_ = molecules.getPos();
+            moleculesOffset_ = molecules.getOffset();
             Kokkos::deep_copy(moleculeNewGhostCounter_, 0);
 
             for (idx_t idx = 0; idx < maxIdx; ++idx) operator()(EXCHANGE_DIRECTION(), idx);

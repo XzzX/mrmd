@@ -18,6 +18,7 @@ protected:
     void SetUp() override
     {
         auto moleculesPos = molecules.getPos();
+        auto moleculesOffset = molecules.getOffset();
         int64_t idx = 0;
         for (real_t x = subdomain.minCorner[0] + 0.5_r; x < subdomain.maxCorner[0]; x += 1_r)
             for (real_t y = subdomain.minCorner[1] + 0.5_r; y < subdomain.maxCorner[1]; y += 1_r)
@@ -27,6 +28,7 @@ protected:
                     moleculesPos(idx, 0) = x;
                     moleculesPos(idx, 1) = y;
                     moleculesPos(idx, 2) = z;
+                    moleculesOffset(idx) = (idx + 1) * 2;
                     ++idx;
                 }
         EXPECT_EQ(idx, 27);
@@ -45,9 +47,13 @@ protected:
                     atomsPos(idx, 1) = y;
                     atomsPos(idx, 2) = z;
                     ++idx;
+                    atomsPos(idx, 0) = x;
+                    atomsPos(idx, 1) = y;
+                    atomsPos(idx, 2) = z;
+                    ++idx;
                 }
-        EXPECT_EQ(idx, 27);
-        atoms.numLocalParticles = 27;
+        EXPECT_EQ(idx, 54);
+        atoms.numLocalParticles = 54;
         atoms.numGhostParticles = 0;
         atoms.resize(atoms.numLocalParticles + atoms.numGhostParticles);
     }
@@ -68,7 +74,7 @@ TEST_F(MultiLayerPeriodicGhostExchangeTest, SelfExchangeXHigh)
         ghostExchange.exchangeGhosts<MultiLayerPeriodicGhostExchange::DIRECTION_X_HIGH>(
             molecules, atoms, molecules.numLocalParticles);
     EXPECT_EQ(molecules.numGhostParticles, 9);
-    EXPECT_EQ(atoms.numGhostParticles, 9);
+    EXPECT_EQ(atoms.numGhostParticles, 18);
 }
 
 }  // namespace impl
