@@ -70,7 +70,6 @@ protected:
     void SetUp() override
     {
         molecules = getMolecules();
-        moleculesForce = molecules.getForce();
 
         auto cutoff = 2_r;
         auto cellRatio = 1_r;
@@ -88,6 +87,7 @@ protected:
 
         atoms = getAtoms();
         atomsForce = atoms.getForce();
+        Cabana::deep_copy(atomsForce, 0_r);
     }
 
     // void TearDown() override {}
@@ -98,7 +98,6 @@ protected:
     static constexpr real_t eps = 0.001_r;
 
     data::Particles molecules = data::Particles(1);
-    data::Particles::force_t moleculesForce;
     VerletList moleculesVerletList;
     data::Particles atoms = data::Particles(1);
     data::Particles::force_t atomsForce;
@@ -147,13 +146,13 @@ TEST_F(LJ_IdealGas_Test, HY)
     EXPECT_FLOAT_EQ(atomsForce(3, 2), 0_r);
 }
 
-TEST_F(LJ_IdealGas_Test, AA)
+TEST_F(LJ_IdealGas_Test, AT)
 {
     auto cgWeighting = [](real_t x, real_t y, real_t z) { return 1_r; };
     action::LJ_IdealGas::applyForces(
         rc, sigma, epsilon, molecules, moleculesVerletList, atoms, cgWeighting);
 
-    constexpr auto xForce = 51379736_r;
+    constexpr auto xForce = 51379737.75_r;
     constexpr auto yForce = 396393.75_r;
 
     EXPECT_FLOAT_EQ(atomsForce(0, 0), -xForce);

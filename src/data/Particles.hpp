@@ -100,7 +100,7 @@ public:
     }
 
 private:
-    ParticlesT particles_ = ParticlesT("particles");
+    ParticlesT particles_;
 };
 }  // namespace data
 }  // namespace mrmd
