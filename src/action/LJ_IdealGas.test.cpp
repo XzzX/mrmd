@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include "data/Molecules.hpp"
 #include "data/Particles.hpp"
 
 namespace mrmd
@@ -21,7 +22,7 @@ class LJ_IdealGas_Test : public ::testing::Test
 protected:
     static auto getMolecules()
     {
-        data::Particles molecules(2);
+        data::Molecules molecules(2);
 
         auto pos = molecules.getPos();
         pos(0, 0) = -0.5_r;
@@ -32,11 +33,11 @@ protected:
         pos(1, 1) = 0_r;
         pos(1, 2) = 0_r;
 
-        auto atomOffsets = molecules.getOffset();
-        atomOffsets(0) = 2;
-        atomOffsets(1) = 4;
+        auto moleculesAtomsEndIdx = molecules.getAtomsEndIdx();
+        moleculesAtomsEndIdx(0) = 2;
+        moleculesAtomsEndIdx(1) = 4;
 
-        molecules.numLocalParticles = 2;
+        molecules.numLocalMolecules = 2;
 
         return molecules;
     }
@@ -78,7 +79,7 @@ protected:
         auto expectedNumNeighbors = 4;
         moleculesVerletList.build(molecules.getPos(),
                                   0,
-                                  molecules.numLocalParticles,
+                                  molecules.numLocalMolecules,
                                   cutoff,
                                   cellRatio,
                                   minGrid,
@@ -97,7 +98,7 @@ protected:
     static constexpr real_t rc = 2.5_r * sigma;
     static constexpr real_t eps = 0.001_r;
 
-    data::Particles molecules = data::Particles(1);
+    data::Molecules molecules = data::Molecules(1);
     VerletList moleculesVerletList;
     data::Particles atoms = data::Particles(1);
     data::Particles::force_t atomsForce;

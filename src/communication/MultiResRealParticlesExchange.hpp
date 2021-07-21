@@ -1,5 +1,6 @@
 #pragma once
 
+#include "data/Molecules.hpp"
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
 
@@ -19,29 +20,29 @@ namespace communication
  * [min, max) for all coordinate dimensions.
  */
 void realParticlesExchange(const data::Subdomain& subdomain,
-                           const data::Particles& molecules,
+                           const data::Molecules& molecules,
                            const data::Particles& atoms)
 {
-    auto moleculePos = molecules.getPos();
-    auto atomPos = atoms.getPos();
-    auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalParticles);
+    auto moleculesPos = molecules.getPos();
+    auto atomsPos = atoms.getPos();
+    auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
         for (auto dim = 0; dim < data::Particles::DIMENSIONS; ++dim)
         {
-            auto& moleculeX = moleculePos(idx, dim);
+            auto& moleculeX = moleculesPos(idx, dim);
             if (subdomain.maxCorner[dim] <= moleculeX)
             {
                 moleculeX -= subdomain.diameter[dim];
 
-                auto& atomX = atomPos(idx, dim);
+                auto& atomX = atomsPos(idx, dim);
                 atomX -= subdomain.diameter[dim];
             }
             if (moleculeX < subdomain.minCorner[dim])
             {
                 moleculeX += subdomain.diameter[dim];
 
-                auto& atomX = atomPos(idx, dim);
+                auto& atomX = atomsPos(idx, dim);
                 atomX += subdomain.diameter[dim];
             }
             assert(moleculeX < subdomain.maxCorner[dim]);

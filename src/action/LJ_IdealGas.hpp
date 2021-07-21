@@ -1,5 +1,6 @@
 #pragma once
 
+#include "data/Molecules.hpp"
 #include "data/Particles.hpp"
 #include "datatypes.hpp"
 
@@ -20,8 +21,8 @@ private:
     real_t ff2_;
     real_t rcSqr_;
 
-    data::Particles::pos_t moleculesPos_;
-    data::Particles::offset_t atomOffsets_;
+    data::Molecules::pos_t moleculesPos_;
+    data::Molecules::atoms_end_idx_t moleculesAtomEndIdx_;
 
     data::Particles::pos_t atomsPos_;
     data::Particles::force_t::atomic_access_slice atomsForce_;
@@ -80,18 +81,18 @@ public:
             }
 
             /// inclusive start index of atoms belonging to alpha
-            auto startAtomsAlpha = alpha != 0 ? atomOffsets_(alpha - 1) : 0;
+            auto startAtomsAlpha = alpha != 0 ? moleculesAtomEndIdx_(alpha - 1) : 0;
             /// exclusive end index of atoms belonging to alpha
-            auto endAtomsAlpha = atomOffsets_(alpha);
+            auto endAtomsAlpha = moleculesAtomEndIdx_(alpha);
             assert(0 <= startAtomsAlpha);
             assert(startAtomsAlpha < endAtomsAlpha);
             //            assert(endAtomsAlpha <= atoms_.numLocalParticles +
             //            atoms_.numGhostParticles);
 
             /// inclusive start index of atoms belonging to beta
-            auto startAtomsBeta = beta != 0 ? atomOffsets_(beta - 1) : 0;
+            auto startAtomsBeta = beta != 0 ? moleculesAtomEndIdx_(beta - 1) : 0;
             /// exclusive end index of atoms belonging to beta
-            auto endAtomsBeta = atomOffsets_(beta);
+            auto endAtomsBeta = moleculesAtomEndIdx_(beta);
             assert(0 <= startAtomsBeta);
             assert(startAtomsBeta < endAtomsBeta);
             //            assert(endAtomsBeta <= atoms_.numLocalParticles +
@@ -119,6 +120,9 @@ public:
 
                     auto ffactor = computeForce_(distSqr) * weighting;
 
+                    //                    ffactor = std::max(ffactor, +10_r);
+                    //                    ffactor = std::min(ffactor, -10_r);
+
                     forceTmp[0] += dx * ffactor;
                     forceTmp[1] += dy * ffactor;
                     forceTmp[2] += dz * ffactor;
@@ -138,7 +142,7 @@ public:
     LJ_IdealGas(const real_t& rc,
                 const real_t& sigma,
                 const real_t& epsilon,
-                data::Particles& molecules,
+                data::Molecules& molecules,
                 VerletList& verletList,
                 data::Particles& atoms,
                 const WEIGHTING_FUNCTION& func)
@@ -150,7 +154,7 @@ public:
         ff2_ = 24.0 * epsilon * sig6_;
 
         moleculesPos_ = molecules.getPos();
-        atomOffsets_ = molecules.getOffset();
+        moleculesAtomEndIdx_ = molecules.getAtomsEndIdx();
         atomsPos_ = atoms.getPos();
         atomsForce_ = atoms.getForce();
         verletList_ = verletList;
@@ -165,14 +169,14 @@ public:
     static void applyForces(const real_t& rc,
                             const real_t& sigma,
                             const real_t& epsilon,
-                            data::Particles& molecules,
+                            data::Molecules& molecules,
                             VerletList& verletList,
                             data::Particles& atoms,
                             const WEIGHTING_FUNCTION& func)
     {
         impl::LJ_IdealGas forceModel(rc, sigma, epsilon, molecules, verletList, atoms, func);
 
-        auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalParticles);
+        auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
         Kokkos::parallel_for(policy, forceModel, "LJ_IdealGas::applyForces");
 
         Kokkos::fence();

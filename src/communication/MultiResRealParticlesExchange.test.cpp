@@ -1,4 +1,4 @@
-#include "MultiLayerRealParticlesExchange.hpp"
+#include "MultiResRealParticlesExchange.hpp"
 
 #include <gtest/gtest.h>
 
@@ -8,7 +8,7 @@ namespace mrmd
 {
 namespace communication
 {
-class MultiLayerRealParticlesExchangeTest : public ::testing::Test
+class MultiResRealParticlesExchangeTest : public ::testing::Test
 {
 protected:
     void SetUp() override
@@ -27,9 +27,9 @@ protected:
                     ++idx;
                 }
         EXPECT_EQ(idx, 8);
-        molecules.numLocalParticles = idx;
-        molecules.numGhostParticles = 0;
-        molecules.resize(molecules.numLocalParticles + molecules.numGhostParticles);
+        molecules.numLocalMolecules = idx;
+        molecules.numGhostMolecules = 0;
+        molecules.resize(molecules.numLocalMolecules + molecules.numGhostMolecules);
 
         auto atomsPos = atoms.getPos();
         idx = 0;
@@ -54,16 +54,16 @@ protected:
 
     data::Subdomain subdomain =
         data::Subdomain({0.1_r, 0.1_r, 0.1_r}, {0.9_r, 0.9_r, 0.9_r}, 0.2_r);
-    data::Particles molecules = data::Particles(200);
+    data::Molecules molecules = data::Molecules(200);
     data::Particles atoms = data::Particles(200);
 };
 
-TEST_F(MultiLayerRealParticlesExchangeTest, SingleAtomTest)
+TEST_F(MultiResRealParticlesExchangeTest, SingleAtomTest)
 {
     realParticlesExchange(subdomain, molecules, atoms);
 
     auto moleculesPos = molecules.getPos();
-    for (auto idx = 0; idx < molecules.numLocalParticles; ++idx)
+    for (auto idx = 0; idx < molecules.numLocalMolecules; ++idx)
     {
         for (auto dim = 0; dim < data::Particles::DIMENSIONS; ++dim)
         {
