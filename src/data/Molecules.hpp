@@ -22,7 +22,7 @@ public:
         GRAD_LAMBDA = 2,
         ATOMS_END_IDX = 3,  ///< exclusive end offset of atoms
     };
-    using DataTypes = Cabana::MemberTypes<real_t[DIMENSIONS], real_t, real_t, idx_t>;
+    using DataTypes = Cabana::MemberTypes<real_t[DIMENSIONS], real_t, real_t[DIMENSIONS], idx_t>;
     using MoleculesT = Cabana::AoSoA<DataTypes, DeviceType, VECTOR_LENGTH>;
 
     using pos_t = typename MoleculesT::template member_slice_type<POS>;
@@ -70,9 +70,9 @@ public:
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
             pos(dst, dim) = pos(src, dim);
+            gradLambda(dst, dim) = gradLambda(src, dim);
         }
         lambda(dst) = lambda(src);
-        gradLambda(dst) = gradLambda(src);
         atomsEndIdx(dst) = atomsEndIdx(src);
     }
 

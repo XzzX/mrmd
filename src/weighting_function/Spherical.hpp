@@ -20,13 +20,13 @@ private:
 
 public:
     KOKKOS_INLINE_FUNCTION
-    void getLambda(const real_t x,
-                   const real_t y,
-                   const real_t z,
-                   real_t& lambda,
-                   real_t& gradLambdaX,
-                   real_t& gradLambdaY,
-                   real_t& gradLambdaZ) const
+    void operator()(const real_t x,
+                    const real_t y,
+                    const real_t z,
+                    real_t& lambda,
+                    real_t& gradLambdaX,
+                    real_t& gradLambdaY,
+                    real_t& gradLambdaZ) const
     {
         real_t dx[3] = {x - center_[0], y - center_[1], z - center_[2]};
         auto dxSqr = dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2];
@@ -65,7 +65,7 @@ public:
     {
         real_t lambda;
         real_t tmp;
-        getLambda(x, y, z, lambda, tmp, tmp, tmp);
+        operator()(x, y, z, lambda, tmp, tmp, tmp);
         return lambda;
     }
 

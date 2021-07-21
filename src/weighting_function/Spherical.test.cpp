@@ -63,8 +63,8 @@ TEST(Spherical, derivative)
         real_t gradLambdaY1;
         real_t gradLambdaZ1;
 
-        weight.getLambda(pos[0], 0_r, 0_r, lambda0, gradLambdaX0, gradLambdaY0, gradLambdaZ0);
-        weight.getLambda(pos[0] + eps, 0_r, 0_r, lambda1, gradLambdaX1, gradLambdaY1, gradLambdaZ1);
+        weight(pos[0], 0_r, 0_r, lambda0, gradLambdaX0, gradLambdaY0, gradLambdaZ0);
+        weight(pos[0] + eps, 0_r, 0_r, lambda1, gradLambdaX1, gradLambdaY1, gradLambdaZ1);
         EXPECT_FLOAT_EQ((lambda1 - lambda0) / eps, 0.5_r * (gradLambdaX0 + gradLambdaX1));
         pos[0] += delta[0];
     }

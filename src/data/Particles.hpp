@@ -21,29 +21,29 @@ public:
         VEL = 1,
         FORCE = 2,
         TYPE = 3,
-        OFFSET = 4,  // starting offset of high resolution elements
+        RELATIVE_MASS = 4,  ///< relative mass of the atom in relation to the molecule
     };
     using DataTypes = Cabana::
-        MemberTypes<real_t[DIMENSIONS], real_t[DIMENSIONS], real_t[DIMENSIONS], idx_t, idx_t>;
+        MemberTypes<real_t[DIMENSIONS], real_t[DIMENSIONS], real_t[DIMENSIONS], idx_t, real_t>;
     using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VECTOR_LENGTH>;
 
     using pos_t = typename ParticlesT::template member_slice_type<POS>;
     using vel_t = typename ParticlesT::template member_slice_type<VEL>;
     using force_t = typename ParticlesT::template member_slice_type<FORCE>;
     using type_t = typename ParticlesT::template member_slice_type<TYPE>;
-    using offset_t = typename ParticlesT::template member_slice_type<OFFSET>;
+    using relative_mass_t = typename ParticlesT::template member_slice_type<RELATIVE_MASS>;
 
     pos_t pos;
     vel_t vel;
     force_t force;
     type_t type;
-    offset_t offset;
+    relative_mass_t relativeMass;
 
     KOKKOS_FORCEINLINE_FUNCTION pos_t getPos() const { return pos; }
     KOKKOS_FORCEINLINE_FUNCTION vel_t getVel() const { return vel; }
     KOKKOS_FORCEINLINE_FUNCTION force_t getForce() const { return force; }
     KOKKOS_FORCEINLINE_FUNCTION type_t getType() const { return type; }
-    KOKKOS_FORCEINLINE_FUNCTION offset_t getOffset() const { return offset; }
+    KOKKOS_FORCEINLINE_FUNCTION relative_mass_t getRelativeMass() const { return relativeMass; }
 
     void sliceAll()
     {
@@ -51,7 +51,7 @@ public:
         vel = Cabana::slice<VEL>(particles_);
         force = Cabana::slice<FORCE>(particles_);
         type = Cabana::slice<TYPE>(particles_);
-        offset = Cabana::slice<OFFSET>(particles_);
+        relativeMass = Cabana::slice<RELATIVE_MASS>(particles_);
     }
 
     KOKKOS_INLINE_FUNCTION auto size() const { return particles_.size(); }
@@ -80,7 +80,7 @@ public:
             force(dst, dim) = force(src, dim);
         }
         type(dst) = type(src);
-        offset(dst) = offset(src);
+        relativeMass(dst) = relativeMass(src);
     }
 
     void removeGhostParticles()
