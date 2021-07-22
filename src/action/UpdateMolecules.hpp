@@ -24,7 +24,8 @@ public:
         auto atomsPos = atoms.getPos();
         auto atomsRelativeMass = atoms.getRelativeMass();
 
-        auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
+        auto policy =
+            Kokkos::RangePolicy<>(0, molecules.numLocalMolecules + molecules.numGhostMolecules);
         auto kernel = KOKKOS_LAMBDA(const idx_t& moleculeIdx)
         {
             auto atomsStart = moleculeIdx != 0 ? moleculesAtomEndIdx(moleculeIdx - 1) : 0;

@@ -10,7 +10,6 @@ namespace action
 {
 namespace impl
 {
-template <typename WEIGHTING_FUNCTION>
 class LJ_IdealGas
 {
 private:
@@ -22,14 +21,13 @@ private:
     real_t rcSqr_;
 
     data::Molecules::pos_t moleculesPos_;
+    data::Molecules::lambda_t moleculesLambda_;
     data::Molecules::atoms_end_idx_t moleculesAtomEndIdx_;
 
     data::Particles::pos_t atomsPos_;
     data::Particles::force_t::atomic_access_slice atomsForce_;
 
     VerletList verletList_;
-
-    WEIGHTING_FUNCTION weightingFunction_;
 
 public:
     KOKKOS_INLINE_FUNCTION
@@ -52,8 +50,7 @@ public:
         constexpr auto eps = 0.001_r;
 
         /// weighting for molecule alpha
-        auto lambdaAlpha = weightingFunction_(
-            moleculesPos_(alpha, 0), moleculesPos_(alpha, 1), moleculesPos_(alpha, 2));
+        auto lambdaAlpha = moleculesLambda_(alpha);
         assert(0_r <= lambdaAlpha);
         assert(lambdaAlpha <= 1_r);
 
@@ -65,13 +62,12 @@ public:
             assert(0 <= beta);
 
             /// weighting for molecule beta
-            auto lambdaBeta = weightingFunction_(
-                moleculesPos_(beta, 0), moleculesPos_(beta, 1), moleculesPos_(beta, 2));
+            auto lambdaBeta = moleculesLambda_(beta);
             assert(0_r <= lambdaBeta);
             assert(lambdaBeta <= 1_r);
 
             /// combined weighting of molecules alpha and beta
-            auto weighting = lambdaAlpha * lambdaBeta;
+            auto weighting = 0.5_r * (lambdaAlpha + lambdaBeta);
             assert(0_r <= weighting);
             assert(weighting <= 1_r);
             if (weighting < eps)
@@ -120,8 +116,9 @@ public:
 
                     auto ffactor = computeForce_(distSqr) * weighting;
 
-                    //                    ffactor = std::max(ffactor, +10_r);
-                    //                    ffactor = std::min(ffactor, -10_r);
+                    // force capping
+                    ffactor = std::min(ffactor, +10_r);
+                    ffactor = std::max(ffactor, -10_r);
 
                     forceTmp[0] += dx * ffactor;
                     forceTmp[1] += dy * ffactor;
@@ -144,9 +141,8 @@ public:
                 const real_t& epsilon,
                 data::Molecules& molecules,
                 VerletList& verletList,
-                data::Particles& atoms,
-                const WEIGHTING_FUNCTION& func)
-        : epsilon_(epsilon), rcSqr_(rc * rc), weightingFunction_(func)
+                data::Particles& atoms)
+        : epsilon_(epsilon), rcSqr_(rc * rc)
     {
         sig2_ = sigma * sigma;
         sig6_ = sig2_ * sig2_ * sig2_;
@@ -154,6 +150,7 @@ public:
         ff2_ = 24.0 * epsilon * sig6_;
 
         moleculesPos_ = molecules.getPos();
+        moleculesLambda_ = molecules.getLambda();
         moleculesAtomEndIdx_ = molecules.getAtomsEndIdx();
         atomsPos_ = atoms.getPos();
         atomsForce_ = atoms.getForce();
@@ -165,16 +162,14 @@ public:
 class LJ_IdealGas
 {
 public:
-    template <typename WEIGHTING_FUNCTION>
     static void applyForces(const real_t& rc,
                             const real_t& sigma,
                             const real_t& epsilon,
                             data::Molecules& molecules,
                             VerletList& verletList,
-                            data::Particles& atoms,
-                            const WEIGHTING_FUNCTION& func)
+                            data::Particles& atoms)
     {
-        impl::LJ_IdealGas forceModel(rc, sigma, epsilon, molecules, verletList, atoms, func);
+        impl::LJ_IdealGas forceModel(rc, sigma, epsilon, molecules, verletList, atoms);
 
         auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
         Kokkos::parallel_for(policy, forceModel, "LJ_IdealGas::applyForces");

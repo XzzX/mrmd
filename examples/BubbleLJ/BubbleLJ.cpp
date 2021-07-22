@@ -10,6 +10,7 @@
 #include "action/LJ_IdealGas.hpp"
 #include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
+#include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/SystemMomentum.hpp"
 #include "analysis/Temperature.hpp"
@@ -68,10 +69,9 @@ void LJ(Config& config)
             atoms.getVel()(idx, 1) = (RNG.draw() - 0.5_r) * 2_r;
             atoms.getVel()(idx, 2) = 0_r;
 
-            molecules.getPos()(idx, 0) = real_c(x);
-            molecules.getPos()(idx, 1) = real_c(y);
-            molecules.getPos()(idx, 2) = 0_r;
-            molecules.getAtomsEndIdx()(idx) = idx;
+            atoms.getRelativeMass()(idx) = 1_r;
+
+            molecules.getAtomsEndIdx()(idx) = idx + 1;
             ++idx;
         }
     }
@@ -86,6 +86,7 @@ void LJ(Config& config)
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;
+    auto weightingFunction = weighting_function::Spherical({0_r, 0_r, 0_r}, 20_r, 10_r, 7);
     for (auto i = 0; i < config.nsteps; ++i)
     {
         std::cout << i << " | " << molecules.numGhostMolecules << std::endl;
@@ -93,9 +94,7 @@ void LJ(Config& config)
         assert(atoms.numGhostParticles == molecules.numGhostMolecules);
         maxParticleDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
-        auto moleculesPos = molecules.getPos();
-        auto atomsPos = atoms.getPos();
-        Cabana::deep_copy(moleculesPos, atomsPos);
+        action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
         if (maxParticleDisplacement >= -config.skin * 0.5_r)
         {
@@ -115,9 +114,9 @@ void LJ(Config& config)
             //            particles.permute(linkedCellList);
 
             ghostLayer.createGhostParticles(molecules, atoms);
-            moleculesVerletList.build(atoms.getPos(),
+            moleculesVerletList.build(molecules.getPos(),
                                       0,
-                                      atoms.numLocalParticles,
+                                      molecules.numLocalMolecules,
                                       config.neighborCutoff,
                                       config.cell_ratio,
                                       subdomain.minGhostCorner.data(),
@@ -135,13 +134,7 @@ void LJ(Config& config)
 
         //        LJ.applyForces(atoms, moleculesVerletList);
         action::LJ_IdealGas::applyForces(
-            config.rc,
-            config.sigma,
-            config.epsilon,
-            molecules,
-            moleculesVerletList,
-            atoms,
-            weighting_function::Spherical({0_r, 0_r, 0_r}, 20_r, 10_r, 2));
+            config.rc, config.sigma, config.epsilon, molecules, moleculesVerletList, atoms);
         if (config.temperature >= 0)
         {
             langevinThermostat.applyThermostat(atoms);
