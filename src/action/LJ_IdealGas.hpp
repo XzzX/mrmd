@@ -117,8 +117,8 @@ public:
                     auto ffactor = computeForce_(distSqr) * weighting;
 
                     // force capping
-                    ffactor = std::min(ffactor, +10_r);
-                    ffactor = std::max(ffactor, -10_r);
+                    //                    ffactor = std::min(ffactor, +10_r);
+                    //                    ffactor = std::max(ffactor, -10_r);
 
                     forceTmp[0] += dx * ffactor;
                     forceTmp[1] += dy * ffactor;

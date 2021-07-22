@@ -50,18 +50,22 @@ protected:
         pos(0, 0) = -0.5_r;
         pos(0, 1) = -0.5_r;
         pos(0, 2) = 0_r;
+        atoms.getRelativeMass()(0) = 0.5_r;
 
         pos(1, 0) = -0.5_r;
         pos(1, 1) = +0.5_r;
         pos(1, 2) = 0_r;
+        atoms.getRelativeMass()(1) = 0.5_r;
 
         pos(2, 0) = +0.5_r;
         pos(2, 1) = -0.5_r;
         pos(2, 2) = 0_r;
+        atoms.getRelativeMass()(2) = 0.5_r;
 
         pos(3, 0) = +0.5_r;
         pos(3, 1) = +0.5_r;
         pos(3, 2) = 0_r;
+        atoms.getRelativeMass()(3) = 0.5_r;
 
         atoms.numLocalParticles = 4;
 
@@ -108,9 +112,9 @@ TEST_F(LJ_IdealGas_Test, CG)
 {
     Cabana::deep_copy(atomsForce, 2_r);
 
-    auto cgWeighting = [](real_t x, real_t y, real_t z) { return 0_r; };
-    action::LJ_IdealGas::applyForces(
-        rc, sigma, epsilon, molecules, moleculesVerletList, atoms, cgWeighting);
+    auto moleculesLambda = molecules.getLambda();
+    Cabana::deep_copy(moleculesLambda, 0_r);
+    action::LJ_IdealGas::applyForces(rc, sigma, epsilon, molecules, moleculesVerletList, atoms);
 
     for (idx_t idx = 0; idx < 4; ++idx)
     {
@@ -123,12 +127,13 @@ TEST_F(LJ_IdealGas_Test, CG)
 
 TEST_F(LJ_IdealGas_Test, HY)
 {
-    auto cgWeighting = [](real_t x, real_t y, real_t z) { return 0.5_r; };
-    action::LJ_IdealGas::applyForces(
-        rc, sigma, epsilon, molecules, moleculesVerletList, atoms, cgWeighting);
+    auto moleculesLambda = molecules.getLambda();
+    Cabana::deep_copy(moleculesLambda, 0.5_r);
 
-    constexpr auto xForce = 51379736_r * 0.25_r;
-    constexpr auto yForce = 396393.75_r * 0.25_r;
+    action::LJ_IdealGas::applyForces(rc, sigma, epsilon, molecules, moleculesVerletList, atoms);
+
+    constexpr auto xForce = 51379736_r * 0.5_r;
+    constexpr auto yForce = 396393.75_r * 0.5_r;
 
     EXPECT_FLOAT_EQ(atomsForce(0, 0), -xForce);
     EXPECT_FLOAT_EQ(atomsForce(0, 1), -yForce);
@@ -149,9 +154,10 @@ TEST_F(LJ_IdealGas_Test, HY)
 
 TEST_F(LJ_IdealGas_Test, AT)
 {
-    auto cgWeighting = [](real_t x, real_t y, real_t z) { return 1_r; };
-    action::LJ_IdealGas::applyForces(
-        rc, sigma, epsilon, molecules, moleculesVerletList, atoms, cgWeighting);
+    auto moleculesLambda = molecules.getLambda();
+    Cabana::deep_copy(moleculesLambda, 1_r);
+
+    action::LJ_IdealGas::applyForces(rc, sigma, epsilon, molecules, moleculesVerletList, atoms);
 
     constexpr auto xForce = 51379737.75_r;
     constexpr auto yForce = 396393.75_r;
