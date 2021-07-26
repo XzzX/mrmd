@@ -55,14 +55,28 @@ template <typename VECTOR_T>
 void kokkos_loop()
 {
     VECTOR_T vec;
-    Kokkos::parallel_for(
-        Kokkos::RangePolicy<Kokkos::Serial>(0, VECTOR_T::size),
-        KOKKOS_LAMBDA(const idx_t idx)
+
+    const int VECTOR_LENGTH = VECTOR_T::size;
+    const int TEAM_SIZE = 1;
+    const int NUMBER_OF_TEAMS = 1;
+
+    auto policy = Kokkos::TeamPolicy<Kokkos::OpenMP>(NUMBER_OF_TEAMS, TEAM_SIZE, VECTOR_LENGTH);
+    using member_type = Kokkos::TeamPolicy<>::member_type;
+    auto kernel = KOKKOS_LAMBDA(member_type teamMember)
+    {
+        const int e = teamMember.league_rank() * teamMember.team_size() * VECTOR_LENGTH;
+
+        auto vectorPolicy = Kokkos::ThreadVectorRange<>(teamMember, VECTOR_LENGTH);
+        auto vectorKernel = KOKKOS_LAMBDA(int idx)
         {
-            vec.get(idx, 0) += 5;
-            vec.get(idx, 1) += 6;
-            vec.get(idx, 2) += 7;
-        });
+            vec.get(e + idx, 0) += 5;
+            //            vec.get(e + idx, 1) += 6;
+            //            vec.get(e + idx, 2) += 7;
+        };
+        Kokkos::parallel_for(vectorPolicy, vectorKernel);
+    };
+    Kokkos::parallel_for(policy, kernel);
+
     for (auto i = 0; i < 10; ++i)
     {
         std::cout << vec.get(i, 0) << " | " << vec.get(i, 1) << " | " << vec.get(i, 2) << std::endl;
@@ -73,7 +87,7 @@ int main(int argc, char* argv[])
 {
     Kokkos::ScopeGuard scope_guard(argc, argv);
 
-    native_loop<KokkosVec>();
+    kokkos_loop<KokkosVec>();
 
     return EXIT_SUCCESS;
 }
