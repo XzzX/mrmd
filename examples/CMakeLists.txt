@@ -1,3 +1,4 @@
 add_subdirectory(BubbleLJ)
+add_subdirectory(ComplexAtomics)
 add_subdirectory(LennardJones)
 add_subdirectory(Vectorization)
