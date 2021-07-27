@@ -13,16 +13,16 @@ Histogram& Histogram::operator+=(const Histogram& rhs)
     assert(max == rhs.max);
 
     auto policy = Kokkos::RangePolicy<>(0, numBins);
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx) { data(idx) += rhs(idx); };
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx) { data(idx) += rhs.data(idx); };
     Kokkos::parallel_for(policy, kernel);
     Kokkos::fence();
     return *this;
 }
 
-data::Histogram gradient(const data::Histogram& input, const real_t spacing)
+data::Histogram gradient(const data::Histogram& input)
 {
-    const auto inverseSpacing = 1_r / spacing;
-    const auto inverseDoubleSpacing = 1_r / (2_r * spacing);
+    const auto inverseSpacing = input.inverseBinSize;
+    const auto inverseDoubleSpacing = 0.5_r * input.inverseBinSize;
 
     data::Histogram grad("gradient", input.min, input.max, input.numBins);
     auto policy = Kokkos::RangePolicy<>(0, input.numBins);

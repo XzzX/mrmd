@@ -30,7 +30,7 @@ struct Histogram
     Histogram& operator+=(const Histogram& rhs);
 };
 
-data::Histogram gradient(const data::Histogram& input, const real_t spacing);
+data::Histogram gradient(const data::Histogram& input);
 
 }  // namespace data
 }  // namespace mrmd
