@@ -21,6 +21,7 @@ modernize-*,
 portability-*,
 
 readability-*,
+-readability-avoid-const-params-in-decls,
 -readability-braces-around-statements,
 -readability-function-cognitive-complexity,
 -readability-magic-numbers,
