@@ -27,6 +27,7 @@ jobs:
       - name: kokkos
         run: |
           ls
+          mkdir kokkos-build
           cmake \
             -S kokkos \
             -B kokkos-build \
@@ -77,6 +78,7 @@ jobs:
       - name: kokkos
         run: |
           ls
+          mkdir kokkos-build
           cmake \
             -S kokkos \
             -B kokkos-build \
