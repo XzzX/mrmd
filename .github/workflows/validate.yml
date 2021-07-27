@@ -13,6 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
     steps:
+      - name: versions
+        run: |
+          cat /etc/os-release
+          lsb_release -a
+          hostnamectl
+          git --version
+          cmake --version
+
       - uses: actions/checkout@v2
         with:
           repository: 'kokkos/kokkos'
@@ -57,6 +65,14 @@ jobs:
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
     steps:
+      - name: versions
+        run: |
+          cat /etc/os-release
+          lsb_release -a
+          hostnamectl
+          git --version
+          cmake --version
+          
       - uses: actions/checkout@v2
         with:
           repository: 'kokkos/kokkos'
