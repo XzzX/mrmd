@@ -25,7 +25,7 @@ TEST(LinearDensityProfile, histogram)
 
     for (auto i = 0; i < 10; ++i)
     {
-        EXPECT_FLOAT_EQ(histogram(i), real_c(i + 1));
+        EXPECT_FLOAT_EQ(histogram.data(i), real_c(i + 1));
     }
 }
 }  // namespace analysis
