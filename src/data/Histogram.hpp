@@ -14,8 +14,8 @@ struct Histogram
         : min(minArg),
           max(maxArg),
           numBins(numBinsArg),
-          dx((max - min) / real_c(numBins)),
-          inverseDx(1_r / dx),
+          binSize((max - min) / real_c(numBins)),
+          inverseBinSize(1_r / binSize),
           data(label, numBins)
     {
     }
@@ -23,8 +23,8 @@ struct Histogram
     const real_t min;
     const real_t max;
     const idx_t numBins;
-    const real_t dx;
-    const real_t inverseDx;
+    const real_t binSize;
+    const real_t inverseBinSize;
     ScalarView data;
 };
 }  // namespace data

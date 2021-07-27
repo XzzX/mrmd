@@ -8,14 +8,14 @@ namespace analysis
 {
 TEST(SmoothenDensityProfile, symmetric)
 {
-    ScalarView histogram("histogram", 11);
-    histogram(5) = 10_r;
+    data::Histogram histogram("histogram", 0_r, 10_r, 11);
+    histogram.data(5) = 10_r;
 
-    auto smoothedDensityProfile = smoothenDensityProfile(histogram, 1_r, 1_r, 3_r);
+    auto smoothedDensityProfile = smoothenDensityProfile(histogram, 1_r, 3_r);
 
     for (auto idx = 1; idx < 6; ++idx)
     {
-        EXPECT_FLOAT_EQ(smoothedDensityProfile(5 - idx), smoothedDensityProfile(5 + idx));
+        EXPECT_FLOAT_EQ(smoothedDensityProfile.data(5 - idx), smoothedDensityProfile.data(5 + idx));
     }
 }
 }  // namespace analysis

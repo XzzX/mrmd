@@ -4,36 +4,35 @@ namespace mrmd
 {
 namespace analysis
 {
-ScalarView smoothenDensityProfile(ScalarView& densityProfile,
-                                  const real_t binSize,
-                                  const real_t sigma,
-                                  const real_t inten)
+data::Histogram smoothenDensityProfile(data::Histogram& densityProfile,
+                                       const real_t sigma,
+                                       const real_t inten)
 {
-    const idx_t numBins = idx_c(densityProfile.extent(0));
-
-    const auto inverseBinSize = 1_r / binSize;
     const auto inverseSigma = 1_r / sigma;
     /// how many neighboring bins are affected
-    const idx_t delta = int_c(inten * sigma * inverseBinSize);
+    const idx_t delta = int_c(inten * sigma * densityProfile.inverseBinSize);
 
-    ScalarView smoothenedDensityProfile("smooth-density-profile", densityProfile.extent(0));
+    data::Histogram smoothenedDensityProfile(
+        "smooth-density-profile", densityProfile.min, densityProfile.max, densityProfile.numBins);
 
-    auto policy = Kokkos::RangePolicy<>(0, numBins);
+    auto policy = Kokkos::RangePolicy<>(0, densityProfile.numBins);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
         auto normalization = 0_r;
 
         const idx_t jdxMin = std::max(idx_t(0), idx - delta);
-        const idx_t jdxMax = std::min(numBins - 1, idx + delta);
+        const idx_t jdxMax = std::min(densityProfile.numBins - 1, idx + delta);
 
         for (auto jdx = jdxMin; jdx <= jdxMax; ++jdx)
         {
-            const auto eFunc = std::exp(-util::sqr(real_c(idx - jdx) * binSize * inverseSigma));
-            normalization += eFunc * binSize;
-            smoothenedDensityProfile(idx) += densityProfile(jdx) * eFunc * binSize;
+            const auto eFunc =
+                std::exp(-util::sqr(real_c(idx - jdx) * densityProfile.binSize * inverseSigma));
+            normalization += eFunc * densityProfile.binSize;
+            smoothenedDensityProfile.data(idx) +=
+                densityProfile.data(jdx) * eFunc * densityProfile.binSize;
         }
 
-        smoothenedDensityProfile(idx) /= normalization;
+        smoothenedDensityProfile.data(idx) /= normalization;
     };
     Kokkos::parallel_for(policy, kernel);
 

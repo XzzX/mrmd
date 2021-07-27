@@ -17,7 +17,7 @@ data::Histogram getLinearDensityProfile(const data::Particles::pos_t& positions,
     auto policy = Kokkos::RangePolicy<>(0, numParticles);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
-        auto bin = idx_c((positions(idx, COORD_X) - min) * histogram.inverseDx);
+        auto bin = idx_c((positions(idx, COORD_X) - min) * histogram.inverseBinSize);
         if (bin < 0) return;
         if (bin >= histogram.numBins) return;
         auto access = scatter.access();
