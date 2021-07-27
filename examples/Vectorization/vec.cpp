@@ -60,7 +60,7 @@ void kokkos_loop()
     const int TEAM_SIZE = 1;
     const int NUMBER_OF_TEAMS = 1;
 
-    auto policy = Kokkos::TeamPolicy<Kokkos::OpenMP>(NUMBER_OF_TEAMS, TEAM_SIZE, VECTOR_LENGTH);
+    auto policy = Kokkos::TeamPolicy<>(NUMBER_OF_TEAMS, TEAM_SIZE, VECTOR_LENGTH);
     using member_type = Kokkos::TeamPolicy<>::member_type;
     auto kernel = KOKKOS_LAMBDA(member_type teamMember)
     {
