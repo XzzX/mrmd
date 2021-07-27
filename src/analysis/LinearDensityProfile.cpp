@@ -1,27 +1,14 @@
-#pragma once
-
-#include "data/Particles.hpp"
-#include "datatypes.hpp"
+#include "LinearDensityProfile.hpp"
 
 namespace mrmd
 {
 namespace analysis
 {
-/**
- * Calculate a discretized density profile along the x axis.
- * Out-of-bounds values are discarded.
- *
- * @param positions
- * @param min
- * @param max
- * @param bins
- * @return
- */
-ScalarView getDensityProfileX(const data::Particles::pos_t& positions,
-                              idx_t numParticles,
-                              real_t min,
-                              real_t max,
-                              int64_t bins)
+ScalarView getLinearDensityProfile(const data::Particles::pos_t& positions,
+                                   idx_t numParticles,
+                                   real_t min,
+                                   real_t max,
+                                   int64_t bins)
 {
     assert(max >= min);
     auto inverseDx = 1_r / (real_c(max - min) / real_c(bins));

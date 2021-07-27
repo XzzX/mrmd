@@ -1,4 +1,4 @@
-#include "DensityProfileX.hpp"
+#include "LinearDensityProfile.hpp"
 
 #include <gtest/gtest.h>
 
@@ -6,7 +6,7 @@ namespace mrmd
 {
 namespace analysis
 {
-TEST(DensityProfileX, histogram)
+TEST(LinearDensityProfile, histogram)
 {
     data::Particles particles(100);
     idx_t idx = 0;
@@ -21,7 +21,7 @@ TEST(DensityProfileX, histogram)
     particles.numLocalParticles = idx;
 
     auto histogram =
-        getDensityProfileX(particles.getPos(), particles.numLocalParticles, 0_r, 10_r, 10);
+        getLinearDensityProfile(particles.getPos(), particles.numLocalParticles, 0_r, 10_r, 10);
 
     for (auto i = 0; i < 10; ++i)
     {
