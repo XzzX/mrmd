@@ -16,8 +16,6 @@ jobs:
       - name: versions
         run: |
           cat /etc/os-release
-          lsb_release -a
-          hostnamectl
           git --version
           cmake --version
 
@@ -68,11 +66,9 @@ jobs:
       - name: versions
         run: |
           cat /etc/os-release
-          lsb_release -a
-          hostnamectl
           git --version
           cmake --version
-          
+
       - uses: actions/checkout@v2
         with:
           repository: 'kokkos/kokkos'
