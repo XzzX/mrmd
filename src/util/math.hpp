@@ -6,7 +6,8 @@ namespace mrmd
 {
 namespace util
 {
-static inline real_t powInt(const real_t& x, const int n)
+KOKKOS_INLINE_FUNCTION real_t sqr(const real_t& sqr) { return sqr * sqr; }
+KOKKOS_INLINE_FUNCTION real_t powInt(const real_t& x, const int n)
 {
     auto ww = x;
     auto yy = 1_r;
