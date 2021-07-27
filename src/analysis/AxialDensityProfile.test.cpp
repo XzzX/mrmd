@@ -1,4 +1,4 @@
-#include "LinearDensityProfile.hpp"
+#include "AxialDensityProfile.hpp"
 
 #include <gtest/gtest.h>
 
@@ -21,7 +21,7 @@ TEST(LinearDensityProfile, histogram)
     particles.numLocalParticles = idx;
 
     auto histogram =
-        getLinearDensityProfile(particles.getPos(), particles.numLocalParticles, 0_r, 10_r, 10);
+        getAxialDensityProfile(particles.getPos(), particles.numLocalParticles, 0_r, 10_r, 10);
 
     for (auto i = 0; i < 10; ++i)
     {

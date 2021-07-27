@@ -1,14 +1,14 @@
-#include "LinearDensityProfile.hpp"
+#include "AxialDensityProfile.hpp"
 
 namespace mrmd
 {
 namespace analysis
 {
-data::Histogram getLinearDensityProfile(const data::Particles::pos_t& positions,
-                                        const idx_t numParticles,
-                                        const real_t min,
-                                        const real_t max,
-                                        const int64_t numBins)
+data::Histogram getAxialDensityProfile(const data::Particles::pos_t& positions,
+                                       const idx_t numParticles,
+                                       const real_t min,
+                                       const real_t max,
+                                       const int64_t numBins)
 {
     assert(max >= min);
     data::Histogram histogram("density-profile", min, max, numBins);
