@@ -14,7 +14,10 @@ KOKKOS_INLINE_FUNCTION real_t powInt(const real_t& x, const int n)
 
     for (int nn = (n > 0) ? n : -n; nn != 0; nn >>= 1)
     {
-        if ((nn & 1) == 1) yy *= ww;
+        if ((nn & 1) == 1)
+        {
+            yy *= ww;
+        }
         ww *= ww;
     }
 
