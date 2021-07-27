@@ -26,6 +26,11 @@ struct Histogram
     const real_t binSize;
     const real_t inverseBinSize;
     ScalarView data;
+
+    Histogram& operator+=(const Histogram& rhs);
 };
+
+data::Histogram gradient(const data::Histogram& input, const real_t spacing);
+
 }  // namespace data
 }  // namespace mrmd
