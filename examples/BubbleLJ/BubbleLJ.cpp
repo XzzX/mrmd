@@ -22,7 +22,7 @@
 #include "io/DumpCSV.hpp"
 #include "io/RestoreTXT.hpp"
 #include "util/Random.hpp"
-#include "weighting_function/Spherical.hpp"
+#include "weighting_function/Slab.hpp"
 
 using namespace mrmd;
 
@@ -54,30 +54,26 @@ void LJ(Config& config)
                                      config.neighborCutoff);
 
     util::Random RNG;
-    data::Particles atoms(100 * 100 * 2);
-    data::Molecules molecules(100 * 100 * 2);
-    idx_t idx = 0;
-    for (auto x = -50; x < 51; ++x)
+    data::Particles atoms(100 * 100 * 100 * 2);
+    data::Molecules molecules(100 * 100 * 100 * 2);
+    const idx_t numParticles = 10000;
+    for (auto idx = 0; idx < numParticles; ++idx)
     {
-        for (auto y = -50; y < 51; ++y)
-        {
-            atoms.getPos()(idx, 0) = real_c(x);
-            atoms.getPos()(idx, 1) = real_c(y);
-            atoms.getPos()(idx, 2) = 0_r;
+        atoms.getPos()(idx, 0) = (RNG.draw() - 0.5_r) * 2_r * config.Lx;
+        atoms.getPos()(idx, 1) = (RNG.draw() - 0.5_r) * 2_r * config.Lx;
+        atoms.getPos()(idx, 2) = 0_r;  //(RNG.draw() - 0.5_r) * 2_r * config.Lx;
 
-            atoms.getVel()(idx, 0) = (RNG.draw() - 0.5_r) * 2_r;
-            atoms.getVel()(idx, 1) = (RNG.draw() - 0.5_r) * 2_r;
-            atoms.getVel()(idx, 2) = 0_r;
+        atoms.getVel()(idx, 0) = (RNG.draw() - 0.5_r) * 2_r;
+        atoms.getVel()(idx, 1) = (RNG.draw() - 0.5_r) * 2_r;
+        atoms.getVel()(idx, 2) = 0_r;  //(RNG.draw() - 0.5_r) * 2_r;
 
-            atoms.getRelativeMass()(idx) = 1_r;
+        atoms.getRelativeMass()(idx) = 1_r;
 
-            molecules.getAtomsEndIdx()(idx) = idx + 1;
-            ++idx;
-        }
+        molecules.getAtomsEndIdx()(idx) = idx + 1;
     }
-    atoms.numLocalParticles = idx;
-    molecules.numLocalMolecules = idx;
-    std::cout << "particles added: " << idx << std::endl;
+    atoms.numLocalParticles = numParticles;
+    molecules.numLocalMolecules = numParticles;
+    std::cout << "particles added: " << numParticles << std::endl;
 
     communication::MultiResGhostLayer ghostLayer(subdomain);
     action::LennardJones LJ(config.rc, config.sigma, config.epsilon);
@@ -86,7 +82,7 @@ void LJ(Config& config)
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;
-    auto weightingFunction = weighting_function::Spherical({0_r, 0_r, 0_r}, 20_r, 10_r, 7);
+    auto weightingFunction = weighting_function::Slab({0_r, 0_r, 0_r}, 20_r, 10_r, 7);
     for (auto i = 0; i < config.nsteps; ++i)
     {
         std::cout << i << " | " << molecules.numGhostMolecules << std::endl;

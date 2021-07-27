@@ -3,6 +3,7 @@
 #include <Cabana_LinkedCellList.hpp>
 #include <Cabana_VerletList.hpp>
 #include <Kokkos_Core.hpp>
+#include <Kokkos_ScatterView.hpp>
 #include <cstdint>
 
 namespace mrmd
@@ -105,6 +106,10 @@ inline constexpr float float_c(const T &val)
 }
 
 using IndexView = Kokkos::View<idx_t *>;
+using IntView = Kokkos::View<idx_t *>;
+using IntScatterView = Kokkos::Experimental::ScatterView<real_t *>;
+using ScalarView = Kokkos::View<real_t *>;
+using ScalarScatterView = Kokkos::Experimental::ScatterView<real_t *>;
 
 using DeviceType =
     Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::DefaultExecutionSpace::memory_space>;
