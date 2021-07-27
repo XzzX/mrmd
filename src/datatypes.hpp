@@ -105,6 +105,10 @@ inline constexpr float float_c(const T &val)
     return static_cast<float>(val);
 }
 
+constexpr idx_t COORD_X = 0;  ///< index of the x coordinate in vector views
+constexpr idx_t COORD_Y = 1;  ///< index of the y coordinate in vector views
+constexpr idx_t COORD_Z = 2;  ///< index of the z coordinate in vector views
+
 using IndexView = Kokkos::View<idx_t *>;
 using IntView = Kokkos::View<idx_t *>;
 using IntScatterView = Kokkos::Experimental::ScatterView<real_t *>;

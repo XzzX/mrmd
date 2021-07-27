@@ -30,7 +30,7 @@ ScalarView getDensityProfileX(const data::Particles::pos_t& positions,
     auto policy = Kokkos::RangePolicy<>(0, numParticles);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
-        auto bin = idx_c((positions(idx, 0) - min) * inverseDx);
+        auto bin = idx_c((positions(idx, COORD_X) - min) * inverseDx);
         if (bin < 0) return;
         if (bin >= bins) return;
         auto access = scatter.access();
