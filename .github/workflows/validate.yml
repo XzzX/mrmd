@@ -98,6 +98,7 @@ jobs:
 
       - name: kokkos
         run: |
+          ls
           cmake \
             -S kokkos \
             -B kokkos-build \
