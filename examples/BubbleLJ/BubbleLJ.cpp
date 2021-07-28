@@ -57,7 +57,7 @@ void LJ(Config& config)
         data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
 
     const auto volume = config.Lx * config.Lx * config.Lx;
-    const idx_t numParticles = config.rho * volume;
+    const idx_t numParticles = idx_c(config.rho * volume);
     util::Random RNG;
     data::Particles atoms(numParticles * 2);
     data::Molecules molecules(numParticles * 2);
@@ -191,7 +191,7 @@ void LJ(Config& config)
 
         action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 
-        if (config.bOutput && (i % 10 == 0))
+        if (config.bOutput && (i % config.spartianInterval == 0))
         {
             //            VerletList atomsVerletList(atoms.getPos(),
             //                                       0,
