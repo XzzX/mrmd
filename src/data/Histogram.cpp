@@ -36,7 +36,7 @@ data::Histogram gradient(const data::Histogram& input)
 
         if (idx == input.numBins - 1)
         {
-            grad.data(idx) = (input.data(idx) + input.data(idx - 1)) * inverseSpacing;
+            grad.data(idx) = (input.data(idx) - input.data(idx - 1)) * inverseSpacing;
             return;
         }
 
