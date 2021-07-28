@@ -27,9 +27,8 @@ data::Histogram smoothenDensityProfile(data::Histogram& densityProfile,
         {
             const auto eFunc =
                 std::exp(-util::sqr(real_c(idx - jdx) * densityProfile.binSize * inverseSigma));
-            normalization += eFunc * densityProfile.binSize;
-            smoothenedDensityProfile.data(idx) +=
-                densityProfile.data(jdx) * eFunc * densityProfile.binSize;
+            normalization += eFunc;
+            smoothenedDensityProfile.data(idx) += densityProfile.data(jdx) * eFunc;
         }
 
         smoothenedDensityProfile.data(idx) /= normalization;
