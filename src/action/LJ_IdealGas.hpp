@@ -31,11 +31,17 @@ private:
 
 public:
     KOKKOS_INLINE_FUNCTION
-    real_t computeForce_(const real_t& distSqr) const
+    real_t computeCappedLJForce_(const real_t& distSqr) const
     {
+        // normal LJ force calculation
         auto frac2 = 1.0 / distSqr;
         auto frac6 = frac2 * frac2 * frac2;
-        return frac6 * (ff1_ * frac6 - ff2_) * frac2;
+        auto ffactor = frac6 * (ff1_ * frac6 - ff2_) * frac2;
+
+        // force capping
+        ffactor = std::min(ffactor, +10_r);
+
+        return ffactor;
     }
 
     /**
@@ -114,11 +120,7 @@ public:
 
                     if (distSqr > rcSqr_) continue;
 
-                    auto ffactor = computeForce_(distSqr) * weighting;
-
-                    // force capping
-                    //                    ffactor = std::min(ffactor, +10_r);
-                    //                    ffactor = std::max(ffactor, -10_r);
+                    auto ffactor = computeCappedLJForce_(distSqr) * weighting;
 
                     forceTmp[0] += dx * ffactor;
                     forceTmp[1] += dy * ffactor;

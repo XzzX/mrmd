@@ -98,7 +98,7 @@ protected:
     // void TearDown() override {}
 
     static constexpr real_t epsilon = 2_r;
-    static constexpr real_t sigma = 3_r;
+    static constexpr real_t sigma = 0.9_r;
     static constexpr real_t rc = 2.5_r * sigma;
     static constexpr real_t eps = 0.001_r;
 
@@ -132,23 +132,23 @@ TEST_F(LJ_IdealGas_Test, HY)
 
     action::LJ_IdealGas::applyForces(rc, sigma, epsilon, molecules, moleculesVerletList, atoms);
 
-    constexpr auto xForce = 51379736_r * 0.5_r;
-    constexpr auto yForce = 396393.75_r * 0.5_r;
+    constexpr auto xForce = 0.22156665_r * 0.5_r;
+    constexpr auto yForce = 1.3825009_r * 0.5_r;
 
     EXPECT_FLOAT_EQ(atomsForce(0, 0), -xForce);
-    EXPECT_FLOAT_EQ(atomsForce(0, 1), -yForce);
+    EXPECT_FLOAT_EQ(atomsForce(0, 1), +yForce);
     EXPECT_FLOAT_EQ(atomsForce(0, 2), 0_r);
 
     EXPECT_FLOAT_EQ(atomsForce(1, 0), -xForce);
-    EXPECT_FLOAT_EQ(atomsForce(1, 1), yForce);
+    EXPECT_FLOAT_EQ(atomsForce(1, 1), -yForce);
     EXPECT_FLOAT_EQ(atomsForce(1, 2), 0_r);
 
-    EXPECT_FLOAT_EQ(atomsForce(2, 0), xForce);
-    EXPECT_FLOAT_EQ(atomsForce(2, 1), -yForce);
+    EXPECT_FLOAT_EQ(atomsForce(2, 0), +xForce);
+    EXPECT_FLOAT_EQ(atomsForce(2, 1), +yForce);
     EXPECT_FLOAT_EQ(atomsForce(2, 2), 0_r);
 
-    EXPECT_FLOAT_EQ(atomsForce(3, 0), xForce);
-    EXPECT_FLOAT_EQ(atomsForce(3, 1), yForce);
+    EXPECT_FLOAT_EQ(atomsForce(3, 0), +xForce);
+    EXPECT_FLOAT_EQ(atomsForce(3, 1), -yForce);
     EXPECT_FLOAT_EQ(atomsForce(3, 2), 0_r);
 }
 
@@ -159,23 +159,23 @@ TEST_F(LJ_IdealGas_Test, AT)
 
     action::LJ_IdealGas::applyForces(rc, sigma, epsilon, molecules, moleculesVerletList, atoms);
 
-    constexpr auto xForce = 51379737.75_r;
-    constexpr auto yForce = 396393.75_r;
+    constexpr auto xForce = 0.22156665_r;
+    constexpr auto yForce = 1.3825009_r;
 
     EXPECT_FLOAT_EQ(atomsForce(0, 0), -xForce);
-    EXPECT_FLOAT_EQ(atomsForce(0, 1), -yForce);
+    EXPECT_FLOAT_EQ(atomsForce(0, 1), +yForce);
     EXPECT_FLOAT_EQ(atomsForce(0, 2), 0_r);
 
     EXPECT_FLOAT_EQ(atomsForce(1, 0), -xForce);
-    EXPECT_FLOAT_EQ(atomsForce(1, 1), yForce);
+    EXPECT_FLOAT_EQ(atomsForce(1, 1), -yForce);
     EXPECT_FLOAT_EQ(atomsForce(1, 2), 0_r);
 
-    EXPECT_FLOAT_EQ(atomsForce(2, 0), xForce);
-    EXPECT_FLOAT_EQ(atomsForce(2, 1), -yForce);
+    EXPECT_FLOAT_EQ(atomsForce(2, 0), +xForce);
+    EXPECT_FLOAT_EQ(atomsForce(2, 1), +yForce);
     EXPECT_FLOAT_EQ(atomsForce(2, 2), 0_r);
 
-    EXPECT_FLOAT_EQ(atomsForce(3, 0), xForce);
-    EXPECT_FLOAT_EQ(atomsForce(3, 1), yForce);
+    EXPECT_FLOAT_EQ(atomsForce(3, 0), +xForce);
+    EXPECT_FLOAT_EQ(atomsForce(3, 1), -yForce);
     EXPECT_FLOAT_EQ(atomsForce(3, 2), 0_r);
 }
 
