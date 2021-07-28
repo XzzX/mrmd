@@ -30,8 +30,7 @@ public:
 
         force_(idx, 0) += pref1 * vel_(idx, 0) * mass + pref2 * (rng.draw() - 0.5_r) * massSqrt;
         force_(idx, 1) += pref1 * vel_(idx, 1) * mass + pref2 * (rng.draw() - 0.5_r) * massSqrt;
-        //        force_(idx, 2) += pref1 * vel_(idx, 2) * mass + pref2 * (rng.draw() - 0.5_r) *
-        //        massSqrt;
+        force_(idx, 2) += pref1 * vel_(idx, 2) * mass + pref2 * (rng.draw() - 0.5_r) * massSqrt;
     }
 
     void applyThermostat(data::Particles& particles)

@@ -42,7 +42,8 @@ struct Config
     real_t temperature = 1_r;
     real_t gamma = 1_r;
 
-    real_t Lx = 55_r;
+    real_t Lx = 50_r;
+    real_t rho = 1_r;
 
     real_t cell_ratio = 0.5_r;
 
@@ -51,23 +52,23 @@ struct Config
 
 void LJ(Config& config)
 {
-    auto subdomain = data::Subdomain({-config.Lx, -config.Lx, -config.Lx},
-                                     {config.Lx, config.Lx, config.Lx},
-                                     config.neighborCutoff);
+    auto subdomain =
+        data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
 
+    const auto volume = config.Lx * config.Lx * config.Lx;
+    const idx_t numParticles = config.rho * volume;
     util::Random RNG;
-    data::Particles atoms(100 * 100 * 100 * 2);
-    data::Molecules molecules(100 * 100 * 100 * 2);
-    const idx_t numParticles = 10000;
+    data::Particles atoms(numParticles * 2);
+    data::Molecules molecules(numParticles * 2);
     for (auto idx = 0; idx < numParticles; ++idx)
     {
-        atoms.getPos()(idx, 0) = (RNG.draw() - 0.5_r) * 2_r * config.Lx;
-        atoms.getPos()(idx, 1) = (RNG.draw() - 0.5_r) * 2_r * config.Lx;
-        atoms.getPos()(idx, 2) = 0_r;  //(RNG.draw() - 0.5_r) * 2_r * config.Lx;
+        atoms.getPos()(idx, 0) = RNG.draw() * config.Lx;
+        atoms.getPos()(idx, 1) = RNG.draw() * config.Lx;
+        atoms.getPos()(idx, 2) = RNG.draw() * config.Lx;
 
         atoms.getVel()(idx, 0) = (RNG.draw() - 0.5_r) * 2_r;
         atoms.getVel()(idx, 1) = (RNG.draw() - 0.5_r) * 2_r;
-        atoms.getVel()(idx, 2) = 0_r;  //(RNG.draw() - 0.5_r) * 2_r;
+        atoms.getVel()(idx, 2) = (RNG.draw() - 0.5_r) * 2_r;
 
         atoms.getRelativeMass()(idx) = 1_r;
 
@@ -88,7 +89,8 @@ void LJ(Config& config)
     data::Histogram thermodynamicForce("thermodynamic-force", 0_r, config.Lx, 100);
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
-    auto weightingFunction = weighting_function::Slab({0_r, 0_r, 0_r}, 20_r, 10_r, 7);
+    auto weightingFunction = weighting_function::Slab(
+        {0.5_r * config.Lx, 0.5_r * config.Lx, 0.5_r * config.Lx}, 20_r, 10_r, 7);
     std::ofstream fDensityOut("densityProfile.txt");
 
     // actions

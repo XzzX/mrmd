@@ -39,7 +39,7 @@ public:
         auto ffactor = frac6 * (ff1_ * frac6 - ff2_) * frac2;
 
         // force capping
-        ffactor = std::min(ffactor, +10_r);
+        ffactor = std::min(ffactor, +100_r);
 
         return ffactor;
     }
@@ -53,7 +53,7 @@ public:
     void operator()(const idx_t& alpha) const
     {
         /// epsilon for region checks
-        constexpr auto eps = 0.001_r;
+        constexpr auto eps = 0.00001_r;
 
         /// weighting for molecule alpha
         auto lambdaAlpha = moleculesLambda_(alpha);
