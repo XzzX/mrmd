@@ -9,6 +9,7 @@
 #include "action/LJ_IdealGas.hpp"
 #include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
+#include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/AxialDensityProfile.hpp"
@@ -30,7 +31,7 @@ struct Config
 {
     bool bOutput = true;
 
-    idx_t nsteps = 2001;
+    idx_t nsteps = 10001;
     idx_t densitySamplingInterval = 10;
     idx_t spartianInterval = 100;
     real_t sigma = 1_r;
@@ -90,8 +91,9 @@ void LJ(Config& config)
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
     auto weightingFunction = weighting_function::Slab(
-        {0.5_r * config.Lx, 0.5_r * config.Lx, 0.5_r * config.Lx}, 20_r, 10_r, 7);
+        {0.5_r * config.Lx, 0.5_r * config.Lx, 0.5_r * config.Lx}, 10_r, 10_r, 7);
     std::ofstream fDensityOut("densityProfile.txt");
+    std::ofstream fThermodynamicForceOut("thermodynamicForce.txt");
 
     // actions
     action::LennardJones LJ(config.rc, config.sigma, config.epsilon);
@@ -147,12 +149,20 @@ void LJ(Config& config)
             densityProfile += analysis::getAxialDensityProfile(
                 atoms.getPos(), atoms.numLocalParticles, 0_r, config.Lx, 100);
             ++densityProfileEvaluations;
+            if (densityProfileEvaluations == 1)
+            {
+                for (auto i = 0; i < thermodynamicForce.numBins; ++i)
+                {
+                    fDensityOut << densityProfile.data(i) << " ";
+                }
+                fDensityOut << std::endl;
+            }
         }
 
         if (i % config.spartianInterval == 0)
         {
             auto prefac = 0.001;
-            auto binVolume = config.Lx * config.Lx * config.Lx / 100_r;
+            auto binVolume = config.Lx * config.Lx * densityProfile.binSize;
             auto normalizationFactor =
                 1_r / (binVolume * real_c(densityProfileEvaluations)) * prefac / rho;
             auto policy = Kokkos::RangePolicy<>(0, densityProfile.numBins);
@@ -170,6 +180,7 @@ void LJ(Config& config)
             densityProfileEvaluations = 0;
         }
 
+        action::ThermodynamicForce::apply(atoms, thermodynamicForce);
         action::LJ_IdealGas::applyForces(
             config.rc, config.sigma, config.epsilon, molecules, moleculesVerletList, atoms);
         if (config.temperature >= 0)
@@ -205,18 +216,19 @@ void LJ(Config& config)
             std::cout << "Nlocal : " << std::setw(10) << atoms.numLocalParticles << " | ";
             std::cout << "Nghost : " << std::setw(10) << atoms.numGhostParticles << std::endl;
 
-            io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
+            //            io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
 
             for (auto i = 0; i < thermodynamicForce.numBins; ++i)
             {
-                fDensityOut << thermodynamicForce.data(i) << " ";
+                fThermodynamicForceOut << thermodynamicForce.data(i) << " ";
             }
-            fDensityOut << std::endl;
+            fThermodynamicForceOut << std::endl;
         }
     }
     auto time = timer.seconds();
     std::cout << time << std::endl;
     fDensityOut.close();
+    fThermodynamicForceOut.close();
 
     auto cores = std::getenv("OMP_NUM_THREADS") != nullptr
                      ? std::string(std::getenv("OMP_NUM_THREADS"))
