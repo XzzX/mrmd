@@ -12,6 +12,45 @@ namespace communication
 {
 namespace impl
 {
+struct DoubleCounter
+{
+    idx_t atoms = 0;
+    idx_t molecules = 0;
+
+    KOKKOS_INLINE_FUNCTION
+    DoubleCounter() = default;
+    KOKKOS_INLINE_FUNCTION
+    DoubleCounter(idx_t newAtoms, idx_t newMolecules) : atoms(newAtoms), molecules(newMolecules) {}
+    KOKKOS_INLINE_FUNCTION
+    DoubleCounter(const DoubleCounter& rhs) = default;
+
+    KOKKOS_INLINE_FUNCTION
+    DoubleCounter(const volatile DoubleCounter& rhs)
+    {
+        atoms = rhs.atoms;
+        molecules = rhs.molecules;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    void operator=(const DoubleCounter& rhs) volatile
+    {
+        atoms = rhs.atoms;
+        molecules = rhs.molecules;
+    }
+
+    DoubleCounter& operator+=(const DoubleCounter& rhs)
+    {
+        atoms += rhs.atoms;
+        molecules += rhs.molecules;
+        return *this;
+    }
+};
+
+DoubleCounter operator+(const DoubleCounter& lhs, const DoubleCounter& rhs)
+{
+    return DoubleCounter(lhs.atoms + rhs.atoms, lhs.molecules + rhs.molecules);
+}
+
 class MultiResPeriodicGhostExchange
 {
 private:
@@ -19,18 +58,17 @@ private:
 
     data::Particles atoms_ = data::Particles(0);
     data::Particles::pos_t atomPos_;
-    Kokkos::View<idx_t> atomNewGhostCounter_;
-    Kokkos::View<idx_t>::host_mirror_type hAtomNewGhostCounter_;
     /// Stores the corresponding real particle index for every ghost particle.
     IndexView atomCorrespondingRealParticle_;
 
     data::Molecules molecules_ = data::Molecules(0);
     data::Molecules::pos_t moleculesPos_;
     data::Molecules::atoms_end_idx_t moleculesAtomEndIdx_;
-    Kokkos::View<idx_t> moleculesNewGhostCounter_;
-    Kokkos::View<idx_t>::host_mirror_type hMoleculesNewGhostCounter_;
     /// Stores the corresponding real particle index for every ghost particle.
     IndexView moleculesCorrespondingRealParticle_;
+
+    Kokkos::View<DoubleCounter> newGhostCounter_;
+    Kokkos::View<DoubleCounter>::host_mirror_type hNewGhostCounter_;
 
 public:
     struct DIRECTION_X_HIGH
@@ -89,8 +127,11 @@ public:
             auto atomsStart = (idx != 0 ? moleculesAtomEndIdx_(idx - 1) : 0);  /// inclusive
             auto atomsEnd = moleculesAtomEndIdx_(idx);                         /// exclusive
             auto moleculeSize = atomsEnd - atomsStart;
-            auto moleculeNewGhostIdx = molecules_.numLocalMolecules + molecules_.numGhostMolecules +
-                                       Kokkos::atomic_fetch_add(&moleculesNewGhostCounter_(), 1);
+
+            DoubleCounter increment(moleculeSize, 1);
+            auto newGhosts = Kokkos::atomic_fetch_add(&newGhostCounter_(), increment);
+            auto moleculeNewGhostIdx =
+                molecules_.numLocalMolecules + molecules_.numGhostMolecules + newGhosts.molecules;
 
             if (moleculeNewGhostIdx < molecules_.size())
             {
@@ -102,8 +143,8 @@ public:
                 moleculesCorrespondingRealParticle_(moleculeNewGhostIdx) = moleculeFindRealIdx(idx);
             }
 
-            auto atomNewGhostIdx = atoms_.numLocalParticles + atoms_.numGhostParticles +
-                                   Kokkos::atomic_fetch_add(&atomNewGhostCounter_(), moleculeSize);
+            auto atomNewGhostIdx =
+                atoms_.numLocalParticles + atoms_.numGhostParticles + newGhosts.atoms;
 
             if (atomNewGhostIdx + moleculeSize - 1 < atoms_.size())
             {
@@ -129,8 +170,12 @@ public:
             auto atomsStart = (idx != 0 ? moleculesAtomEndIdx_(idx - 1) : 0);  /// inclusive
             auto atomsEnd = moleculesAtomEndIdx_(idx);                         /// exclusive
             auto moleculeSize = atomsEnd - atomsStart;
-            auto moleculeNewGhostIdx = molecules_.numLocalMolecules + molecules_.numGhostMolecules +
-                                       Kokkos::atomic_fetch_add(&moleculesNewGhostCounter_(), 1);
+
+            DoubleCounter increment(moleculeSize, 1);
+            auto newGhosts = Kokkos::atomic_fetch_add(&newGhostCounter_(), increment);
+            auto moleculeNewGhostIdx =
+                molecules_.numLocalMolecules + molecules_.numGhostMolecules + newGhosts.molecules;
+
             if (moleculeNewGhostIdx < molecules_.size())
             {
                 molecules_.copy(moleculeNewGhostIdx, idx);
@@ -141,8 +186,8 @@ public:
                 moleculesCorrespondingRealParticle_(moleculeNewGhostIdx) = moleculeFindRealIdx(idx);
             }
 
-            auto atomNewGhostIdx = atoms_.numLocalParticles + atoms_.numGhostParticles +
-                                   Kokkos::atomic_fetch_add(&atomNewGhostCounter_(), moleculeSize);
+            auto atomNewGhostIdx =
+                atoms_.numLocalParticles + atoms_.numGhostParticles + newGhosts.atoms;
             if (atomNewGhostIdx + moleculeSize - 1 < atoms_.size())
             {
                 for (idx_t atomIdx = 0; atomIdx < moleculeSize; ++atomIdx)
@@ -208,27 +253,26 @@ public:
 
             atoms_ = atoms;
             atomPos_ = atoms.getPos();
-            Kokkos::deep_copy(atomNewGhostCounter_, 0);
 
             molecules_ = molecules;
             moleculesPos_ = molecules.getPos();
             moleculesAtomEndIdx_ = molecules.getAtomsEndIdx();
-            Kokkos::deep_copy(moleculesNewGhostCounter_, 0);
 
-            for (idx_t idx = 0; idx < maxIdx; ++idx) operator()(EXCHANGE_DIRECTION(), idx);
+            Kokkos::deep_copy(newGhostCounter_, DoubleCounter(0, 0));
 
-            Kokkos::deep_copy(hMoleculesNewGhostCounter_, moleculesNewGhostCounter_);
+            auto policy = Kokkos::RangePolicy<EXCHANGE_DIRECTION>(0, maxIdx);
+            Kokkos::parallel_for(policy, *this, "MultiResPeriodicGhostExchange::exchangeGhosts");
+
+            Kokkos::deep_copy(hNewGhostCounter_, newGhostCounter_);
             newMoleculesSize = molecules.numLocalMolecules + molecules.numGhostMolecules +
-                               hMoleculesNewGhostCounter_();
-
-            Kokkos::deep_copy(hAtomNewGhostCounter_, atomNewGhostCounter_);
+                               hNewGhostCounter_().molecules;
             newAtomsSize =
-                atoms.numLocalParticles + atoms.numGhostParticles + hAtomNewGhostCounter_();
+                atoms.numLocalParticles + atoms.numGhostParticles + hNewGhostCounter_().atoms;
         } while ((newMoleculesSize > molecules.size()) ||
                  (newAtomsSize > atoms.size()));  // resize and rerun
 
-        atoms.numGhostParticles += hAtomNewGhostCounter_();
-        molecules.numGhostMolecules += hMoleculesNewGhostCounter_();
+        atoms.numGhostParticles += hNewGhostCounter_().atoms;
+        molecules.numGhostMolecules += hNewGhostCounter_().molecules;
         return atomCorrespondingRealParticle_;
     }
 
@@ -260,12 +304,10 @@ public:
 
     MultiResPeriodicGhostExchange(const data::Subdomain& subdomain)
         : subdomain_(subdomain),
-          atomNewGhostCounter_("atomNewGhostCounter"),
-          hAtomNewGhostCounter_("hAtomNewGhostCounter"),
           atomCorrespondingRealParticle_("atomCorrespondingRealParticle", 0),
-          moleculesNewGhostCounter_("moleculeNewGhostCounter"),
-          hMoleculesNewGhostCounter_("hMoleculeNewGhostCounter"),
-          moleculesCorrespondingRealParticle_("moleculeCorrespondingRealParticle", 0)
+          moleculesCorrespondingRealParticle_("moleculeCorrespondingRealParticle", 0),
+          newGhostCounter_("newGhostCounter"),
+          hNewGhostCounter_("hNewGhostCounter")
     {
     }
 };
