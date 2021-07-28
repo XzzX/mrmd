@@ -29,6 +29,13 @@ struct DoubleCounter
         first = rhs.first;
         second = rhs.second;
     }
+
+    DoubleCounter& operator+=(const DoubleCounter& rhs)
+    {
+        first += rhs.first;
+        second += rhs.second;
+        return *this;
+    }
 };
 
 DoubleCounter operator+(const DoubleCounter& lhs, const DoubleCounter& rhs)
