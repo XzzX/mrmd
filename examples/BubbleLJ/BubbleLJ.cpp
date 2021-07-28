@@ -6,12 +6,13 @@
 #include <iomanip>
 #include <iostream>
 
-#include "Cabana_NeighborList.hpp"
 #include "action/LJ_IdealGas.hpp"
 #include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
 #include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
+#include "analysis/AxialDensityProfile.hpp"
+#include "analysis/SmoothenDensityProfile.hpp"
 #include "analysis/SystemMomentum.hpp"
 #include "analysis/Temperature.hpp"
 #include "communication/MultiResGhostLayer.hpp"
@@ -20,7 +21,6 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
-#include "io/RestoreTXT.hpp"
 #include "util/Random.hpp"
 #include "weighting_function/Slab.hpp"
 
@@ -31,6 +31,8 @@ struct Config
     bool bOutput = true;
 
     idx_t nsteps = 2001;
+    idx_t densitySamplingInterval = 10;
+    idx_t spartianInterval = 100;
     real_t sigma = 1_r;
     real_t epsilon = 1_r;
     real_t rc = 2.5;
@@ -75,24 +77,34 @@ void LJ(Config& config)
     molecules.numLocalMolecules = numParticles;
     std::cout << "particles added: " << numParticles << std::endl;
 
-    communication::MultiResGhostLayer ghostLayer(subdomain);
-    action::LennardJones LJ(config.rc, config.sigma, config.epsilon);
-    action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
+    auto rho = real_c(atoms.numLocalParticles) / (config.Lx * config.Lx * config.Lx);
+    std::cout << "global particle density: " << rho << std::endl;
+
+    // data allocations
     VerletList moleculesVerletList;
+    idx_t verletlistRebuildCounter = 0;
+    data::Histogram densityProfile("density-profile", 0_r, config.Lx, 100);
+    idx_t densityProfileEvaluations = 0;
+    data::Histogram thermodynamicForce("thermodynamic-force", 0_r, config.Lx, 100);
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
-    idx_t rebuildCounter = 0;
     auto weightingFunction = weighting_function::Slab({0_r, 0_r, 0_r}, 20_r, 10_r, 7);
+    std::ofstream fDensityOut("densityProfile.txt");
+
+    // actions
+    action::LennardJones LJ(config.rc, config.sigma, config.epsilon);
+    action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
+    communication::MultiResGhostLayer ghostLayer(subdomain);
+
     for (auto i = 0; i < config.nsteps; ++i)
     {
-        std::cout << i << " | " << molecules.numGhostMolecules << std::endl;
         assert(atoms.numLocalParticles == molecules.numLocalMolecules);
         assert(atoms.numGhostParticles == molecules.numGhostMolecules);
         maxParticleDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
-        if (maxParticleDisplacement >= -config.skin * 0.5_r)
+        if (maxParticleDisplacement >= config.skin * 0.5_r)
         {
             // reset displacement
             maxParticleDisplacement = 0_r;
@@ -118,7 +130,7 @@ void LJ(Config& config)
                                       subdomain.minGhostCorner.data(),
                                       subdomain.maxGhostCorner.data(),
                                       config.estimatedMaxNeighbors);
-            ++rebuildCounter;
+            ++verletlistRebuildCounter;
         }
         else
         {
@@ -128,7 +140,34 @@ void LJ(Config& config)
         auto force = atoms.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        //        LJ.applyForces(atoms, moleculesVerletList);
+        if (i % config.densitySamplingInterval == 0)
+        {
+            densityProfile += analysis::getAxialDensityProfile(
+                atoms.getPos(), atoms.numLocalParticles, 0_r, config.Lx, 100);
+            ++densityProfileEvaluations;
+        }
+
+        if (i % config.spartianInterval == 0)
+        {
+            auto prefac = 0.001;
+            auto binVolume = config.Lx * config.Lx * config.Lx / 100_r;
+            auto normalizationFactor =
+                1_r / (binVolume * real_c(densityProfileEvaluations)) * prefac / rho;
+            auto policy = Kokkos::RangePolicy<>(0, densityProfile.numBins);
+            Kokkos::parallel_for(
+                policy, KOKKOS_LAMBDA(const idx_t idx) {
+                    densityProfile.data(idx) *= normalizationFactor;
+                });
+            Kokkos::fence();
+            auto smoothedDensityProfile =
+                analysis::smoothenDensityProfile(densityProfile, 3_r, 3_r);
+
+            thermodynamicForce += data::gradient(smoothedDensityProfile);
+
+            Kokkos::deep_copy(densityProfile.data, 0_r);
+            densityProfileEvaluations = 0;
+        }
+
         action::LJ_IdealGas::applyForces(
             config.rc, config.sigma, config.epsilon, molecules, moleculesVerletList, atoms);
         if (config.temperature >= 0)
@@ -156,7 +195,7 @@ void LJ(Config& config)
             std::cout << i << ": " << timer.seconds() << std::endl;
             std::cout << "system momentum: " << systemMomentum[0] << " | " << systemMomentum[1]
                       << " | " << systemMomentum[2] << std::endl;
-            std::cout << "rebuild counter: " << rebuildCounter << std::endl;
+            std::cout << "rebuild counter: " << verletlistRebuildCounter << std::endl;
             std::cout << "T : " << std::setw(10) << T << " | ";
             std::cout << "Ek: " << std::setw(10) << Ek << " | ";
             std::cout << "E0: " << std::setw(10) << E0 << " | ";
@@ -165,10 +204,17 @@ void LJ(Config& config)
             std::cout << "Nghost : " << std::setw(10) << atoms.numGhostParticles << std::endl;
 
             io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
+
+            for (auto i = 0; i < thermodynamicForce.numBins; ++i)
+            {
+                fDensityOut << thermodynamicForce.data(i) << " ";
+            }
+            fDensityOut << std::endl;
         }
     }
     auto time = timer.seconds();
     std::cout << time << std::endl;
+    fDensityOut.close();
 
     auto cores = std::getenv("OMP_NUM_THREADS") != nullptr
                      ? std::string(std::getenv("OMP_NUM_THREADS"))
