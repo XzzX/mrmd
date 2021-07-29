@@ -31,7 +31,7 @@ struct Config
 {
     bool bOutput = true;
 
-    idx_t nsteps = 10001;
+    idx_t nsteps = 1001;
     idx_t densitySamplingInterval = 10;
     idx_t spartianInterval = 100;
     real_t sigma = 1_r;
@@ -201,20 +201,22 @@ void LJ(Config& config)
             //                                       subdomain.minGhostCorner.data(),
             //                                       subdomain.maxGhostCorner.data(),
             //                                       config.estimatedMaxNeighbors);
-            auto E0 = 0_r;  // LJ.computeEnergy(atoms, atomsVerletList);
-            auto T = analysis::getTemperature(atoms);
-            auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto Ek = (3_r / 2_r) * real_c(atoms.numLocalParticles) * T;
+            //            auto E0 = 0_r;  // LJ.computeEnergy(atoms, atomsVerletList);
+            //            auto T = analysis::getTemperature(atoms);
+            //            auto systemMomentum = analysis::getSystemMomentum(atoms);
+            //            auto Ek = (3_r / 2_r) * real_c(atoms.numLocalParticles) * T;
             std::cout << i << ": " << timer.seconds() << std::endl;
-            std::cout << "system momentum: " << systemMomentum[0] << " | " << systemMomentum[1]
-                      << " | " << systemMomentum[2] << std::endl;
-            std::cout << "rebuild counter: " << verletlistRebuildCounter << std::endl;
-            std::cout << "T : " << std::setw(10) << T << " | ";
-            std::cout << "Ek: " << std::setw(10) << Ek << " | ";
-            std::cout << "E0: " << std::setw(10) << E0 << " | ";
-            std::cout << "E : " << std::setw(10) << E0 + Ek << " | ";
-            std::cout << "Nlocal : " << std::setw(10) << atoms.numLocalParticles << " | ";
-            std::cout << "Nghost : " << std::setw(10) << atoms.numGhostParticles << std::endl;
+            //            std::cout << "system momentum: " << systemMomentum[0] << " | " <<
+            //            systemMomentum[1]
+            //                      << " | " << systemMomentum[2] << std::endl;
+            //            std::cout << "rebuild counter: " << verletlistRebuildCounter << std::endl;
+            //            std::cout << "T : " << std::setw(10) << T << " | ";
+            //            std::cout << "Ek: " << std::setw(10) << Ek << " | ";
+            //            std::cout << "E0: " << std::setw(10) << E0 << " | ";
+            //            std::cout << "E : " << std::setw(10) << E0 + Ek << " | ";
+            //            std::cout << "Nlocal : " << std::setw(10) << atoms.numLocalParticles << "
+            //            | "; std::cout << "Nghost : " << std::setw(10) << atoms.numGhostParticles
+            //            << std::endl;
 
             //            io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
 
