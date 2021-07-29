@@ -18,6 +18,8 @@ modernize-*,
 -modernize-concat-nested-namespaces,
 -modernize-use-nodiscard,
 
+performance-*,
+
 portability-*,
 
 readability-*,
