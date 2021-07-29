@@ -40,8 +40,12 @@ FetchContent_MakeAvailable(googletest)
 
 get_target_property(TMP gtest INTERFACE_INCLUDE_DIRECTORIES)
 set_target_properties(gtest PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
+get_target_property(TMP gtest_main INTERFACE_INCLUDE_DIRECTORIES)
+set_target_properties(gtest_main PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
 get_target_property(TMP gmock INTERFACE_INCLUDE_DIRECTORIES)
 set_target_properties(gmock PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
+get_target_property(TMP gmock_main INTERFACE_INCLUDE_DIRECTORIES)
+set_target_properties(gmock_main PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
 
 enable_testing()
 

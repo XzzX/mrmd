@@ -32,7 +32,7 @@ public:
         }
     }
 
-    void ghostToReal(data::Particles& particles, IndexView correspondingRealParticle)
+    void ghostToReal(data::Particles& particles, const IndexView& correspondingRealParticle)
     {
         force_ = particles.getForce();
         correspondingRealParticle_ = correspondingRealParticle;

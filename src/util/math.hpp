@@ -7,12 +7,12 @@ namespace mrmd
 namespace util
 {
 KOKKOS_INLINE_FUNCTION real_t sqr(const real_t& sqr) { return sqr * sqr; }
-KOKKOS_INLINE_FUNCTION real_t powInt(const real_t& x, const int n)
+KOKKOS_INLINE_FUNCTION real_t powInt(const real_t& x, const idx_t n)
 {
     auto ww = x;
     auto yy = 1_r;
 
-    for (int nn = (n > 0) ? n : -n; nn != 0; nn >>= 1)
+    for (idx_t nn = (n > 0) ? n : -n; nn != 0; nn >>= 1)
     {
         if ((nn & 1) == 1)
         {

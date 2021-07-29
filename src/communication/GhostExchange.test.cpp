@@ -12,7 +12,7 @@ namespace communication
 {
 namespace impl
 {
-size_t countWithinCutoff(data::Particles particles,
+size_t countWithinCutoff(const data::Particles& particles,
                          const real_t cutoff,
                          const double* box,
                          const bool periodic)

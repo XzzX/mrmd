@@ -14,7 +14,7 @@ private:
     const std::array<real_t, 3> center_;
     const real_t atomisticRegionHalfDiameter_;
     const real_t hybridRegionDiameter_;
-    const int exponent_;
+    const idx_t exponent_;
 
 public:
     KOKKOS_INLINE_FUNCTION
@@ -70,7 +70,7 @@ public:
     Slab(const std::array<real_t, 3>& center,
          const real_t atomisticRegionDiameter,
          const real_t hybridRegionDiameter,
-         const int exponent)
+         const idx_t exponent)
         : center_(center),
           atomisticRegionHalfDiameter_(0.5_r * atomisticRegionDiameter),
           hybridRegionDiameter_(hybridRegionDiameter),

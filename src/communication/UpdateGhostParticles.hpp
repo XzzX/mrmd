@@ -49,7 +49,7 @@ public:
         if (dx[2] < -delta[2]) pos_(idx, 2) -= subdomain_.diameter[2];
     }
 
-    void updateOnlyPos(data::Particles& particles, IndexView correspondingRealParticle)
+    void updateOnlyPos(data::Particles& particles, const IndexView& correspondingRealParticle)
     {
         pos_ = particles.getPos();
         correspondingRealParticle_ = correspondingRealParticle;
