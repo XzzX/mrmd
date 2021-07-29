@@ -31,32 +31,48 @@ struct Config
 {
     bool bOutput = true;
 
-    idx_t nsteps = 1001;
-    idx_t densitySamplingInterval = 10;
-    idx_t spartianInterval = 100;
+    // general simulation parameters
+    idx_t nsteps = 100000;
+    real_t dt = 0.0005_r;
+
+    // simulation box parameters
+    real_t Lx = 30_r;
+    real_t Ly = 10_r;
+    real_t Lz = 10_r;
+    real_t rho = 0.86_r;
+
+    // thermodynamic force parameters
+    real_t thermodynamicForceModulation = 1_r;
+
+    // LJ parameters
     real_t sigma = 1_r;
     real_t epsilon = 1_r;
-    real_t rc = 2.5;
-    real_t skin = 0.3;
+    real_t rc = 2.5_r;
+
+    // neighborlist parameters
+    real_t skin = 0.3_r;
     real_t neighborCutoff = rc + skin;
-    real_t dt = 0.005;
-    real_t temperature = 1_r;
+    real_t cell_ratio = 0.5_r;
+    idx_t estimatedMaxNeighbors = 60;
+
+    // thermostat parameters
+    real_t temperature = 1.2_r;
     real_t gamma = 1_r;
 
-    real_t Lx = 50_r;
-    real_t rho = 1_r;
-
-    real_t cell_ratio = 0.5_r;
-
-    idx_t estimatedMaxNeighbors = 60;
+    // AdResS parameters
+    idx_t densitySamplingInterval = 10;
+    idx_t spartianInterval = 100;
+    real_t atomisticRegionDiameter = 10_r;
+    real_t hybridRegionDiameter = 2_r;
+    idx_t lambdaExponent = 7;
 };
 
 void LJ(Config& config)
 {
     auto subdomain =
-        data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
+        data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Ly, config.Lz}, config.neighborCutoff);
 
-    const auto volume = config.Lx * config.Lx * config.Lx;
+    const auto volume = config.Lx * config.Ly * config.Lz;
     const idx_t numParticles = idx_c(config.rho * volume);
     util::Random RNG;
     data::Particles atoms(numParticles * 2);
@@ -64,8 +80,8 @@ void LJ(Config& config)
     for (auto idx = 0; idx < numParticles; ++idx)
     {
         atoms.getPos()(idx, 0) = RNG.draw() * config.Lx;
-        atoms.getPos()(idx, 1) = RNG.draw() * config.Lx;
-        atoms.getPos()(idx, 2) = RNG.draw() * config.Lx;
+        atoms.getPos()(idx, 1) = RNG.draw() * config.Ly;
+        atoms.getPos()(idx, 2) = RNG.draw() * config.Lz;
 
         atoms.getVel()(idx, 0) = (RNG.draw() - 0.5_r) * 2_r;
         atoms.getVel()(idx, 1) = (RNG.draw() - 0.5_r) * 2_r;
@@ -79,7 +95,7 @@ void LJ(Config& config)
     molecules.numLocalMolecules = numParticles;
     std::cout << "particles added: " << numParticles << std::endl;
 
-    auto rho = real_c(atoms.numLocalParticles) / (config.Lx * config.Lx * config.Lx);
+    auto rho = real_c(atoms.numLocalParticles) / volume;
     std::cout << "global particle density: " << rho << std::endl;
 
     // data allocations
@@ -90,8 +106,11 @@ void LJ(Config& config)
     data::Histogram thermodynamicForce("thermodynamic-force", 0_r, config.Lx, 100);
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
-    auto weightingFunction = weighting_function::Slab(
-        {0.5_r * config.Lx, 0.5_r * config.Lx, 0.5_r * config.Lx}, 10_r, 10_r, 7);
+    auto weightingFunction =
+        weighting_function::Slab({0.5_r * config.Lx, 0.5_r * config.Ly, 0.5_r * config.Lz},
+                                 config.atomisticRegionDiameter,
+                                 config.hybridRegionDiameter,
+                                 config.lambdaExponent);
     std::ofstream fDensityOut("densityProfile.txt");
     std::ofstream fThermodynamicForceOut("thermodynamicForce.txt");
 
@@ -161,10 +180,9 @@ void LJ(Config& config)
 
         if (i % config.spartianInterval == 0)
         {
-            auto prefac = 0.001;
-            auto binVolume = config.Lx * config.Lx * densityProfile.binSize;
-            auto normalizationFactor =
-                1_r / (binVolume * real_c(densityProfileEvaluations)) * prefac / rho;
+            auto binVolume = config.Ly * config.Lz * densityProfile.binSize;
+            auto normalizationFactor = 1_r / (binVolume * real_c(densityProfileEvaluations)) *
+                                       config.thermodynamicForceModulation / rho;
             auto policy = Kokkos::RangePolicy<>(0, densityProfile.numBins);
             Kokkos::parallel_for(
                 policy, KOKKOS_LAMBDA(const idx_t idx) {
@@ -172,7 +190,7 @@ void LJ(Config& config)
                 });
             Kokkos::fence();
             auto smoothedDensityProfile =
-                analysis::smoothenDensityProfile(densityProfile, 3_r, 3_r);
+                analysis::smoothenDensityProfile(densityProfile, 3_r, 6_r);
 
             thermodynamicForce += data::gradient(smoothedDensityProfile);
 
