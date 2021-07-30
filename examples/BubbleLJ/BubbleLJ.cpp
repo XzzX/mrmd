@@ -199,8 +199,14 @@ void LJ(Config& config)
         }
 
         action::ThermodynamicForce::apply(atoms, thermodynamicForce);
-        action::LJ_IdealGas::applyForces(
-            config.rc, config.sigma, config.epsilon, molecules, moleculesVerletList, atoms);
+        action::LJ_IdealGas::applyForces(config.sigma * 0.5_r,
+                                         config.rc,
+                                         config.sigma,
+                                         config.epsilon,
+                                         molecules,
+                                         moleculesVerletList,
+                                         atoms,
+                                         true);
         if (config.temperature >= 0)
         {
             langevinThermostat.applyThermostat(atoms);

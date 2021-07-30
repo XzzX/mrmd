@@ -128,8 +128,9 @@ public:
                 const real_t& epsilon,
                 data::Molecules& molecules,
                 VerletList& verletList,
-                data::Particles& atoms)
-        : LJ_(cappingDistance, rc, sigma, epsilon, false), rcSqr_(rc * rc)
+                data::Particles& atoms,
+                const bool doShift)
+        : LJ_(cappingDistance, rc, sigma, epsilon, doShift), rcSqr_(rc * rc)
     {
         moleculesPos_ = molecules.getPos();
         moleculesLambda_ = molecules.getLambda();
@@ -150,10 +151,11 @@ public:
                             const real_t& epsilon,
                             data::Molecules& molecules,
                             VerletList& verletList,
-                            data::Particles& atoms)
+                            data::Particles& atoms,
+                            const bool doShift)
     {
         impl::LJ_IdealGas forceModel(
-            cappingDistance, rc, sigma, epsilon, molecules, verletList, atoms);
+            cappingDistance, rc, sigma, epsilon, molecules, verletList, atoms, doShift);
 
         auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
         Kokkos::parallel_for(policy, forceModel, "LJ_IdealGas::applyForces");
