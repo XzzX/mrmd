@@ -160,8 +160,10 @@ void LJ(Config& config)
             ghostLayer.updateGhostParticles(atoms);
         }
 
-        auto force = atoms.getForce();
-        Cabana::deep_copy(force, 0_r);
+        auto atomsForce = atoms.getForce();
+        Cabana::deep_copy(atomsForce, 0_r);
+        auto moleculesForce = molecules.getForce();
+        Cabana::deep_copy(moleculesForce, 0_r);
 
         if (i % config.densitySamplingInterval == 0)
         {
