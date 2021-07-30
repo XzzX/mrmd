@@ -7,7 +7,9 @@ namespace mrmd
 {
 namespace action
 {
-class LennardJones
+namespace impl
+{
+class CappedLennardJonesPotential
 {
 private:
     const real_t epsilon_;
@@ -15,6 +17,75 @@ private:
     real_t sig6_;
     real_t ff1_;
     real_t ff2_;
+    real_t rcSqr_ = 0_r;
+    real_t cappingDistance_ = 0_r;
+    real_t cappingDistanceSqr_ = 0_r;
+    real_t cappingCoeff_;
+    real_t shift_ = 0_r;  ///< shifting the potential at rc to zero
+    real_t energyAtCappingPoint_ = 0_r;
+
+public:
+    KOKKOS_INLINE_FUNCTION
+    real_t computeForce(const real_t& distSqr) const
+    {
+        if (distSqr >= cappingDistanceSqr_)
+        {
+            // normal LJ force calculation
+            auto frac2 = 1.0 / distSqr;
+            auto frac6 = frac2 * frac2 * frac2;
+            return frac6 * (ff1_ * frac6 - ff2_) * frac2;
+        }
+
+        // force capping
+        return cappingCoeff_ / std::sqrt(distSqr);
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    real_t computeEnergy(const real_t& distSqr) const
+    {
+        if (distSqr >= cappingDistanceSqr_)
+        {
+            // normal LJ energy calculation
+            real_t frac2 = sig2_ / distSqr;
+            real_t frac6 = frac2 * frac2 * frac2;
+            return 4.0 * epsilon_ * (frac6 * frac6 - frac6) - shift_;
+        }
+
+        // capped energy
+        return energyAtCappingPoint_ - (std::sqrt(distSqr) - cappingDistance_) * cappingCoeff_ -
+               shift_;
+    }
+
+    CappedLennardJonesPotential(const real_t& cappingDistance,
+                                const real_t& rc,
+                                const real_t& sigma,
+                                const real_t& epsilon,
+                                const bool doShift)
+        : epsilon_(epsilon), rcSqr_(rc * rc)
+    {
+        sig2_ = sigma * sigma;
+        sig6_ = sig2_ * sig2_ * sig2_;
+        ff1_ = 48.0 * epsilon * sig6_ * sig6_;
+        ff2_ = 24.0 * epsilon * sig6_;
+
+        // parameters for the capped part of LJ
+        cappingCoeff_ = computeForce(cappingDistance) * cappingDistance;
+        cappingDistance_ = cappingDistance;
+        cappingDistanceSqr_ = cappingDistance * cappingDistance;
+
+        energyAtCappingPoint_ = computeEnergy(cappingDistanceSqr_);
+        if (doShift)
+        {
+            shift_ = computeEnergy(rcSqr_);
+        }
+    }
+};
+}  // namespace impl
+
+class LennardJones
+{
+private:
+    impl::CappedLennardJonesPotential LJ_;
     real_t rcSqr_;
     data::Particles::pos_t pos_;
     data::Particles::force_t::atomic_access_slice force_;
@@ -22,13 +93,6 @@ private:
     VerletList verletList_;
 
 public:
-    KOKKOS_INLINE_FUNCTION
-    real_t computeForce_(const real_t& distSqr) const
-    {
-        auto frac2 = 1.0 / distSqr;
-        auto frac6 = frac2 * frac2 * frac2;
-        return frac6 * (ff1_ * frac6 - ff2_) * frac2;
-    }
     KOKKOS_INLINE_FUNCTION
     void operator()(const idx_t& idx) const
     {
@@ -54,7 +118,7 @@ public:
 
             if (distSqr > rcSqr_) continue;
 
-            auto ffactor = computeForce_(distSqr);
+            auto ffactor = LJ_.computeForce(distSqr);
 
             forceTmp[0] += dx * ffactor;
             forceTmp[1] += dy * ffactor;
@@ -71,13 +135,6 @@ public:
     }
 
     KOKKOS_INLINE_FUNCTION
-    real_t computeEnergy_(const real_t& distSqr) const
-    {
-        real_t frac2 = sig2_ / distSqr;
-        real_t frac6 = frac2 * frac2 * frac2;
-        return 4.0 * epsilon_ * (frac6 * frac6 - frac6);
-    }
-    KOKKOS_INLINE_FUNCTION
     void operator()(const idx_t& idx, const idx_t& jdx, real_t& energy) const
     {
         auto dx = pos_(idx, 0) - pos_(jdx, 0);
@@ -87,7 +144,7 @@ public:
 
         if (distSqr > rcSqr_) return;
 
-        energy += computeEnergy_(distSqr);
+        energy += LJ_.computeEnergy(distSqr);
     }
 
     void applyForces(data::Particles& particles, VerletList& verletList)
@@ -120,12 +177,8 @@ public:
     }
 
     LennardJones(const real_t rc, const real_t& sigma, const real_t& epsilon)
-        : epsilon_(epsilon), rcSqr_(rc * rc)
+        : LJ_(0_r, rc, sigma, epsilon, false), rcSqr_(rc * rc)
     {
-        sig2_ = sigma * sigma;
-        sig6_ = sig2_ * sig2_ * sig2_;
-        ff1_ = 48.0 * epsilon * sig6_ * sig6_;
-        ff2_ = 24.0 * epsilon * sig6_;
     }
 };
 }  // namespace action

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "LennardJones.hpp"
 #include "data/Molecules.hpp"
 #include "data/Particles.hpp"
 #include "datatypes.hpp"
@@ -13,12 +14,8 @@ namespace impl
 class LJ_IdealGas
 {
 private:
-    const real_t epsilon_;
-    real_t sig2_;
-    real_t sig6_;
-    real_t ff1_;
-    real_t ff2_;
-    real_t rcSqr_;
+    CappedLennardJonesPotential LJ_;
+    real_t rcSqr_ = 0_r;
 
     data::Molecules::pos_t moleculesPos_;
     data::Molecules::lambda_t moleculesLambda_;
@@ -30,20 +27,6 @@ private:
     VerletList verletList_;
 
 public:
-    KOKKOS_INLINE_FUNCTION
-    real_t computeCappedLJForce_(const real_t& distSqr) const
-    {
-        // normal LJ force calculation
-        auto frac2 = 1.0 / distSqr;
-        auto frac6 = frac2 * frac2 * frac2;
-        auto ffactor = frac6 * (ff1_ * frac6 - ff2_) * frac2;
-
-        // force capping
-        ffactor = std::min(ffactor, +100_r);
-
-        return ffactor;
-    }
-
     /**
      * Loop over molecules
      *
@@ -120,7 +103,7 @@ public:
 
                     if (distSqr > rcSqr_) continue;
 
-                    auto ffactor = computeCappedLJForce_(distSqr) * weighting;
+                    auto ffactor = LJ_.computeForce(distSqr) * weighting;
 
                     forceTmp[0] += dx * ffactor;
                     forceTmp[1] += dy * ffactor;
@@ -138,19 +121,15 @@ public:
         }
     }
 
-    LJ_IdealGas(const real_t& rc,
+    LJ_IdealGas(const real_t& cappingDistance,
+                const real_t& rc,
                 const real_t& sigma,
                 const real_t& epsilon,
                 data::Molecules& molecules,
                 VerletList& verletList,
                 data::Particles& atoms)
-        : epsilon_(epsilon), rcSqr_(rc * rc)
+        : LJ_(cappingDistance, rc, sigma, epsilon, false), rcSqr_(rc * rc)
     {
-        sig2_ = sigma * sigma;
-        sig6_ = sig2_ * sig2_ * sig2_;
-        ff1_ = 48.0 * epsilon * sig6_ * sig6_;
-        ff2_ = 24.0 * epsilon * sig6_;
-
         moleculesPos_ = molecules.getPos();
         moleculesLambda_ = molecules.getLambda();
         moleculesAtomEndIdx_ = molecules.getAtomsEndIdx();
@@ -164,14 +143,16 @@ public:
 class LJ_IdealGas
 {
 public:
-    static void applyForces(const real_t& rc,
+    static void applyForces(const real_t& cappingDistance,
+                            const real_t& rc,
                             const real_t& sigma,
                             const real_t& epsilon,
                             data::Molecules& molecules,
                             VerletList& verletList,
                             data::Particles& atoms)
     {
-        impl::LJ_IdealGas forceModel(rc, sigma, epsilon, molecules, verletList, atoms);
+        impl::LJ_IdealGas forceModel(
+            cappingDistance, rc, sigma, epsilon, molecules, verletList, atoms);
 
         auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
         Kokkos::parallel_for(policy, forceModel, "LJ_IdealGas::applyForces");

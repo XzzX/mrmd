@@ -100,6 +100,7 @@ protected:
     static constexpr real_t epsilon = 2_r;
     static constexpr real_t sigma = 0.9_r;
     static constexpr real_t rc = 2.5_r * sigma;
+    static constexpr real_t cappingDistance = 0_r;
     static constexpr real_t eps = 0.001_r;
 
     data::Molecules molecules = data::Molecules(1);
@@ -114,7 +115,8 @@ TEST_F(LJ_IdealGas_Test, CG)
 
     auto moleculesLambda = molecules.getLambda();
     Cabana::deep_copy(moleculesLambda, 0_r);
-    action::LJ_IdealGas::applyForces(rc, sigma, epsilon, molecules, moleculesVerletList, atoms);
+    action::LJ_IdealGas::applyForces(
+        cappingDistance, rc, sigma, epsilon, molecules, moleculesVerletList, atoms);
 
     for (idx_t idx = 0; idx < 4; ++idx)
     {
@@ -130,7 +132,8 @@ TEST_F(LJ_IdealGas_Test, HY)
     auto moleculesLambda = molecules.getLambda();
     Cabana::deep_copy(moleculesLambda, 0.5_r);
 
-    action::LJ_IdealGas::applyForces(rc, sigma, epsilon, molecules, moleculesVerletList, atoms);
+    action::LJ_IdealGas::applyForces(
+        cappingDistance, rc, sigma, epsilon, molecules, moleculesVerletList, atoms);
 
     constexpr auto xForce = 0.22156665_r * 0.5_r;
     constexpr auto yForce = 1.3825009_r * 0.5_r;
@@ -157,7 +160,8 @@ TEST_F(LJ_IdealGas_Test, AT)
     auto moleculesLambda = molecules.getLambda();
     Cabana::deep_copy(moleculesLambda, 1_r);
 
-    action::LJ_IdealGas::applyForces(rc, sigma, epsilon, molecules, moleculesVerletList, atoms);
+    action::LJ_IdealGas::applyForces(
+        cappingDistance, rc, sigma, epsilon, molecules, moleculesVerletList, atoms);
 
     constexpr auto xForce = 0.22156665_r;
     constexpr auto yForce = 1.3825009_r;
