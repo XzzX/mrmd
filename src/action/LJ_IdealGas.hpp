@@ -91,6 +91,7 @@ public:
                 posTmp[1] = atomsPos_(idx, 1);
                 posTmp[2] = atomsPos_(idx, 2);
 
+                // avoid atomic force contributions to idx in innermost loop
                 real_t forceTmp[3] = {0_r, 0_r, 0_r};
 
                 for (idx_t jdx = startAtomsBeta; jdx < endAtomsBeta; ++jdx)

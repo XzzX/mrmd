@@ -18,24 +18,29 @@ public:
     enum Props
     {
         POS = 0,
-        LAMBDA = 1,
-        GRAD_LAMBDA = 2,
-        ATOMS_END_IDX = 3,  ///< exclusive end offset of atoms
+        FORCE = 1,
+        LAMBDA = 2,
+        GRAD_LAMBDA = 3,
+        ATOMS_END_IDX = 4,  ///< exclusive end offset of atoms
     };
-    using DataTypes = Cabana::MemberTypes<real_t[DIMENSIONS], real_t, real_t[DIMENSIONS], idx_t>;
+    using DataTypes = Cabana::
+        MemberTypes<real_t[DIMENSIONS], real_t[DIMENSIONS], real_t, real_t[DIMENSIONS], idx_t>;
     using MoleculesT = Cabana::AoSoA<DataTypes, DeviceType, VECTOR_LENGTH>;
 
     using pos_t = typename MoleculesT::template member_slice_type<POS>;
+    using force_t = typename MoleculesT::template member_slice_type<FORCE>;
     using lambda_t = typename MoleculesT::template member_slice_type<LAMBDA>;
     using grad_lambda_t = typename MoleculesT::template member_slice_type<GRAD_LAMBDA>;
     using atoms_end_idx_t = typename MoleculesT::template member_slice_type<ATOMS_END_IDX>;
 
     pos_t pos;
+    force_t force;
     lambda_t lambda;
     grad_lambda_t gradLambda;
     atoms_end_idx_t atomsEndIdx;
 
     KOKKOS_FORCEINLINE_FUNCTION pos_t getPos() const { return pos; }
+    KOKKOS_FORCEINLINE_FUNCTION pos_t getForce() const { return force; }
     KOKKOS_FORCEINLINE_FUNCTION lambda_t getLambda() const { return lambda; }
     KOKKOS_FORCEINLINE_FUNCTION grad_lambda_t getGradLambda() const { return gradLambda; }
     KOKKOS_FORCEINLINE_FUNCTION atoms_end_idx_t getAtomsEndIdx() const { return atomsEndIdx; }
@@ -43,6 +48,7 @@ public:
     void sliceAll()
     {
         pos = Cabana::slice<POS>(molecules_);
+        force = Cabana::slice<FORCE>(molecules_);
         lambda = Cabana::slice<LAMBDA>(molecules_);
         gradLambda = Cabana::slice<GRAD_LAMBDA>(molecules_);
         atomsEndIdx = Cabana::slice<ATOMS_END_IDX>(molecules_);
@@ -70,6 +76,7 @@ public:
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
             pos(dst, dim) = pos(src, dim);
+            force(dst, dim) = force(src, dim);
             gradLambda(dst, dim) = gradLambda(src, dim);
         }
         lambda(dst) = lambda(src);
