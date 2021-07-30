@@ -12,10 +12,10 @@ namespace mrmd
 {
 namespace action
 {
-void updateMeanCompensationEnergy(data::Histogram& compensationEnergy,
-                                  data::Histogram& compensationEnergyCounter,
-                                  data::Histogram& meanCompensationEnergy,
-                                  const real_t runningAverageFactor = 10_r)
+inline void updateMeanCompensationEnergy(data::Histogram& compensationEnergy,
+                                         data::Histogram& compensationEnergyCounter,
+                                         data::Histogram& meanCompensationEnergy,
+                                         const real_t runningAverageFactor = 10_r)
 {
     assert(compensationEnergy.numBins == compensationEnergyCounter.numBins);
     assert(compensationEnergy.numBins == meanCompensationEnergy.numBins);
@@ -71,8 +71,8 @@ private:
     idx_t runCounter_ = 0;
 
 public:
-    constexpr idx_t COMPENSATION_ENERGY_SAMPLING_INTERVAL = 200;
-    constexpr idx_t COMPENSATION_ENERGY_UPDATE_INTERVAL = 20000;
+    static constexpr idx_t COMPENSATION_ENERGY_SAMPLING_INTERVAL = 200;
+    static constexpr idx_t COMPENSATION_ENERGY_UPDATE_INTERVAL = 20000;
     /**
      * Loop over molecules
      *

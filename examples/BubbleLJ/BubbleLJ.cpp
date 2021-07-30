@@ -33,7 +33,7 @@ struct Config
     bool bOutput = true;
 
     // general simulation parameters
-    idx_t nsteps = 100000;
+    idx_t nsteps = 5000000;
     real_t dt = 0.0005_r;
 
     // simulation box parameters
@@ -43,7 +43,7 @@ struct Config
     real_t rho = 0.86_r;
 
     // thermodynamic force parameters
-    real_t thermodynamicForceModulation = 1_r;
+    real_t thermodynamicForceModulation = 0.1_r;
 
     // LJ parameters
     real_t sigma = 1_r;
@@ -64,8 +64,17 @@ struct Config
     idx_t densitySamplingInterval = 10;
     idx_t spartianInterval = 100;
     real_t atomisticRegionDiameter = 10_r;
-    real_t hybridRegionDiameter = 2_r;
+    real_t hybridRegionDiameter = 2.5_r;
     idx_t lambdaExponent = 7;
+    idx_t DriftForceSamplingInterval = 200;
+    idx_t DriftForceUpdateInterval = 20000;
+    real_t DriftForceBinSize = 0.005_r;
+
+    idx_t DensitySamplingInterval = 200;
+    idx_t DensityUpdateInterval = 50000;
+    real_t DensityBinSize = 0.5_r;
+    real_t convSigma = 2_r;
+    real_t convRange = 2_r;
 };
 
 void LJ(Config& config)
@@ -116,7 +125,7 @@ void LJ(Config& config)
     std::ofstream fThermodynamicForceOut("thermodynamicForce.txt");
 
     // actions
-    action::LennardJones LJ(config.rc, config.sigma, config.epsilon);
+    action::LJ_IdealGas LJ(config.sigma * 0.5_r, config.rc, config.sigma, config.epsilon, true);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     communication::MultiResGhostLayer ghostLayer(subdomain);
 
@@ -202,14 +211,7 @@ void LJ(Config& config)
         }
 
         action::ThermodynamicForce::apply(atoms, thermodynamicForce);
-        action::LJ_IdealGas::applyForces(config.sigma * 0.5_r,
-                                         config.rc,
-                                         config.sigma,
-                                         config.epsilon,
-                                         molecules,
-                                         moleculesVerletList,
-                                         atoms,
-                                         true);
+        LJ.run(molecules, moleculesVerletList, atoms);
         action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
         if (config.temperature >= 0)
         {
@@ -246,7 +248,7 @@ void LJ(Config& config)
             //            | "; std::cout << "Nghost : " << std::setw(10) << atoms.numGhostParticles
             //            << std::endl;
 
-            //            io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
+            io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
 
             for (auto i = 0; i < thermodynamicForce.numBins; ++i)
             {
