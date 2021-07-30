@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "action/ContributeMoleculeForceToAtoms.hpp"
 #include "action/LJ_IdealGas.hpp"
 #include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
@@ -209,6 +210,7 @@ void LJ(Config& config)
                                          moleculesVerletList,
                                          atoms,
                                          true);
+        action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
         if (config.temperature >= 0)
         {
             langevinThermostat.applyThermostat(atoms);
