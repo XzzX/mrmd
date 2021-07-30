@@ -1,6 +1,9 @@
 #pragma once
 
+#include <cassert>
+
 #include "LennardJones.hpp"
+#include "data/Histogram.hpp"
 #include "data/Molecules.hpp"
 #include "data/Particles.hpp"
 #include "datatypes.hpp"
@@ -9,12 +12,39 @@ namespace mrmd
 {
 namespace action
 {
-namespace impl
+void updateMeanCompensationEnergy(data::Histogram& compensationEnergy,
+                                  data::Histogram& compensationEnergyCounter,
+                                  data::Histogram& meanCompensationEnergy,
+                                  const real_t runningAverageFactor = 10_r)
 {
+    assert(compensationEnergy.numBins == compensationEnergyCounter.numBins);
+    assert(compensationEnergy.numBins == meanCompensationEnergy.numBins);
+
+    auto policy = Kokkos::RangePolicy<>(0, compensationEnergy.numBins);
+    auto kernel = KOKKOS_LAMBDA(const idx_t binIdx)
+    {
+        // check if there is at least one entry in this bin
+        if (compensationEnergyCounter.data(binIdx) < 0.5_r) return;
+        assert(compensationEnergyCounter.data(binIdx) > 0);
+        auto energy = compensationEnergy.data(binIdx) / compensationEnergyCounter.data(binIdx);
+
+        // use running average to calculate new mean compensation energy
+        meanCompensationEnergy.data(binIdx) =
+            (runningAverageFactor * meanCompensationEnergy.data(binIdx) + energy) /
+            (runningAverageFactor + 1_r);
+
+        // reset accumulation histograms
+        compensationEnergy.data(binIdx) = 0_r;
+        compensationEnergyCounter.data(binIdx) = 0_r;
+    };
+    Kokkos::parallel_for(policy, kernel);
+    Kokkos::fence();
+}
+
 class LJ_IdealGas
 {
 private:
-    CappedLennardJonesPotential LJ_;
+    impl::CappedLennardJonesPotential LJ_;
     real_t rcSqr_ = 0_r;
 
     data::Molecules::pos_t moleculesPos_;
@@ -26,16 +56,29 @@ private:
     data::Particles::pos_t atomsPos_;
     data::Particles::force_t::atomic_access_slice atomsForce_;
 
+    data::Histogram compensationEnergy_ = data::Histogram("compensationEnergy", 0_r, 1_r, 50);
+    ScalarScatterView compensationEnergyScatter_;
+
+    data::Histogram compensationEnergyCounter_ =
+        data::Histogram("compensationEnergyCounter", 0_r, 1_r, 50);
+    ScalarScatterView compensationEnergyCounterScatter_;
+
+    data::Histogram meanCompensationEnergy_ =
+        data::Histogram("meanCompensationEnergy", 0_r, 1_r, 50);
+
     VerletList verletList_;
 
+    idx_t runCounter_ = 0;
+
 public:
+    constexpr idx_t COMPENSATION_ENERGY_SAMPLING_INTERVAL = 200;
+    constexpr idx_t COMPENSATION_ENERGY_UPDATE_INTERVAL = 20000;
     /**
      * Loop over molecules
      *
      * @param alpha first molecule index
      */
-    KOKKOS_INLINE_FUNCTION
-    void operator()(const idx_t& alpha) const
+    KOKKOS_INLINE_FUNCTION void operator()(const idx_t& alpha) const
     {
         /// epsilon for region checks
         constexpr auto eps = 0.00001_r;
@@ -140,6 +183,40 @@ public:
                     forceTmpBeta[0] += -Vij;
                     forceTmpBeta[1] += -Vij;
                     forceTmpBeta[2] += -Vij;
+
+                    // building histogram for drift force compensation
+                    //  ibin = floor(pow(iLambda, 2.0 / AT_lambda_Exp) /
+                    //  AT_lambda_Increment[imoltypeH]);
+                    auto binAlpha = compensationEnergy_.getBin(lambdaAlpha);
+                    auto binBeta = compensationEnergy_.getBin(lambdaBeta);
+                    if (runCounter_ % COMPENSATION_ENERGY_SAMPLING_INTERVAL == 0)
+                    {
+                        {
+                            auto access = compensationEnergyScatter_.access();
+                            if (binAlpha != -1) access(binAlpha) += Vij;
+                            if (binBeta != -1) access(binBeta) += Vij;
+                        }
+                        {
+                            auto access = compensationEnergyCounterScatter_.access();
+                            if (binAlpha != -1) access(binAlpha) += 1_r;
+                            if (binBeta != -1) access(binBeta) += 1_r;
+                        }
+                    }
+
+                    // drift force compensation
+                    if (binAlpha != -1)
+                    {
+                        forceTmpAlpha[0] += meanCompensationEnergy_.data(binAlpha);
+                        forceTmpAlpha[1] += meanCompensationEnergy_.data(binAlpha);
+                        forceTmpAlpha[2] += meanCompensationEnergy_.data(binAlpha);
+                    }
+
+                    if (binBeta != -1)
+                    {
+                        forceTmpBeta[0] += meanCompensationEnergy_.data(binBeta);
+                        forceTmpBeta[1] += meanCompensationEnergy_.data(binBeta);
+                        forceTmpBeta[2] += meanCompensationEnergy_.data(binBeta);
+                    }
                 }
 
                 atomsForce_(idx, 0) += forceTmpIdx[0];
@@ -156,15 +233,7 @@ public:
         moleculesForce_(alpha, 2) += forceTmpAlpha[2] * gradLambdaAlpha[2];
     }
 
-    LJ_IdealGas(const real_t& cappingDistance,
-                const real_t& rc,
-                const real_t& sigma,
-                const real_t& epsilon,
-                data::Molecules& molecules,
-                VerletList& verletList,
-                data::Particles& atoms,
-                const bool doShift)
-        : LJ_(cappingDistance, rc, sigma, epsilon, doShift), rcSqr_(rc * rc)
+    void run(data::Molecules& molecules, VerletList& verletList, data::Particles& atoms)
     {
         moleculesPos_ = molecules.getPos();
         moleculesForce_ = molecules.getForce();
@@ -174,29 +243,33 @@ public:
         atomsPos_ = atoms.getPos();
         atomsForce_ = atoms.getForce();
         verletList_ = verletList;
-    }
-};
-}  // namespace impl
 
-class LJ_IdealGas
-{
-public:
-    static void applyForces(const real_t& cappingDistance,
-                            const real_t& rc,
-                            const real_t& sigma,
-                            const real_t& epsilon,
-                            data::Molecules& molecules,
-                            VerletList& verletList,
-                            data::Particles& atoms,
-                            const bool doShift)
-    {
-        impl::LJ_IdealGas forceModel(
-            cappingDistance, rc, sigma, epsilon, molecules, verletList, atoms, doShift);
+        compensationEnergyScatter_ = ScalarScatterView(compensationEnergy_.data);
+        compensationEnergyCounterScatter_ = ScalarScatterView(compensationEnergyCounter_.data);
 
         auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
-        Kokkos::parallel_for(policy, forceModel, "LJ_IdealGas::applyForces");
+        Kokkos::parallel_for(policy, *this, "LJ_IdealGas::applyForces");
+
+        Kokkos::Experimental::contribute(compensationEnergy_.data, compensationEnergyScatter_);
+        Kokkos::Experimental::contribute(compensationEnergyCounter_.data,
+                                         compensationEnergyCounterScatter_);
 
         Kokkos::fence();
+
+        if (runCounter_ % COMPENSATION_ENERGY_UPDATE_INTERVAL == 0)
+            updateMeanCompensationEnergy(
+                compensationEnergy_, compensationEnergyCounter_, meanCompensationEnergy_, 10_r);
+
+        ++runCounter_;
+    }
+
+    LJ_IdealGas(const real_t& cappingDistance,
+                const real_t& rc,
+                const real_t& sigma,
+                const real_t& epsilon,
+                const bool doShift)
+        : LJ_(cappingDistance, rc, sigma, epsilon, doShift), rcSqr_(rc * rc)
+    {
     }
 };
 
