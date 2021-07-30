@@ -20,6 +20,18 @@ struct Histogram
     {
     }
 
+    /**
+     * @param val input value
+     * @return corresponding bin or -1 if outside of range
+     */
+    KOKKOS_INLINE_FUNCTION idx_t getBin(const real_t& val) const
+    {
+        auto bin = idx_c((val - min) * inverseBinSize);
+        if (bin < 0) bin = -1;
+        if (bin >= numBins) bin = -1;
+        return bin;
+    }
+
     const real_t min;
     const real_t max;
     const idx_t numBins;
