@@ -70,11 +70,11 @@ public:
     Slab(const std::array<real_t, 3>& center,
          const real_t atomisticRegionDiameter,
          const real_t hybridRegionDiameter,
-         const idx_t exponent)
+         const idx_t nu)
         : center_(center),
           atomisticRegionHalfDiameter_(0.5_r * atomisticRegionDiameter),
           hybridRegionDiameter_(hybridRegionDiameter),
-          exponent_(exponent)
+          exponent_(2 * nu)
     {
     }
 };

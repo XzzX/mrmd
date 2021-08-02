@@ -187,8 +187,8 @@ public:
                     // building histogram for drift force compensation
                     //  ibin = floor(pow(iLambda, 2.0 / AT_lambda_Exp) /
                     //  AT_lambda_Increment[imoltypeH]);
-                    auto binAlpha = compensationEnergy_.getBin(lambdaAlpha);
-                    auto binBeta = compensationEnergy_.getBin(lambdaBeta);
+                    auto binAlpha = compensationEnergy_.getBin(std::pow(lambdaAlpha, 1_r / 7_r));
+                    auto binBeta = compensationEnergy_.getBin(std::pow(lambdaBeta, 1_r / 7_r));
                     if (runCounter_ % COMPENSATION_ENERGY_SAMPLING_INTERVAL == 0)
                     {
                         {
