@@ -13,8 +13,6 @@
 #include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
-#include "analysis/AxialDensityProfile.hpp"
-#include "analysis/SmoothenDensityProfile.hpp"
 #include "analysis/SystemMomentum.hpp"
 #include "analysis/Temperature.hpp"
 #include "communication/MultiResGhostLayer.hpp"
@@ -61,8 +59,6 @@ struct Config
     real_t gamma = 1_r;
 
     // AdResS parameters
-    idx_t densitySamplingInterval = 10;
-    idx_t spartianInterval = 100;
     real_t atomisticRegionDiameter = 10_r;
     real_t hybridRegionDiameter = 2.5_r;
     idx_t lambdaExponent = 7;
@@ -70,8 +66,8 @@ struct Config
     idx_t DriftForceUpdateInterval = 20000;
     real_t DriftForceBinSize = 0.005_r;
 
-    idx_t DensitySamplingInterval = 200;
-    idx_t DensityUpdateInterval = 50000;
+    idx_t densitySamplingInterval = 200;
+    idx_t densityUpdateInterval = 50000;
     real_t DensityBinSize = 0.5_r;
     real_t convSigma = 2_r;
     real_t convRange = 2_r;
@@ -111,9 +107,7 @@ void LJ(Config& config)
     // data allocations
     VerletList moleculesVerletList;
     idx_t verletlistRebuildCounter = 0;
-    data::Histogram densityProfile("density-profile", 0_r, config.Lx, 100);
-    idx_t densityProfileEvaluations = 0;
-    data::Histogram thermodynamicForce("thermodynamic-force", 0_r, config.Lx, 100);
+
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
     auto weightingFunction =
@@ -126,6 +120,8 @@ void LJ(Config& config)
 
     // actions
     action::LJ_IdealGas LJ(config.sigma * 0.5_r, config.rc, config.sigma, config.epsilon, true);
+    action::ThermodynamicForce thermodynamicForce(
+        config.rho, config.Lx, config.Ly, config.Lz, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     communication::MultiResGhostLayer ghostLayer(subdomain);
 
@@ -177,40 +173,23 @@ void LJ(Config& config)
 
         if (i % config.densitySamplingInterval == 0)
         {
-            densityProfile += analysis::getAxialDensityProfile(
-                atoms.getPos(), atoms.numLocalParticles, 0_r, config.Lx, 100);
-            ++densityProfileEvaluations;
-            if (densityProfileEvaluations == 1)
+            thermodynamicForce.sample(atoms);
+            if (thermodynamicForce.getNumberOfDensityProfileSamples() == 1)
             {
-                for (auto i = 0; i < thermodynamicForce.numBins; ++i)
+                for (auto i = 0; i < thermodynamicForce.getDensityProfile().numBins; ++i)
                 {
-                    fDensityOut << densityProfile.data(i) << " ";
+                    fDensityOut << thermodynamicForce.getDensityProfile().data(i) << " ";
                 }
                 fDensityOut << std::endl;
             }
         }
 
-        if (i % config.spartianInterval == 0)
+        if (i % config.densityUpdateInterval == 0)
         {
-            auto binVolume = config.Ly * config.Lz * densityProfile.binSize;
-            auto normalizationFactor = 1_r / (binVolume * real_c(densityProfileEvaluations)) *
-                                       config.thermodynamicForceModulation / rho;
-            auto policy = Kokkos::RangePolicy<>(0, densityProfile.numBins);
-            Kokkos::parallel_for(
-                policy, KOKKOS_LAMBDA(const idx_t idx) {
-                    densityProfile.data(idx) *= normalizationFactor;
-                });
-            Kokkos::fence();
-            auto smoothedDensityProfile =
-                analysis::smoothenDensityProfile(densityProfile, 3_r, 6_r);
-
-            thermodynamicForce += data::gradient(smoothedDensityProfile);
-
-            Kokkos::deep_copy(densityProfile.data, 0_r);
-            densityProfileEvaluations = 0;
+            thermodynamicForce.update();
         }
 
-        action::ThermodynamicForce::apply(atoms, thermodynamicForce);
+        thermodynamicForce.apply(atoms);
         LJ.run(molecules, moleculesVerletList, atoms);
         action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
         if (config.temperature >= 0)
@@ -221,7 +200,7 @@ void LJ(Config& config)
 
         action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 
-        if (config.bOutput && (i % config.spartianInterval == 0))
+        if (config.bOutput && (i % 1000 == 0))
         {
             //            VerletList atomsVerletList(atoms.getPos(),
             //                                       0,
@@ -250,9 +229,9 @@ void LJ(Config& config)
 
             io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
 
-            for (auto i = 0; i < thermodynamicForce.numBins; ++i)
+            for (auto i = 0; i < thermodynamicForce.getForce().numBins; ++i)
             {
-                fThermodynamicForceOut << thermodynamicForce.data(i) << " ";
+                fThermodynamicForceOut << thermodynamicForce.getForce().data(i) << " ";
             }
             fThermodynamicForceOut << std::endl;
         }
