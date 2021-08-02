@@ -7,6 +7,7 @@
 #include "data/Molecules.hpp"
 #include "data/Particles.hpp"
 #include "datatypes.hpp"
+#include "weighting_function/CheckRegion.hpp"
 
 namespace mrmd
 {
@@ -118,7 +119,8 @@ public:
             const auto weighting = 0.5_r * (lambdaAlpha + lambdaBeta);
             assert(0_r <= weighting);
             assert(weighting <= 1_r);
-            if (weighting < eps)
+            if (weighting_function::isInCGRegion(lambdaAlpha) &&
+                weighting_function::isInCGRegion(lambdaBeta))
             {
                 // CG region -> ideal gas -> no interaction
                 continue;
@@ -173,55 +175,60 @@ public:
                     atomsForce_(jdx, 1) -= dy * ffactor;
                     atomsForce_(jdx, 2) -= dz * ffactor;
 
-                    // drift force contribution
-                    auto Vij = 0.5_r * LJ_.computeEnergy(distSqr);
-
-                    forceTmpAlpha[0] += -Vij * gradLambdaAlpha[0];
-                    forceTmpAlpha[1] += -Vij * gradLambdaAlpha[1];
-                    forceTmpAlpha[2] += -Vij * gradLambdaAlpha[2];
-
-                    forceTmpBeta[0] += -Vij * gradLambdaBeta[0];
-                    forceTmpBeta[1] += -Vij * gradLambdaBeta[1];
-                    forceTmpBeta[2] += -Vij * gradLambdaBeta[2];
-
-                    // building histogram for drift force compensation
-                    //  ibin = floor(pow(iLambda, 2.0 / AT_lambda_Exp) /
-                    //  AT_lambda_Increment[imoltypeH]);
-                    auto binAlpha = compensationEnergy_.getBin(std::pow(lambdaAlpha, 1_r / 7_r));
-                    auto binBeta = compensationEnergy_.getBin(std::pow(lambdaBeta, 1_r / 7_r));
-                    if (runCounter_ % COMPENSATION_ENERGY_SAMPLING_INTERVAL == 0)
+                    if (weighting_function::isInHYRegion(lambdaAlpha) &&
+                        weighting_function::isInHYRegion(lambdaBeta))
                     {
+                        // drift force contribution
+                        auto Vij = 0.5_r * LJ_.computeEnergy(distSqr);
+
+                        forceTmpAlpha[0] += -Vij * gradLambdaAlpha[0];
+                        forceTmpAlpha[1] += -Vij * gradLambdaAlpha[1];
+                        forceTmpAlpha[2] += -Vij * gradLambdaAlpha[2];
+
+                        forceTmpBeta[0] += -Vij * gradLambdaBeta[0];
+                        forceTmpBeta[1] += -Vij * gradLambdaBeta[1];
+                        forceTmpBeta[2] += -Vij * gradLambdaBeta[2];
+
+                        // building histogram for drift force compensation
+                        //  ibin = floor(pow(iLambda, 2.0 / AT_lambda_Exp) /
+                        //  AT_lambda_Increment[imoltypeH]);
+                        auto binAlpha =
+                            compensationEnergy_.getBin(std::pow(lambdaAlpha, 1_r / 7_r));
+                        auto binBeta = compensationEnergy_.getBin(std::pow(lambdaBeta, 1_r / 7_r));
+                        if (runCounter_ % COMPENSATION_ENERGY_SAMPLING_INTERVAL == 0)
                         {
-                            auto access = compensationEnergyScatter_.access();
-                            if (binAlpha != -1) access(binAlpha) += Vij;
-                            if (binBeta != -1) access(binBeta) += Vij;
+                            {
+                                auto access = compensationEnergyScatter_.access();
+                                if (binAlpha != -1) access(binAlpha) += Vij;
+                                if (binBeta != -1) access(binBeta) += Vij;
+                            }
+                            {
+                                auto access = compensationEnergyCounterScatter_.access();
+                                if (binAlpha != -1) access(binAlpha) += 1_r;
+                                if (binBeta != -1) access(binBeta) += 1_r;
+                            }
                         }
+
+                        // drift force compensation
+                        if (binAlpha != -1)
                         {
-                            auto access = compensationEnergyCounterScatter_.access();
-                            if (binAlpha != -1) access(binAlpha) += 1_r;
-                            if (binBeta != -1) access(binBeta) += 1_r;
+                            forceTmpAlpha[0] +=
+                                meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[0];
+                            forceTmpAlpha[1] +=
+                                meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[1];
+                            forceTmpAlpha[2] +=
+                                meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[2];
                         }
-                    }
 
-                    // drift force compensation
-                    if (binAlpha != -1)
-                    {
-                        forceTmpAlpha[0] +=
-                            meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[0];
-                        forceTmpAlpha[1] +=
-                            meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[1];
-                        forceTmpAlpha[2] +=
-                            meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[2];
-                    }
-
-                    if (binBeta != -1)
-                    {
-                        forceTmpBeta[0] +=
-                            meanCompensationEnergy_.data(binBeta) * gradLambdaBeta[0];
-                        forceTmpBeta[1] +=
-                            meanCompensationEnergy_.data(binBeta) * gradLambdaBeta[1];
-                        forceTmpBeta[2] +=
-                            meanCompensationEnergy_.data(binBeta) * gradLambdaBeta[2];
+                        if (binBeta != -1)
+                        {
+                            forceTmpBeta[0] +=
+                                meanCompensationEnergy_.data(binBeta) * gradLambdaBeta[0];
+                            forceTmpBeta[1] +=
+                                meanCompensationEnergy_.data(binBeta) * gradLambdaBeta[1];
+                            forceTmpBeta[2] +=
+                                meanCompensationEnergy_.data(binBeta) * gradLambdaBeta[2];
+                        }
                     }
                 }
 
