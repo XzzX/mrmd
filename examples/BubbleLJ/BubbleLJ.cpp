@@ -21,6 +21,7 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
+#include "util/EnvironmentVariables.hpp"
 #include "util/Random.hpp"
 #include "weighting_function/Slab.hpp"
 
@@ -241,9 +242,7 @@ void LJ(Config& config)
     fDensityOut.close();
     fThermodynamicForceOut.close();
 
-    auto cores = std::getenv("OMP_NUM_THREADS") != nullptr
-                     ? std::string(std::getenv("OMP_NUM_THREADS"))
-                     : std::string("0");
+    auto cores = util::getEnvironmentVariable("OMP_NUM_THREADS");
 
     std::ofstream fout("ecab.perf", std::ofstream::app);
     fout << cores << ", " << time << ", " << atoms.numLocalParticles << ", " << config.nsteps
