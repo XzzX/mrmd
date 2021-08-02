@@ -11,10 +11,12 @@ namespace data
 {
 struct Subdomain
 {
-    Subdomain(const std::array<real_t, 3>& minCorner,
-              const std::array<real_t, 3>& maxCorner,
-              real_t ghostLayerThickness)
-        : minCorner(minCorner), maxCorner(maxCorner), ghostLayerThickness(ghostLayerThickness)
+    Subdomain(const std::array<real_t, 3>& minCornerArg,
+              const std::array<real_t, 3>& maxCornerArg,
+              real_t ghostLayerThicknessArg)
+        : minCorner(minCornerArg),
+          maxCorner(maxCornerArg),
+          ghostLayerThickness(ghostLayerThicknessArg)
     {
         for (auto dim = 0; dim < 3; ++dim)
         {
@@ -30,10 +32,10 @@ struct Subdomain
         }
     }
 
-    real_t ghostLayerThickness;
-
     std::array<real_t, 3> minCorner;
     std::array<real_t, 3> maxCorner;
+
+    real_t ghostLayerThickness;
 
     std::array<real_t, 3> minGhostCorner;
     std::array<real_t, 3> maxGhostCorner;
