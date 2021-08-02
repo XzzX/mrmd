@@ -25,6 +25,8 @@ private:
     real_t energyAtCappingPoint_ = 0_r;
 
 public:
+    const auto& getShift() const { return shift_; }
+
     KOKKOS_INLINE_FUNCTION
     real_t computeForce(const real_t& distSqr) const
     {
