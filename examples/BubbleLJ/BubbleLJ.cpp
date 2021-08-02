@@ -21,6 +21,7 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
+#include "io/RestoreLAMMPS.hpp"
 #include "util/EnvironmentVariables.hpp"
 #include "util/Random.hpp"
 #include "weighting_function/Slab.hpp"
@@ -36,9 +37,6 @@ struct Config
     real_t dt = 0.0005_r;
 
     // simulation box parameters
-    real_t Lx = 30_r;
-    real_t Ly = 10_r;
-    real_t Lz = 10_r;
     real_t rho = 0.86_r;
 
     // thermodynamic force parameters
@@ -76,31 +74,18 @@ struct Config
 
 void LJ(Config& config)
 {
-    auto subdomain =
-        data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Ly, config.Lz}, config.neighborCutoff);
+    auto subdomain = data::Subdomain(
+        {-2.5038699752178008e+01_r, -8.3462332507260033e+00_r, -8.3462332507260033e+00_r},
+        {2.5038699752178008e+01, 8.3462332507260033e+00, 8.3462332507260033e+00},
+        config.neighborCutoff);
 
-    const auto volume = config.Lx * config.Ly * config.Lz;
+    const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
     const idx_t numParticles = idx_c(config.rho * volume);
     util::Random RNG;
     data::Particles atoms(numParticles * 2);
     data::Molecules molecules(numParticles * 2);
-    for (auto idx = 0; idx < numParticles; ++idx)
-    {
-        atoms.getPos()(idx, 0) = RNG.draw() * config.Lx;
-        atoms.getPos()(idx, 1) = RNG.draw() * config.Ly;
-        atoms.getPos()(idx, 2) = RNG.draw() * config.Lz;
-
-        atoms.getVel()(idx, 0) = (RNG.draw() - 0.5_r) * 2_r;
-        atoms.getVel()(idx, 1) = (RNG.draw() - 0.5_r) * 2_r;
-        atoms.getVel()(idx, 2) = (RNG.draw() - 0.5_r) * 2_r;
-
-        atoms.getRelativeMass()(idx) = 1_r;
-
-        molecules.getAtomsEndIdx()(idx) = idx + 1;
-    }
-    atoms.numLocalParticles = numParticles;
-    molecules.numLocalMolecules = numParticles;
-    std::cout << "particles added: " << numParticles << std::endl;
+    io::restoreLAMMPS("LJ_spartian_3.lammpstrj", atoms, molecules);
+    std::cout << "particles added: " << atoms.numLocalParticles << std::endl;
 
     auto rho = real_c(atoms.numLocalParticles) / volume;
     std::cout << "global particle density: " << rho << std::endl;
@@ -111,18 +96,17 @@ void LJ(Config& config)
 
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
-    auto weightingFunction =
-        weighting_function::Slab({0.5_r * config.Lx, 0.5_r * config.Ly, 0.5_r * config.Lz},
-                                 config.atomisticRegionDiameter,
-                                 config.hybridRegionDiameter,
-                                 config.lambdaExponent);
+    auto weightingFunction = weighting_function::Slab({0_r, 0_r, 0_r},
+                                                      config.atomisticRegionDiameter,
+                                                      config.hybridRegionDiameter,
+                                                      config.lambdaExponent);
     std::ofstream fDensityOut("densityProfile.txt");
     std::ofstream fThermodynamicForceOut("thermodynamicForce.txt");
 
     // actions
     action::LJ_IdealGas LJ(config.sigma * 0.5_r, config.rc, config.sigma, config.epsilon, true);
     action::ThermodynamicForce thermodynamicForce(
-        config.rho, config.Lx, config.Ly, config.Lz, config.thermodynamicForceModulation);
+        config.rho, subdomain, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     communication::MultiResGhostLayer ghostLayer(subdomain);
 

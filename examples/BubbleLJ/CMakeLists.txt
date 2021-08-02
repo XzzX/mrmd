@@ -1,3 +1,4 @@
+configure_file(LJ_spartian_3.lammpstrj . COPYONLY)
 add_executable(BubbleLJ
         BubbleLJ.cpp
         )
