@@ -176,13 +176,13 @@ public:
                     // drift force contribution
                     auto Vij = 0.5_r * LJ_.computeEnergy(distSqr);
 
-                    forceTmpAlpha[0] += -Vij;
-                    forceTmpAlpha[1] += -Vij;
-                    forceTmpAlpha[2] += -Vij;
+                    forceTmpAlpha[0] += -Vij * gradLambdaAlpha[0];
+                    forceTmpAlpha[1] += -Vij * gradLambdaAlpha[1];
+                    forceTmpAlpha[2] += -Vij * gradLambdaAlpha[2];
 
-                    forceTmpBeta[0] += -Vij;
-                    forceTmpBeta[1] += -Vij;
-                    forceTmpBeta[2] += -Vij;
+                    forceTmpBeta[0] += -Vij * gradLambdaBeta[0];
+                    forceTmpBeta[1] += -Vij * gradLambdaBeta[1];
+                    forceTmpBeta[2] += -Vij * gradLambdaBeta[2];
 
                     // building histogram for drift force compensation
                     //  ibin = floor(pow(iLambda, 2.0 / AT_lambda_Exp) /
@@ -206,16 +206,22 @@ public:
                     // drift force compensation
                     if (binAlpha != -1)
                     {
-                        forceTmpAlpha[0] += meanCompensationEnergy_.data(binAlpha);
-                        forceTmpAlpha[1] += meanCompensationEnergy_.data(binAlpha);
-                        forceTmpAlpha[2] += meanCompensationEnergy_.data(binAlpha);
+                        forceTmpAlpha[0] +=
+                            meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[0];
+                        forceTmpAlpha[1] +=
+                            meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[1];
+                        forceTmpAlpha[2] +=
+                            meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[2];
                     }
 
                     if (binBeta != -1)
                     {
-                        forceTmpBeta[0] += meanCompensationEnergy_.data(binBeta);
-                        forceTmpBeta[1] += meanCompensationEnergy_.data(binBeta);
-                        forceTmpBeta[2] += meanCompensationEnergy_.data(binBeta);
+                        forceTmpBeta[0] +=
+                            meanCompensationEnergy_.data(binBeta) * gradLambdaBeta[0];
+                        forceTmpBeta[1] +=
+                            meanCompensationEnergy_.data(binBeta) * gradLambdaBeta[1];
+                        forceTmpBeta[2] +=
+                            meanCompensationEnergy_.data(binBeta) * gradLambdaBeta[2];
                     }
                 }
 
@@ -224,13 +230,13 @@ public:
                 atomsForce_(idx, 2) += forceTmpIdx[2];
             }
 
-            moleculesForce_(beta, 0) += forceTmpBeta[0] * gradLambdaBeta[0];
-            moleculesForce_(beta, 1) += forceTmpBeta[1] * gradLambdaBeta[1];
-            moleculesForce_(beta, 2) += forceTmpBeta[2] * gradLambdaBeta[2];
+            moleculesForce_(beta, 0) += forceTmpBeta[0];
+            moleculesForce_(beta, 1) += forceTmpBeta[1];
+            moleculesForce_(beta, 2) += forceTmpBeta[2];
         }
-        moleculesForce_(alpha, 0) += forceTmpAlpha[0] * gradLambdaAlpha[0];
-        moleculesForce_(alpha, 1) += forceTmpAlpha[1] * gradLambdaAlpha[1];
-        moleculesForce_(alpha, 2) += forceTmpAlpha[2] * gradLambdaAlpha[2];
+        moleculesForce_(alpha, 0) += forceTmpAlpha[0];
+        moleculesForce_(alpha, 1) += forceTmpAlpha[1];
+        moleculesForce_(alpha, 2) += forceTmpAlpha[2];
     }
 
     void run(data::Molecules& molecules, VerletList& verletList, data::Particles& atoms)
