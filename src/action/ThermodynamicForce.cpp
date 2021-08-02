@@ -11,8 +11,8 @@ void ThermodynamicForce::sample(data::Particles& atoms)
 {
     densityProfile_ += analysis::getAxialDensityProfile(atoms.getPos(),
                                                         atoms.numLocalParticles,
-                                                        0_r,
-                                                        simulationBoxDiameterX_,
+                                                        densityProfile_.min,
+                                                        densityProfile_.max,
                                                         densityProfile_.numBins);
     ++densityProfileSamples_;
 }

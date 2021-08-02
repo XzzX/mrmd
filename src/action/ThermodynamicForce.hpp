@@ -2,6 +2,7 @@
 
 #include "data/Histogram.hpp"
 #include "data/Particles.hpp"
+#include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 
 namespace mrmd
@@ -16,9 +17,7 @@ private:
     idx_t densityProfileSamples_ = 0;
     const real_t binVolume_;
     const real_t targetDensity_;
-    const real_t simulationBoxDiameterX_;
-    const real_t simulationBoxDiameterY_;
-    const real_t simulationBoxDiameterZ_;
+    const data::Subdomain subdomain_;
     const real_t thermodynamicForceModulation_;
 
 public:
@@ -31,17 +30,13 @@ public:
     void apply(const data::Particles& atoms) const;
 
     ThermodynamicForce(const real_t targetDensity,
-                       const real_t simulationBoxDiameterX,
-                       const real_t simulationBoxDiameterY,
-                       const real_t simulationBoxDiameterZ,
+                       const data::Subdomain& subdomain,
                        const real_t thermodynamicForceModulation)
-        : force_("thermodynamic-force", 0_r, simulationBoxDiameterX, 100),
-          densityProfile_("density-profile", 0_r, simulationBoxDiameterX_, 100),
-          binVolume_(simulationBoxDiameterY * simulationBoxDiameterZ * densityProfile_.binSize),
+        : force_("thermodynamic-force", subdomain.minCorner[0], subdomain.maxCorner[0], 200),
+          densityProfile_("density-profile", subdomain.minCorner[0], subdomain.maxCorner[0], 200),
+          binVolume_(subdomain.diameter[1] * subdomain.diameter[2] * densityProfile_.binSize),
           targetDensity_(targetDensity),
-          simulationBoxDiameterX_(simulationBoxDiameterX),
-          simulationBoxDiameterY_(simulationBoxDiameterY),
-          simulationBoxDiameterZ_(simulationBoxDiameterZ),
+          subdomain_(subdomain),
           thermodynamicForceModulation_(thermodynamicForceModulation)
     {
     }
