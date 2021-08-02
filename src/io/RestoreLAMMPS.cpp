@@ -78,9 +78,7 @@ void restoreLAMMPS(const std::string& filename, data::Particles& atoms, data::Mo
     atoms.numLocalParticles = idx;
     molecules.numLocalMolecules = idx;
 
-    auto vel = atoms.getVel();
     auto force = atoms.getForce();
-    Cabana::deep_copy(vel, 0_r);
     Cabana::deep_copy(force, 0_r);
 }
 }  // namespace io
