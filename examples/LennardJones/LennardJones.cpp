@@ -97,7 +97,7 @@ void LJ(Config& config)
         LJ.applyForces(particles, verletList);
         if (config.temperature >= 0)
         {
-            langevinThermostat.applyThermostat(particles);
+            langevinThermostat.apply(particles);
         }
         ghostLayer.contributeBackGhostToReal(particles);
 

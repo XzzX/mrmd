@@ -57,15 +57,14 @@ private:
     data::Particles::pos_t atomsPos_;
     data::Particles::force_t::atomic_access_slice atomsForce_;
 
-    data::Histogram compensationEnergy_ = data::Histogram("compensationEnergy", 0_r, 1_r, 50);
+    data::Histogram compensationEnergy_ = data::Histogram("compensationEnergy", 0_r, 1_r, 100);
     ScalarScatterView compensationEnergyScatter_;
 
     data::Histogram compensationEnergyCounter_ =
-        data::Histogram("compensationEnergyCounter", 0_r, 1_r, 50);
-    ScalarScatterView compensationEnergyCounterScatter_;
+        data::Histogram("compensationEnergyCounter", 0_r, 1_r, 100);
 
     data::Histogram meanCompensationEnergy_ =
-        data::Histogram("meanCompensationEnergy", 0_r, 1_r, 50);
+        data::Histogram("meanCompensationEnergy", 0_r, 1_r, 100);
 
     VerletList verletList_;
 
@@ -79,7 +78,7 @@ public:
      *
      * @param alpha first molecule index
      */
-    KOKKOS_INLINE_FUNCTION void operator()(const idx_t& alpha) const
+    KOKKOS_INLINE_FUNCTION void operator()(const idx_t& alpha, real_t& sumEnergy) const
     {
         /// epsilon for region checks
         constexpr auto eps = 0.00001_r;
@@ -91,6 +90,8 @@ public:
         const auto lambdaAlpha = moleculesLambda_(alpha);
         assert(0_r <= lambdaAlpha);
         assert(lambdaAlpha <= 1_r);
+
+        auto binAlpha = compensationEnergy_.getBin(std::pow(lambdaAlpha, 1_r / 7_r));
 
         const real_t gradLambdaAlpha[3] = {moleculesGradLambda_(alpha, 0),
                                            moleculesGradLambda_(alpha, 1),
@@ -167,6 +168,18 @@ public:
 
                     auto ffactor = LJ_.computeForce(distSqr) * weighting;
 
+                    // if (ffactor > 10000_r)
+                    //{
+                    //     std::cout << "f: " << ffactor << " | " << std::sqrt(distSqr) <<
+                    //     std::endl; std::cout << "x: " << posTmp[0] << " | " << atomsPos_(jdx, 0)
+                    //     << " | "
+                    //               << std::abs(dx) << std::endl;
+                    //     std::cout << "y: " << posTmp[1] << " | " << atomsPos_(jdx, 1) << " | "
+                    //               << std::abs(dy) << std::endl;
+                    //     std::cout << "z: " << posTmp[2] << " | " << atomsPos_(jdx, 2) << " | "
+                    //               << std::abs(dz) << std::endl;
+                    // }
+
                     forceTmpIdx[0] += dx * ffactor;
                     forceTmpIdx[1] += dy * ffactor;
                     forceTmpIdx[2] += dz * ffactor;
@@ -175,11 +188,14 @@ public:
                     atomsForce_(jdx, 1) -= dy * ffactor;
                     atomsForce_(jdx, 2) -= dz * ffactor;
 
+                    auto energy = LJ_.computeEnergy(distSqr);
+                    sumEnergy += energy * weighting;
+
                     if (weighting_function::isInHYRegion(lambdaAlpha) &&
                         weighting_function::isInHYRegion(lambdaBeta))
                     {
                         // drift force contribution
-                        auto Vij = 0.5_r * LJ_.computeEnergy(distSqr);
+                        auto Vij = 0.5_r * energy;
 
                         forceTmpAlpha[0] += -Vij * gradLambdaAlpha[0];
                         forceTmpAlpha[1] += -Vij * gradLambdaAlpha[1];
@@ -190,10 +206,6 @@ public:
                         forceTmpBeta[2] += -Vij * gradLambdaBeta[2];
 
                         // building histogram for drift force compensation
-                        //  ibin = floor(pow(iLambda, 2.0 / AT_lambda_Exp) /
-                        //  AT_lambda_Increment[imoltypeH]);
-                        auto binAlpha =
-                            compensationEnergy_.getBin(std::pow(lambdaAlpha, 1_r / 7_r));
                         auto binBeta = compensationEnergy_.getBin(std::pow(lambdaBeta, 1_r / 7_r));
                         if (runCounter_ % COMPENSATION_ENERGY_SAMPLING_INTERVAL == 0)
                         {
@@ -202,32 +214,6 @@ public:
                                 if (binAlpha != -1) access(binAlpha) += Vij;
                                 if (binBeta != -1) access(binBeta) += Vij;
                             }
-                            {
-                                auto access = compensationEnergyCounterScatter_.access();
-                                if (binAlpha != -1) access(binAlpha) += 1_r;
-                                if (binBeta != -1) access(binBeta) += 1_r;
-                            }
-                        }
-
-                        // drift force compensation
-                        if (binAlpha != -1)
-                        {
-                            forceTmpAlpha[0] +=
-                                meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[0];
-                            forceTmpAlpha[1] +=
-                                meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[1];
-                            forceTmpAlpha[2] +=
-                                meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[2];
-                        }
-
-                        if (binBeta != -1)
-                        {
-                            forceTmpBeta[0] +=
-                                meanCompensationEnergy_.data(binBeta) * gradLambdaBeta[0];
-                            forceTmpBeta[1] +=
-                                meanCompensationEnergy_.data(binBeta) * gradLambdaBeta[1];
-                            forceTmpBeta[2] +=
-                                meanCompensationEnergy_.data(binBeta) * gradLambdaBeta[2];
                         }
                     }
                 }
@@ -241,12 +227,26 @@ public:
             moleculesForce_(beta, 1) += forceTmpBeta[1];
             moleculesForce_(beta, 2) += forceTmpBeta[2];
         }
+
+        if (runCounter_ % COMPENSATION_ENERGY_SAMPLING_INTERVAL == 0)
+        {
+            if (binAlpha != -1) compensationEnergyCounter_.data(binAlpha) += 1_r;
+        }
+
+        // drift force compensation
+        if (binAlpha != -1)
+        {
+            forceTmpAlpha[0] += meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[0];
+            forceTmpAlpha[1] += meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[1];
+            forceTmpAlpha[2] += meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[2];
+        }
+
         moleculesForce_(alpha, 0) += forceTmpAlpha[0];
         moleculesForce_(alpha, 1) += forceTmpAlpha[1];
         moleculesForce_(alpha, 2) += forceTmpAlpha[2];
     }
 
-    void run(data::Molecules& molecules, VerletList& verletList, data::Particles& atoms)
+    real_t run(data::Molecules& molecules, VerletList& verletList, data::Particles& atoms)
     {
         moleculesPos_ = molecules.getPos();
         moleculesForce_ = molecules.getForce();
@@ -258,14 +258,12 @@ public:
         verletList_ = verletList;
 
         compensationEnergyScatter_ = ScalarScatterView(compensationEnergy_.data);
-        compensationEnergyCounterScatter_ = ScalarScatterView(compensationEnergyCounter_.data);
 
+        real_t energy = 0_r;
         auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
-        Kokkos::parallel_for(policy, *this, "LJ_IdealGas::applyForces");
+        Kokkos::parallel_reduce("LJ_IdealGas::applyForces", policy, *this, energy);
 
         Kokkos::Experimental::contribute(compensationEnergy_.data, compensationEnergyScatter_);
-        Kokkos::Experimental::contribute(compensationEnergyCounter_.data,
-                                         compensationEnergyCounterScatter_);
 
         Kokkos::fence();
 
@@ -274,6 +272,8 @@ public:
                 compensationEnergy_, compensationEnergyCounter_, meanCompensationEnergy_, 10_r);
 
         ++runCounter_;
+
+        return energy;
     }
 
     LJ_IdealGas(const real_t& cappingDistance,

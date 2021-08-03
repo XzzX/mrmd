@@ -40,7 +40,7 @@ struct Config
     real_t rho = 0.86_r;
 
     // thermodynamic force parameters
-    real_t thermodynamicForceModulation = 0.1_r;
+    real_t thermodynamicForceModulation = 2_r;
 
     // LJ parameters
     real_t sigma = 1_r;
@@ -86,6 +86,7 @@ void LJ(Config& config)
     data::Molecules molecules(numParticles * 2);
     io::restoreLAMMPS("LJ_spartian_3.lammpstrj", atoms, molecules);
     std::cout << "particles added: " << atoms.numLocalParticles << std::endl;
+    std::cout << "system temperature: " << analysis::getTemperature(atoms) << std::endl;
 
     auto rho = real_c(atoms.numLocalParticles) / volume;
     std::cout << "global particle density: " << rho << std::endl;
@@ -104,7 +105,7 @@ void LJ(Config& config)
     std::ofstream fThermodynamicForceOut("thermodynamicForce.txt");
 
     // actions
-    action::LJ_IdealGas LJ(config.sigma * 0.5_r, config.rc, config.sigma, config.epsilon, true);
+    action::LJ_IdealGas LJ(0.1_r, config.rc, config.sigma, config.epsilon, true);
     action::ThermodynamicForce thermodynamicForce(
         config.rho, subdomain, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
@@ -151,6 +152,8 @@ void LJ(Config& config)
             ghostLayer.updateGhostParticles(atoms);
         }
 
+        action::UpdateMolecules::update(molecules, atoms, weightingFunction);
+
         auto atomsForce = atoms.getForce();
         Cabana::deep_copy(atomsForce, 0_r);
         auto moleculesForce = molecules.getForce();
@@ -175,11 +178,11 @@ void LJ(Config& config)
         }
 
         thermodynamicForce.apply(atoms);
-        LJ.run(molecules, moleculesVerletList, atoms);
+        auto E0 = LJ.run(molecules, moleculesVerletList, atoms);
         action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
         if (config.temperature >= 0)
         {
-            langevinThermostat.applyThermostat(atoms);
+            langevinThermostat.apply(atoms);
         }
         ghostLayer.contributeBackGhostToReal(atoms);
 
@@ -195,30 +198,30 @@ void LJ(Config& config)
             //                                       subdomain.minGhostCorner.data(),
             //                                       subdomain.maxGhostCorner.data(),
             //                                       config.estimatedMaxNeighbors);
-            //            auto E0 = 0_r;  // LJ.computeEnergy(atoms, atomsVerletList);
-            //            auto T = analysis::getTemperature(atoms);
-            //            auto systemMomentum = analysis::getSystemMomentum(atoms);
-            //            auto Ek = (3_r / 2_r) * real_c(atoms.numLocalParticles) * T;
+            auto T = analysis::getTemperature(atoms);
+            auto systemMomentum = analysis::getSystemMomentum(atoms);
+            auto Ek = (3_r / 2_r) * real_c(atoms.numLocalParticles) * T;
             std::cout << i << ": " << timer.seconds() << std::endl;
             //            std::cout << "system momentum: " << systemMomentum[0] << " | " <<
             //            systemMomentum[1]
             //                      << " | " << systemMomentum[2] << std::endl;
             //            std::cout << "rebuild counter: " << verletlistRebuildCounter << std::endl;
-            //            std::cout << "T : " << std::setw(10) << T << " | ";
-            //            std::cout << "Ek: " << std::setw(10) << Ek << " | ";
-            //            std::cout << "E0: " << std::setw(10) << E0 << " | ";
-            //            std::cout << "E : " << std::setw(10) << E0 + Ek << " | ";
-            //            std::cout << "Nlocal : " << std::setw(10) << atoms.numLocalParticles << "
-            //            | "; std::cout << "Nghost : " << std::setw(10) << atoms.numGhostParticles
-            //            << std::endl;
+            std::cout << "T : " << std::setw(10) << T << " | ";
+            std::cout << "Ek: " << std::setw(10) << Ek << " | ";
+            std::cout << "E0: " << std::setw(10) << E0 << " | ";
+            std::cout << "E : " << std::setw(10) << E0 + Ek << " | ";
+            std::cout << "Nlocal : " << std::setw(10) << atoms.numLocalParticles << " | ";
+            std::cout << " Nghost : " << std::setw(10) << atoms.numGhostParticles << std::endl;
 
             io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
-
-            for (auto i = 0; i < thermodynamicForce.getForce().numBins; ++i)
-            {
-                fThermodynamicForceOut << thermodynamicForce.getForce().data(i) << " ";
-            }
-            fThermodynamicForceOut << std::endl;
+            //
+            //            for (auto i = 0; i < thermodynamicForce.getForce().numBins; ++i)
+            //            {
+            //                fThermodynamicForceOut << thermodynamicForce.getForce().data(i) << "
+            //                ";
+            //            }
+            //            fThermodynamicForceOut << std::endl;
+            //            exit(-1);
         }
     }
     auto time = timer.seconds();
