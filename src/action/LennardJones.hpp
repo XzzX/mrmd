@@ -70,12 +70,14 @@ public:
         ff1_ = 48.0 * epsilon * sig6_ * sig6_;
         ff2_ = 24.0 * epsilon * sig6_;
 
-        // parameters for the capped part of LJ
-        cappingCoeff_ = computeForce(cappingDistance) * cappingDistance;
+        // parameters for the capped part of LJ, use uncapped LJ to compute cappingCoeff
+        cappingDistance_ = 0_r;
+        cappingDistanceSqr_ = 0_r;
+        cappingCoeff_ = computeForce(cappingDistance * cappingDistance) * cappingDistance;
+        energyAtCappingPoint_ = computeEnergy(cappingDistance * cappingDistance);
         cappingDistance_ = cappingDistance;
         cappingDistanceSqr_ = cappingDistance * cappingDistance;
 
-        energyAtCappingPoint_ = computeEnergy(cappingDistanceSqr_);
         if (doShift)
         {
             shift_ = computeEnergy(rcSqr_);
