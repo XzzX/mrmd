@@ -23,7 +23,7 @@ TEST(LangevinThermostat, Simple)
     particles.numGhostParticles = 0;
 
     LangevinThermostat langevinThermostat(0.5_r, 0.5_r, 0.1_r);
-    langevinThermostat.applyThermostat(particles);
+    langevinThermostat.apply(particles);
 
     EXPECT_GE(force(0, 0), 1_r - langevinThermostat.pref2 * 0.5_r);
     EXPECT_LE(force(0, 0), 1_r + langevinThermostat.pref2 * 0.5_r);
