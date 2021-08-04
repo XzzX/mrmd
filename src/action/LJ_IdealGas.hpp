@@ -90,7 +90,9 @@ public:
         assert(0_r <= lambdaAlpha);
         assert(lambdaAlpha <= 1_r);
 
-        auto binAlpha = compensationEnergy_.getBin(std::pow(lambdaAlpha, 1_r / 7_r));
+        auto binAlpha = -1;
+        if (weighting_function::isInHYRegion(lambdaAlpha))
+            binAlpha = compensationEnergy_.getBin(std::pow(lambdaAlpha, 1_r / 7_r));
 
         const real_t gradLambdaAlpha[3] = {moleculesGradLambda_(alpha, 0),
                                            moleculesGradLambda_(alpha, 1),
@@ -189,13 +191,12 @@ public:
 
                     auto energy = LJ_.computeEnergy(distSqr);
                     sumEnergy += energy * weighting;
+                    auto Vij = 0.5_r * energy;
 
                     if (weighting_function::isInHYRegion(lambdaAlpha) ||
                         weighting_function::isInHYRegion(lambdaBeta))
                     {
                         // drift force contribution
-                        auto Vij = 0.5_r * energy;
-
                         forceTmpAlpha[0] += -Vij * gradLambdaAlpha[0];
                         forceTmpAlpha[1] += -Vij * gradLambdaAlpha[1];
                         forceTmpAlpha[2] += -Vij * gradLambdaAlpha[2];
@@ -205,13 +206,21 @@ public:
                         forceTmpBeta[2] += -Vij * gradLambdaBeta[2];
 
                         // building histogram for drift force compensation
-                        auto binBeta = compensationEnergy_.getBin(std::pow(lambdaBeta, 1_r / 7_r));
                         if (isDriftCompensationSamplingRun_)
                         {
+                            auto binBeta = -1;
+                            if (weighting_function::isInHYRegion(lambdaBeta))
+                            {
+                                binBeta =
+                                    compensationEnergy_.getBin(std::pow(lambdaBeta, 1_r / 7_r));
+                            }
                             {
                                 auto access = compensationEnergyScatter_.access();
-                                if (binAlpha != -1) access(binAlpha) += Vij;
-                                if (binBeta != -1) access(binBeta) += Vij;
+                                if (weighting_function::isInHYRegion(lambdaAlpha) &&
+                                    (binAlpha != -1))
+                                    access(binAlpha) += Vij;
+                                if (weighting_function::isInHYRegion(lambdaBeta) && (binBeta != -1))
+                                    access(binBeta) += Vij;
                             }
                         }
                     }
@@ -229,12 +238,12 @@ public:
 
         if (isDriftCompensationSamplingRun_)
         {
-            if (weighting_function::isInHYRegion(lambdaAlpha))
-                if (binAlpha != -1) compensationEnergyCounter_.data(binAlpha) += 1_r;
+            if (weighting_function::isInHYRegion(lambdaAlpha) && (binAlpha != -1))
+                compensationEnergyCounter_.data(binAlpha) += 1_r;
         }
 
         // drift force compensation
-        if (binAlpha != -1)
+        if (weighting_function::isInHYRegion(lambdaAlpha) && (binAlpha != -1))
         {
             forceTmpAlpha[0] += meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[0];
             forceTmpAlpha[1] += meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[1];
