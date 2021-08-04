@@ -15,11 +15,13 @@ TEST(Slab, monotonous)
 
     std::array<real_t, 3> pos = center;
     std::array<real_t, 3> delta = {0.1_r, 0.1_r, 0.1_r};
-    auto w = weight(pos[0], pos[1], pos[2]);
+    real_t tmp;
+    real_t w;
+    weight(pos[0], pos[1], pos[2], tmp, w, tmp, tmp, tmp);
     for (auto i = 0; i < 60; ++i)
     {
         auto old = w;
-        w = weight(pos[0], pos[1], pos[2]);
+        weight(pos[0], pos[1], pos[2], tmp, w, tmp, tmp, tmp);
         EXPECT_LE(w, old);
         pos[0] += delta[0];
         pos[1] += delta[1];
@@ -34,10 +36,12 @@ TEST(Slab, boundaryValues)
     real_t hybridRegionDiameter = 2_r;
     auto weight = Slab(center, atomisticRegionDiameter, hybridRegionDiameter, 2);
 
-    auto w = weight(2.9_r, 3.1_r, 4.1_r);
+    real_t tmp;
+    real_t w;
+    weight(2.9_r, 3.1_r, 4.1_r, tmp, w, tmp, tmp, tmp);
     EXPECT_FLOAT_EQ(w, 1_r);
 
-    w = weight(5.1_r, 7.1_r, 8.1_r);
+    weight(5.1_r, 7.1_r, 8.1_r, tmp, w, tmp, tmp, tmp);
     EXPECT_FLOAT_EQ(w, 0_r);
 }
 

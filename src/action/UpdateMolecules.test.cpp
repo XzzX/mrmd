@@ -81,9 +81,10 @@ TEST_F(UpdateMoleculesTest, update)
                      const real_t y,
                      const real_t z,
                      real_t& lambda,
+                     real_t& modulatedLambda,
                      real_t& gradLambdaX,
                      real_t& gradLambdaY,
-                     real_t& gradLambdaZ) { lambda = x > 0 ? 0.7_r : -0.7_r; };
+                     real_t& gradLambdaZ) { modulatedLambda = x > 0 ? 0.7_r : -0.7_r; };
     action::UpdateMolecules::update(molecules, atoms, weight);
 
     EXPECT_FLOAT_EQ(molecules.getPos()(0, 0), 0.5_r);

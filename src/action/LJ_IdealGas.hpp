@@ -50,6 +50,7 @@ private:
 
     data::Molecules::pos_t moleculesPos_;
     data::Molecules::force_t::atomic_access_slice moleculesForce_;
+    data::Molecules::lambda_t moleculesLambda_;
     data::Molecules::modulated_lambda_t moleculesModulatedLambda_;
     data::Molecules::grad_lambda_t moleculesGradLambda_;
     data::Molecules::atoms_end_idx_t moleculesAtomEndIdx_;
@@ -95,7 +96,7 @@ public:
 
         idx_t binAlpha = -1;
         if (weighting_function::isInHYRegion(modulatedLambdaAlpha))
-            binAlpha = compensationEnergy_.getBin(std::pow(modulatedLambdaAlpha, 1_r / 7_r));
+            binAlpha = compensationEnergy_.getBin(moleculesLambda_(alpha));
 
         const real_t gradLambdaAlpha[3] = {moleculesGradLambda_(alpha, 0),
                                            moleculesGradLambda_(alpha, 1),
@@ -214,15 +215,15 @@ public:
                             idx_t binBeta = -1;
                             if (weighting_function::isInHYRegion(modulatedLambdaBeta))
                             {
-                                binBeta =
-                                    compensationEnergy_.getBin(std::pow(modulatedLambdaBeta, 1_r / 7_r));
+                                binBeta = compensationEnergy_.getBin(moleculesLambda_(beta));
                             }
                             {
                                 auto access = compensationEnergyScatter_.access();
                                 if (weighting_function::isInHYRegion(modulatedLambdaAlpha) &&
                                     (binAlpha != -1))
                                     access(binAlpha) += Vij;
-                                if (weighting_function::isInHYRegion(modulatedLambdaBeta) && (binBeta != -1))
+                                if (weighting_function::isInHYRegion(modulatedLambdaBeta) &&
+                                    (binBeta != -1))
                                     access(binBeta) += Vij;
                             }
                         }
@@ -262,6 +263,7 @@ public:
     {
         moleculesPos_ = molecules.getPos();
         moleculesForce_ = molecules.getForce();
+        moleculesLambda_ = molecules.getLambda();
         moleculesModulatedLambda_ = molecules.getModulatedLambda();
         moleculesGradLambda_ = molecules.getGradLambda();
         moleculesAtomEndIdx_ = molecules.getAtomsEndIdx();
