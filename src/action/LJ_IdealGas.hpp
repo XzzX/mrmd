@@ -66,6 +66,8 @@ private:
     data::Histogram meanCompensationEnergy_ =
         data::Histogram("meanCompensationEnergy", 0_r, 1_r, 100);
 
+    bool isDriftCompensationSamplingRun_ = false;
+
     VerletList verletList_;
 
     idx_t runCounter_ = 0;
@@ -204,7 +206,7 @@ public:
 
                         // building histogram for drift force compensation
                         auto binBeta = compensationEnergy_.getBin(std::pow(lambdaBeta, 1_r / 7_r));
-                        if (runCounter_ % COMPENSATION_ENERGY_SAMPLING_INTERVAL == 0)
+                        if (isDriftCompensationSamplingRun_)
                         {
                             {
                                 auto access = compensationEnergyScatter_.access();
@@ -225,7 +227,7 @@ public:
             moleculesForce_(beta, 2) += forceTmpBeta[2];
         }
 
-        if (runCounter_ % COMPENSATION_ENERGY_SAMPLING_INTERVAL == 0)
+        if (isDriftCompensationSamplingRun_)
         {
             if (weighting_function::isInHYRegion(lambdaAlpha))
                 if (binAlpha != -1) compensationEnergyCounter_.data(binAlpha) += 1_r;
@@ -254,6 +256,8 @@ public:
         atomsPos_ = atoms.getPos();
         atomsForce_ = atoms.getForce();
         verletList_ = verletList;
+
+        isDriftCompensationSamplingRun_ = runCounter_ % COMPENSATION_ENERGY_SAMPLING_INTERVAL == 0;
 
         compensationEnergyScatter_ = ScalarScatterView(compensationEnergy_.data);
 
