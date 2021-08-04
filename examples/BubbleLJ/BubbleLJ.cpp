@@ -203,7 +203,8 @@ void LJ(Config& config)
             //                                       config.estimatedMaxNeighbors);
             auto T = analysis::getTemperature(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto Ek = (3_r / 2_r) * real_c(atoms.numLocalParticles) * T;
+            auto Ek = (3_r / 2_r) * T;
+            E0 /= real_c(atoms.numLocalParticles);
             util::printTable(i,
                              timer.seconds(),
                              T,
