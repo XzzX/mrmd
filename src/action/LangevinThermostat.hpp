@@ -13,7 +13,7 @@ namespace action
 class LangevinThermostat
 {
 private:
-    util::Random rng;
+    Kokkos::Random_XorShift1024_Pool<> randPool_ = Kokkos::Random_XorShift1024_Pool<>(1234);
 
 public:
     const real_t pref1;
