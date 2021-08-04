@@ -80,9 +80,6 @@ public:
      */
     KOKKOS_INLINE_FUNCTION void operator()(const idx_t& alpha, real_t& sumEnergy) const
     {
-        /// epsilon for region checks
-        constexpr auto eps = 0.00001_r;
-
         // avoid atomic force contributions to idx in innermost loop
         real_t forceTmpAlpha[3] = {0_r, 0_r, 0_r};
 
@@ -191,7 +188,7 @@ public:
                     auto energy = LJ_.computeEnergy(distSqr);
                     sumEnergy += energy * weighting;
 
-                    if (weighting_function::isInHYRegion(lambdaAlpha) &&
+                    if (weighting_function::isInHYRegion(lambdaAlpha) ||
                         weighting_function::isInHYRegion(lambdaBeta))
                     {
                         // drift force contribution
@@ -230,7 +227,8 @@ public:
 
         if (runCounter_ % COMPENSATION_ENERGY_SAMPLING_INTERVAL == 0)
         {
-            if (binAlpha != -1) compensationEnergyCounter_.data(binAlpha) += 1_r;
+            if (weighting_function::isInHYRegion(lambdaAlpha))
+                if (binAlpha != -1) compensationEnergyCounter_.data(binAlpha) += 1_r;
         }
 
         // drift force compensation
