@@ -38,7 +38,7 @@ inline void updateMeanCompensationEnergy(data::Histogram& compensationEnergy,
         compensationEnergy.data(binIdx) = 0_r;
         compensationEnergyCounter.data(binIdx) = 0_r;
     };
-    Kokkos::parallel_for(policy, kernel);
+    Kokkos::parallel_for("updateMeanCompensationEnergy", policy, kernel);
     Kokkos::fence();
 }
 
@@ -93,7 +93,7 @@ public:
         assert(0_r <= lambdaAlpha);
         assert(lambdaAlpha <= 1_r);
 
-        auto binAlpha = -1;
+        idx_t binAlpha = -1;
         if (weighting_function::isInHYRegion(lambdaAlpha))
             binAlpha = compensationEnergy_.getBin(std::pow(lambdaAlpha, 1_r / 7_r));
 
@@ -211,7 +211,7 @@ public:
                         // building histogram for drift force compensation
                         if (isDriftCompensationSamplingRun_)
                         {
-                            auto binBeta = -1;
+                            idx_t binBeta = -1;
                             if (weighting_function::isInHYRegion(lambdaBeta))
                             {
                                 binBeta =
