@@ -10,7 +10,7 @@ namespace analysis
 {
 data::Histogram smoothenDensityProfile(data::Histogram& densityProfile,
                                        const real_t sigma,
-                                       const real_t inten);
+                                       const real_t intensity);
 
 }  // namespace analysis
 }  // namespace mrmd

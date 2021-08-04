@@ -19,17 +19,25 @@ void ThermodynamicForce::sample(data::Particles& atoms)
 
 void ThermodynamicForce::update()
 {
-    auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_)) *
-                               thermodynamicForceModulation_ / targetDensity_;
+    auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
+
     auto policy = Kokkos::RangePolicy<>(0, densityProfile_.numBins);
     Kokkos::parallel_for(
         policy,
         KOKKOS_LAMBDA(const idx_t idx) { densityProfile_.data(idx) *= normalizationFactor; },
-        "ThermodynamicForce::update");
+        "ThermodynamicForce::normalize_sample");
     Kokkos::fence();
-    auto smoothedDensityProfile = analysis::smoothenDensityProfile(densityProfile_, 3_r, 6_r);
 
-    force_ += data::gradient(smoothedDensityProfile);
+    auto smoothedDensityGradient =
+        data::gradient(analysis::smoothenDensityProfile(densityProfile_, 2_r, 2_r));
+    Kokkos::parallel_for(
+        policy,
+        KOKKOS_LAMBDA(const idx_t idx)
+        { smoothedDensityGradient.data(idx) *= thermodynamicForceModulation_ / targetDensity_; },
+        "ThermodynamicForce::calc_force");
+    Kokkos::fence();
+
+    force_ += smoothedDensityGradient;
 
     // reset sampling data
     Kokkos::deep_copy(densityProfile_.data, 0_r);
@@ -45,10 +53,11 @@ void ThermodynamicForce::apply(const data::Particles& atoms) const
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
         auto xPos = atomsPos(idx, 0);
-        auto bin = idx_c((xPos - force_.min) * force_.inverseBinSize);
-        bin = std::max(idx_t(0), bin);
-        bin = std::min(force_.numBins - 1, bin);
-        atomsForce(idx, 0) -= force_.data(bin);
+        auto bin = force_.getBin(xPos);
+        if (bin != -1)
+        {
+            atomsForce(idx, 0) -= force_.data(bin);
+        }
     };
     Kokkos::parallel_for(policy, kernel, "ThermodynamicForce::apply");
     Kokkos::fence();
