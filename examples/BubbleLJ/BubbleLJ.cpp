@@ -104,6 +104,7 @@ void LJ(Config& config)
                                                       config.lambdaExponent);
     std::ofstream fDensityOut("densityProfile.txt");
     std::ofstream fThermodynamicForceOut("thermodynamicForce.txt");
+    std::ofstream fDriftForceCompensation("driftForce.txt");
 
     // actions
     action::LJ_IdealGas LJ(0.1_r, config.rc, config.sigma, config.epsilon, true);
@@ -215,20 +216,25 @@ void LJ(Config& config)
                              atoms.numGhostParticles);
 
             io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
-            //
-            //            for (auto i = 0; i < thermodynamicForce.getForce().numBins; ++i)
-            //            {
-            //                fThermodynamicForceOut << thermodynamicForce.getForce().data(i) << "
-            //                ";
-            //            }
-            //            fThermodynamicForceOut << std::endl;
-            //            exit(-1);
+
+            for (auto i = 0; i < thermodynamicForce.getForce().numBins; ++i)
+            {
+                fThermodynamicForceOut << thermodynamicForce.getForce().data(i) << " ";
+            }
+            fThermodynamicForceOut << std::endl;
+
+            for (auto i = 0; i < LJ.getMeanCompensationEnergy().numBins; ++i)
+            {
+                fDriftForceCompensation << LJ.getMeanCompensationEnergy().data(i) << " ";
+            }
+            fDriftForceCompensation << std::endl;
         }
     }
     auto time = timer.seconds();
     std::cout << time << std::endl;
     fDensityOut.close();
     fThermodynamicForceOut.close();
+    fDriftForceCompensation.close();
 
     auto cores = util::getEnvironmentVariable("OMP_NUM_THREADS");
 

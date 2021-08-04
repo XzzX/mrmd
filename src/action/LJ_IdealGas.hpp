@@ -57,14 +57,14 @@ private:
     data::Particles::pos_t atomsPos_;
     data::Particles::force_t::atomic_access_slice atomsForce_;
 
-    data::Histogram compensationEnergy_ = data::Histogram("compensationEnergy", 0_r, 1_r, 100);
+    data::Histogram compensationEnergy_ = data::Histogram("compensationEnergy", 0_r, 1_r, 200);
     ScalarScatterView compensationEnergyScatter_;
 
     data::Histogram compensationEnergyCounter_ =
-        data::Histogram("compensationEnergyCounter", 0_r, 1_r, 100);
+        data::Histogram("compensationEnergyCounter", 0_r, 1_r, 200);
 
     data::Histogram meanCompensationEnergy_ =
-        data::Histogram("meanCompensationEnergy", 0_r, 1_r, 100);
+        data::Histogram("meanCompensationEnergy", 0_r, 1_r, 200);
 
     bool isDriftCompensationSamplingRun_ = false;
 
@@ -75,6 +75,9 @@ private:
 public:
     static constexpr idx_t COMPENSATION_ENERGY_SAMPLING_INTERVAL = 200;
     static constexpr idx_t COMPENSATION_ENERGY_UPDATE_INTERVAL = 20000;
+
+    const auto& getMeanCompensationEnergy() const { return meanCompensationEnergy_; }
+
     /**
      * Loop over molecules
      *

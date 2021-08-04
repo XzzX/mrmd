@@ -32,8 +32,8 @@ public:
     ThermodynamicForce(const real_t targetDensity,
                        const data::Subdomain& subdomain,
                        const real_t thermodynamicForceModulation)
-        : force_("thermodynamic-force", subdomain.minCorner[0], subdomain.maxCorner[0], 200),
-          densityProfile_("density-profile", subdomain.minCorner[0], subdomain.maxCorner[0], 200),
+        : force_("thermodynamic-force", subdomain.minCorner[0], subdomain.maxCorner[0], 100),
+          densityProfile_("density-profile", subdomain.minCorner[0], subdomain.maxCorner[0], 100),
           binVolume_(subdomain.diameter[1] * subdomain.diameter[2] * densityProfile_.binSize),
           targetDensity_(targetDensity),
           subdomain_(subdomain),
