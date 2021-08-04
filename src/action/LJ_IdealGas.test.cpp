@@ -113,7 +113,7 @@ TEST_F(LJ_IdealGas_Test, CG)
 {
     Cabana::deep_copy(atomsForce, 2_r);
 
-    auto moleculesLambda = molecules.getLambda();
+    auto moleculesLambda = molecules.getModulatedLambda();
     Cabana::deep_copy(moleculesLambda, 0_r);
     action::LJ_IdealGas LJ(cappingDistance, rc, sigma, epsilon, true);
     LJ.run(molecules, moleculesVerletList, atoms);
@@ -129,7 +129,7 @@ TEST_F(LJ_IdealGas_Test, CG)
 
 TEST_F(LJ_IdealGas_Test, HY)
 {
-    auto moleculesLambda = molecules.getLambda();
+    auto moleculesLambda = molecules.getModulatedLambda();
     Cabana::deep_copy(moleculesLambda, 0.5_r);
 
     action::LJ_IdealGas LJ(cappingDistance, rc, sigma, epsilon, true);
@@ -157,7 +157,7 @@ TEST_F(LJ_IdealGas_Test, HY)
 
 TEST_F(LJ_IdealGas_Test, AT)
 {
-    auto moleculesLambda = molecules.getLambda();
+    auto moleculesLambda = molecules.getModulatedLambda();
     Cabana::deep_copy(moleculesLambda, 1_r);
 
     action::LJ_IdealGas LJ(cappingDistance, rc, sigma, epsilon, true);

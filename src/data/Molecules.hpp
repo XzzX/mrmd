@@ -19,7 +19,7 @@ public:
     {
         POS = 0,
         FORCE = 1,
-        LAMBDA = 2,
+        MODULATED_LAMBDA = 2,
         GRAD_LAMBDA = 3,
         ATOMS_END_IDX = 4,  ///< exclusive end offset of atoms
     };
@@ -29,19 +29,22 @@ public:
 
     using pos_t = typename MoleculesT::template member_slice_type<POS>;
     using force_t = typename MoleculesT::template member_slice_type<FORCE>;
-    using lambda_t = typename MoleculesT::template member_slice_type<LAMBDA>;
+    using modulated_lambda_t = typename MoleculesT::template member_slice_type<MODULATED_LAMBDA>;
     using grad_lambda_t = typename MoleculesT::template member_slice_type<GRAD_LAMBDA>;
     using atoms_end_idx_t = typename MoleculesT::template member_slice_type<ATOMS_END_IDX>;
 
     pos_t pos;
     force_t force;
-    lambda_t lambda;
+    modulated_lambda_t modulatedLambda;
     grad_lambda_t gradLambda;
     atoms_end_idx_t atomsEndIdx;
 
     KOKKOS_FORCEINLINE_FUNCTION pos_t getPos() const { return pos; }
     KOKKOS_FORCEINLINE_FUNCTION pos_t getForce() const { return force; }
-    KOKKOS_FORCEINLINE_FUNCTION lambda_t getLambda() const { return lambda; }
+    KOKKOS_FORCEINLINE_FUNCTION modulated_lambda_t getModulatedLambda() const
+    {
+        return modulatedLambda;
+    }
     KOKKOS_FORCEINLINE_FUNCTION grad_lambda_t getGradLambda() const { return gradLambda; }
     KOKKOS_FORCEINLINE_FUNCTION atoms_end_idx_t getAtomsEndIdx() const { return atomsEndIdx; }
 
@@ -49,7 +52,7 @@ public:
     {
         pos = Cabana::slice<POS>(molecules_);
         force = Cabana::slice<FORCE>(molecules_);
-        lambda = Cabana::slice<LAMBDA>(molecules_);
+        modulatedLambda = Cabana::slice<MODULATED_LAMBDA>(molecules_);
         gradLambda = Cabana::slice<GRAD_LAMBDA>(molecules_);
         atomsEndIdx = Cabana::slice<ATOMS_END_IDX>(molecules_);
     }
@@ -79,7 +82,7 @@ public:
             force(dst, dim) = force(src, dim);
             gradLambda(dst, dim) = gradLambda(src, dim);
         }
-        lambda(dst) = lambda(src);
+        modulatedLambda(dst) = modulatedLambda(src);
         atomsEndIdx(dst) = atomsEndIdx(src);
     }
 

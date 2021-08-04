@@ -50,7 +50,7 @@ private:
 
     data::Molecules::pos_t moleculesPos_;
     data::Molecules::force_t::atomic_access_slice moleculesForce_;
-    data::Molecules::lambda_t moleculesLambda_;
+    data::Molecules::modulated_lambda_t moleculesModulatedLambda_;
     data::Molecules::grad_lambda_t moleculesGradLambda_;
     data::Molecules::atoms_end_idx_t moleculesAtomEndIdx_;
 
@@ -89,13 +89,13 @@ public:
         real_t forceTmpAlpha[3] = {0_r, 0_r, 0_r};
 
         /// weighting for molecule alpha
-        const auto lambdaAlpha = moleculesLambda_(alpha);
-        assert(0_r <= lambdaAlpha);
-        assert(lambdaAlpha <= 1_r);
+        const auto modulatedLambdaAlpha = moleculesModulatedLambda_(alpha);
+        assert(0_r <= modulatedLambdaAlpha);
+        assert(modulatedLambdaAlpha <= 1_r);
 
         idx_t binAlpha = -1;
-        if (weighting_function::isInHYRegion(lambdaAlpha))
-            binAlpha = compensationEnergy_.getBin(std::pow(lambdaAlpha, 1_r / 7_r));
+        if (weighting_function::isInHYRegion(modulatedLambdaAlpha))
+            binAlpha = compensationEnergy_.getBin(std::pow(modulatedLambdaAlpha, 1_r / 7_r));
 
         const real_t gradLambdaAlpha[3] = {moleculesGradLambda_(alpha, 0),
                                            moleculesGradLambda_(alpha, 1),
@@ -112,20 +112,20 @@ public:
             real_t forceTmpBeta[3] = {0_r, 0_r, 0_r};
 
             /// weighting for molecule beta
-            const auto lambdaBeta = moleculesLambda_(beta);
-            assert(0_r <= lambdaBeta);
-            assert(lambdaBeta <= 1_r);
+            const auto modulatedLambdaBeta = moleculesModulatedLambda_(beta);
+            assert(0_r <= modulatedLambdaBeta);
+            assert(modulatedLambdaBeta <= 1_r);
 
             const real_t gradLambdaBeta[3] = {moleculesGradLambda_(beta, 0),
                                               moleculesGradLambda_(beta, 1),
                                               moleculesGradLambda_(beta, 2)};
 
             /// combined weighting of molecules alpha and beta
-            const auto weighting = 0.5_r * (lambdaAlpha + lambdaBeta);
+            const auto weighting = 0.5_r * (modulatedLambdaAlpha + modulatedLambdaBeta);
             assert(0_r <= weighting);
             assert(weighting <= 1_r);
-            if (weighting_function::isInCGRegion(lambdaAlpha) &&
-                weighting_function::isInCGRegion(lambdaBeta))
+            if (weighting_function::isInCGRegion(modulatedLambdaAlpha) &&
+                weighting_function::isInCGRegion(modulatedLambdaBeta))
             {
                 // CG region -> ideal gas -> no interaction
                 continue;
@@ -196,8 +196,8 @@ public:
                     sumEnergy += energy * weighting;
                     auto Vij = 0.5_r * energy;
 
-                    if (weighting_function::isInHYRegion(lambdaAlpha) ||
-                        weighting_function::isInHYRegion(lambdaBeta))
+                    if (weighting_function::isInHYRegion(modulatedLambdaAlpha) ||
+                        weighting_function::isInHYRegion(modulatedLambdaBeta))
                     {
                         // drift force contribution
                         forceTmpAlpha[0] += -Vij * gradLambdaAlpha[0];
@@ -212,17 +212,17 @@ public:
                         if (isDriftCompensationSamplingRun_)
                         {
                             idx_t binBeta = -1;
-                            if (weighting_function::isInHYRegion(lambdaBeta))
+                            if (weighting_function::isInHYRegion(modulatedLambdaBeta))
                             {
                                 binBeta =
-                                    compensationEnergy_.getBin(std::pow(lambdaBeta, 1_r / 7_r));
+                                    compensationEnergy_.getBin(std::pow(modulatedLambdaBeta, 1_r / 7_r));
                             }
                             {
                                 auto access = compensationEnergyScatter_.access();
-                                if (weighting_function::isInHYRegion(lambdaAlpha) &&
+                                if (weighting_function::isInHYRegion(modulatedLambdaAlpha) &&
                                     (binAlpha != -1))
                                     access(binAlpha) += Vij;
-                                if (weighting_function::isInHYRegion(lambdaBeta) && (binBeta != -1))
+                                if (weighting_function::isInHYRegion(modulatedLambdaBeta) && (binBeta != -1))
                                     access(binBeta) += Vij;
                             }
                         }
@@ -241,12 +241,12 @@ public:
 
         if (isDriftCompensationSamplingRun_)
         {
-            if (weighting_function::isInHYRegion(lambdaAlpha) && (binAlpha != -1))
+            if (weighting_function::isInHYRegion(modulatedLambdaAlpha) && (binAlpha != -1))
                 compensationEnergyCounter_.data(binAlpha) += 1_r;
         }
 
         // drift force compensation
-        if (weighting_function::isInHYRegion(lambdaAlpha) && (binAlpha != -1))
+        if (weighting_function::isInHYRegion(modulatedLambdaAlpha) && (binAlpha != -1))
         {
             forceTmpAlpha[0] += meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[0];
             forceTmpAlpha[1] += meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[1];
@@ -262,7 +262,7 @@ public:
     {
         moleculesPos_ = molecules.getPos();
         moleculesForce_ = molecules.getForce();
-        moleculesLambda_ = molecules.getLambda();
+        moleculesModulatedLambda_ = molecules.getModulatedLambda();
         moleculesGradLambda_ = molecules.getGradLambda();
         moleculesAtomEndIdx_ = molecules.getAtomsEndIdx();
         atomsPos_ = atoms.getPos();

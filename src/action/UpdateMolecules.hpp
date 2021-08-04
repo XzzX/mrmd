@@ -17,7 +17,7 @@ public:
                        const WEIGHTING_FUNCTION& weight)
     {
         auto moleculesPos = molecules.getPos();
-        auto moleculesLambda = molecules.getLambda();
+        auto moleculesModulatedLambda = molecules.getModulatedLambda();
         auto moleculesGradLambda = molecules.getGradLambda();
         auto moleculesAtomEndIdx = molecules.getAtomsEndIdx();
 
@@ -45,7 +45,7 @@ public:
             weight(moleculesPos(moleculeIdx, 0),
                    moleculesPos(moleculeIdx, 1),
                    moleculesPos(moleculeIdx, 2),
-                   moleculesLambda(moleculeIdx),
+                   moleculesModulatedLambda(moleculeIdx),
                    moleculesGradLambda(moleculeIdx, 0),
                    moleculesGradLambda(moleculeIdx, 0),
                    moleculesGradLambda(moleculeIdx, 0));

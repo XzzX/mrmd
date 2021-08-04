@@ -90,13 +90,13 @@ TEST_F(UpdateMoleculesTest, update)
     EXPECT_FLOAT_EQ(molecules.getPos()(0, 1), 0.5_r);
     EXPECT_FLOAT_EQ(molecules.getPos()(0, 2), 0_r);
 
-    EXPECT_FLOAT_EQ(molecules.getLambda()(0), 0.7_r);
+    EXPECT_FLOAT_EQ(molecules.getModulatedLambda()(0), 0.7_r);
 
     EXPECT_FLOAT_EQ(molecules.getPos()(1, 0), -0.5_r);
     EXPECT_FLOAT_EQ(molecules.getPos()(1, 1), -0.5_r);
     EXPECT_FLOAT_EQ(molecules.getPos()(1, 2), 0_r);
 
-    EXPECT_FLOAT_EQ(molecules.getLambda()(1), -0.7_r);
+    EXPECT_FLOAT_EQ(molecules.getModulatedLambda()(1), -0.7_r);
 }
 
 }  // namespace action
