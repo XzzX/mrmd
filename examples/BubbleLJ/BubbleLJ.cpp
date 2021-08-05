@@ -231,15 +231,6 @@ void LJ(Config& config)
     fout << cores << ", " << time << ", " << atoms.numLocalParticles << ", " << config.nsteps
          << std::endl;
     fout.close();
-
-    //    auto E0 = LJ.computeEnergy(atoms, verletList);
-    auto T = analysis::getTemperature(atoms);
-
-    //    CHECK_LESS(E0, -162000_r);
-    //    CHECK_GREATER(E0, -163000_r);
-    //
-    //    CHECK_LESS(T, 1.43_r);
-    //    CHECK_GREATER(T, 1.41_r);
 }
 
 int main(int argc, char* argv[])  // NOLINT
