@@ -278,10 +278,12 @@ public:
 
     IndexView createGhostParticlesXYZ(data::Molecules& molecules, data::Particles& atoms)
     {
+        // reset ghost atoms
         atoms.numGhostParticles = 0;
         util::grow(atomCorrespondingRealParticle_, idx_c(atoms.size()));
         Kokkos::deep_copy(atomCorrespondingRealParticle_, -1);
 
+        // reset ghost molecules
         molecules.numGhostMolecules = 0;
         util::grow(moleculesCorrespondingRealParticle_, idx_c(molecules.size()));
         Kokkos::deep_copy(moleculesCorrespondingRealParticle_, -1);

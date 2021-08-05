@@ -44,5 +44,12 @@ struct Histogram
 
 data::Histogram gradient(const data::Histogram& input);
 
+/**
+ * Overload for writing to console/files.
+ *
+ * \attention If the data is located in device memory the data will be copied into host memory.
+ */
+std::ostream& operator<<(std::ostream& os, const data::Histogram& hist);
+
 }  // namespace data
 }  // namespace mrmd

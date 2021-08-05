@@ -47,5 +47,16 @@ data::Histogram gradient(const data::Histogram& input)
 
     return grad;
 }
+
+std::ostream& operator<<(std::ostream& os, const data::Histogram& hist)
+{
+    auto hData = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), hist.data);
+    for (auto i = 0; i < hist.numBins; ++i)
+    {
+        os << hData(i) << " ";
+    }
+    return os;
+}
+
 }  // namespace data
 }  // namespace mrmd

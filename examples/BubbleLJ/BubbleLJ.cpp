@@ -121,6 +121,7 @@ void LJ(Config& config)
         assert(atoms.numGhostParticles == molecules.numGhostMolecules);
         maxParticleDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
+        // update molecule positions
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
         if (maxParticleDisplacement >= config.skin * 0.5_r)
@@ -168,11 +169,7 @@ void LJ(Config& config)
             thermodynamicForce.sample(atoms);
             if (thermodynamicForce.getNumberOfDensityProfileSamples() == 1)
             {
-                for (auto i = 0; i < thermodynamicForce.getDensityProfile().numBins; ++i)
-                {
-                    fDensityOut << thermodynamicForce.getDensityProfile().data(i) << " ";
-                }
-                fDensityOut << std::endl;
+                fDensityOut << thermodynamicForce.getDensityProfile() << std::endl;
             }
         }
 
@@ -215,19 +212,11 @@ void LJ(Config& config)
                              atoms.numLocalParticles,
                              atoms.numGhostParticles);
 
-            io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
+            //            io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
+            //
+            fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
 
-            for (auto i = 0; i < thermodynamicForce.getForce().numBins; ++i)
-            {
-                fThermodynamicForceOut << thermodynamicForce.getForce().data(i) << " ";
-            }
-            fThermodynamicForceOut << std::endl;
-
-            for (auto i = 0; i < LJ.getMeanCompensationEnergy().numBins; ++i)
-            {
-                fDriftForceCompensation << LJ.getMeanCompensationEnergy().data(i) << " ";
-            }
-            fDriftForceCompensation << std::endl;
+            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
         }
     }
     auto time = timer.seconds();
