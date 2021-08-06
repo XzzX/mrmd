@@ -38,6 +38,14 @@ struct DoubleCounter
         molecules = rhs.molecules;
     }
 
+    KOKKOS_INLINE_FUNCTION
+    void operator=(volatile const DoubleCounter& rhs) volatile
+    {
+        atoms = rhs.atoms;
+        molecules = rhs.molecules;
+    }
+
+    KOKKOS_INLINE_FUNCTION
     DoubleCounter& operator+=(const DoubleCounter& rhs)
     {
         atoms += rhs.atoms;
@@ -46,6 +54,7 @@ struct DoubleCounter
     }
 };
 
+KOKKOS_INLINE_FUNCTION
 DoubleCounter operator+(const DoubleCounter& lhs, const DoubleCounter& rhs)
 {
     return DoubleCounter(lhs.atoms + rhs.atoms, lhs.molecules + rhs.molecules);
