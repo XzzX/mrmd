@@ -18,6 +18,7 @@ private:
     IndexView correspondingRealParticle_;
 
 public:
+    KOKKOS_INLINE_FUNCTION
     void operator()(const idx_t& idx) const
     {
         if (correspondingRealParticle_(idx) == -1) return;
