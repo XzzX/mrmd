@@ -10,8 +10,11 @@ namespace io
 {
 void dumpCSV(const std::string& filename, data::Particles& particles)
 {
-    auto pos = particles.getPos();
-    auto vel = particles.getVel();
+    // very ugly, will also copy the whole particle data which is unnecessary, custom slicing
+    // required
+    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), particles.getAoSoA());
+    auto pos = Cabana::slice<data::Particles::POS>(hAoSoA);
+    auto vel = Cabana::slice<data::Particles::VEL>(hAoSoA);
 
     std::ofstream fout(filename);
     fout << "pos_x, pos_y, pos_z, vel_x, vel_y, vel_z" << std::endl;

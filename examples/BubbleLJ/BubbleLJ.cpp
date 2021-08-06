@@ -212,10 +212,9 @@ void LJ(Config& config)
                              atoms.numLocalParticles,
                              atoms.numGhostParticles);
 
-            //            io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
-            //
-            fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
+            io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
 
+            fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
             fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
         }
     }
