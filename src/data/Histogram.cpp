@@ -12,8 +12,9 @@ Histogram& Histogram::operator+=(const Histogram& rhs)
     assert(min == rhs.min);
     assert(max == rhs.max);
 
+    auto lhs = data;
     auto policy = Kokkos::RangePolicy<>(0, numBins);
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx) { data(idx) += rhs.data(idx); };
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx) { lhs(idx) += rhs.data(idx); };
     Kokkos::parallel_for(policy, kernel);
     Kokkos::fence();
     return *this;
