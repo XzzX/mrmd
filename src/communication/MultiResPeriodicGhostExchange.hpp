@@ -289,13 +289,15 @@ public:
     {
         // reset ghost atoms
         atoms.numGhostParticles = 0;
-        util::grow(atomCorrespondingRealParticle_, idx_c(atoms.size()));
+        util::grow(atomCorrespondingRealParticle_, atoms.numLocalParticles);
         Kokkos::deep_copy(atomCorrespondingRealParticle_, -1);
+        atoms.resize(atomCorrespondingRealParticle_.extent(0));
 
         // reset ghost molecules
         molecules.numGhostMolecules = 0;
-        util::grow(moleculesCorrespondingRealParticle_, idx_c(molecules.size()));
+        util::grow(moleculesCorrespondingRealParticle_, molecules.numLocalMolecules);
         Kokkos::deep_copy(moleculesCorrespondingRealParticle_, -1);
+        molecules.resize(moleculesCorrespondingRealParticle_.extent(0));
 
         auto maxIdx = molecules.numLocalMolecules + molecules.numGhostMolecules;
         exchangeGhosts<DIRECTION_X_HIGH>(molecules, atoms, maxIdx);
