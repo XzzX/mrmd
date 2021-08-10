@@ -32,9 +32,10 @@ using namespace mrmd;
 struct Config
 {
     bool bOutput = true;
+    idx_t outputInterval = -1;
 
     // general simulation parameters
-    idx_t nsteps = 5000000;
+    idx_t nsteps = 5000001;
     real_t dt = 0.0005_r;
 
     // simulation box parameters
@@ -113,8 +114,8 @@ void LJ(Config& config)
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     communication::MultiResGhostLayer ghostLayer(subdomain);
 
-    util::printTable("step", "time", "T", "Ek", "E0", "E", "Nlocal", "Nghost");
-    util::printTableSep("step", "time", "T", "Ek", "E0", "E", "Nlocal", "Nghost");
+    util::printTable("step", "time", "T", "Ek", "E0", "E", "mu", "Nlocal", "Nghost");
+    util::printTableSep("step", "time", "T", "Ek", "E0", "E", "mu", "Nlocal", "Nghost");
     for (auto i = 0; i < config.nsteps; ++i)
     {
         assert(atoms.numLocalParticles == molecules.numLocalMolecules);
@@ -167,10 +168,6 @@ void LJ(Config& config)
         if (i % config.densitySamplingInterval == 0)
         {
             thermodynamicForce.sample(atoms);
-            if (thermodynamicForce.getNumberOfDensityProfileSamples() == 1)
-            {
-                fDensityOut << thermodynamicForce.getDensityProfile() << std::endl;
-            }
         }
 
         if (i % config.densityUpdateInterval == 0)
@@ -189,26 +186,30 @@ void LJ(Config& config)
 
         action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 
-        if (config.bOutput && (i % 1000 == 0))
+        if (config.bOutput && (i % config.outputInterval == 0))
         {
-            //            VerletList atomsVerletList(atoms.getPos(),
-            //                                       0,
-            //                                       atoms.numLocalParticles,
-            //                                       config.neighborCutoff,
-            //                                       config.cell_ratio,
-            //                                       subdomain.minGhostCorner.data(),
-            //                                       subdomain.maxGhostCorner.data(),
-            //                                       config.estimatedMaxNeighbors);
             auto T = analysis::getTemperature(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
             auto Ek = (3_r / 2_r) * T;
             E0 /= real_c(atoms.numLocalParticles);
+
+            // calc chemical potential
+            auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+                                                           thermodynamicForce.getForce().data);
+            auto mu = 0_r;
+            for (auto i = 0; i < Fth.extent(0) / 2; ++i)
+            {
+                mu += Fth(i);
+            }
+            mu *= thermodynamicForce.getForce().binSize;
+
             util::printTable(i,
                              timer.seconds(),
                              T,
                              Ek,
                              E0,
                              E0 + Ek,
+                             mu,
                              atoms.numLocalParticles,
                              atoms.numGhostParticles);
 
@@ -239,15 +240,12 @@ int main(int argc, char* argv[])  // NOLINT
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
 
     Config config;
-    CLI::App app{"Lennard Jones Fluid benchmark application"};
+    CLI::App app{"AdResS LJ-IG benchmark simulation"};
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
-    app.add_option(
-        "-T,--temperature",
-        config.temperature,
-        "temperature of the Langevin thermostat (negative numbers deactivate the thermostat)");
-    app.add_flag("-o,--output", config.bOutput, "print physical state regularly");
+    app.add_option("-o,--output", config.outputInterval, "output interval");
     CLI11_PARSE(app, argc, argv);
 
+    if (config.outputInterval < 0) config.bOutput = false;
     LJ(config);
 
     return EXIT_SUCCESS;
