@@ -116,7 +116,7 @@ void LJ(Config& config)
 
     util::printTable("step", "time", "T", "Ek", "E0", "E", "mu", "Nlocal", "Nghost");
     util::printTableSep("step", "time", "T", "Ek", "E0", "E", "mu", "Nlocal", "Nghost");
-    for (auto i = 0; i < config.nsteps; ++i)
+    for (auto step = 0; step < config.nsteps; ++step)
     {
         assert(atoms.numLocalParticles == molecules.numLocalMolecules);
         assert(atoms.numGhostParticles == molecules.numGhostMolecules);
@@ -165,12 +165,12 @@ void LJ(Config& config)
         auto moleculesForce = molecules.getForce();
         Cabana::deep_copy(moleculesForce, 0_r);
 
-        if (i % config.densitySamplingInterval == 0)
+        if (step % config.densitySamplingInterval == 0)
         {
             thermodynamicForce.sample(atoms);
         }
 
-        if (i % config.densityUpdateInterval == 0)
+        if (step % config.densityUpdateInterval == 0)
         {
             thermodynamicForce.update();
         }
@@ -186,7 +186,7 @@ void LJ(Config& config)
 
         action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 
-        if (config.bOutput && (i % config.outputInterval == 0))
+        if (config.bOutput && (step % config.outputInterval == 0))
         {
             auto T = analysis::getTemperature(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
@@ -203,7 +203,7 @@ void LJ(Config& config)
             }
             mu *= thermodynamicForce.getForce().binSize;
 
-            util::printTable(i,
+            util::printTable(step,
                              timer.seconds(),
                              T,
                              Ek,
@@ -213,7 +213,7 @@ void LJ(Config& config)
                              atoms.numLocalParticles,
                              atoms.numGhostParticles);
 
-            io::dumpCSV("particles_" + std::to_string(i) + ".csv", atoms);
+            io::dumpCSV("particles_" + std::to_string(step) + ".csv", atoms);
 
             fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
             fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
