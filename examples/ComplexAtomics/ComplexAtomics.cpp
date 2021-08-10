@@ -12,7 +12,7 @@ struct DoubleCounter
     KOKKOS_INLINE_FUNCTION
     DoubleCounter() = default;
     KOKKOS_INLINE_FUNCTION
-    DoubleCounter(idx_t f, idx_t s) : first(f), second(s) {}
+    DoubleCounter(idx_t firstArg, idx_t secondArg) : first(firstArg), second(secondArg) {}
     KOKKOS_INLINE_FUNCTION
     DoubleCounter(const DoubleCounter& rhs) = default;
 
@@ -30,6 +30,14 @@ struct DoubleCounter
         second = rhs.second;
     }
 
+    KOKKOS_INLINE_FUNCTION
+    void operator=(volatile const DoubleCounter& rhs) volatile
+    {
+        first = rhs.first;
+        second = rhs.second;
+    }
+
+    KOKKOS_INLINE_FUNCTION
     DoubleCounter& operator+=(const DoubleCounter& rhs)
     {
         first += rhs.first;
