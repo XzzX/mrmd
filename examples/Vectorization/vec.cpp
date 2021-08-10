@@ -5,58 +5,12 @@
 
 using namespace mrmd;
 
-class CabanaVec
+void loop()
 {
-public:
-    constexpr static idx_t size = 10000;
-    constexpr static idx_t dim = 3;
-    constexpr static int VectorLength = 8;
+    constexpr int LENGTH = 10000;
+    ScalarView vec("vec", LENGTH);
 
-    using DeviceType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace, Kokkos::HostSpace>;
-    using DataTypes = Cabana::MemberTypes<double[dim]>;
-    using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VectorLength>;
-
-    real_t& get(const idx_t idx, const idx_t dim) const { return Cabana::slice<0>(vec_)(idx, dim); }
-
-private:
-    ParticlesT vec_ = ParticlesT("vec", size);
-};
-
-class KokkosVec
-{
-public:
-    constexpr static idx_t size = 10000;
-    constexpr static idx_t dim = 3;
-    using VectorView = Kokkos::View<real_t**>;
-
-    real_t& get(const idx_t idx, const idx_t dim) const { return vec_(dim, idx); }
-
-private:
-    VectorView vec_ = VectorView("vec", dim, size);
-};
-
-template <typename VECTOR_T>
-void native_loop()
-{
-    VECTOR_T vec;
-    for (idx_t idx = 0; idx < VECTOR_T::size; ++idx)
-    {
-        vec.get(idx, 0) += 5;
-        vec.get(idx, 1) += 6;
-        vec.get(idx, 2) += 7;
-    };
-    for (auto i = 0; i < 10; ++i)
-    {
-        std::cout << vec.get(i, 0) << " | " << vec.get(i, 1) << " | " << vec.get(i, 2) << std::endl;
-    }
-}
-
-template <typename VECTOR_T>
-void kokkos_loop()
-{
-    VECTOR_T vec;
-
-    const int VECTOR_LENGTH = VECTOR_T::size;
+    const int VECTOR_LENGTH = LENGTH;
     const int TEAM_SIZE = 1;
     const int NUMBER_OF_TEAMS = 1;
 
@@ -67,19 +21,14 @@ void kokkos_loop()
         const int e = teamMember.league_rank() * teamMember.team_size() * VECTOR_LENGTH;
 
         auto vectorPolicy = Kokkos::ThreadVectorRange<>(teamMember, VECTOR_LENGTH);
-        auto vectorKernel = KOKKOS_LAMBDA(int idx)
-        {
-            vec.get(e + idx, 0) += 5;
-            //            vec.get(e + idx, 1) += 6;
-            //            vec.get(e + idx, 2) += 7;
-        };
+        auto vectorKernel = [=](int idx) { vec(e + idx) += 5; };
         Kokkos::parallel_for(vectorPolicy, vectorKernel);
     };
     Kokkos::parallel_for(policy, kernel);
 
     for (auto i = 0; i < 10; ++i)
     {
-        std::cout << vec.get(i, 0) << " | " << vec.get(i, 1) << " | " << vec.get(i, 2) << std::endl;
+        std::cout << vec(i) << std::endl;
     }
 }
 
@@ -87,7 +36,7 @@ int main(int argc, char* argv[])
 {
     Kokkos::ScopeGuard scope_guard(argc, argv);
 
-    kokkos_loop<KokkosVec>();
+    loop();
 
     return EXIT_SUCCESS;
 }
