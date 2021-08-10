@@ -58,6 +58,16 @@ idx_t countWithinCutoff(data::Particles& particles,
     return count;
 }
 
+size_t countPairs(VerletList& vl)
+{
+    size_t vlParticlePairs = 0;
+    Kokkos::parallel_reduce(
+        vl._data.counts.size(),
+        KOKKOS_LAMBDA(const int idx, size_t& count) { count += vl._data.counts(idx); },
+        vlParticlePairs);
+    return vlParticlePairs;
+}
+
 TEST(LennardJones, ESPPComparison)
 {
     constexpr double rc = 2.5;
@@ -95,11 +105,8 @@ TEST(LennardJones, ESPPComparison)
                            cell_ratio,
                            subdomain.minGhostCorner.data(),
                            subdomain.maxGhostCorner.data());
-    size_t vlParticlePairs = 0;
-    Kokkos::parallel_reduce(
-        verlet_list._data.counts.size(),
-        KOKKOS_LAMBDA(const int idx, size_t& count) { count += verlet_list._data.counts(idx); },
-        vlParticlePairs);
+
+    size_t vlParticlePairs = countPairs(verlet_list);
     EXPECT_EQ(vlParticlePairs, ESPP_NEIGHBORS);
     std::cout << "create verlet list: " << timer.seconds() << std::endl;
 
