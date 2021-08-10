@@ -5,7 +5,6 @@ gpu:
     - $CXX --version
     - git --version
     - cmake --version
-    - ccache --version
     - module purge
     - module load cmake/3.18 doxygen git
     - module load gcc/10 cuda/11.2
