@@ -46,6 +46,7 @@ struct DoubleCounter
     }
 };
 
+KOKKOS_INLINE_FUNCTION
 DoubleCounter operator+(const DoubleCounter& lhs, const DoubleCounter& rhs)
 {
     return DoubleCounter(lhs.first + rhs.first, lhs.second + rhs.second);
