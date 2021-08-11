@@ -2,12 +2,12 @@ gpu:
   tags:
     - cobra
   script:
-    - $CXX --version
-    - git --version
-    - cmake --version
     - module purge
     - module load cmake/3.18 doxygen git
     - module load gcc/10 cuda/11.2
+    - $CXX --version
+    - git --version
+    - cmake --version
     - cmake -S . -B mrmd-build -DCMAKE_BUILD_TYPE=Debug -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON
     - cmake --build mrmd-build --target all -j 32
     - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 ctest --rerun-failed --output-on-failure -j 2
