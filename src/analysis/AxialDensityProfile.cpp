@@ -24,6 +24,7 @@ data::Histogram getAxialDensityProfile(const data::Particles::pos_t& positions,
     };
     Kokkos::parallel_for(policy, kernel);
     Kokkos::Experimental::contribute(histogram.data, scatter);
+    Kokkos::fence();
 
     return histogram;
 }
