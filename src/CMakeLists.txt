@@ -40,3 +40,6 @@ add_executable(mrmd_tests
 target_link_libraries(mrmd_tests
         PRIVATE mrmd gtest
         )
+
+include(GoogleTest)
+gtest_discover_tests(mrmd_tests)

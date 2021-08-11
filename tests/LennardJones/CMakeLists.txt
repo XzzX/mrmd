@@ -5,3 +5,6 @@ add_executable(LennardJonesIntegrationTest
 target_link_libraries(LennardJonesIntegrationTest
         PRIVATE mrmd gtest
         )
+
+include(GoogleTest)
+gtest_discover_tests(LennardJonesIntegrationTest)
