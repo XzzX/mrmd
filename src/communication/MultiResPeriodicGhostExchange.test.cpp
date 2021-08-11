@@ -74,7 +74,7 @@ TEST_F(MultiResPeriodicGhostExchangeTest, SelfExchangeXHigh)
         ghostExchange.exchangeGhosts<MultiResPeriodicGhostExchange::DIRECTION_X_HIGH>(
             molecules, atoms, molecules.numLocalMolecules);
     EXPECT_EQ(molecules.numGhostMolecules, 9);
-    EXPECT_EQ(atoms.numGhostParticles, 18);
+    EXPECT_EQ(atoms.numGhostParticles, 9);
 }
 
 }  // namespace impl
