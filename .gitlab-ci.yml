@@ -5,7 +5,6 @@ gpu:
     - module purge
     - module load cmake/3.18 doxygen git
     - module load gcc/10 cuda/11.2
-    - $CXX --version
     - git --version
     - cmake --version
     - cmake -S . -B mrmd-build -DCMAKE_BUILD_TYPE=Debug -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON
