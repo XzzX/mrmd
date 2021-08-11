@@ -53,7 +53,7 @@ jobs:
 
       - name: Test
         working-directory: mrmd-build
-        run: ctest --rerun-failed --output-on-failure -j 2
+        run: src/mrmd_test
 
   release-build:
     strategy:
@@ -101,7 +101,7 @@ jobs:
 
       - name: Test
         working-directory: mrmd-build
-        run: ctest --rerun-failed --output-on-failure -j 2
+        run: src/mrmd_test
 
   benchmark:
     runs-on: ubuntu-latest
