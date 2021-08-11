@@ -7,4 +7,5 @@ target_link_libraries(LennardJonesIntegrationTest
         )
 
 include(GoogleTest)
-gtest_discover_tests(LennardJonesIntegrationTest)
+gtest_discover_tests(LennardJonesIntegrationTest
+        DISCOVERY_MODE PRE_TEST)

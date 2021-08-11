@@ -42,4 +42,5 @@ target_link_libraries(mrmd_tests
         )
 
 include(GoogleTest)
-gtest_discover_tests(mrmd_tests)
+gtest_discover_tests(mrmd_tests
+        DISCOVERY_MODE PRE_TEST)
