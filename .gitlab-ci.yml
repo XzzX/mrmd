@@ -15,3 +15,5 @@ gpu:
     CMAKE_PREFIX_PATH: "~/software/kokkos-install"
     OMP_PROC_BIND: "spread"
     OMP_PLACES: "threads"
+    CXX: "g++"
+    CC: "gcc"
