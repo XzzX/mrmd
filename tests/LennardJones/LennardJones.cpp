@@ -25,7 +25,7 @@ constexpr real_t ESPP_INITIAL_ENERGY = -94795.927_r;
 
 idx_t countWithinCutoff(data::Particles& particles,
                         const real_t& cutoff,
-                        const double* box,
+                        const std::array<real_t, 3>& box,
                         const bool periodic)
 {
     auto rcSqr = cutoff * cutoff;
@@ -81,7 +81,7 @@ TEST(LennardJones, ESPPComparison)
     std::cout << "load particles: " << timer.seconds() << std::endl;
 
     idx_t bfParticlePairs = 0;
-    bfParticlePairs = countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), true);
+    bfParticlePairs = countWithinCutoff(particles, rc + skin, subdomain.diameter, true);
     EXPECT_EQ(bfParticlePairs, ESPP_NEIGHBORS);
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
@@ -93,7 +93,7 @@ TEST(LennardJones, ESPPComparison)
     particles.resize(particles.numLocalParticles + particles.numGhostParticles);
     std::cout << "halo exchange: " << timer.seconds() << std::endl;
 
-    bfParticlePairs = countWithinCutoff(particles, rc + skin, subdomain.diameter.data(), false);
+    bfParticlePairs = countWithinCutoff(particles, rc + skin, subdomain.diameter, false);
     EXPECT_EQ(bfParticlePairs, 1426948);
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
