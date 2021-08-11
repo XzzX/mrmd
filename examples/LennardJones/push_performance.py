@@ -8,7 +8,7 @@ import subprocess
 files = list(Path('.').glob('*.json'))
 assert (len(files) == 1)
 
-with open(files[0], 'r') as fin:
+with open(str(files[0]), 'r') as fin:
     data = json.load(fin)
 data['datetime'] = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 data['git'] = subprocess.check_output(["git", "describe", "--always"]).strip().decode()

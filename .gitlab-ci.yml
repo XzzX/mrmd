@@ -25,6 +25,7 @@ benchmark:
     - module purge
     - module load cmake/3.18 doxygen git
     - module load gcc/10 cuda/11.2
+    - module load anaconda/3
     - git --version
     - cmake --version
     - cmake -S . -B mrmd-build -DCMAKE_BUILD_TYPE=Release -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON
@@ -38,4 +39,4 @@ benchmark:
     OMP_PLACES: "threads"
     CXX: "g++"
     CC: "gcc"
-    KOKKOS_PROFILE_LIBRARY: "~/software/kokkos-tools/profiling/simple-kernel-timer-json/kp_kernel_timer_json.so"
+    KOKKOS_PROFILE_LIBRARY: "/u/seibl/software/kokkos-tools/profiling/simple-kernel-timer-json/kp_kernel_timer_json.so"
