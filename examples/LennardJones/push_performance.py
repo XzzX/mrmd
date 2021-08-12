@@ -14,6 +14,10 @@ files = list(Path('.').glob('*0.json'))
 assert (len(files) == 1)
 file = files[0]
 
+from kokkos_tools import print_kernel_runtimes
+
+print_kernel_runtimes(str(file), 10)
+
 with open(str(file), 'r') as fin:
     data = json.load(fin)
 data['datetime'] = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
