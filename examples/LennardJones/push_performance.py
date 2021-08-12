@@ -11,6 +11,7 @@ parser.add_argument('type', type=str, help='simulation type')
 args = parser.parse_args()
 
 files = list(Path('.').glob('*.json'))
+print(files)
 assert (len(files) == 1)
 file = files[0]
 
