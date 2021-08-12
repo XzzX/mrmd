@@ -19,6 +19,7 @@
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
 #include "io/RestoreTXT.hpp"
+#include "util/EnvironmentVariables.hpp"
 
 using namespace mrmd;
 
@@ -165,25 +166,12 @@ void LJ(Config& config)
     auto time = timer.seconds();
     std::cout << time << std::endl;
 
-    auto cores = std::getenv("OMP_NUM_THREADS") != nullptr
-                     ? std::string(std::getenv("OMP_NUM_THREADS"))
-                     : std::string("0");
+    auto cores = util::getEnvironmentVariable("OMP_NUM_THREADS");
 
     std::ofstream fout("ecab.perf", std::ofstream::app);
     fout << cores << ", " << time << ", " << particles.numLocalParticles << ", " << config.nsteps
          << std::endl;
     fout.close();
-
-    // dumpCSV("particles_" + std::to_string(i) + ".csv", particles);
-
-    auto E0 = LJ.computeEnergy(particles, verletList);
-    auto T = analysis::getTemperature(particles);
-
-    //    CHECK_LESS(E0, -162000_r);
-    //    CHECK_GREATER(E0, -163000_r);
-    //
-    //    CHECK_LESS(T, 1.43_r);
-    //    CHECK_GREATER(T, 1.41_r);
 }
 
 int main(int argc, char* argv[])  // NOLINT
