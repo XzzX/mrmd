@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
 
+import argparse
 from datetime import datetime
 import json
 from pathlib import Path
 import subprocess
 
+parser = argparse.ArgumentParser(description='Parse Kokkos performance results and send them to InfluxDB')
+parser.add_argument('type', type=str, help='simulation type')
+args = parser.parse_args()
+
 files = list(Path('.').glob('*.json'))
 assert (len(files) == 1)
+file = files[0]
 
-with open(str(files[0]), 'r') as fin:
+with open(str(file), 'r') as fin:
     data = json.load(fin)
 data['datetime'] = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 data['git'] = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
+data['type'] = args.type
+file.rename(f'{args.type}.txt')
 
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
@@ -26,6 +34,7 @@ client = InfluxDBClient(url=os.environ["INFLUXDB_URL"], token=token)
 
 point = Point("performance") \
     .tag("git", data['git']) \
+    .tag("type", data['type']) \
     .field("total-app-time", data['kokkos-kernel-data']['total-app-time']) \
     .field("total-kernel-times", data['kokkos-kernel-data']['total-kernel-times']) \
     .field("total-non-kernel-times", data['kokkos-kernel-data']['total-non-kernel-times']) \

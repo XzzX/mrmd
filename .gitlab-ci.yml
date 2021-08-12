@@ -28,13 +28,17 @@ benchmark:
     - module load anaconda/3
     - git --version
     - cmake --version
-    - cmake -S . -B mrmd-build -DCMAKE_BUILD_TYPE=Release -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON
-    - cmake --build mrmd-build --target all -j 32
-    - cd mrmd-build/examples/LennardJones
-    - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 ./LennardJones --nsteps 2001 --output 1000 --length 60
-    - python3 push_performance.py
+
+    - cmake -S . -B mrmd-cpu -DCMAKE_PREFIX_PATH=~/software/kokkos-cpu -DCMAKE_BUILD_TYPE=Release -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON
+    - cmake --build mrmd-cpu --target LennardJones -j 32
+    - srun --nodes=1 --ntasks=1 --cpus-per-task=40 --time=15:00 mrmd-cpu/examples/LennardJones/LennardJones --nsteps 2001 --output 1000 --length 60
+    - python3 mrmd-cpu/examples/LennardJones/push_performance.py Skylake
+
+    - cmake -S . -B mrmd-gpu -DCMAKE_PREFIX_PATH=~/software/kokkos-gpu -DCMAKE_BUILD_TYPE=Release -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON
+    - cmake --build mrmd-gpu --target LennardJones -j 32
+    - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 mrmd-gpu/examples/LennardJones/LennardJones --nsteps 2001 --output 1000 --length 60
+    - python3 mrmd-gpu/examples/LennardJones/push_performance.py V100
   variables:
-    CMAKE_PREFIX_PATH: "~/software/kokkos-install"
     OMP_PROC_BIND: "spread"
     OMP_PLACES: "threads"
     CXX: "g++"
