@@ -95,7 +95,7 @@ void LJ(Config& config)
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;
-    for (auto i = 0; i < config.nsteps; ++i)
+    for (auto step = 0; step < config.nsteps; ++step)
     {
         maxParticleDisplacement += action::VelocityVerlet::preForceIntegrate(particles, config.dt);
 
@@ -150,7 +150,7 @@ void LJ(Config& config)
             auto T = analysis::getTemperature(particles);
             auto systemMomentum = analysis::getSystemMomentum(particles);
             auto Ek = (3_r / 2_r) * real_c(particles.numLocalParticles) * T;
-            std::cout << i << ": " << timer.seconds() << std::endl;
+            std::cout << step << ": " << timer.seconds() << std::endl;
             std::cout << "system momentum: " << systemMomentum[0] << " | " << systemMomentum[1]
                       << " | " << systemMomentum[2] << std::endl;
             std::cout << "rebuild counter: " << rebuildCounter << std::endl;
