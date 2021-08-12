@@ -31,7 +31,7 @@ benchmark:
     - cmake -S . -B mrmd-build -DCMAKE_BUILD_TYPE=Release -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON
     - cmake --build mrmd-build --target all -j 32
     - cd mrmd-build/examples/LennardJones
-    - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 ./LennardJones
+    - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 ./LennardJones --nsteps 2001 --output 1000 --length 60
     - python3 push_performance.py
   variables:
     CMAKE_PREFIX_PATH: "~/software/kokkos-install"

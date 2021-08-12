@@ -25,7 +25,7 @@ using namespace mrmd;
 
 struct Config
 {
-    bool bOutput = false;
+    bool bOutput = true;
     idx_t outputInterval = -1;
 
     idx_t nsteps = 2001;
@@ -183,6 +183,7 @@ int main(int argc, char* argv[])  // NOLINT
     Config config;
     CLI::App app{"Lennard Jones Fluid benchmark application"};
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
+    app.add_option("-L,--length", config.Lx, "simulation box diameter");
     app.add_option(
         "-T,--temperature",
         config.temperature,
