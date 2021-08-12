@@ -21,6 +21,7 @@ gpu:
 benchmark:
   tags:
     - cobra
+
   script:
     - module purge
     - module load cmake/3.18 doxygen git
@@ -38,6 +39,12 @@ benchmark:
     - cmake --build mrmd-gpu --target LennardJones -j 32
     - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 mrmd-gpu/examples/LennardJones/LennardJones --nsteps 5001 --output 2500 --length 60
     - python3 mrmd-gpu/examples/LennardJones/push_performance.py V100
+
+  artifacts:
+    paths:
+      - mrmd-cpu/examples/LennardJones/Skylake.txt
+      - mrmd-gpu/examples/LennardJones/V100.txt
+
   variables:
     OMP_PROC_BIND: "spread"
     OMP_PLACES: "threads"
