@@ -42,8 +42,8 @@ benchmark:
 
   artifacts:
     paths:
-      - mrmd-cpu/examples/LennardJones/Skylake.txt
-      - mrmd-gpu/examples/LennardJones/V100.txt
+      - $CI_PROJECT_DIR/mrmd-cpu/examples/LennardJones/Skylake.json
+      - $CI_PROJECT_DIR/mrmd-gpu/examples/LennardJones/V100.json
 
   variables:
     OMP_PROC_BIND: "spread"

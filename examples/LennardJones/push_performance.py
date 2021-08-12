@@ -19,7 +19,7 @@ with open(str(file), 'r') as fin:
 data['datetime'] = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 data['git'] = subprocess.check_output(["git", "describe", "--always"]).strip().decode()
 data['type'] = args.type
-file.rename(f'{args.type}.txt')
+file.rename(f'{args.type}.json')
 
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import SYNCHRONOUS
