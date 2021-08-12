@@ -41,11 +41,51 @@ struct Config
     idx_t estimatedMaxNeighbors = 60;
 };
 
+auto fillDomainWithParticlesSC(const data::Subdomain& subdomain,
+                               const real_t& spacing,
+                               const real_t& maxVelocity)
+{
+    auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
+
+    auto nx = idx_t(subdomain.diameter[0] / spacing);
+    auto ny = idx_t(subdomain.diameter[1] / spacing);
+    auto nxny = nx * ny;
+    auto nz = idx_t(subdomain.diameter[2] / spacing);
+    auto numParticles = nx * ny * nz;
+    data::Particles particles(numParticles);
+
+    auto pos = particles.getPos();
+    auto vel = particles.getVel();
+
+    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0}, {nx, ny, nz});
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t idy, const idx_t idz)
+    {
+        auto i = idx + idy * nx + idz * nxny;
+        pos(i, 0) = real_c(idx) * spacing + subdomain.minCorner[0];
+        pos(i, 1) = real_c(idy) * spacing + subdomain.minCorner[1];
+        pos(i, 2) = real_c(idz) * spacing + subdomain.minCorner[2];
+
+        auto randGen = RNG.get_state();
+        vel(idx, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(idx, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(idx, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
+        RNG.free_state(randGen);
+    };
+    Kokkos::parallel_for("fillDomainWithParticlesSC", policy, kernel);
+
+    particles.numLocalParticles = numParticles;
+    particles.numGhostParticles = 0;
+    return particles;
+}
+
 void LJ(Config& config)
 {
     auto subdomain =
         data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
-    auto particles = io::restoreParticles("positions.txt");
+    auto particles = fillDomainWithParticlesSC(subdomain, 1.1_r, 1_r);
+    auto rho = particles.numLocalParticles /
+               (subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]);
+    std::cout << "rho: " << rho << std::endl;
 
     communication::GhostLayer ghostLayer(subdomain);
     action::LennardJones LJ(config.rc, 1_r, 1_r);
