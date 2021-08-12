@@ -43,9 +43,9 @@ struct Config
     idx_t estimatedMaxNeighbors = 60;
 };
 
-auto fillDomainWithParticlesSC(const data::Subdomain& subdomain,
-                               const real_t& spacing,
-                               const real_t& maxVelocity)
+data::Particles fillDomainWithParticlesSC(const data::Subdomain& subdomain,
+                                          const real_t& spacing,
+                                          const real_t& maxVelocity)
 {
     auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
 
@@ -139,7 +139,7 @@ void LJ(Config& config)
         LJ.applyForces(particles, verletList);
         if (config.temperature >= 0)
         {
-            langevinThermostat.apply(particles);
+            // langevinThermostat.apply(particles);
         }
         ghostLayer.contributeBackGhostToReal(particles);
 
