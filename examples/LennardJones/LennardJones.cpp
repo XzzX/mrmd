@@ -85,7 +85,7 @@ void LJ(Config& config)
     auto subdomain =
         data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
     auto particles = fillDomainWithParticlesSC(subdomain, 1.1_r, 1_r);
-    auto rho = particles.numLocalParticles /
+    auto rho = real_c(particles.numLocalParticles) /
                (subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]);
     std::cout << "rho: " << rho << std::endl;
 
