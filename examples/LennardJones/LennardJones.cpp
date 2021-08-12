@@ -25,6 +25,7 @@ using namespace mrmd;
 struct Config
 {
     bool bOutput = false;
+    idx_t outputInterval = -1;
 
     idx_t nsteps = 2001;
     real_t rc = 2.5;
@@ -143,7 +144,7 @@ void LJ(Config& config)
 
         action::VelocityVerlet::postForceIntegrate(particles, config.dt);
 
-        if (config.bOutput && (i % 100 == 0))
+        if (config.bOutput && (step % config.outputInterval == 0))
         {
             auto E0 = LJ.computeEnergy(particles, verletList);
             auto T = analysis::getTemperature(particles);
@@ -198,9 +199,10 @@ int main(int argc, char* argv[])  // NOLINT
         "-T,--temperature",
         config.temperature,
         "temperature of the Langevin thermostat (negative numbers deactivate the thermostat)");
-    app.add_flag("-o,--output", config.bOutput, "print physical state regularly");
+    app.add_option("-o,--output", config.outputInterval, "output interval");
     CLI11_PARSE(app, argc, argv);
 
+    if (config.outputInterval < 0) config.bOutput = false;
     LJ(config);
 
     return EXIT_SUCCESS;
