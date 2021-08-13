@@ -124,7 +124,7 @@ public:
         if (correspondingRealParticle_.extent(0) < particles.numLocalParticles)
         {
             // initialize correspondingRealParticle_ for all real particles
-            Kokkos::resize(correspondingRealParticle_, particles.numLocalParticles);
+            util::grow(correspondingRealParticle_, particles.numLocalParticles);
             Kokkos::deep_copy(correspondingRealParticle_, -1);
         }
         assert(correspondingRealParticle_.extent(0) >= particles.size());
@@ -160,8 +160,9 @@ public:
     IndexView createGhostParticlesXYZ(data::Particles& particles)
     {
         particles.numGhostParticles = 0;
-        util::grow(correspondingRealParticle_, idx_c(particles.size()));
+        util::grow(correspondingRealParticle_, particles.numLocalParticles);
         Kokkos::deep_copy(correspondingRealParticle_, -1);
+        particles.resize(correspondingRealParticle_.extent(0));
 
         auto maxIdx = particles.numLocalParticles + particles.numGhostParticles;
         exchangeGhosts<impl::GhostExchange::DIRECTION_X_HIGH>(particles, maxIdx);
