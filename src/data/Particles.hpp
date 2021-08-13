@@ -2,6 +2,8 @@
 
 #include <Cabana_Core.hpp>
 
+#include "cmake.hpp"
+#include "constants.hpp"
 #include "datatypes.hpp"
 
 namespace mrmd
@@ -11,10 +13,6 @@ namespace data
 class Particles
 {
 public:
-    /// number of spatial dimensions
-    constexpr static int DIMENSIONS = 3;
-    constexpr static int VECTOR_LENGTH = 1;
-
     enum Props
     {
         POS = 0,

@@ -26,7 +26,7 @@ public:
         auto realIdx = correspondingRealParticle_(idx);
         assert(correspondingRealParticle_(realIdx) == -1 &&
                "We do not want to add forces to ghost particles!");
-        for (auto dim = 0; dim < data::Particles::DIMENSIONS; ++dim)
+        for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
             force_(realIdx, dim) += force_(idx, dim);
             force_(idx, dim) = 0_r;

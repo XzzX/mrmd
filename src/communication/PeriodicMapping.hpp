@@ -26,7 +26,7 @@ public:
     KOKKOS_INLINE_FUNCTION
     void operator()(const idx_t& idx) const
     {
-        for (auto dim = 0; dim < data::Particles::DIMENSIONS; ++dim)
+        for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
             auto& x = pos_(idx, dim);
             if (subdomain_.maxCorner[dim] <= x)

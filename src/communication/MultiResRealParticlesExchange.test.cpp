@@ -65,7 +65,7 @@ TEST_F(MultiResRealParticlesExchangeTest, SingleAtomTest)
     auto moleculesPos = molecules.getPos();
     for (auto idx = 0; idx < molecules.numLocalMolecules; ++idx)
     {
-        for (auto dim = 0; dim < data::Particles::DIMENSIONS; ++dim)
+        for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
             EXPECT_GE(moleculesPos(idx, dim), subdomain.minCorner[dim]);
             EXPECT_LT(moleculesPos(idx, dim), subdomain.maxCorner[dim]);
@@ -75,7 +75,7 @@ TEST_F(MultiResRealParticlesExchangeTest, SingleAtomTest)
     auto atomsPos = atoms.getPos();
     for (auto idx = 0; idx < atoms.numLocalParticles; ++idx)
     {
-        for (auto dim = 0; dim < data::Particles::DIMENSIONS; ++dim)
+        for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
             EXPECT_GE(atomsPos(idx, dim), subdomain.minCorner[dim]);
             EXPECT_LT(atomsPos(idx, dim), subdomain.maxCorner[dim]);

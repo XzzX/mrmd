@@ -1,0 +1,9 @@
+#pragma once
+
+#include "datatypes.hpp"
+
+namespace mrmd
+{
+/// vector length of the AoSoA data structures
+constexpr static int VECTOR_LENGTH = @MRMD_VECTOR_LENGTH@;
+}  // namespace mrmd

@@ -3,10 +3,14 @@ file(GLOB_RECURSE MRMD_TESTS *test*)
 
 list(REMOVE_ITEM MRMD_SOURCES ${MRMD_TESTS})
 
+set(MRMD_VECTOR_LENGTH 1 CACHE STRING "vector length of AoSoA data structure")
+configure_file(cmake.hpp.in cmake.hpp @ONLY)
+
 add_library(mrmd ${MRMD_SOURCES})
 target_link_libraries(mrmd PUBLIC Kokkos::kokkos Cabana::cabanacore)
 target_include_directories(mrmd
-        PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/src>)
+        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
+target_include_directories(mrmd PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 if (MRMD_WERROR)
     target_compile_options(mrmd PRIVATE "-Werror")

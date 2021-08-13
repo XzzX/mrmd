@@ -28,7 +28,7 @@ void realParticlesExchange(const data::Subdomain& subdomain,
     auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
-        for (auto dim = 0; dim < data::Particles::DIMENSIONS; ++dim)
+        for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
             auto& moleculeX = moleculesPos(idx, dim);
             if (subdomain.maxCorner[dim] <= moleculeX)
