@@ -111,9 +111,12 @@ constexpr idx_t COORD_Z = 2;  ///< index of the z coordinate in vector views
 
 using IndexView = Kokkos::View<idx_t *>;
 using IntView = Kokkos::View<idx_t *>;
-using IntScatterView = Kokkos::Experimental::ScatterView<real_t *>;
+using IntScatterView = Kokkos::Experimental::ScatterView<idx_t *>;
+using PairView = Kokkos::View<idx_t *[2]>;
 using ScalarView = Kokkos::View<real_t *>;
 using ScalarScatterView = Kokkos::Experimental::ScatterView<real_t *>;
+using VectorView = Kokkos::View<real_t *[3]>;
+using VectorScatterView = Kokkos::Experimental::ScatterView<real_t *[3]>;
 
 using DeviceType =
     Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::DefaultExecutionSpace::memory_space>;
