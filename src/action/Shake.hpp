@@ -140,7 +140,7 @@ public:
         vel_ = particles.getVel();
         force_ = particles.getForce();
 
-        util::grow(updatedPos_, pos_.extent(0));
+        util::grow(updatedPos_, idx_c(pos_.extent(0)));
 
         dtv_ = dt;
         dtfsq_ = 0.5_r * dt * dt;
