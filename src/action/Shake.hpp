@@ -1,5 +1,7 @@
 #pragma once
 
+#include "data/Bond.hpp"
+#include "data/Molecules.hpp"
 #include "data/Particles.hpp"
 #include "datatypes.hpp"
 #include "util/Kokkos_grow.hpp"
@@ -119,7 +121,7 @@ public:
         vel_ = particles.getVel();
         force_ = particles.getForce();
 
-        util::grow(updatedPos_, pos_.extent(0));
+        util::grow(updatedPos_, idx_c(pos_.extent(0)));
 
         auto policy = Kokkos::RangePolicy<UnconstraintUpdate>(
             0, particles.numLocalParticles + particles.numGhostParticles);
@@ -132,13 +134,60 @@ public:
         Kokkos::fence();
     }
 
-    Shake(const real_t& dt)
+    Shake(data::Particles& particles, const real_t& dt)
     {
+        pos_ = particles.getPos();
+        vel_ = particles.getVel();
+        force_ = particles.getForce();
+
+        util::grow(updatedPos_, pos_.extent(0));
+
         dtv_ = dt;
         dtfsq_ = 0.5_r * dt * dt;
     }
 };
 }  // namespace impl
+
+class MoleculeConstraints
+{
+private:
+    idx_t atomsPerMolecule_;
+    data::BondView bonds_;
+
+public:
+    void enforceConstraints(data::Molecules& molecules, data::Particles& atoms, const real_t dt)
+    {
+        impl::Shake shake(atoms, dt);
+
+        auto policy = Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(
+            0, atoms.numLocalParticles + atoms.numGhostParticles);
+        Kokkos::parallel_for("Shake::UnconstraintUpdate", policy, shake);
+        Kokkos::fence();
+
+        auto moleculesAtomEndIdx = molecules.getAtomsEndIdx();
+        auto bonds = bonds_;
+        auto applyBondsPolicy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
+        auto kernel = KOKKOS_LAMBDA(idx_t moleculeIdx)
+        {
+            auto atomsStart = moleculeIdx != 0 ? moleculesAtomEndIdx(moleculeIdx - 1) : 0;
+            auto atomsEnd = moleculesAtomEndIdx(moleculeIdx);
+            for (idx_t bondIdx = 0; bondIdx < bonds.extent(0); ++bondIdx)
+            {
+                shake.applyConstraint(
+                    bonds(bondIdx).idx, bonds(bondIdx).jdx, bonds(bondIdx).eqDistance);
+            }
+        };
+        Kokkos::parallel_for("MoleculeConstraints::enforceConstraints", applyBondsPolicy, kernel);
+        Kokkos::fence();
+    }
+    void setConstraints(const data::BondView& bonds) { bonds_ = bonds; }
+    void setConstraints(const data::BondView::host_mirror_type& bonds)
+    {
+        Kokkos::resize(bonds_, bonds.extent(0));
+        Kokkos::deep_copy(bonds_, bonds);
+    }
+    MoleculeConstraints(idx_t atomsPerMolecule) : atomsPerMolecule_(atomsPerMolecule) {}
+};
 
 }  // namespace action
 }  // namespace mrmd

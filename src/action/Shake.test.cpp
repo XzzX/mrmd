@@ -19,7 +19,7 @@ TEST_F(ShakeTest, Attraction)
     bondedPairs(0, 1) = 1;
     eqLength(0) = 1_r;
 
-    impl::Shake shake(0.1_r);
+    impl::Shake shake(atoms, 0.1_r);
     shake.setBonds(bondedPairs, eqLength);
 
     shake.apply(atoms);
@@ -44,7 +44,7 @@ TEST_F(ShakeTest, Repulsion)
     bondedPairs(0, 1) = 1;
     eqLength(0) = 2_r;
 
-    impl::Shake shake(0.1_r);
+    impl::Shake shake(atoms, 0.1_r);
     shake.setBonds(bondedPairs, eqLength);
 
     shake.apply(atoms);
@@ -58,6 +58,29 @@ TEST_F(ShakeTest, Repulsion)
 
     EXPECT_GT(force(0, 0), 0_r);
     EXPECT_LT(force(0, 1), 0_r);
+}
+
+TEST_F(ShakeTest, Molecules)
+{
+    auto dt = 0.1_r;
+    data::BondView::host_mirror_type bonds("bonds", 1);
+    bonds(0).idx = 0;
+    bonds(0).jdx = 1;
+    bonds(0).eqDistance = 1_r;
+
+    MoleculeConstraints mc(1);
+    mc.setConstraints(bonds);
+    mc.enforceConstraints(molecules, atoms, dt);
+
+    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
+    auto force = Cabana::slice<data::Particles::FORCE>(hAoSoA);
+
+    EXPECT_FLOAT_EQ(force(0, 0), -force(1, 0));
+    EXPECT_FLOAT_EQ(force(0, 1), -force(1, 1));
+    EXPECT_FLOAT_EQ(force(0, 2), -force(1, 2));
+
+    EXPECT_LT(force(0, 0), 0_r);
+    EXPECT_GT(force(0, 1), 0_r);
 }
 
 TEST_F(ShakeTest, Shrink)
@@ -81,7 +104,7 @@ TEST_F(ShakeTest, Shrink)
     bondedPairs(3, 1) = 0;
     eqLength(3) = 1_r;
 
-    impl::Shake shake(0.1_r);
+    impl::Shake shake(atoms, 0.1_r);
     shake.setBonds(bondedPairs, eqLength);
 
     shake.apply(atoms);
@@ -124,7 +147,7 @@ TEST_F(ShakeTest, Grow)
     bondedPairs(3, 1) = 0;
     eqLength(3) = 2_r;
 
-    impl::Shake shake(0.1_r);
+    impl::Shake shake(atoms, 0.1_r);
     shake.setBonds(bondedPairs, eqLength);
 
     shake.apply(atoms);
