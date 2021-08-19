@@ -22,9 +22,12 @@ protected:
     {
         data::Molecules molecules(2);
 
-        auto moleculesAtomsEndIdx = molecules.getAtomsEndIdx();
-        moleculesAtomsEndIdx(0) = 2;
-        moleculesAtomsEndIdx(1) = 4;
+        auto moleculesAtomsOffset = molecules.getAtomsOffset();
+        auto moleculesNumAtoms = molecules.getNumAtoms();
+        moleculesAtomsOffset(0) = 0;
+        moleculesNumAtoms(0) = 2;
+        moleculesAtomsOffset(1) = 2;
+        moleculesNumAtoms(1) = 2;
 
         molecules.numLocalMolecules = 2;
 

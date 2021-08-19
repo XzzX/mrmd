@@ -8,7 +8,8 @@ void ContributeMoleculeForceToAtoms::update(const data::Molecules& molecules,
                                             const data::Particles& atoms)
 {
     auto moleculesForce = molecules.getForce();
-    auto moleculesAtomEndIdx = molecules.getAtomsEndIdx();
+    auto moleculesAtomsOffset = molecules.getAtomsOffset();
+    auto moleculeNumAtoms = molecules.getNumAtoms();
 
     auto atomsForce = atoms.getForce();
     auto atomsRelativeMass = atoms.getRelativeMass();
@@ -17,8 +18,8 @@ void ContributeMoleculeForceToAtoms::update(const data::Molecules& molecules,
         Kokkos::RangePolicy<>(0, molecules.numLocalMolecules + molecules.numGhostMolecules);
     auto kernel = KOKKOS_LAMBDA(const idx_t& moleculeIdx)
     {
-        auto atomsStart = moleculeIdx != 0 ? moleculesAtomEndIdx(moleculeIdx - 1) : 0;
-        auto atomsEnd = moleculesAtomEndIdx(moleculeIdx);
+        auto atomsStart = moleculesAtomsOffset(moleculeIdx);
+        auto atomsEnd = atomsStart + moleculeNumAtoms(moleculeIdx);
 
         for (auto atomIdx = atomsStart; atomIdx < atomsEnd; ++atomIdx)
         {

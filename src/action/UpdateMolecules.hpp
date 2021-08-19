@@ -20,7 +20,8 @@ public:
         auto moleculesLambda = molecules.getLambda();
         auto moleculesModulatedLambda = molecules.getModulatedLambda();
         auto moleculesGradLambda = molecules.getGradLambda();
-        auto moleculesAtomEndIdx = molecules.getAtomsEndIdx();
+        auto moleculesAtomsOffset = molecules.getAtomsOffset();
+        auto moleculesNumAtoms = molecules.getNumAtoms();
 
         auto atomsPos = atoms.getPos();
         auto atomsRelativeMass = atoms.getRelativeMass();
@@ -29,8 +30,8 @@ public:
             Kokkos::RangePolicy<>(0, molecules.numLocalMolecules + molecules.numGhostMolecules);
         auto kernel = KOKKOS_LAMBDA(const idx_t& moleculeIdx)
         {
-            auto atomsStart = moleculeIdx != 0 ? moleculesAtomEndIdx(moleculeIdx - 1) : 0;
-            auto atomsEnd = moleculesAtomEndIdx(moleculeIdx);
+            auto atomsStart = moleculesAtomsOffset(moleculeIdx);
+            auto atomsEnd = atomsStart + moleculesNumAtoms(moleculeIdx);
 
             moleculesPos(moleculeIdx, 0) = 0_r;
             moleculesPos(moleculeIdx, 1) = 0_r;

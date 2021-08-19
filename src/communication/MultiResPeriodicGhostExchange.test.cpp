@@ -18,17 +18,20 @@ protected:
     void SetUp() override
     {
         auto moleculesPos = molecules.getPos();
-        auto moleculesAtomsEndIdx = molecules.getAtomsEndIdx();
+        auto moleculesAtomsOffset = molecules.getAtomsOffset();
+        auto moleculesNumAtoms = molecules.getNumAtoms();
         int64_t idx = 0;
         for (real_t x = subdomain.minCorner[0] + 0.5_r; x < subdomain.maxCorner[0]; x += 1_r)
             for (real_t y = subdomain.minCorner[1] + 0.5_r; y < subdomain.maxCorner[1]; y += 1_r)
                 for (real_t z = subdomain.minCorner[2] + 0.5_r; z < subdomain.maxCorner[2];
                      z += 1_r)
                 {
+                    constexpr idx_t moleculeSize = 2;  ///< number of atoms
                     moleculesPos(idx, 0) = x;
                     moleculesPos(idx, 1) = y;
                     moleculesPos(idx, 2) = z;
-                    moleculesAtomsEndIdx(idx) = (idx + 1) * 2;
+                    moleculesAtomsOffset(idx) = idx * moleculeSize;
+                    moleculesNumAtoms(idx) = moleculeSize;
                     ++idx;
                 }
         EXPECT_EQ(idx, 27);
@@ -69,12 +72,12 @@ TEST_F(MultiResPeriodicGhostExchangeTest, SelfExchangeXHigh)
 {
     EXPECT_EQ(molecules.numGhostMolecules, 0);
     EXPECT_EQ(atoms.numGhostParticles, 0);
-    auto ghostExchange = MultiResPeriodicGhostExchange(subdomain);
+    auto ghostExchange = MultiResPeriodicGhostExchange(subdomain, 2);
     auto correspondingRealParticle =
         ghostExchange.exchangeGhosts<MultiResPeriodicGhostExchange::DIRECTION_X_HIGH>(
             molecules, atoms, molecules.numLocalMolecules);
     EXPECT_EQ(molecules.numGhostMolecules, 9);
-    EXPECT_EQ(atoms.numGhostParticles, 9);
+    EXPECT_EQ(atoms.numGhostParticles, 18);
 }
 
 }  // namespace impl

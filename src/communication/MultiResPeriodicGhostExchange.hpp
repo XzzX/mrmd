@@ -72,12 +72,16 @@ private:
 
     data::Molecules molecules_ = data::Molecules(0);
     data::Molecules::pos_t moleculesPos_;
-    data::Molecules::atoms_end_idx_t moleculesAtomEndIdx_;
+    data::Molecules::atoms_offset_t moleculesAtomsOffset_;
+    data::Molecules::num_atoms_t moleculesNumAtoms_;
     /// Stores the corresponding real particle index for every ghost particle.
     IndexView moleculesCorrespondingRealParticle_;
 
-    Kokkos::View<idx_t> newGhostCounter_;
-    Kokkos::View<idx_t>::host_mirror_type hNewGhostCounter_;
+    Kokkos::View<idx_t> newMoleculeGhostCounter_;
+    Kokkos::View<idx_t>::host_mirror_type hNewMoleculeGhostCounter_;
+
+    Kokkos::View<idx_t> newAtomGhostCounter_;
+    Kokkos::View<idx_t>::host_mirror_type hNewAtomGhostCounter_;
 
 public:
     struct DIRECTION_X_HIGH
@@ -129,28 +133,32 @@ public:
      * @return -1, if no ghost particle was created, idx of new ghost particle otherwise
      */
     KOKKOS_INLINE_FUNCTION
-    void copySelfLow(const idx_t idx, const idx_t dim) const
+    void copySelfLow(const idx_t moleculeIdx, const idx_t dim) const
     {
-        if (moleculesPos_(idx, dim) < subdomain_.minInnerCorner[dim])
+        if (moleculesPos_(moleculeIdx, dim) < subdomain_.minInnerCorner[dim])
         {
-            auto atomsStart = (idx != 0 ? moleculesAtomEndIdx_(idx - 1) : 0);  /// inclusive
-            auto atomsEnd = moleculesAtomEndIdx_(idx);                         /// exclusive
+            auto atomsStart = moleculesAtomsOffset_(moleculeIdx);          /// inclusive
+            auto atomsEnd = atomsStart + moleculesNumAtoms_(moleculeIdx);  /// exclusive
             auto moleculeSize = atomsEnd - atomsStart;
 
-            //            DoubleCounter increment(moleculeSize, 1);
-            auto newGhosts = Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
+            auto newMoleculeGhosts = Kokkos::atomic_fetch_add(&newMoleculeGhostCounter_(), 1);
             auto moleculeNewGhostIdx =
-                molecules_.numLocalMolecules + molecules_.numGhostMolecules + newGhosts;
-            auto atomNewGhostIdx = atoms_.numLocalParticles + atoms_.numGhostParticles + newGhosts;
+                molecules_.numLocalMolecules + molecules_.numGhostMolecules + newMoleculeGhosts;
+
+            auto newAtomGhosts = Kokkos::atomic_fetch_add(&newAtomGhostCounter_(), moleculeSize);
+            auto atomNewGhostIdx =
+                atoms_.numLocalParticles + atoms_.numGhostParticles + newAtomGhosts;
 
             if (moleculeNewGhostIdx < molecules_.size())
             {
-                molecules_.copy(moleculeNewGhostIdx, idx);
+                molecules_.copy(moleculeNewGhostIdx, moleculeIdx);
                 moleculesPos_(moleculeNewGhostIdx, dim) += subdomain_.diameter[dim];
-                moleculesAtomEndIdx_(moleculeNewGhostIdx) = moleculeNewGhostIdx + 1;
+                moleculesAtomsOffset_(moleculeNewGhostIdx) = atomNewGhostIdx;
+                moleculesNumAtoms_(moleculeNewGhostIdx) = moleculeSize;
                 assert(moleculesPos_(moleculeNewGhostIdx, dim) > subdomain_.maxCorner[dim]);
                 assert(moleculesPos_(moleculeNewGhostIdx, dim) < subdomain_.maxGhostCorner[dim]);
-                moleculesCorrespondingRealParticle_(moleculeNewGhostIdx) = moleculeFindRealIdx(idx);
+                moleculesCorrespondingRealParticle_(moleculeNewGhostIdx) =
+                    moleculeFindRealIdx(moleculeIdx);
             }
 
             if (atomNewGhostIdx + moleculeSize - 1 < atoms_.size())
@@ -167,31 +175,35 @@ public:
     }
 
     /**
-     * @return -1, if no ghost particle was created, idx of new ghost particle otherwise
+     * @return -1, if no ghost particle was created, moleculeIdx of new ghost particle otherwise
      */
     KOKKOS_INLINE_FUNCTION
-    void copySelfHigh(const idx_t idx, const idx_t dim) const
+    void copySelfHigh(const idx_t moleculeIdx, const idx_t dim) const
     {
-        if (moleculesPos_(idx, dim) > subdomain_.maxInnerCorner[dim])
+        if (moleculesPos_(moleculeIdx, dim) > subdomain_.maxInnerCorner[dim])
         {
-            auto atomsStart = (idx != 0 ? moleculesAtomEndIdx_(idx - 1) : 0);  /// inclusive
-            auto atomsEnd = moleculesAtomEndIdx_(idx);                         /// exclusive
+            auto atomsStart = moleculesAtomsOffset_(moleculeIdx);          /// inclusive
+            auto atomsEnd = atomsStart + moleculesNumAtoms_(moleculeIdx);  /// exclusive
             auto moleculeSize = atomsEnd - atomsStart;
 
-            //            DoubleCounter increment(moleculeSize, 1);
-            auto newGhosts = Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
+            auto newGhosts = Kokkos::atomic_fetch_add(&newMoleculeGhostCounter_(), 1);
             auto moleculeNewGhostIdx =
                 molecules_.numLocalMolecules + molecules_.numGhostMolecules + newGhosts;
-            auto atomNewGhostIdx = atoms_.numLocalParticles + atoms_.numGhostParticles + newGhosts;
+
+            auto newAtomGhosts = Kokkos::atomic_fetch_add(&newAtomGhostCounter_(), moleculeSize);
+            auto atomNewGhostIdx =
+                atoms_.numLocalParticles + atoms_.numGhostParticles + newAtomGhosts;
 
             if (moleculeNewGhostIdx < molecules_.size())
             {
-                molecules_.copy(moleculeNewGhostIdx, idx);
+                molecules_.copy(moleculeNewGhostIdx, moleculeIdx);
                 moleculesPos_(moleculeNewGhostIdx, dim) -= subdomain_.diameter[dim];
-                moleculesAtomEndIdx_(moleculeNewGhostIdx) = moleculeNewGhostIdx + 1;
+                moleculesAtomsOffset_(moleculeNewGhostIdx) = atomNewGhostIdx;
+                moleculesNumAtoms_(moleculeNewGhostIdx) = moleculeSize;
                 assert(moleculesPos_(moleculeNewGhostIdx, dim) < subdomain_.minCorner[dim]);
                 assert(moleculesPos_(moleculeNewGhostIdx, dim) > subdomain_.minGhostCorner[dim]);
-                moleculesCorrespondingRealParticle_(moleculeNewGhostIdx) = moleculeFindRealIdx(idx);
+                moleculesCorrespondingRealParticle_(moleculeNewGhostIdx) =
+                    moleculeFindRealIdx(moleculeIdx);
             }
 
             if (atomNewGhostIdx + moleculeSize - 1 < atoms_.size())
@@ -262,22 +274,27 @@ public:
 
             molecules_ = molecules;
             moleculesPos_ = molecules.getPos();
-            moleculesAtomEndIdx_ = molecules.getAtomsEndIdx();
+            moleculesAtomsOffset_ = molecules.getAtomsOffset();
+            moleculesNumAtoms_ = molecules.getNumAtoms();
 
-            Kokkos::deep_copy(newGhostCounter_, 0);
+            Kokkos::deep_copy(newMoleculeGhostCounter_, 0);
+            Kokkos::deep_copy(newAtomGhostCounter_, 0);
 
             auto policy = Kokkos::RangePolicy<EXCHANGE_DIRECTION>(0, maxIdx);
             Kokkos::parallel_for(policy, *this, "MultiResPeriodicGhostExchange::exchangeGhosts");
 
-            Kokkos::deep_copy(hNewGhostCounter_, newGhostCounter_);
-            newMoleculesSize =
-                molecules.numLocalMolecules + molecules.numGhostMolecules + hNewGhostCounter_();
-            newAtomsSize = atoms.numLocalParticles + atoms.numGhostParticles + hNewGhostCounter_();
+            Kokkos::deep_copy(hNewMoleculeGhostCounter_, newMoleculeGhostCounter_);
+            newMoleculesSize = molecules.numLocalMolecules + molecules.numGhostMolecules +
+                               hNewMoleculeGhostCounter_();
+
+            Kokkos::deep_copy(hNewAtomGhostCounter_, newAtomGhostCounter_);
+            newAtomsSize =
+                atoms.numLocalParticles + atoms.numGhostParticles + hNewAtomGhostCounter_();
         } while ((newMoleculesSize > molecules.size()) ||
                  (newAtomsSize > atoms.size()));  // resize and rerun
 
-        atoms.numGhostParticles += hNewGhostCounter_();
-        molecules.numGhostMolecules += hNewGhostCounter_();
+        atoms.numGhostParticles += hNewAtomGhostCounter_();
+        molecules.numGhostMolecules += hNewMoleculeGhostCounter_();
         return atomCorrespondingRealParticle_;
     }
 
@@ -311,12 +328,14 @@ public:
         return atomCorrespondingRealParticle_;
     }
 
-    MultiResPeriodicGhostExchange(const data::Subdomain& subdomain)
+    MultiResPeriodicGhostExchange(const data::Subdomain& subdomain, const idx_t moleculeSize = 1)
         : subdomain_(subdomain),
           atomCorrespondingRealParticle_("atomCorrespondingRealParticle", 0),
           moleculesCorrespondingRealParticle_("moleculeCorrespondingRealParticle", 0),
-          newGhostCounter_("newGhostCounter"),
-          hNewGhostCounter_("hNewGhostCounter")
+          newMoleculeGhostCounter_("newMoleculeGhostCounter_"),
+          hNewMoleculeGhostCounter_("hNewMoleculeGhostCounter_"),
+          newAtomGhostCounter_("newAtomGhostCounter_"),
+          hNewAtomGhostCounter_("hNewAtomGhostCounter_")
     {
     }
 };

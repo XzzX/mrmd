@@ -33,9 +33,12 @@ protected:
         pos(1, 1) = 0_r;
         pos(1, 2) = 0_r;
 
-        auto moleculesAtomsEndIdx = molecules.getAtomsEndIdx();
-        moleculesAtomsEndIdx(0) = 2;
-        moleculesAtomsEndIdx(1) = 4;
+        auto moleculesAtomsOffset = molecules.getAtomsOffset();
+        auto moleculesNumAtoms = molecules.getNumAtoms();
+        moleculesAtomsOffset(0) = 0;
+        moleculesNumAtoms(0) = 2;
+        moleculesAtomsOffset(1) = 2;
+        moleculesNumAtoms(1) = 2;
 
         molecules.numLocalMolecules = 2;
 

@@ -164,13 +164,14 @@ public:
         Kokkos::parallel_for("Shake::UnconstraintUpdate", policy, shake);
         Kokkos::fence();
 
-        auto moleculesAtomEndIdx = molecules.getAtomsEndIdx();
+        auto moleculesAtomsOffset = molecules.getAtomsOffset();
+        auto moleculesNumAtoms = molecules.getNumAtoms();
         auto bonds = bonds_;
         auto applyBondsPolicy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
         auto kernel = KOKKOS_LAMBDA(idx_t moleculeIdx)
         {
-            auto atomsStart = moleculeIdx != 0 ? moleculesAtomEndIdx(moleculeIdx - 1) : 0;
-            auto atomsEnd = moleculesAtomEndIdx(moleculeIdx);
+            auto atomsStart = moleculesAtomsOffset(moleculeIdx);
+            auto atomsEnd = atomsStart + moleculesNumAtoms(moleculeIdx);
             for (idx_t bondIdx = 0; bondIdx < bonds.extent(0); ++bondIdx)
             {
                 shake.applyConstraint(

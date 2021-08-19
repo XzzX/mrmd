@@ -53,7 +53,8 @@ private:
     data::Molecules::lambda_t moleculesLambda_;
     data::Molecules::modulated_lambda_t moleculesModulatedLambda_;
     data::Molecules::grad_lambda_t moleculesGradLambda_;
-    data::Molecules::atoms_end_idx_t moleculesAtomEndIdx_;
+    data::Molecules::atoms_offset_t moleculesAtomsOffset_;
+    data::Molecules::num_atoms_t moleculesNumAtoms_;
 
     data::Particles::pos_t atomsPos_;
     data::Particles::force_t::atomic_access_slice atomsForce_;
@@ -133,18 +134,18 @@ public:
             }
 
             /// inclusive start index of atoms belonging to alpha
-            const auto startAtomsAlpha = alpha != 0 ? moleculesAtomEndIdx_(alpha - 1) : 0;
+            const auto startAtomsAlpha = moleculesAtomsOffset_(alpha);
             /// exclusive end index of atoms belonging to alpha
-            const auto endAtomsAlpha = moleculesAtomEndIdx_(alpha);
+            const auto endAtomsAlpha = startAtomsAlpha + moleculesNumAtoms_(alpha);
             assert(0 <= startAtomsAlpha);
             assert(startAtomsAlpha < endAtomsAlpha);
             //            assert(endAtomsAlpha <= atoms_.numLocalParticles +
             //            atoms_.numGhostParticles);
 
             /// inclusive start index of atoms belonging to beta
-            const auto startAtomsBeta = beta != 0 ? moleculesAtomEndIdx_(beta - 1) : 0;
+            const auto startAtomsBeta = moleculesAtomsOffset_(beta);
             /// exclusive end index of atoms belonging to beta
-            const auto endAtomsBeta = moleculesAtomEndIdx_(beta);
+            const auto endAtomsBeta = startAtomsBeta + moleculesNumAtoms_(beta);
             assert(0 <= startAtomsBeta);
             assert(startAtomsBeta < endAtomsBeta);
             //            assert(endAtomsBeta <= atoms_.numLocalParticles +
@@ -266,7 +267,8 @@ public:
         moleculesLambda_ = molecules.getLambda();
         moleculesModulatedLambda_ = molecules.getModulatedLambda();
         moleculesGradLambda_ = molecules.getGradLambda();
-        moleculesAtomEndIdx_ = molecules.getAtomsEndIdx();
+        moleculesAtomsOffset_ = molecules.getAtomsOffset();
+        moleculesNumAtoms_ = molecules.getNumAtoms();
         atomsPos_ = atoms.getPos();
         atomsForce_ = atoms.getForce();
         verletList_ = verletList;
