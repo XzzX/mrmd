@@ -5,3 +5,4 @@ add_executable(LennardJones
 target_link_libraries(LennardJones
         PRIVATE mrmd CLI11::CLI11
         )
+add_test(NAME Example.LennardJones COMMAND ./LennardJones --nsteps 10)
