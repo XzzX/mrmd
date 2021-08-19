@@ -328,7 +328,7 @@ public:
         return atomCorrespondingRealParticle_;
     }
 
-    MultiResPeriodicGhostExchange(const data::Subdomain& subdomain, const idx_t moleculeSize = 1)
+    MultiResPeriodicGhostExchange(const data::Subdomain& subdomain)
         : subdomain_(subdomain),
           atomCorrespondingRealParticle_("atomCorrespondingRealParticle", 0),
           moleculesCorrespondingRealParticle_("moleculeCorrespondingRealParticle", 0),
