@@ -5,6 +5,7 @@
 #include "data/Particles.hpp"
 #include "datatypes.hpp"
 #include "util/Kokkos_grow.hpp"
+#include "util/math.hpp"
 
 namespace mrmd
 {
@@ -23,9 +24,6 @@ private:
     data::Particles::force_t::atomic_access_slice force_;
     VectorView updatedPos_;
 
-    PairView bondedAtoms_;
-    ScalarView bondEquilibriumLength_;
-
     real_t dtv_;
     real_t dtfsq_;
 
@@ -36,52 +34,71 @@ public:
     struct ApplyConstraint
     {
     };
-
-    auto getUpdatedPos() const { return updatedPos_; }
-
-    void setBonds(const PairView::host_mirror_type& bondedAtoms,
-                  const ScalarView::host_mirror_type& bondEquilibriumLength)
+    struct RemoveBondVelocity
     {
-        assert(bondedAtoms.extent(0) == bondEquilibriumLength.extent(0));
-        Kokkos::resize(bondedAtoms_, bondedAtoms.extent(0));
-        Kokkos::deep_copy(bondedAtoms_, bondedAtoms);
-        Kokkos::resize(bondEquilibriumLength_, bondEquilibriumLength.extent(0));
-        Kokkos::deep_copy(bondEquilibriumLength_, bondEquilibriumLength);
+    };
+
+    KOKKOS_INLINE_FUNCTION void enforceVelocityConstraint(const idx_t idx,
+                                                          const idx_t jdx,
+                                                          const real_t eqDistance) const
+    {
+        /// distance vec between atoms
+        real_t dist[3];
+        dist[0] = pos_(idx, 0) - pos_(jdx, 0);
+        dist[1] = pos_(idx, 1) - pos_(jdx, 1);
+        dist[2] = pos_(idx, 2) - pos_(jdx, 2);
+        /// squared distances between particles
+        auto distSq = util::dot3(dist, dist);
+
+        auto invMassI = 1_r;
+        auto invMassJ = 1_r;
+        auto reducedMass = 1_r / (invMassI + invMassJ);
+
+        real_t relVel[3];
+        relVel[0] = vel_(idx, 0) - vel_(jdx, 0);
+        relVel[1] = vel_(idx, 1) - vel_(jdx, 1);
+        relVel[2] = vel_(idx, 2) - vel_(jdx, 2);
+
+        auto factor = util::dot3(relVel, dist) / distSq * reducedMass;
+
+        vel_(idx, 0) += factor * dist[0] * invMassI;
+        vel_(idx, 1) += factor * dist[1] * invMassI;
+        vel_(idx, 2) += factor * dist[2] * invMassI;
+
+        vel_(jdx, 0) -= factor * dist[0] * invMassJ;
+        vel_(jdx, 1) -= factor * dist[1] * invMassJ;
+        vel_(jdx, 2) -= factor * dist[2] * invMassJ;
     }
 
-    KOKKOS_INLINE_FUNCTION void applyConstraint(const idx_t idx,
-                                                const idx_t jdx,
-                                                const real_t eqDistance) const
+    KOKKOS_INLINE_FUNCTION void enforcePositionalConstraint(const idx_t idx,
+                                                            const idx_t jdx,
+                                                            const real_t eqDistance) const
     {
-        /// distance vec between atoms, with PBC
-        double r01[3];
-        r01[0] = pos_(idx, 0) - pos_(jdx, 0);
-        r01[1] = pos_(idx, 1) - pos_(jdx, 1);
-        r01[2] = pos_(idx, 2) - pos_(jdx, 2);
-        //        domain->minimum_image(r01);
+        /// distance between atoms
+        real_t dist[3];
+        dist[0] = pos_(idx, 0) - pos_(jdx, 0);
+        dist[1] = pos_(idx, 1) - pos_(jdx, 1);
+        dist[2] = pos_(idx, 2) - pos_(jdx, 2);
+        /// squared distances between particles
+        real_t distSq = util::dot3(dist, dist);
 
         /// distance vec after unconstrained update, with PBC
-        double s01[3];
+        real_t s01[3];
         s01[0] = updatedPos_(idx, 0) - updatedPos_(jdx, 0);
         s01[1] = updatedPos_(idx, 1) - updatedPos_(jdx, 1);
         s01[2] = updatedPos_(idx, 2) - updatedPos_(jdx, 2);
-        //        domain->minimum_image_once(s01);
-
-        /// squared distances between particles
-        double r01sq = r01[0] * r01[0] + r01[1] * r01[1] + r01[2] * r01[2];
         /// squared distances between updated particles
-        double s01sq = s01[0] * s01[0] + s01[1] * s01[1] + s01[2] * s01[2];
+        real_t s01sq = util::dot3(s01, s01);
 
         auto invMassI = 1_r;
         auto invMassJ = 1_r;
 
         /// coefficient in quadratic equation for lamda, ax**2 + bx + c = 0
-        double a = (invMassI + invMassJ) * (invMassI + invMassJ) * r01sq;
-        double b =
-            2_r * (invMassI + invMassJ) * (s01[0] * r01[0] + s01[1] * r01[1] + s01[2] * r01[2]);
-        double c = s01sq - eqDistance * eqDistance;
+        real_t a = (invMassI + invMassJ) * (invMassI + invMassJ) * distSq;
+        real_t b = 2_r * (invMassI + invMassJ) * util::dot3(s01, dist);
+        real_t c = s01sq - eqDistance * eqDistance;
 
-        double determinant = b * b - 4_r * a * c;
+        real_t determinant = b * b - 4_r * a * c;
         assert(determinant >= 0);
 
         // solve for lambda
@@ -91,19 +108,13 @@ public:
 
         lambda /= dtfsq_;
 
-        force_(idx, 0) += lambda * r01[0];
-        force_(idx, 1) += lambda * r01[1];
-        force_(idx, 2) += lambda * r01[2];
+        force_(idx, 0) += lambda * dist[0];
+        force_(idx, 1) += lambda * dist[1];
+        force_(idx, 2) += lambda * dist[2];
 
-        force_(jdx, 0) -= lambda * r01[0];
-        force_(jdx, 1) -= lambda * r01[1];
-        force_(jdx, 2) -= lambda * r01[2];
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator()(ApplyConstraint, const idx_t idx) const
-    {
-        applyConstraint(bondedAtoms_(idx, 0), bondedAtoms_(idx, 1), bondEquilibriumLength_(idx));
+        force_(jdx, 0) -= lambda * dist[0];
+        force_(jdx, 1) -= lambda * dist[1];
+        force_(jdx, 2) -= lambda * dist[2];
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -113,25 +124,6 @@ public:
         updatedPos_(idx, 0) = pos_(idx, 0) + dtv_ * vel_(idx, 0) + dtfmsq * force_(idx, 0);
         updatedPos_(idx, 1) = pos_(idx, 1) + dtv_ * vel_(idx, 1) + dtfmsq * force_(idx, 1);
         updatedPos_(idx, 2) = pos_(idx, 2) + dtv_ * vel_(idx, 2) + dtfmsq * force_(idx, 2);
-    }
-
-    void apply(data::Particles& particles)
-    {
-        pos_ = particles.getPos();
-        vel_ = particles.getVel();
-        force_ = particles.getForce();
-
-        util::grow(updatedPos_, idx_c(pos_.extent(0)));
-
-        auto policy = Kokkos::RangePolicy<UnconstraintUpdate>(
-            0, particles.numLocalParticles + particles.numGhostParticles);
-        Kokkos::parallel_for("Shake::UnconstraintUpdate", policy, *this);
-        Kokkos::fence();
-
-        auto applyConstraintPolicy =
-            Kokkos::RangePolicy<ApplyConstraint>(0, bondedAtoms_.extent(0));
-        Kokkos::parallel_for("Shake::ApplyConstraint", applyConstraintPolicy, *this);
-        Kokkos::fence();
     }
 
     Shake(data::Particles& particles, const real_t& dt)
@@ -155,7 +147,9 @@ private:
     data::BondView bonds_;
 
 public:
-    void enforceConstraints(data::Molecules& molecules, data::Particles& atoms, const real_t dt)
+    void enforcePositionalConstraints(data::Molecules& molecules,
+                                      data::Particles& atoms,
+                                      const real_t dt)
     {
         impl::Shake shake(atoms, dt);
 
@@ -179,20 +173,54 @@ public:
                        "not enough atoms in molecule to satisfy bond");
                 assert(bonds(bondIdx).jdx < numAtoms &&
                        "not enough atoms in molecule to satisfy bond");
-                shake.applyConstraint(atomsStart + bonds(bondIdx).idx,
-                                      atomsStart + bonds(bondIdx).jdx,
-                                      bonds(bondIdx).eqDistance);
+                shake.enforcePositionalConstraint(atomsStart + bonds(bondIdx).idx,
+                                                  atomsStart + bonds(bondIdx).jdx,
+                                                  bonds(bondIdx).eqDistance);
             }
         };
-        Kokkos::parallel_for("MoleculeConstraints::enforceConstraints", applyBondsPolicy, kernel);
+        Kokkos::parallel_for(
+            "MoleculeConstraints::enforcePositionalConstraints", applyBondsPolicy, kernel);
         Kokkos::fence();
     }
+
+    void enforceVelocityConstraints(data::Molecules& molecules,
+                                    data::Particles& atoms,
+                                    const real_t dt)
+    {
+        impl::Shake shake(atoms, dt);
+
+        auto moleculesAtomsOffset = molecules.getAtomsOffset();
+        auto moleculesNumAtoms = molecules.getNumAtoms();
+        auto bonds = bonds_;
+        auto applyBondsPolicy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
+        auto kernel = KOKKOS_LAMBDA(idx_t moleculeIdx)
+        {
+            auto atomsStart = moleculesAtomsOffset(moleculeIdx);
+            auto numAtoms = moleculesNumAtoms(moleculeIdx);
+            auto atomsEnd = atomsStart + numAtoms;
+            for (idx_t bondIdx = 0; bondIdx < bonds.extent(0); ++bondIdx)
+            {
+                assert(bonds(bondIdx).idx < numAtoms &&
+                       "not enough atoms in molecule to satisfy bond");
+                assert(bonds(bondIdx).jdx < numAtoms &&
+                       "not enough atoms in molecule to satisfy bond");
+                shake.enforceVelocityConstraint(atomsStart + bonds(bondIdx).idx,
+                                                atomsStart + bonds(bondIdx).jdx,
+                                                bonds(bondIdx).eqDistance);
+            }
+        };
+        Kokkos::parallel_for(
+            "MoleculeConstraints::enforceVelocityConstraints", applyBondsPolicy, kernel);
+        Kokkos::fence();
+    }
+
     void setConstraints(const data::BondView& bonds) { bonds_ = bonds; }
     void setConstraints(const data::BondView::host_mirror_type& bonds)
     {
         Kokkos::resize(bonds_, bonds.extent(0));
         Kokkos::deep_copy(bonds_, bonds);
     }
+
     MoleculeConstraints(idx_t atomsPerMolecule) : atomsPerMolecule_(atomsPerMolecule) {}
 };
 
