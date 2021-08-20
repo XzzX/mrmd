@@ -3,72 +3,27 @@
 #include <gtest/gtest.h>
 
 #include "data/Subdomain.hpp"
+#include "test/GridFixture.hpp"
 
 namespace mrmd
 {
 namespace communication
 {
-class MultiResRealParticlesExchangeTest : public ::testing::Test
-{
-protected:
-    void SetUp() override
-    {
-        auto moleculesPos = molecules.getPos();
-        int64_t idx = 0;
-        for (real_t x = subdomain.minCorner[0] - 0.1_r; x < subdomain.maxGhostCorner[0]; x += 1_r)
-            for (real_t y = subdomain.minCorner[1] - 0.1_r; y < subdomain.maxGhostCorner[1];
-                 y += 1_r)
-                for (real_t z = subdomain.minCorner[2] - 0.1_r; z < subdomain.maxGhostCorner[2];
-                     z += 1_r)
-                {
-                    moleculesPos(idx, 0) = x;
-                    moleculesPos(idx, 1) = y;
-                    moleculesPos(idx, 2) = z;
-                    ++idx;
-                }
-        EXPECT_EQ(idx, 8);
-        molecules.numLocalMolecules = idx;
-        molecules.numGhostMolecules = 0;
-        molecules.resize(molecules.numLocalMolecules + molecules.numGhostMolecules);
-
-        auto atomsPos = atoms.getPos();
-        idx = 0;
-        for (real_t x = subdomain.minCorner[0] - 0.1_r; x < subdomain.maxGhostCorner[0]; x += 1_r)
-            for (real_t y = subdomain.minCorner[1] - 0.1_r; y < subdomain.maxGhostCorner[1];
-                 y += 1_r)
-                for (real_t z = subdomain.minCorner[2] - 0.1_r; z < subdomain.maxGhostCorner[2];
-                     z += 1_r)
-                {
-                    atomsPos(idx, 0) = x;
-                    atomsPos(idx, 1) = y;
-                    atomsPos(idx, 2) = z;
-                    ++idx;
-                }
-        EXPECT_EQ(idx, 8);
-        atoms.numLocalParticles = idx;
-        atoms.numGhostParticles = 0;
-        atoms.resize(atoms.numLocalParticles + atoms.numGhostParticles);
-    }
-
-    // void TearDown() override {}
-
-    data::Subdomain subdomain =
-        data::Subdomain({0.1_r, 0.1_r, 0.1_r}, {0.9_r, 0.9_r, 0.9_r}, 0.2_r);
-    data::Molecules molecules = data::Molecules(200);
-    data::Particles atoms = data::Particles(200);
-};
+using MultiResRealParticlesExchangeTest = test::GridFixture;
 
 TEST_F(MultiResRealParticlesExchangeTest, SingleAtomTest)
 {
-    realParticlesExchange(subdomain, molecules, atoms);
+    init(1);
+    data::Subdomain domain({1_r, 1_r, 1_r}, {2_r, 2_r, 2_r}, 0.1_r);
+    realParticlesExchange(domain, molecules, atoms);
 
     auto moleculesPos = molecules.getPos();
     for (auto idx = 0; idx < molecules.numLocalMolecules; ++idx)
     {
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
-            EXPECT_GE(moleculesPos(idx, dim), subdomain.minCorner[dim]);
-            EXPECT_LT(moleculesPos(idx, dim), subdomain.maxCorner[dim]);
+            EXPECT_GE(moleculesPos(idx, dim), domain.minCorner[dim]);
+            EXPECT_LT(moleculesPos(idx, dim), domain.maxCorner[dim]);
         }
     }
 
@@ -77,8 +32,35 @@ TEST_F(MultiResRealParticlesExchangeTest, SingleAtomTest)
     {
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
-            EXPECT_GE(atomsPos(idx, dim), subdomain.minCorner[dim]);
-            EXPECT_LT(atomsPos(idx, dim), subdomain.maxCorner[dim]);
+            EXPECT_GE(atomsPos(idx, dim), domain.minCorner[dim]);
+            EXPECT_LT(atomsPos(idx, dim), domain.maxCorner[dim]);
+        }
+    }
+}
+
+TEST_F(MultiResRealParticlesExchangeTest, MultiAtomTest)
+{
+    init(2);
+    data::Subdomain domain({1_r, 1_r, 1_r}, {2_r, 2_r, 2_r}, 0.1_r);
+    realParticlesExchange(domain, molecules, atoms);
+
+    auto moleculesPos = molecules.getPos();
+    for (auto idx = 0; idx < molecules.numLocalMolecules; ++idx)
+    {
+        for (auto dim = 0; dim < DIMENSIONS; ++dim)
+        {
+            EXPECT_GE(moleculesPos(idx, dim), domain.minCorner[dim]);
+            EXPECT_LT(moleculesPos(idx, dim), domain.maxCorner[dim]);
+        }
+    }
+
+    auto atomsPos = atoms.getPos();
+    for (auto idx = 0; idx < atoms.numLocalParticles; ++idx)
+    {
+        for (auto dim = 0; dim < DIMENSIONS; ++dim)
+        {
+            EXPECT_GE(atomsPos(idx, dim), domain.minCorner[dim]);
+            EXPECT_LT(atomsPos(idx, dim), domain.maxCorner[dim]);
         }
     }
 }

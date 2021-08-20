@@ -24,26 +24,40 @@ void realParticlesExchange(const data::Subdomain& subdomain,
                            const data::Particles& atoms)
 {
     auto moleculesPos = molecules.getPos();
+    auto atomsOffset = molecules.getAtomsOffset();
+    auto numAtoms = molecules.getNumAtoms();
+
     auto atomsPos = atoms.getPos();
+
     auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
-    auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
+    auto kernel = KOKKOS_LAMBDA(const idx_t& moleculeIdx)
     {
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
-            auto& moleculeX = moleculesPos(idx, dim);
+            auto& moleculeX = moleculesPos(moleculeIdx, dim);
             if (subdomain.maxCorner[dim] <= moleculeX)
             {
                 moleculeX -= subdomain.diameter[dim];
 
-                auto& atomX = atomsPos(idx, dim);
-                atomX -= subdomain.diameter[dim];
+                auto atomsStart = atomsOffset(moleculeIdx);
+                auto atomsEnd = atomsStart + numAtoms(moleculeIdx);
+                for (idx_t atomIdx = atomsStart; atomIdx < atomsEnd; ++atomIdx)
+                {
+                    auto& atomX = atomsPos(atomIdx, dim);
+                    atomX -= subdomain.diameter[dim];
+                }
             }
             if (moleculeX < subdomain.minCorner[dim])
             {
                 moleculeX += subdomain.diameter[dim];
 
-                auto& atomX = atomsPos(idx, dim);
-                atomX += subdomain.diameter[dim];
+                auto atomsStart = atomsOffset(moleculeIdx);
+                auto atomsEnd = atomsStart + numAtoms(moleculeIdx);
+                for (idx_t atomIdx = atomsStart; atomIdx < atomsEnd; ++atomIdx)
+                {
+                    auto& atomX = atomsPos(atomIdx, dim);
+                    atomX += subdomain.diameter[dim];
+                }
             }
             assert(moleculeX < subdomain.maxCorner[dim]);
             assert(subdomain.minCorner[dim] <= moleculeX);
