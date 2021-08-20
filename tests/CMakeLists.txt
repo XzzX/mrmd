@@ -1,1 +1,2 @@
+add_subdirectory(Constraints)
 add_subdirectory(LennardJones)
