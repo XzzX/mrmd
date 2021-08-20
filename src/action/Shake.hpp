@@ -171,11 +171,17 @@ public:
         auto kernel = KOKKOS_LAMBDA(idx_t moleculeIdx)
         {
             auto atomsStart = moleculesAtomsOffset(moleculeIdx);
-            auto atomsEnd = atomsStart + moleculesNumAtoms(moleculeIdx);
+            auto numAtoms = moleculesNumAtoms(moleculeIdx);
+            auto atomsEnd = atomsStart + numAtoms;
             for (idx_t bondIdx = 0; bondIdx < bonds.extent(0); ++bondIdx)
             {
-                shake.applyConstraint(
-                    bonds(bondIdx).idx, bonds(bondIdx).jdx, bonds(bondIdx).eqDistance);
+                assert(bonds(bondIdx).idx < numAtoms &&
+                       "not enough atoms in molecule to satisfy bond");
+                assert(bonds(bondIdx).jdx < numAtoms &&
+                       "not enough atoms in molecule to satisfy bond");
+                shake.applyConstraint(atomsStart + bonds(bondIdx).idx,
+                                      atomsStart + bonds(bondIdx).jdx,
+                                      bonds(bondIdx).eqDistance);
             }
         };
         Kokkos::parallel_for("MoleculeConstraints::enforceConstraints", applyBondsPolicy, kernel);

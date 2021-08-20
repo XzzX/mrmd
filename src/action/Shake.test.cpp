@@ -81,6 +81,13 @@ TEST_F(ShakeTest, Molecules)
 
     EXPECT_LT(force(0, 0), 0_r);
     EXPECT_GT(force(0, 1), 0_r);
+
+    EXPECT_FLOAT_EQ(force(2, 0), -force(3, 0));
+    EXPECT_FLOAT_EQ(force(2, 1), -force(3, 1));
+    EXPECT_FLOAT_EQ(force(2, 2), -force(3, 2));
+
+    EXPECT_GT(force(2, 0), 0_r);
+    EXPECT_LT(force(2, 1), 0_r);
 }
 
 TEST_F(ShakeTest, Shrink)
