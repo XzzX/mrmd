@@ -71,8 +71,8 @@ public:
             {
                 particles_.copy(newGhostIdx, idx);
                 pos_(newGhostIdx, dim) += subdomain_.diameter[dim];
-                assert(pos_(newGhostIdx, dim) > subdomain_.maxCorner[dim]);
-                assert(pos_(newGhostIdx, dim) < subdomain_.maxGhostCorner[dim]);
+                assert(pos_(newGhostIdx, dim) >= subdomain_.maxCorner[dim]);
+                assert(pos_(newGhostIdx, dim) <= subdomain_.maxGhostCorner[dim]);
                 correspondingRealParticle_(newGhostIdx) = findRealIdx(idx);
                 return newGhostIdx;
             }
@@ -95,8 +95,8 @@ public:
             {
                 particles_.copy(newGhostIdx, idx);
                 pos_(newGhostIdx, dim) -= subdomain_.diameter[dim];
-                assert(pos_(newGhostIdx, dim) < subdomain_.minCorner[dim]);
-                assert(pos_(newGhostIdx, dim) > subdomain_.minGhostCorner[dim]);
+                assert(pos_(newGhostIdx, dim) <= subdomain_.minCorner[dim]);
+                assert(pos_(newGhostIdx, dim) >= subdomain_.minGhostCorner[dim]);
                 correspondingRealParticle_(newGhostIdx) = findRealIdx(idx);
                 return newGhostIdx;
             }
