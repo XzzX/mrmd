@@ -210,7 +210,7 @@ TEST_F(ShakeTest, Molecules)
     bonds(0).jdx = 1;
     bonds(0).eqDistance = 1_r;
 
-    MoleculeConstraints mc(2);
+    MoleculeConstraints mc(2, 1);
     mc.setConstraints(bonds);
     mc.enforcePositionalConstraints(molecules, atoms, dt);
 

@@ -35,7 +35,7 @@ TEST_F(ConstraintTest, ShakeVelocityVerlet)
     bonds(0).idx = 0;
     bonds(0).jdx = 1;
     bonds(0).eqDistance = 1_r;
-    action::MoleculeConstraints mc(1);
+    action::MoleculeConstraints mc(1, 1);
     mc.setConstraints(bonds);
     auto atomsForce = atoms.getForce();
 
