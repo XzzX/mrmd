@@ -17,6 +17,11 @@ void dumpCSV(const std::string& filename, data::Particles& particles)
     auto vel = Cabana::slice<data::Particles::VEL>(hAoSoA);
 
     std::ofstream fout(filename);
+    if (!fout.is_open())
+    {
+        std::cerr << "Could not open file: " << filename << std::endl;
+        exit(EXIT_FAILURE);
+    }
     fout << "pos_x, pos_y, pos_z, vel_x, vel_y, vel_z" << std::endl;
     for (idx_t idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
     {

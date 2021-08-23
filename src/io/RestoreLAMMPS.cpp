@@ -11,6 +11,11 @@ void restoreLAMMPS(const std::string& filename, data::Particles& atoms, data::Mo
 {
     std::string tmp;
     std::ifstream fin(filename);
+    if (!fin.is_open())
+    {
+        std::cerr << "Could not open file: " << filename << std::endl;
+        exit(EXIT_FAILURE);
+    }
     fin >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp;
 
     idx_t numParticles;

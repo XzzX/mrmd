@@ -15,6 +15,11 @@ data::Particles restoreParticles(const std::string& filename)
     auto h_pos = Cabana::slice<data::Particles::POS>(h_AoSoA);
 
     std::ifstream fin(filename);
+    if (!fin.is_open())
+    {
+        std::cerr << "Could not open file: " << filename << std::endl;
+        exit(EXIT_FAILURE);
+    }
 
     idx_t idx = 0;
     while (!fin.eof())
