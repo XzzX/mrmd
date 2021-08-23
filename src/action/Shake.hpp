@@ -38,9 +38,8 @@ public:
     {
     };
 
-    KOKKOS_INLINE_FUNCTION void enforceVelocityConstraint(const idx_t idx,
-                                                          const idx_t jdx,
-                                                          const real_t eqDistance) const
+    KOKKOS_INLINE_FUNCTION
+    void enforceVelocityConstraint(const idx_t idx, const idx_t jdx, const real_t eqDistance) const
     {
         /// distance vec between atoms
         real_t dist[3];
@@ -70,9 +69,10 @@ public:
         vel_(jdx, 2) -= factor * dist[2] * invMassJ;
     }
 
-    KOKKOS_INLINE_FUNCTION void enforcePositionalConstraint(const idx_t idx,
-                                                            const idx_t jdx,
-                                                            const real_t eqDistance) const
+    KOKKOS_INLINE_FUNCTION
+    void enforcePositionalConstraint(const idx_t idx,
+                                     const idx_t jdx,
+                                     const real_t eqDistance) const
     {
         /// distance between atoms
         real_t dist[3];
@@ -146,6 +146,8 @@ private:
     idx_t atomsPerMolecule_;
     data::BondView bonds_;
 
+    idx_t numConstraintIterations_;
+
 public:
     void enforcePositionalConstraints(data::Molecules& molecules,
                                       data::Particles& atoms,
@@ -153,34 +155,38 @@ public:
     {
         impl::Shake shake(atoms, dt);
 
-        auto policy = Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(
-            0, atoms.numLocalParticles + atoms.numGhostParticles);
-        Kokkos::parallel_for("Shake::UnconstraintUpdate", policy, shake);
-        Kokkos::fence();
-
-        auto moleculesAtomsOffset = molecules.getAtomsOffset();
-        auto moleculesNumAtoms = molecules.getNumAtoms();
-        auto bonds = bonds_;
-        auto applyBondsPolicy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
-        auto kernel = KOKKOS_LAMBDA(idx_t moleculeIdx)
+        for (int iteration = 0; iteration < numConstraintIterations_; ++iteration)
         {
-            auto atomsStart = moleculesAtomsOffset(moleculeIdx);
-            auto numAtoms = moleculesNumAtoms(moleculeIdx);
-            auto atomsEnd = atomsStart + numAtoms;
-            for (idx_t bondIdx = 0; bondIdx < bonds.extent(0); ++bondIdx)
+            auto policy = Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(
+                0, atoms.numLocalParticles + atoms.numGhostParticles);
+            Kokkos::parallel_for("Shake::UnconstraintUpdate", policy, shake);
+            Kokkos::fence();
+
+            auto moleculesAtomsOffset = molecules.getAtomsOffset();
+            auto moleculesNumAtoms = molecules.getNumAtoms();
+            auto bonds = bonds_;
+            auto applyBondsPolicy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
+            auto kernel = KOKKOS_LAMBDA(idx_t moleculeIdx)
             {
-                assert(bonds(bondIdx).idx < numAtoms &&
-                       "not enough atoms in molecule to satisfy bond");
-                assert(bonds(bondIdx).jdx < numAtoms &&
-                       "not enough atoms in molecule to satisfy bond");
-                shake.enforcePositionalConstraint(atomsStart + bonds(bondIdx).idx,
-                                                  atomsStart + bonds(bondIdx).jdx,
-                                                  bonds(bondIdx).eqDistance);
-            }
-        };
-        Kokkos::parallel_for(
-            "MoleculeConstraints::enforcePositionalConstraints", applyBondsPolicy, kernel);
-        Kokkos::fence();
+                auto atomsStart = moleculesAtomsOffset(moleculeIdx);
+                auto numAtoms = moleculesNumAtoms(moleculeIdx);
+                auto atomsEnd = atomsStart + numAtoms;
+                for (idx_t bondIdx = 0; bondIdx < bonds.extent(0); ++bondIdx)
+                {
+                    assert(bonds(bondIdx).idx < numAtoms &&
+                           "not enough atoms in molecule to satisfy bond");
+                    assert(bonds(bondIdx).jdx < numAtoms &&
+                           "not enough atoms in molecule to satisfy bond");
+                    shake.enforcePositionalConstraint(atomsStart + bonds(bondIdx).idx,
+                                                      atomsStart + bonds(bondIdx).jdx,
+                                                      bonds(bondIdx).eqDistance);
+                }
+            };
+
+            Kokkos::parallel_for(
+                "MoleculeConstraints::enforcePositionalConstraints", applyBondsPolicy, kernel);
+            Kokkos::fence();
+        }
     }
 
     void enforceVelocityConstraints(data::Molecules& molecules,
@@ -221,7 +227,10 @@ public:
         Kokkos::deep_copy(bonds_, bonds);
     }
 
-    MoleculeConstraints(idx_t atomsPerMolecule) : atomsPerMolecule_(atomsPerMolecule) {}
+    MoleculeConstraints(idx_t atomsPerMolecule, idx_t numConstraintIterations)
+        : atomsPerMolecule_(atomsPerMolecule), numConstraintIterations_(numConstraintIterations)
+    {
+    }
 };
 
 }  // namespace action
