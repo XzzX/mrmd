@@ -7,7 +7,7 @@ gpu:
     - module load gcc/10 cuda/11.2
     - git --version
     - cmake --version
-    - cmake -S . -B mrmd-build -DCMAKE_PREFIX_PATH=~/software/kokkos-gpu -DCMAKE_BUILD_TYPE=Debug -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON
+    - cmake -S . -B mrmd-build -DCMAKE_PREFIX_PATH=~/software/kokkos-uvm -DCMAKE_BUILD_TYPE=Debug -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON
     - cmake --build mrmd-build --target all -j 32
     - cd mrmd-build
     - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 ctest --rerun-failed --output-on-failure -j 2
@@ -35,7 +35,7 @@ benchmark:
     - srun --nodes=1 --ntasks=1 --cpus-per-task=40 --time=15:00 mrmd-cpu/examples/LennardJones/LennardJones --nsteps 5001 --output 2500 --length 60
     - python3 mrmd-cpu/examples/LennardJones/push_performance.py Skylake
 
-    - cmake -S . -B mrmd-gpu -DCMAKE_PREFIX_PATH=~/software/kokkos-uvm -DCMAKE_BUILD_TYPE=Release -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON -DMRMD_VECTOR_LENGTH=32
+    - cmake -S . -B mrmd-gpu -DCMAKE_PREFIX_PATH=~/software/kokkos-gpu -DCMAKE_BUILD_TYPE=Release -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON -DMRMD_VECTOR_LENGTH=32
     - cmake --build mrmd-gpu --target LennardJones -j 32
     - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 mrmd-gpu/examples/LennardJones/LennardJones --nsteps 5001 --output 2500 --length 60
     - python3 mrmd-gpu/examples/LennardJones/push_performance.py V100
