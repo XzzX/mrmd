@@ -170,7 +170,6 @@ public:
             {
                 auto atomsStart = moleculesAtomsOffset(moleculeIdx);
                 auto numAtoms = moleculesNumAtoms(moleculeIdx);
-                auto atomsEnd = atomsStart + numAtoms;
                 for (idx_t bondIdx = 0; bondIdx < bonds.extent(0); ++bondIdx)
                 {
                     assert(bonds(bondIdx).idx < numAtoms &&
@@ -203,7 +202,6 @@ public:
         {
             auto atomsStart = moleculesAtomsOffset(moleculeIdx);
             auto numAtoms = moleculesNumAtoms(moleculeIdx);
-            auto atomsEnd = atomsStart + numAtoms;
             for (idx_t bondIdx = 0; bondIdx < bonds.extent(0); ++bondIdx)
             {
                 assert(bonds(bondIdx).idx < numAtoms &&
