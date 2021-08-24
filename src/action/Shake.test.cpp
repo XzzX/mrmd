@@ -180,7 +180,6 @@ TEST_F(ShakeTest, Grow)
     enforceConstraints(
         atoms, dt, Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), bonds));
     integratePosition(atoms, dt);
-    integratePosition(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
     auto newPos = Cabana::slice<data::Particles::POS>(hAoSoA);
