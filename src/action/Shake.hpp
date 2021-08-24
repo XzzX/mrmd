@@ -60,13 +60,13 @@ public:
 
         auto factor = util::dot3(relVel, dist) / distSq * reducedMass;
 
-        vel_(idx, 0) += factor * dist[0] * invMassI;
-        vel_(idx, 1) += factor * dist[1] * invMassI;
-        vel_(idx, 2) += factor * dist[2] * invMassI;
+        vel_(idx, 0) -= factor * dist[0] * invMassI;
+        vel_(idx, 1) -= factor * dist[1] * invMassI;
+        vel_(idx, 2) -= factor * dist[2] * invMassI;
 
-        vel_(jdx, 0) -= factor * dist[0] * invMassJ;
-        vel_(jdx, 1) -= factor * dist[1] * invMassJ;
-        vel_(jdx, 2) -= factor * dist[2] * invMassJ;
+        vel_(jdx, 0) += factor * dist[0] * invMassJ;
+        vel_(jdx, 1) += factor * dist[1] * invMassJ;
+        vel_(jdx, 2) += factor * dist[2] * invMassJ;
     }
 
     KOKKOS_INLINE_FUNCTION

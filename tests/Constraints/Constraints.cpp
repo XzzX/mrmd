@@ -25,6 +25,7 @@ TEST_F(ConstraintTest, ShakeVelocityVerlet)
     auto atomsForce = atoms.getForce();
     Cabana::deep_copy(atomsForce, 0_r);
     action::VelocityVerlet::postForceIntegrate(atoms, dt);
+    mc.enforceVelocityConstraints(molecules, atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
     auto pos = Cabana::slice<data::Particles::POS>(hAoSoA);
@@ -40,10 +41,16 @@ TEST_F(ConstraintTest, ShakeVelocityVerlet)
     auto calcRelVel = [=](idx_t idx, idx_t jdx)
     {
         real_t dx[3];
-        dx[0] = vel(idx, 0) - vel(jdx, 0);
-        dx[1] = vel(idx, 1) - vel(jdx, 1);
-        dx[2] = vel(idx, 2) - vel(jdx, 2);
-        return std::sqrt(util::dot3(dx, dx));
+        dx[0] = pos(idx, 0) - pos(jdx, 0);
+        dx[1] = pos(idx, 1) - pos(jdx, 1);
+        dx[2] = pos(idx, 2) - pos(jdx, 2);
+
+        real_t dv[3];
+        dv[0] = vel(idx, 0) - vel(jdx, 0);
+        dv[1] = vel(idx, 1) - vel(jdx, 1);
+        dv[2] = vel(idx, 2) - vel(jdx, 2);
+
+        return util::dot3(dx, dv) / std::sqrt(util::dot3(dx, dx));
     };
     EXPECT_FLOAT_EQ(calcDist(0, 1), 1_r);
     EXPECT_FLOAT_EQ(calcRelVel(0, 1) + 1_r, 1_r);
