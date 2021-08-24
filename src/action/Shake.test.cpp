@@ -30,17 +30,22 @@ void integratePosition(data::Particles& atoms, real_t dt)
     Kokkos::fence();
 }
 
-TEST_F(ShakeTest, Attraction)
+void enforceSingleConstraint(data::Particles& atoms, real_t dt, real_t eqDistance)
 {
-    auto dt = 0.1_r;
-
     impl::Shake shake(atoms, dt);
     Kokkos::parallel_for(
         Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(0, atoms.numLocalParticles), shake);
     auto policy = Kokkos::RangePolicy<>(0, 1);
-    auto kernel = KOKKOS_LAMBDA(auto idx) { shake.enforcePositionalConstraint(0, 1, 1_r); };
+    auto kernel = KOKKOS_LAMBDA(auto idx) { shake.enforcePositionalConstraint(0, 1, eqDistance); };
     Kokkos::parallel_for(policy, kernel);
     Kokkos::fence();
+}
+
+TEST_F(ShakeTest, Attraction)
+{
+    auto dt = 0.1_r;
+
+    enforceSingleConstraint(atoms, dt, 1_r);
     integratePosition(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
@@ -68,13 +73,7 @@ TEST_F(ShakeTest, Repulsion)
 {
     auto dt = 0.1_r;
 
-    impl::Shake shake(atoms, dt);
-    Kokkos::parallel_for(
-        Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(0, atoms.numLocalParticles), shake);
-    auto policy = Kokkos::RangePolicy<>(0, 1);
-    auto kernel = KOKKOS_LAMBDA(auto idx) { shake.enforcePositionalConstraint(0, 1, 2_r); };
-    Kokkos::parallel_for(policy, kernel);
-    Kokkos::fence();
+    enforceSingleConstraint(atoms, dt, 2_r);
     integratePosition(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
@@ -98,9 +97,26 @@ TEST_F(ShakeTest, Repulsion)
     EXPECT_FLOAT_EQ(calcDist(0, 1), 2_r);
 }
 
+void enforceConstraints(data::Particles& atoms, real_t dt, data::BondView bonds)
+{
+    impl::Shake shake(atoms, dt);
+    Kokkos::parallel_for(
+        Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(0, atoms.numLocalParticles), shake);
+    Kokkos::fence();
+    auto policy = Kokkos::RangePolicy<>(0, bonds.extent(0));
+    auto kernel = KOKKOS_LAMBDA(auto bondIdx)
+    {
+        shake.enforcePositionalConstraint(
+            bonds(bondIdx).idx, bonds(bondIdx).jdx, bonds(bondIdx).eqDistance);
+    };
+    Kokkos::parallel_for(policy, kernel);
+    Kokkos::fence();
+}
+
 TEST_F(ShakeTest, Shrink)
 {
     auto force = atoms.getForce();
+    Cabana::deep_copy(force, 0_r);
     auto dt = 0.1_r;
 
     data::BondView::host_mirror_type bonds("bonds", 4);
@@ -120,19 +136,8 @@ TEST_F(ShakeTest, Shrink)
     bonds(3).jdx = 0;
     bonds(3).eqDistance = 1_r;
 
-    impl::Shake shake(atoms, dt);
-    Kokkos::parallel_for(
-        Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(0, atoms.numLocalParticles), shake);
-    Kokkos::fence();
-    auto policy = Kokkos::RangePolicy<>(0, 4);
-    auto kernel = KOKKOS_LAMBDA(auto bondIdx)
-    {
-        shake.enforcePositionalConstraint(
-            bonds(bondIdx).idx, bonds(bondIdx).jdx, bonds(bondIdx).eqDistance);
-    };
-    Cabana::deep_copy(force, 0_r);
-    Kokkos::parallel_for(policy, kernel);
-    Kokkos::fence();
+    enforceConstraints(
+        atoms, dt, Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), bonds));
     integratePosition(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
@@ -172,19 +177,9 @@ TEST_F(ShakeTest, Grow)
     bonds(3).jdx = 0;
     bonds(3).eqDistance = 2_r;
 
-    impl::Shake shake(atoms, dt);
-    Kokkos::parallel_for(
-        Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(0, atoms.numLocalParticles), shake);
-    Kokkos::fence();
-    auto policy = Kokkos::RangePolicy<>(0, 4);
-    auto kernel = KOKKOS_LAMBDA(auto bondIdx)
-    {
-        shake.enforcePositionalConstraint(
-            bonds(bondIdx).idx, bonds(bondIdx).jdx, bonds(bondIdx).eqDistance);
-    };
-    Cabana::deep_copy(force, 0_r);
-    Kokkos::parallel_for(policy, kernel);
-    Kokkos::fence();
+    enforceConstraints(
+        atoms, dt, Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), bonds));
+    integratePosition(atoms, dt);
     integratePosition(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
