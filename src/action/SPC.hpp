@@ -45,6 +45,8 @@ private:
 
     idx_t runCounter_ = 0;
 
+    data::BondView::host_mirror_type bonds_;
+
 public:
     static constexpr idx_t COMPENSATION_ENERGY_SAMPLING_INTERVAL = 200;
     static constexpr idx_t COMPENSATION_ENERGY_UPDATE_INTERVAL = 20000;
@@ -151,18 +153,7 @@ public:
     void enforceConstraints(data::Molecules& molecules, data::Particles& atoms, real_t dt)
     {
         MoleculeConstraints moleculeConstraints(3, 3);
-        data::BondView::host_mirror_type bonds("bonds", 3);
-        bonds(0).idx = 0;
-        bonds(0).jdx = 1;
-        bonds(0).eqDistance = 1_r;
-        bonds(1).idx = 0;
-        bonds(1).jdx = 2;
-        bonds(1).eqDistance = 1_r;
-        bonds(2).idx = 1;
-        bonds(2).jdx = 2;
-        bonds(2).eqDistance = 1_r;
-        moleculeConstraints.setConstraints(bonds);
-
+        moleculeConstraints.setConstraints(bonds_);
         moleculeConstraints.enforcePositionalConstraints(molecules, atoms, dt);
     }
 
@@ -208,8 +199,20 @@ public:
         const real_t& sigma,
         const real_t& epsilon,
         const bool doShift)
-        : LJ_(cappingDistance, rc, sigma, epsilon, doShift), coulomb_(rc, 0.1_r), rcSqr_(rc * rc)
+        : LJ_(cappingDistance, rc, sigma, epsilon, doShift),
+          coulomb_(rc, 0.1_r),
+          rcSqr_(rc * rc),
+          bonds_("bonds", 3)
     {
+        bonds_(0).idx = 0;
+        bonds_(0).jdx = 1;
+        bonds_(0).eqDistance = 1_r;
+        bonds_(1).idx = 0;
+        bonds_(1).jdx = 2;
+        bonds_(1).eqDistance = 1_r;
+        bonds_(2).idx = 1;
+        bonds_(2).jdx = 2;
+        bonds_(2).eqDistance = 1_r;
     }
 };
 }  // namespace action
