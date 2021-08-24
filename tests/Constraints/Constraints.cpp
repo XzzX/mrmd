@@ -10,6 +10,22 @@ using ConstraintTest = test::DiamondFixture;
 
 TEST_F(ConstraintTest, ShakeVelocityVerlet)
 {
+    auto dt = 0.1_r;
+
+    data::BondView::host_mirror_type bonds("bonds", 1);
+    bonds(0).idx = 0;
+    bonds(0).jdx = 1;
+    bonds(0).eqDistance = 1_r;
+
+    action::MoleculeConstraints mc(1, 1);
+    mc.setConstraints(bonds);
+
+    mc.enforcePositionalConstraints(molecules, atoms, dt);
+    action::VelocityVerlet::preForceIntegrate(atoms, dt);
+    auto atomsForce = atoms.getForce();
+    Cabana::deep_copy(atomsForce, 0_r);
+    action::VelocityVerlet::postForceIntegrate(atoms, dt);
+
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
     auto pos = Cabana::slice<data::Particles::POS>(hAoSoA);
     auto vel = Cabana::slice<data::Particles::VEL>(hAoSoA);
@@ -29,24 +45,6 @@ TEST_F(ConstraintTest, ShakeVelocityVerlet)
         dx[2] = vel(idx, 2) - vel(jdx, 2);
         return std::sqrt(util::dot3(dx, dx));
     };
-
-    auto dt = 0.1_r;
-    data::BondView::host_mirror_type bonds("bonds", 1);
-    bonds(0).idx = 0;
-    bonds(0).jdx = 1;
-    bonds(0).eqDistance = 1_r;
-    action::MoleculeConstraints mc(1, 1);
-    mc.setConstraints(bonds);
-    auto atomsForce = atoms.getForce();
-
-    for (int iteration = 0; iteration < 10; ++iteration)
-    {
-        mc.enforcePositionalConstraints(molecules, atoms, dt);
-        action::VelocityVerlet::preForceIntegrate(atoms, dt);
-        Cabana::deep_copy(atomsForce, 0_r);
-        action::VelocityVerlet::postForceIntegrate(atoms, dt);
-    }
-
     EXPECT_FLOAT_EQ(calcDist(0, 1), 1_r);
     EXPECT_FLOAT_EQ(calcRelVel(0, 1) + 1_r, 1_r);
 }

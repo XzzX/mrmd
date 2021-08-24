@@ -104,7 +104,7 @@ public:
         // solve for lambda
         auto lambda1 = (-b + std::sqrt(determinant)) / (2_r * a);
         auto lambda2 = (-b - std::sqrt(determinant)) / (2_r * a);
-        auto lambda = std::fabs(lambda1) < std::fabs(lambda2) ? lambda1 : lambda2;
+        auto lambda = std::abs(lambda1) < std::abs(lambda2) ? lambda1 : lambda2;
 
         lambda /= dtfsq_;
 
@@ -132,7 +132,7 @@ public:
         vel_ = particles.getVel();
         force_ = particles.getForce();
 
-        util::grow(updatedPos_, idx_c(pos_.extent(0)));
+        util::grow(updatedPos_, idx_c(particles.numLocalParticles + particles.numGhostParticles));
 
         dtv_ = dt;
         dtfsq_ = 0.5_r * dt * dt;
