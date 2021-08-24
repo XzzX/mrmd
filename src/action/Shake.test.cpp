@@ -20,7 +20,7 @@ void integratePosition(data::Particles& atoms, real_t dt)
     auto force = atoms.getForce();
 
     auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalParticles);
-    auto kernel = KOKKOS_LAMBDA(auto idx)
+    auto kernel = KOKKOS_LAMBDA(idx_t idx)
     {
         pos(idx, 0) = pos(idx, 0) + dtv * vel(idx, 0) + dtf * force(idx, 0);
         pos(idx, 1) = pos(idx, 1) + dtv * vel(idx, 1) + dtf * force(idx, 1);
@@ -36,7 +36,7 @@ void enforceSingleConstraint(data::Particles& atoms, real_t dt, real_t eqDistanc
     Kokkos::parallel_for(
         Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(0, atoms.numLocalParticles), shake);
     auto policy = Kokkos::RangePolicy<>(0, 1);
-    auto kernel = KOKKOS_LAMBDA(auto idx) { shake.enforcePositionalConstraint(0, 1, eqDistance); };
+    auto kernel = KOKKOS_LAMBDA(idx_t idx) { shake.enforcePositionalConstraint(0, 1, eqDistance); };
     Kokkos::parallel_for(policy, kernel);
     Kokkos::fence();
 }
@@ -104,7 +104,7 @@ void enforceConstraints(data::Particles& atoms, real_t dt, data::BondView bonds)
         Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(0, atoms.numLocalParticles), shake);
     Kokkos::fence();
     auto policy = Kokkos::RangePolicy<>(0, bonds.extent(0));
-    auto kernel = KOKKOS_LAMBDA(auto bondIdx)
+    auto kernel = KOKKOS_LAMBDA(idx_t bondIdx)
     {
         shake.enforcePositionalConstraint(
             bonds(bondIdx).idx, bonds(bondIdx).jdx, bonds(bondIdx).eqDistance);
