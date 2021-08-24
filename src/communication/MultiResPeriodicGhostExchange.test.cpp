@@ -38,33 +38,33 @@ TYPED_TEST(TypedMultiResPeriodicGhostExchangeTest, SelfExchange)
          idx < this->atoms.numLocalParticles + this->atoms.numGhostParticles;
          ++idx)
     {
-        if constexpr (std::is_same_v<TypeParam,
-                                     MultiResPeriodicGhostExchange::DIRECTION_X_HIGH>)  // NOLINT
+        if constexpr (std::is_same_v<TypeParam,  // NOLINT
+                                     MultiResPeriodicGhostExchange::DIRECTION_X_HIGH>)
         {
             EXPECT_LT(pos(idx, 0), this->subdomain.minCorner[0]);
         }
-        if constexpr (std::is_same_v<TypeParam,
-                                     MultiResPeriodicGhostExchange::DIRECTION_Y_HIGH>)  // NOLINT
+        if constexpr (std::is_same_v<TypeParam,  // NOLINT
+                                     MultiResPeriodicGhostExchange::DIRECTION_Y_HIGH>)
         {
             EXPECT_LT(pos(idx, 1), this->subdomain.minCorner[1]);
         }
-        if constexpr (std::is_same_v<TypeParam,
-                                     MultiResPeriodicGhostExchange::DIRECTION_Z_HIGH>)  // NOLINT
+        if constexpr (std::is_same_v<TypeParam,  // NOLINT
+                                     MultiResPeriodicGhostExchange::DIRECTION_Z_HIGH>)
         {
             EXPECT_LT(pos(idx, 2), this->subdomain.minCorner[2]);
         }
-        if constexpr (std::is_same_v<TypeParam,
-                                     MultiResPeriodicGhostExchange::DIRECTION_X_LOW>)  // NOLINT
+        if constexpr (std::is_same_v<TypeParam,  // NOLINT
+                                     MultiResPeriodicGhostExchange::DIRECTION_X_LOW>)
         {
             EXPECT_GT(pos(idx, 0), this->subdomain.minCorner[0]);
         }
-        if constexpr (std::is_same_v<TypeParam,
-                                     MultiResPeriodicGhostExchange::DIRECTION_Y_LOW>)  // NOLINT
+        if constexpr (std::is_same_v<TypeParam,  // NOLINT
+                                     MultiResPeriodicGhostExchange::DIRECTION_Y_LOW>)
         {
             EXPECT_GT(pos(idx, 1), this->subdomain.minCorner[1]);
         }
-        if constexpr (std::is_same_v<TypeParam,
-                                     MultiResPeriodicGhostExchange::DIRECTION_Z_LOW>)  // NOLINT
+        if constexpr (std::is_same_v<TypeParam,  // NOLINT
+                                     MultiResPeriodicGhostExchange::DIRECTION_Z_LOW>)
         {
             EXPECT_GT(pos(idx, 2), this->subdomain.minCorner[2]);
         }
