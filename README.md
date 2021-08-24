@@ -1,4 +1,5 @@
-![Build Status](https://img.shields.io/github/checks-status/xzzx/mrmd/main?label=main&style=plastic)
+![Build Status](https://img.shields.io/github/workflow/status/xzzx/mrmd/VALIDATE/main?label=main&style=plastic)
+![Build Status](https://img.shields.io/github/languages/code-size/xzzx/mrmd?style=plastic)
 
 # MRMD
 
