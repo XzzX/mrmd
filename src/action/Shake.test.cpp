@@ -97,7 +97,7 @@ TEST_F(ShakeTest, Repulsion)
     EXPECT_FLOAT_EQ(calcDist(0, 1), 2_r);
 }
 
-void enforceConstraints(data::Particles& atoms, real_t dt, data::BondView bonds)
+void enforceConstraints(data::Particles& atoms, real_t dt, const data::BondView& bonds)
 {
     impl::Shake shake(atoms, dt);
     Kokkos::parallel_for(
