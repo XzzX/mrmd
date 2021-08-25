@@ -137,8 +137,11 @@ TEST_F(ShakeTest, Shrink)
     bonds(3).jdx = 0;
     bonds(3).eqDistance = 1_r;
 
-    enforceConstraints(
-        atoms, dt, Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), bonds));
+    for (int iteration = 0; iteration < 10; ++iteration)
+    {
+        enforceConstraints(
+            atoms, dt, Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), bonds));
+    }
     integratePosition(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
@@ -178,8 +181,11 @@ TEST_F(ShakeTest, Grow)
     bonds(3).jdx = 0;
     bonds(3).eqDistance = 2_r;
 
-    enforceConstraints(
-        atoms, dt, Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), bonds));
+    for (int iteration = 0; iteration < 10; ++iteration)
+    {
+        enforceConstraints(
+            atoms, dt, Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), bonds));
+    }
     integratePosition(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
