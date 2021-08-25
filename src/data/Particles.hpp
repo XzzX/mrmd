@@ -19,13 +19,15 @@ public:
         VEL = 1,
         FORCE = 2,
         TYPE = 3,
-        CHARGE = 4,
-        RELATIVE_MASS = 5,  ///< relative mass of the atom in relation to the molecule
+        MASS = 4,
+        CHARGE = 5,
+        RELATIVE_MASS = 6,  ///< relative mass of the atom in relation to the molecule
     };
     using DataTypes = Cabana::MemberTypes<real_t[DIMENSIONS],
                                           real_t[DIMENSIONS],
                                           real_t[DIMENSIONS],
                                           idx_t,
+                                          real_t,
                                           real_t,
                                           real_t>;
     using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VECTOR_LENGTH>;
@@ -34,6 +36,7 @@ public:
     using vel_t = typename ParticlesT::template member_slice_type<VEL>;
     using force_t = typename ParticlesT::template member_slice_type<FORCE>;
     using type_t = typename ParticlesT::template member_slice_type<TYPE>;
+    using mass_t = typename ParticlesT::template member_slice_type<MASS>;
     using charge_t = typename ParticlesT::template member_slice_type<CHARGE>;
     using relative_mass_t = typename ParticlesT::template member_slice_type<RELATIVE_MASS>;
 
@@ -41,6 +44,7 @@ public:
     vel_t vel;
     force_t force;
     type_t type;
+    mass_t mass;
     charge_t charge;
     relative_mass_t relativeMass;
 
@@ -48,6 +52,7 @@ public:
     KOKKOS_FORCEINLINE_FUNCTION vel_t getVel() const { return vel; }
     KOKKOS_FORCEINLINE_FUNCTION force_t getForce() const { return force; }
     KOKKOS_FORCEINLINE_FUNCTION type_t getType() const { return type; }
+    KOKKOS_FORCEINLINE_FUNCTION charge_t getMass() const { return mass; }
     KOKKOS_FORCEINLINE_FUNCTION charge_t getCharge() const { return charge; }
     KOKKOS_FORCEINLINE_FUNCTION relative_mass_t getRelativeMass() const { return relativeMass; }
 
@@ -57,6 +62,7 @@ public:
         vel = Cabana::slice<VEL>(particles_);
         force = Cabana::slice<FORCE>(particles_);
         type = Cabana::slice<TYPE>(particles_);
+        mass = Cabana::slice<MASS>(particles_);
         charge = Cabana::slice<CHARGE>(particles_);
         relativeMass = Cabana::slice<RELATIVE_MASS>(particles_);
     }
@@ -87,6 +93,7 @@ public:
             force(dst, dim) = force(src, dim);
         }
         type(dst) = type(src);
+        mass(dst) = mass(src);
         charge(dst) = charge(src);
         relativeMass(dst) = relativeMass(src);
     }
