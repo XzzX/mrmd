@@ -11,7 +11,7 @@ namespace test
 {
 namespace impl
 {
-void setup(data::Particles& atoms)
+inline void setup(data::Particles& atoms)
 {
     assert(atoms.size() >= 1);
     auto pos = atoms.getPos();

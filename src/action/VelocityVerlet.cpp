@@ -11,13 +11,15 @@ real_t VelocityVerlet::preForceIntegrate(data::Particles& particles, const real_
     auto pos = particles.getPos();
     auto vel = particles.getVel();
     auto force = particles.getForce();
+    auto mass = particles.getMass();
 
     auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx, real_t& maxDistSqr)
     {
-        vel(idx, 0) += dtf * force(idx, 0);
-        vel(idx, 1) += dtf * force(idx, 1);
-        vel(idx, 2) += dtf * force(idx, 2);
+        auto dtfm = dtf / mass(idx);
+        vel(idx, 0) += dtfm * force(idx, 0);
+        vel(idx, 1) += dtfm * force(idx, 1);
+        vel(idx, 2) += dtfm * force(idx, 2);
         auto dx = dtv * vel(idx, 0);
         auto dy = dtv * vel(idx, 1);
         auto dz = dtv * vel(idx, 2);
@@ -40,13 +42,15 @@ void VelocityVerlet::postForceIntegrate(data::Particles& particles, const real_t
     auto dtf = 0.5_r * dt;
     auto vel = particles.getVel();
     auto force = particles.getForce();
+    auto mass = particles.getMass();
 
     auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
-        vel(idx, 0) += dtf * force(idx, 0);
-        vel(idx, 1) += dtf * force(idx, 1);
-        vel(idx, 2) += dtf * force(idx, 2);
+        auto dtfm = dtf / mass(idx);
+        vel(idx, 0) += dtfm * force(idx, 0);
+        vel(idx, 1) += dtfm * force(idx, 1);
+        vel(idx, 2) += dtfm * force(idx, 2);
     };
     Kokkos::parallel_for("VelocityVerlet::postForceIntegrate", policy, kernel);
     Kokkos::fence();

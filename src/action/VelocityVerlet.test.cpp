@@ -2,73 +2,58 @@
 
 #include <gtest/gtest.h>
 
+#include "test/SingleParticle.hpp"
+
 namespace mrmd
 {
 namespace action
 {
-class VelocityVerletTest : public ::testing::Test
-{
-protected:
-    void SetUp() override
-    {
-        auto pos = particles.getPos();
-        auto vel = particles.getVel();
-        auto force = particles.getForce();
-
-        pos(0, 0) = 1_r;
-        pos(0, 1) = 2_r;
-        pos(0, 2) = 3_r;
-
-        vel(0, 0) = 4_r;
-        vel(0, 1) = 5_r;
-        vel(0, 2) = 6_r;
-
-        force(0, 0) = 7_r;
-        force(0, 1) = 8_r;
-        force(0, 2) = 9_r;
-
-        particles.numLocalParticles = 1;
-    }
-
-    // void TearDown() override {}
-
-    data::Particles particles = data::Particles(1);
-};
+using VelocityVerletTest = test::SingleParticle;
 
 TEST_F(VelocityVerletTest, preForceIntegration)
 {
     auto dt = 4_r;
-    VelocityVerlet::preForceIntegrate(particles, dt);
+    VelocityVerlet::preForceIntegrate(atoms, dt);
 
-    EXPECT_FLOAT_EQ(particles.getForce()(0, 0), 7_r);
-    EXPECT_FLOAT_EQ(particles.getForce()(0, 1), 8_r);
-    EXPECT_FLOAT_EQ(particles.getForce()(0, 2), 9_r);
+    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
+    auto pos = Cabana::slice<data::Particles::POS>(hAoSoA);
+    auto vel = Cabana::slice<data::Particles::VEL>(hAoSoA);
+    auto force = Cabana::slice<data::Particles::FORCE>(hAoSoA);
 
-    EXPECT_FLOAT_EQ(particles.getVel()(0, 0), 18_r);
-    EXPECT_FLOAT_EQ(particles.getVel()(0, 1), 21_r);
-    EXPECT_FLOAT_EQ(particles.getVel()(0, 2), 24_r);
+    EXPECT_FLOAT_EQ(force(0, 0), 9_r);
+    EXPECT_FLOAT_EQ(force(0, 1), 7_r);
+    EXPECT_FLOAT_EQ(force(0, 2), 8_r);
 
-    EXPECT_FLOAT_EQ(particles.getPos()(0, 0), 73_r);
-    EXPECT_FLOAT_EQ(particles.getPos()(0, 1), 86_r);
-    EXPECT_FLOAT_EQ(particles.getPos()(0, 2), 99_r);
+    EXPECT_FLOAT_EQ(vel(0, 0), 19_r);
+    EXPECT_FLOAT_EQ(vel(0, 1), 14.333333_r);
+    EXPECT_FLOAT_EQ(vel(0, 2), 13.666667_r);
+
+    EXPECT_FLOAT_EQ(pos(0, 0), 78_r);
+    EXPECT_FLOAT_EQ(pos(0, 1), 60.333332_r);
+    EXPECT_FLOAT_EQ(pos(0, 2), 58.666668_r);
 }
 
 TEST_F(VelocityVerletTest, postForceIntegration)
 {
     auto dt = 4_r;
-    VelocityVerlet::postForceIntegrate(particles, dt);
+    VelocityVerlet::postForceIntegrate(atoms, dt);
 
-    EXPECT_FLOAT_EQ(particles.getForce()(0, 0), 7_r);
-    EXPECT_FLOAT_EQ(particles.getForce()(0, 1), 8_r);
-    EXPECT_FLOAT_EQ(particles.getForce()(0, 2), 9_r);
+    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
+    auto pos = Cabana::slice<data::Particles::POS>(hAoSoA);
+    auto vel = Cabana::slice<data::Particles::VEL>(hAoSoA);
+    auto force = Cabana::slice<data::Particles::FORCE>(hAoSoA);
 
-    EXPECT_FLOAT_EQ(particles.getVel()(0, 0), 18_r);
-    EXPECT_FLOAT_EQ(particles.getVel()(0, 1), 21_r);
-    EXPECT_FLOAT_EQ(particles.getVel()(0, 2), 24_r);
+    EXPECT_FLOAT_EQ(force(0, 0), 9_r);
+    EXPECT_FLOAT_EQ(force(0, 1), 7_r);
+    EXPECT_FLOAT_EQ(force(0, 2), 8_r);
 
-    EXPECT_FLOAT_EQ(particles.getPos()(0, 0), 1_r);
-    EXPECT_FLOAT_EQ(particles.getPos()(0, 1), 2_r);
-    EXPECT_FLOAT_EQ(particles.getPos()(0, 2), 3_r);
+    EXPECT_FLOAT_EQ(vel(0, 0), 19_r);
+    EXPECT_FLOAT_EQ(vel(0, 1), 14.333333_r);
+    EXPECT_FLOAT_EQ(vel(0, 2), 13.666667_r);
+
+    EXPECT_FLOAT_EQ(pos(0, 0), 2_r);
+    EXPECT_FLOAT_EQ(pos(0, 1), 3_r);
+    EXPECT_FLOAT_EQ(pos(0, 2), 4_r);
 }
 
 }  // namespace action
