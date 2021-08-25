@@ -12,18 +12,28 @@ using ContributeMoleculeForceToAtomsTest = test::DiamondFixture;
 
 TEST_F(ContributeMoleculeForceToAtomsTest, update)
 {
-    molecules.getForce()(0, 0) = 5_r;
-    molecules.getForce()(0, 1) = 6_r;
-    molecules.getForce()(0, 2) = 7_r;
+    {
+        auto hAoSoA =
+            Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), molecules.getAoSoA());
+        auto force = Cabana::slice<data::Molecules::FORCE>(hAoSoA);
+        force(0, 0) = 5_r;
+        force(0, 1) = 6_r;
+        force(0, 2) = 7_r;
+        Cabana::deep_copy(molecules.getAoSoA(), hAoSoA);
+    }
 
     action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
 
-    EXPECT_FLOAT_EQ(atoms.getForce()(0, 0), 2.5_r);
-    EXPECT_FLOAT_EQ(atoms.getForce()(0, 1), 3.0_r);
-    EXPECT_FLOAT_EQ(atoms.getForce()(0, 2), 3.5_r);
-    EXPECT_FLOAT_EQ(atoms.getForce()(1, 0), 2.5_r);
-    EXPECT_FLOAT_EQ(atoms.getForce()(1, 1), 3.0_r);
-    EXPECT_FLOAT_EQ(atoms.getForce()(1, 2), 3.5_r);
+    {
+        auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
+        auto force = Cabana::slice<data::Particles::FORCE>(hAoSoA);
+        EXPECT_FLOAT_EQ(force(0, 0), 5_r * 0.25_r);
+        EXPECT_FLOAT_EQ(force(0, 1), 6_r * 0.25_r);
+        EXPECT_FLOAT_EQ(force(0, 2), 7_r * 0.25_r);
+        EXPECT_FLOAT_EQ(force(1, 0), 5_r * 0.75_r);
+        EXPECT_FLOAT_EQ(force(1, 1), 6_r * 0.75_r);
+        EXPECT_FLOAT_EQ(force(1, 2), 7_r * 0.75_r);
+    }
 }
 
 }  // namespace action

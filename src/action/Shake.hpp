@@ -15,6 +15,7 @@ namespace impl
 {
 /**
  * SHAKE algorithm (DOI: 10.1016/0021-9991(77)90098-5)
+ * RATTLE algorithm (DOI: 10.1016/0021-9991(83)90014-1)
  */
 class Shake
 {
@@ -22,10 +23,11 @@ private:
     data::Particles::pos_t pos_;
     data::Particles::vel_t vel_;
     data::Particles::force_t::atomic_access_slice force_;
+    data::Particles::mass_t mass_;
     VectorView updatedPos_;
 
     real_t dtv_;
-    real_t dtfsq_;
+    real_t dtf_;
 
 public:
     struct UnconstraintUpdate
@@ -49,8 +51,8 @@ public:
         /// squared distances between particles
         auto distSq = util::dot3(dist, dist);
 
-        auto invMassI = 1_r;
-        auto invMassJ = 1_r;
+        auto invMassI = 1_r / mass_(idx);
+        auto invMassJ = 1_r / mass_(jdx);
         auto reducedMass = 1_r / (invMassI + invMassJ);
 
         real_t relVel[3];
@@ -82,21 +84,21 @@ public:
         /// squared distances between particles
         real_t distSq = util::dot3(dist, dist);
 
-        /// distance vec after unconstrained update, with PBC
-        real_t s01[3];
-        s01[0] = updatedPos_(idx, 0) - updatedPos_(jdx, 0);
-        s01[1] = updatedPos_(idx, 1) - updatedPos_(jdx, 1);
-        s01[2] = updatedPos_(idx, 2) - updatedPos_(jdx, 2);
+        /// distance between atoms after unconstrained update,
+        real_t updatedDist[3];
+        updatedDist[0] = updatedPos_(idx, 0) - updatedPos_(jdx, 0);
+        updatedDist[1] = updatedPos_(idx, 1) - updatedPos_(jdx, 1);
+        updatedDist[2] = updatedPos_(idx, 2) - updatedPos_(jdx, 2);
         /// squared distances between updated particles
-        real_t s01sq = util::dot3(s01, s01);
+        real_t s01sq = util::dot3(updatedDist, updatedDist);
 
-        auto invMassI = 1_r;
-        auto invMassJ = 1_r;
+        auto invMassI = 1_r / mass_(idx);
+        auto invMassJ = 1_r / mass_(jdx);
 
         /// coefficient in quadratic equation for lamda, ax**2 + bx + c = 0
-        real_t a = (invMassI + invMassJ) * (invMassI + invMassJ) * distSq;
-        real_t b = 2_r * (invMassI + invMassJ) * util::dot3(s01, dist);
-        real_t c = s01sq - eqDistance * eqDistance;
+        real_t a = util::sqr(invMassI + invMassJ) * distSq;
+        real_t b = 2_r * (invMassI + invMassJ) * util::dot3(updatedDist, dist);
+        real_t c = s01sq - util::sqr(eqDistance);
 
         real_t determinant = b * b - 4_r * a * c;
         assert(determinant >= 0);
@@ -106,7 +108,7 @@ public:
         auto lambda2 = (-b - std::sqrt(determinant)) / (2_r * a);
         auto lambda = std::abs(lambda1) < std::abs(lambda2) ? lambda1 : lambda2;
 
-        lambda /= dtfsq_;
+        lambda /= dtf_;
 
         force_(idx, 0) += lambda * dist[0];
         force_(idx, 1) += lambda * dist[1];
@@ -120,10 +122,10 @@ public:
     KOKKOS_INLINE_FUNCTION
     void operator()(UnconstraintUpdate, const idx_t idx) const
     {
-        auto dtfmsq = dtfsq_;
-        updatedPos_(idx, 0) = pos_(idx, 0) + dtv_ * vel_(idx, 0) + dtfmsq * force_(idx, 0);
-        updatedPos_(idx, 1) = pos_(idx, 1) + dtv_ * vel_(idx, 1) + dtfmsq * force_(idx, 1);
-        updatedPos_(idx, 2) = pos_(idx, 2) + dtv_ * vel_(idx, 2) + dtfmsq * force_(idx, 2);
+        auto dtfm = dtf_ / mass_(idx);
+        updatedPos_(idx, 0) = pos_(idx, 0) + dtv_ * vel_(idx, 0) + dtfm * force_(idx, 0);
+        updatedPos_(idx, 1) = pos_(idx, 1) + dtv_ * vel_(idx, 1) + dtfm * force_(idx, 1);
+        updatedPos_(idx, 2) = pos_(idx, 2) + dtv_ * vel_(idx, 2) + dtfm * force_(idx, 2);
     }
 
     Shake(data::Particles& particles, const real_t& dt)
@@ -131,11 +133,12 @@ public:
         pos_ = particles.getPos();
         vel_ = particles.getVel();
         force_ = particles.getForce();
+        mass_ = particles.getMass();
 
         util::grow(updatedPos_, idx_c(particles.numLocalParticles + particles.numGhostParticles));
 
         dtv_ = dt;
-        dtfsq_ = 0.5_r * dt * dt;
+        dtf_ = 0.5_r * dt * dt;
     }
 };
 }  // namespace impl

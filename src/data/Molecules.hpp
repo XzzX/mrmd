@@ -107,7 +107,7 @@ public:
         resize(numLocalMolecules + numGhostMolecules);
     }
 
-    auto getAoSoA() { return molecules_; }
+    auto& getAoSoA() { return molecules_; }
 
     idx_t numLocalMolecules = 0;
     idx_t numGhostMolecules = 0;

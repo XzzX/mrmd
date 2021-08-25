@@ -12,19 +12,20 @@ using ShakeTest = test::DiamondFixture;
 
 void integratePosition(data::Particles& atoms, real_t dt)
 {
-    auto dtv = dt;
-    auto dtf = 0.5_r * dt * dt;
-
     auto pos = atoms.getPos();
     auto vel = atoms.getVel();
     auto force = atoms.getForce();
+    auto mass = atoms.getMass();
 
     auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalParticles);
     auto kernel = KOKKOS_LAMBDA(idx_t idx)
     {
-        pos(idx, 0) = pos(idx, 0) + dtv * vel(idx, 0) + dtf * force(idx, 0);
-        pos(idx, 1) = pos(idx, 1) + dtv * vel(idx, 1) + dtf * force(idx, 1);
-        pos(idx, 2) = pos(idx, 2) + dtv * vel(idx, 2) + dtf * force(idx, 2);
+        auto dtv = dt;
+        auto dtfm = 0.5_r * dt * dt / mass(idx);
+
+        pos(idx, 0) = pos(idx, 0) + dtv * vel(idx, 0) + dtfm * force(idx, 0);
+        pos(idx, 1) = pos(idx, 1) + dtv * vel(idx, 1) + dtfm * force(idx, 1);
+        pos(idx, 2) = pos(idx, 2) + dtv * vel(idx, 2) + dtfm * force(idx, 2);
     };
     Kokkos::parallel_for(policy, kernel);
     Kokkos::fence();
