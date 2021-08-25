@@ -25,6 +25,7 @@ void restoreLAMMPS(const std::string& filename, data::Particles& atoms, data::Mo
     auto h_Atoms = Cabana::create_mirror_view(Kokkos::HostSpace(), d_Atoms);
     auto h_pos = Cabana::slice<data::Particles::POS>(h_Atoms);
     auto h_vel = Cabana::slice<data::Particles::VEL>(h_Atoms);
+    auto h_mass = Cabana::slice<data::Particles::MASS>(h_Atoms);
     auto h_relativeMass = Cabana::slice<data::Particles::RELATIVE_MASS>(h_Atoms);
 
     molecules.resize(2 * numParticles);
@@ -68,6 +69,8 @@ void restoreLAMMPS(const std::string& filename, data::Particles& atoms, data::Mo
         h_vel(idx, 0) = velX;
         h_vel(idx, 1) = velY;
         h_vel(idx, 2) = velZ;
+
+        h_mass(idx) = 1_r;
 
         h_relativeMass(idx) = 1_r;
 

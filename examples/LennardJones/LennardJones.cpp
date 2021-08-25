@@ -58,6 +58,7 @@ data::Particles fillDomainWithParticlesSC(const data::Subdomain& subdomain,
 
     auto pos = particles.getPos();
     auto vel = particles.getVel();
+    auto mass = particles.getMass();
 
     auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0}, {nx, ny, nz});
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t idy, const idx_t idz)
@@ -68,10 +69,12 @@ data::Particles fillDomainWithParticlesSC(const data::Subdomain& subdomain,
         pos(i, 2) = real_c(idz) * spacing + subdomain.minCorner[2];
 
         auto randGen = RNG.get_state();
-        vel(idx, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(i, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(i, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(i, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
         RNG.free_state(randGen);
+
+        mass(i) = 1_r;
     };
     Kokkos::parallel_for("fillDomainWithParticlesSC", policy, kernel);
 
