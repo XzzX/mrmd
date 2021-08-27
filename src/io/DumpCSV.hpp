@@ -6,6 +6,6 @@ namespace mrmd
 {
 namespace io
 {
-void dumpCSV(const std::string& filename, data::Particles& particles);
+void dumpCSV(const std::string& filename, data::Particles& particles, bool dumpGhosts = true);
 }  // namespace io
 }  // namespace mrmd

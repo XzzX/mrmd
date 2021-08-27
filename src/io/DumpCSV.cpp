@@ -8,7 +8,7 @@ namespace mrmd
 {
 namespace io
 {
-void dumpCSV(const std::string& filename, data::Particles& particles)
+void dumpCSV(const std::string& filename, data::Particles& particles, bool dumpGhosts)
 {
     // very ugly, will also copy the whole particle data which is unnecessary, custom slicing
     // required
@@ -23,7 +23,9 @@ void dumpCSV(const std::string& filename, data::Particles& particles)
         exit(EXIT_FAILURE);
     }
     fout << "pos_x, pos_y, pos_z, vel_x, vel_y, vel_z" << std::endl;
-    for (idx_t idx = 0; idx < particles.numLocalParticles + particles.numGhostParticles; ++idx)
+    auto lastParticleIdx =
+        particles.numLocalParticles + (dumpGhosts ? particles.numGhostParticles : 0);
+    for (idx_t idx = 0; idx < lastParticleIdx; ++idx)
     {
         fout << pos(idx, 0) << ", " << pos(idx, 1) << ", " << pos(idx, 2) << ", " << vel(idx, 0)
              << ", " << vel(idx, 1) << ", " << vel(idx, 2) << std::endl;
