@@ -20,6 +20,7 @@
 #include "io/DumpCSV.hpp"
 #include "io/RestoreTXT.hpp"
 #include "util/EnvironmentVariables.hpp"
+#include "util/PrintTable.hpp"
 
 using namespace mrmd;
 
@@ -32,49 +33,46 @@ struct Config
     real_t rc = 2.5;
     real_t skin = 0.3;
     real_t neighborCutoff = rc + skin;
-    real_t dt = 0.005;
-    real_t temperature = 1_r;
+    real_t sigma = 1_r;
+    real_t epsilon = 1_r;
+    real_t dt = 0.001;
+    real_t temperature = 1.12_r;
     real_t gamma = 1_r;
 
     real_t Lx = 33.8585;
+    real_t rho = 0.75_r;
 
-    real_t cell_ratio = 0.5_r;
+    real_t cell_ratio = 1.0_r;
 
     idx_t estimatedMaxNeighbors = 60;
 };
 
 data::Particles fillDomainWithParticlesSC(const data::Subdomain& subdomain,
-                                          const real_t& spacing,
+                                          const idx_t& numParticles,
                                           const real_t& maxVelocity)
 {
     auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
 
-    auto nx = idx_t(subdomain.diameter[0] / spacing);
-    auto ny = idx_t(subdomain.diameter[1] / spacing);
-    auto nxny = nx * ny;
-    auto nz = idx_t(subdomain.diameter[2] / spacing);
-    auto numParticles = nx * ny * nz;
     data::Particles particles(numParticles);
 
     auto pos = particles.getPos();
     auto vel = particles.getVel();
     auto mass = particles.getMass();
 
-    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0}, {nx, ny, nz});
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t idy, const idx_t idz)
+    auto policy = Kokkos::RangePolicy<>(0, numParticles);
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
-        auto i = idx + idy * nx + idz * nxny;
-        pos(i, 0) = real_c(idx) * spacing + subdomain.minCorner[0];
-        pos(i, 1) = real_c(idy) * spacing + subdomain.minCorner[1];
-        pos(i, 2) = real_c(idz) * spacing + subdomain.minCorner[2];
-
         auto randGen = RNG.get_state();
-        vel(i, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(i, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(i, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
+        pos(idx, 0) = randGen.drand() * subdomain.diameter[0] + subdomain.minCorner[0];
+        pos(idx, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
+        pos(idx, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
+
+        vel(idx, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(idx, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(idx, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
         RNG.free_state(randGen);
 
-        mass(i) = 1_r;
+        mass(idx) = 1_r;
     };
     Kokkos::parallel_for("fillDomainWithParticlesSC", policy, kernel);
 
@@ -87,18 +85,20 @@ void LJ(Config& config)
 {
     auto subdomain =
         data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
-    auto particles = fillDomainWithParticlesSC(subdomain, 1.1_r, 1_r);
-    auto rho = real_c(particles.numLocalParticles) /
-               (subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]);
+    const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
+    auto particles = fillDomainWithParticlesSC(subdomain, idx_c(config.rho * volume), 1_r);
+    auto rho = real_c(particles.numLocalParticles) / volume;
     std::cout << "rho: " << rho << std::endl;
 
     communication::GhostLayer ghostLayer(subdomain);
-    action::LennardJones LJ(config.rc, 1_r, 1_r);
+    action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     VerletList verletList;
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;
+    util::printTable("step", "time", "T", "Ek", "E0", "E", "Nlocal", "Nghost");
+    util::printTableSep("step", "time", "T", "Ek", "E0", "E", "Nlocal", "Nghost");
     for (auto step = 0; step < config.nsteps; ++step)
     {
         maxParticleDisplacement += action::VelocityVerlet::preForceIntegrate(particles, config.dt);
@@ -118,7 +118,7 @@ void LJ(Config& config)
                                           gridDelta,
                                           subdomain.minCorner.data(),
                                           subdomain.maxCorner.data());
-            particles.permute(linkedCellList);
+            //            particles.permute(linkedCellList);
 
             ghostLayer.createGhostParticles(particles);
             verletList.build(particles.getPos(),
@@ -140,9 +140,9 @@ void LJ(Config& config)
         Cabana::deep_copy(force, 0_r);
 
         LJ.applyForces(particles, verletList);
-        if (config.temperature >= 0)
+        if ((config.temperature >= 0) && (step < 10000))
         {
-            // langevinThermostat.apply(particles);
+            langevinThermostat.apply(particles);
         }
         ghostLayer.contributeBackGhostToReal(particles);
 
@@ -154,16 +154,20 @@ void LJ(Config& config)
             auto T = analysis::getTemperature(particles);
             auto systemMomentum = analysis::getSystemMomentum(particles);
             auto Ek = (3_r / 2_r) * real_c(particles.numLocalParticles) * T;
-            std::cout << step << ": " << timer.seconds() << std::endl;
-            std::cout << "system momentum: " << systemMomentum[0] << " | " << systemMomentum[1]
-                      << " | " << systemMomentum[2] << std::endl;
-            std::cout << "rebuild counter: " << rebuildCounter << std::endl;
-            std::cout << "T : " << std::setw(10) << T << " | ";
-            std::cout << "Ek: " << std::setw(10) << Ek << " | ";
-            std::cout << "E0: " << std::setw(10) << E0 << " | ";
-            std::cout << "E : " << std::setw(10) << E0 + Ek << " | ";
-            std::cout << "Nlocal : " << std::setw(10) << particles.numLocalParticles << " | ";
-            std::cout << "Nghost : " << std::setw(10) << particles.numGhostParticles << std::endl;
+            //            std::cout << "system momentum: " << systemMomentum[0] << " | " <<
+            //            systemMomentum[1]
+            //                      << " | " << systemMomentum[2] << std::endl;
+            //            std::cout << "rebuild counter: " << rebuildCounter << std::endl;
+            util::printTable(step,
+                             timer.seconds(),
+                             T,
+                             Ek,
+                             E0,
+                             E0 + Ek,
+                             particles.numLocalParticles,
+                             particles.numGhostParticles);
+
+            io::dumpCSV("lj_" + std::to_string(step) + ".csv", particles);
         }
     }
     auto time = timer.seconds();
