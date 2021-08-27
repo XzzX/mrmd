@@ -49,6 +49,16 @@ private:
     data::BondView::host_mirror_type bonds_;
 
 public:
+    // LJ parameters
+    static constexpr real_t sigma = 3.5533_r;    ///< unit: A
+    static constexpr real_t epsilon = 0.1553_r;  ///< unit: kcal / mol
+    static constexpr real_t rc = 12_r;           ///< unit: A
+
+    // Coulomb DSF parameters
+    static constexpr real_t alpha = 0.2_r;  ///< unit: 1/A
+
+    static constexpr real_t angleHOH = util::degToRad(109.47_r);  ///< unit: radians
+
     static constexpr idx_t COMPENSATION_ENERGY_SAMPLING_INTERVAL = 200;
     static constexpr idx_t COMPENSATION_ENERGY_UPDATE_INTERVAL = 20000;
 
@@ -153,7 +163,7 @@ public:
 
     void enforceConstraints(data::Molecules& molecules, data::Particles& atoms, real_t dt)
     {
-        MoleculeConstraints moleculeConstraints(3, 3);
+        MoleculeConstraints moleculeConstraints(3, 10);
         moleculeConstraints.setConstraints(bonds_);
         moleculeConstraints.enforcePositionalConstraints(molecules, atoms, dt);
     }
@@ -195,13 +205,9 @@ public:
         return energy;
     }
 
-    SPC(const real_t& cappingDistance,
-        const real_t& rc,
-        const real_t& sigma,
-        const real_t& epsilon,
-        const bool doShift)
-        : LJ_(cappingDistance, rc, sigma, epsilon, doShift),
-          coulomb_(rc, 0.1_r),
+    SPC()
+        : LJ_(0.7_r * sigma, rc, sigma, epsilon, true),
+          coulomb_(rc, alpha),
           rcSqr_(rc * rc),
           bonds_("bonds", 3)
     {
@@ -214,7 +220,7 @@ public:
         bonds_(2).idx = 1;
         bonds_(2).jdx = 2;
         // law of cosines
-        bonds_(2).eqDistance = std::sqrt(2_r - 2_r * std::cos(util::degToRad(109.47_r)));
+        bonds_(2).eqDistance = std::sqrt(2_r - 2_r * std::cos(angleHOH));
     }
 };
 }  // namespace action
