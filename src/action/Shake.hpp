@@ -84,13 +84,13 @@ public:
         /// squared distances between particles
         real_t distSq = util::dot3(dist, dist);
 
-        /// distance between atoms after unconstrained update,
+        /// distance between atoms after unconstrained update
         real_t updatedDist[3];
         updatedDist[0] = updatedPos_(idx, 0) - updatedPos_(jdx, 0);
         updatedDist[1] = updatedPos_(idx, 1) - updatedPos_(jdx, 1);
         updatedDist[2] = updatedPos_(idx, 2) - updatedPos_(jdx, 2);
         /// squared distances between updated particles
-        real_t s01sq = util::dot3(updatedDist, updatedDist);
+        real_t updatedDistSq = util::dot3(updatedDist, updatedDist);
 
         auto invMassI = 1_r / mass_(idx);
         auto invMassJ = 1_r / mass_(jdx);
@@ -98,7 +98,7 @@ public:
         /// coefficient in quadratic equation for lamda, ax**2 + bx + c = 0
         real_t a = util::sqr(invMassI + invMassJ) * distSq;
         real_t b = 2_r * (invMassI + invMassJ) * util::dot3(updatedDist, dist);
-        real_t c = s01sq - util::sqr(eqDistance);
+        real_t c = updatedDistSq - util::sqr(eqDistance);
 
         real_t determinant = b * b - 4_r * a * c;
         assert(determinant >= 0);
