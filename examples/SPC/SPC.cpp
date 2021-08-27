@@ -46,9 +46,7 @@ struct Config
     real_t thermodynamicForceModulation = 2_r;
 
     // LJ parameters
-    real_t sigma = 1_r;
-    real_t epsilon = 0.1553_r;
-    real_t rc = 2.5_r;
+    real_t rc = action::SPC::rc;
 
     // neighborlist parameters
     real_t skin = 0.3_r;
@@ -98,6 +96,8 @@ void initMolecules(data::Molecules& molecules,
     auto pos = atoms.getPos();
     auto vel = atoms.getVel();
     auto charge = atoms.getCharge();
+    auto type = atoms.getType();
+    auto mass = atoms.getMass();
     auto realtiveMass = atoms.getRelativeMass();
     auto atomPolicy = Kokkos::RangePolicy<>(0, numMolecules);
     auto atomKernel = KOKKOS_LAMBDA(const idx_t idx)
@@ -108,36 +108,42 @@ void initMolecules(data::Molecules& molecules,
         pos(idx * 3 + 0, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
         pos(idx * 3 + 0, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
 
-        vel(idx * 3 + 0, 0) = (randGen.drand() - 0.5_r) * 2_r;
-        vel(idx * 3 + 0, 1) = (randGen.drand() - 0.5_r) * 2_r;
-        vel(idx * 3 + 0, 2) = (randGen.drand() - 0.5_r) * 2_r;
+        //        vel(idx * 3 + 0, 0) = (randGen.drand() - 0.5_r) * 1_r;
+        //        vel(idx * 3 + 0, 1) = (randGen.drand() - 0.5_r) * 1_r;
+        //        vel(idx * 3 + 0, 2) = (randGen.drand() - 0.5_r) * 1_r;
 
+        type(idx * 3 + 0) = 0;
+        mass(idx * 3 + 0) = 15.999_r;
         charge(idx * 3 + 0) = -0.82_r;
-        realtiveMass(idx * 3 + 0) = (1_r / 3_r);
+        realtiveMass(idx * 3 + 0) = 15.999_r / (15.999_r + 2_r * 1.008_r);
 
         // hydrogen 1
         pos(idx * 3 + 1, 0) = pos(idx * 3 + 0, 0) + 1_r;
         pos(idx * 3 + 1, 1) = pos(idx * 3 + 0, 1);
         pos(idx * 3 + 1, 2) = pos(idx * 3 + 0, 2);
 
-        vel(idx * 3 + 1, 0) = (randGen.drand() - 0.5_r) * 2_r;
-        vel(idx * 3 + 1, 1) = (randGen.drand() - 0.5_r) * 2_r;
-        vel(idx * 3 + 1, 2) = (randGen.drand() - 0.5_r) * 2_r;
+        //        vel(idx * 3 + 1, 0) = (randGen.drand() - 0.5_r) * 1_r;
+        //        vel(idx * 3 + 1, 1) = (randGen.drand() - 0.5_r) * 1_r;
+        //        vel(idx * 3 + 1, 2) = (randGen.drand() - 0.5_r) * 1_r;
 
+        type(idx * 3 + 1) = 1;
+        mass(idx * 3 + 1) = 1.008_r;
         charge(idx * 3 + 1) = +0.41_r;
-        realtiveMass(idx * 3 + 1) = (1_r / 3_r);
+        realtiveMass(idx * 3 + 1) = 1.008_r / (15.999_r + 2_r * 1.008_r);
 
         // hydrogen 2
-        pos(idx * 3 + 2, 0) = pos(idx * 3 + 0, 0);
-        pos(idx * 3 + 2, 1) = pos(idx * 3 + 0, 1) + 1_r;
+        pos(idx * 3 + 2, 0) = pos(idx * 3 + 0, 0) + std::cos(util::degToRad(109.47_r));
+        pos(idx * 3 + 2, 1) = pos(idx * 3 + 0, 1) + std::sin(util::degToRad(109.47_r));
         pos(idx * 3 + 2, 2) = pos(idx * 3 + 0, 2);
 
-        vel(idx * 3 + 2, 0) = (randGen.drand() - 0.5_r) * 2_r;
-        vel(idx * 3 + 2, 1) = (randGen.drand() - 0.5_r) * 2_r;
-        vel(idx * 3 + 2, 2) = (randGen.drand() - 0.5_r) * 2_r;
+        //        vel(idx * 3 + 2, 0) = (randGen.drand() - 0.5_r) * 1_r;
+        //        vel(idx * 3 + 2, 1) = (randGen.drand() - 0.5_r) * 1_r;
+        //        vel(idx * 3 + 2, 2) = (randGen.drand() - 0.5_r) * 1_r;
 
+        type(idx * 3 + 2) = 1;
+        mass(idx * 3 + 2) = 1.008_r;
         charge(idx * 3 + 2) = +0.41_r;
-        realtiveMass(idx * 3 + 2) = (1_r / 3_r);
+        realtiveMass(idx * 3 + 2) = 1.008_r / (15.999_r + 2_r * 1.008_r);
 
         // Give the state back, which will allow another thread to acquire it
         RNG.free_state(randGen);
@@ -178,7 +184,7 @@ void SPC(Config& config)
     std::ofstream fDriftForceCompensation("driftForce.txt");
 
     // actions
-    action::SPC spc(0.9_r * config.sigma, config.rc, config.sigma, config.epsilon, true);
+    action::SPC spc;
     action::ThermodynamicForce thermodynamicForce(
         config.rho, subdomain, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
@@ -196,7 +202,7 @@ void SPC(Config& config)
         // update molecule positions
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
-        if (maxParticleDisplacement >= -config.skin * 0.5_r)
+        if (maxParticleDisplacement >= config.skin * 0.5_r)
         {
             // reset displacement
             maxParticleDisplacement = 0_r;
@@ -286,7 +292,7 @@ void SPC(Config& config)
                              atoms.numLocalParticles,
                              atoms.numGhostParticles);
 
-            io::dumpCSV("particles_" + std::to_string(step) + ".csv", atoms);
+            io::dumpCSV("particles_" + std::to_string(step) + ".csv", atoms, false);
 
             //            fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
             //            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
