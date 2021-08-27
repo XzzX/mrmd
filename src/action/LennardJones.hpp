@@ -112,7 +112,6 @@ public:
         {
             idx_t jdx = idx_c(NeighborList::getNeighbor(verletList_, idx, n));
             assert(0 <= jdx);
-            assert(jdx < 60000);
 
             auto dx = posTmp[0] - pos_(jdx, 0);
             auto dy = posTmp[1] - pos_(jdx, 1);
@@ -180,8 +179,11 @@ public:
         return E0;
     }
 
-    LennardJones(const real_t rc, const real_t& sigma, const real_t& epsilon)
-        : LJ_(0_r, rc, sigma, epsilon, false), rcSqr_(rc * rc)
+    LennardJones(const real_t rc,
+                 const real_t& sigma,
+                 const real_t& epsilon,
+                 const real_t& cappingDistance = 0_r)
+        : LJ_(cappingDistance, rc, sigma, epsilon, false), rcSqr_(rc * rc)
     {
     }
 };
