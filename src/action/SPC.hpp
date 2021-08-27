@@ -6,6 +6,7 @@
 #include "data/Histogram.hpp"
 #include "data/Particles.hpp"
 #include "datatypes.hpp"
+#include "util/angle.hpp"
 
 namespace mrmd
 {
@@ -212,7 +213,8 @@ public:
         bonds_(1).eqDistance = 1_r;
         bonds_(2).idx = 1;
         bonds_(2).jdx = 2;
-        bonds_(2).eqDistance = 1_r;
+        // law of cosines
+        bonds_(2).eqDistance = std::sqrt(2_r - 2_r * std::cos(util::degToRad(109.47_r)));
     }
 };
 }  // namespace action
