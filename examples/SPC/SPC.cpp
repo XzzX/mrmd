@@ -37,10 +37,10 @@ struct Config
 
     // general simulation parameters
     idx_t nsteps = 5000001;
-    real_t dt = 0.0005_r;
+    real_t dt = 0.002_r;  ///< unit: ps
 
     // simulation box parameters
-    real_t rho = 0.86_r;
+    real_t rho = 32_r;  ///< unit: molecules/nm**3
 
     // thermodynamic force parameters
     real_t thermodynamicForceModulation = 2_r;
@@ -49,13 +49,13 @@ struct Config
     real_t rc = action::SPC::rc;
 
     // neighborlist parameters
-    real_t skin = 0.3_r;
+    real_t skin = 0.03_r;  ///< unit: nm
     real_t neighborCutoff = rc + skin;
     real_t cell_ratio = 0.5_r;
     idx_t estimatedMaxNeighbors = 60;
 
     // thermostat parameters
-    real_t temperature = 1.2_r;
+    real_t temperature = 1.69_r;
     real_t gamma = 1_r;
 
     // AdResS parameters
@@ -113,12 +113,12 @@ void initMolecules(data::Molecules& molecules,
         //        vel(idx * 3 + 0, 2) = (randGen.drand() - 0.5_r) * 1_r;
 
         type(idx * 3 + 0) = 0;
-        mass(idx * 3 + 0) = 15.999_r;
+        mass(idx * 3 + 0) = 15.999_r;  ///< unit: g/mol
         charge(idx * 3 + 0) = -0.82_r;
         realtiveMass(idx * 3 + 0) = 15.999_r / (15.999_r + 2_r * 1.008_r);
 
         // hydrogen 1
-        pos(idx * 3 + 1, 0) = pos(idx * 3 + 0, 0) + 1_r;
+        pos(idx * 3 + 1, 0) = pos(idx * 3 + 0, 0) + action::SPC::eqDistanceHO;
         pos(idx * 3 + 1, 1) = pos(idx * 3 + 0, 1);
         pos(idx * 3 + 1, 2) = pos(idx * 3 + 0, 2);
 
@@ -127,13 +127,15 @@ void initMolecules(data::Molecules& molecules,
         //        vel(idx * 3 + 1, 2) = (randGen.drand() - 0.5_r) * 1_r;
 
         type(idx * 3 + 1) = 1;
-        mass(idx * 3 + 1) = 1.008_r;
+        mass(idx * 3 + 1) = 1.008_r;  ///< unit: g/mol
         charge(idx * 3 + 1) = +0.41_r;
         realtiveMass(idx * 3 + 1) = 1.008_r / (15.999_r + 2_r * 1.008_r);
 
         // hydrogen 2
-        pos(idx * 3 + 2, 0) = pos(idx * 3 + 0, 0) + std::cos(util::degToRad(109.47_r));
-        pos(idx * 3 + 2, 1) = pos(idx * 3 + 0, 1) + std::sin(util::degToRad(109.47_r));
+        pos(idx * 3 + 2, 0) =
+            pos(idx * 3 + 0, 0) + action::SPC::eqDistanceHO * std::cos(action::SPC::angleHOH);
+        pos(idx * 3 + 2, 1) =
+            pos(idx * 3 + 0, 1) + action::SPC::eqDistanceHO * std::sin(action::SPC::angleHOH);
         pos(idx * 3 + 2, 2) = pos(idx * 3 + 0, 2);
 
         //        vel(idx * 3 + 2, 0) = (randGen.drand() - 0.5_r) * 1_r;
@@ -141,7 +143,7 @@ void initMolecules(data::Molecules& molecules,
         //        vel(idx * 3 + 2, 2) = (randGen.drand() - 0.5_r) * 1_r;
 
         type(idx * 3 + 2) = 1;
-        mass(idx * 3 + 2) = 1.008_r;
+        mass(idx * 3 + 2) = 1.008_r;  ///< unit: g/mol
         charge(idx * 3 + 2) = +0.41_r;
         realtiveMass(idx * 3 + 2) = 1.008_r / (15.999_r + 2_r * 1.008_r);
 
@@ -155,19 +157,19 @@ void initMolecules(data::Molecules& molecules,
 
 void SPC(Config& config)
 {
-    auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {30_r, 30_r, 30_r}, config.neighborCutoff);
+    auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {3_r, 3_r, 3_r}, config.neighborCutoff);
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
 
     data::Particles atoms(0);
     data::Molecules molecules(0);
-    initMolecules(molecules, atoms, subdomain, 900);
+    initMolecules(molecules, atoms, subdomain, volume * config.rho);
     io::dumpCSV("particles_initial.csv", atoms);
 
-    std::cout << "particles added: " << atoms.numLocalParticles << std::endl;
+    std::cout << "molecules added: " << molecules.numLocalMolecules << std::endl;
     std::cout << "system temperature: " << analysis::getTemperature(atoms) << std::endl;
 
-    auto rho = real_c(atoms.numLocalParticles) / volume;
-    std::cout << "global particle density: " << rho << std::endl;
+    auto rho = real_c(molecules.numLocalMolecules) / volume;
+    std::cout << "global molecule density: " << rho << std::endl;
 
     // data allocations
     VerletList moleculesVerletList;

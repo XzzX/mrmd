@@ -50,13 +50,15 @@ private:
 
 public:
     // LJ parameters
-    static constexpr real_t sigma = 3.5533_r;    ///< unit: A
-    static constexpr real_t epsilon = 0.1553_r;  ///< unit: kcal / mol
-    static constexpr real_t rc = 12_r;           ///< unit: A
+    static constexpr real_t sigma = 0.35533_r;   ///< unit: nm
+    static constexpr real_t epsilon = 0.6498_r;  ///< unit: kJ / mol
+    static constexpr real_t rc = 1.2_r;          ///< unit: nm
 
     // Coulomb DSF parameters
-    static constexpr real_t alpha = 0.2_r;  ///< unit: 1/A
+    static constexpr real_t alpha = 2.0_r;  ///< unit: 1/nm
 
+    /// unit: nm, equilibirum distance between hydrogen and oxygen
+    static constexpr real_t eqDistanceHO = 0.1_r;
     static constexpr real_t angleHOH = util::degToRad(109.47_r);  ///< unit: radians
 
     static constexpr idx_t COMPENSATION_ENERGY_SAMPLING_INTERVAL = 200;
@@ -105,17 +107,18 @@ public:
 
             const auto distSqr = util::dot3(dx, dx);
 
-            if (distSqr > rcSqr_) continue;
+            if (distSqr < rcSqr_)
+            {
+                auto ffactor = LJ_.computeForce(distSqr);
 
-            auto ffactor = LJ_.computeForce(distSqr);
+                atomsForce_(startAtomsBeta, 0) -= dx[0] * ffactor;
+                atomsForce_(startAtomsBeta, 1) -= dx[1] * ffactor;
+                atomsForce_(startAtomsBeta, 2) -= dx[2] * ffactor;
 
-            atomsForce_(startAtomsBeta, 0) -= dx[0] * ffactor;
-            atomsForce_(startAtomsBeta, 1) -= dx[1] * ffactor;
-            atomsForce_(startAtomsBeta, 2) -= dx[2] * ffactor;
-
-            atomsForce_(startAtomsAlpha, 0) += dx[0] * ffactor;
-            atomsForce_(startAtomsAlpha, 1) += dx[1] * ffactor;
-            atomsForce_(startAtomsAlpha, 2) += dx[2] * ffactor;
+                atomsForce_(startAtomsAlpha, 0) += dx[0] * ffactor;
+                atomsForce_(startAtomsAlpha, 1) += dx[1] * ffactor;
+                atomsForce_(startAtomsAlpha, 2) += dx[2] * ffactor;
+            }
 
             /// loop over atoms
             for (idx_t idx = startAtomsAlpha; idx < endAtomsAlpha; ++idx)
@@ -188,7 +191,7 @@ public:
 
         real_t energy = 0_r;
         auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
-        Kokkos::parallel_reduce("LJ_IdealGas::applyForces", policy, *this, energy);
+        Kokkos::parallel_reduce("SPC::applyForces", policy, *this, energy);
 
         //        Kokkos::Experimental::contribute(compensationEnergy_.data,
         //        compensationEnergyScatter_);
@@ -213,14 +216,14 @@ public:
     {
         bonds_(0).idx = 0;
         bonds_(0).jdx = 1;
-        bonds_(0).eqDistance = 1_r;
+        bonds_(0).eqDistance = eqDistanceHO;
         bonds_(1).idx = 0;
         bonds_(1).jdx = 2;
-        bonds_(1).eqDistance = 1_r;
+        bonds_(1).eqDistance = eqDistanceHO;
         bonds_(2).idx = 1;
         bonds_(2).jdx = 2;
         // law of cosines
-        bonds_(2).eqDistance = std::sqrt(2_r - 2_r * std::cos(angleHOH));
+        bonds_(2).eqDistance = eqDistanceHO * std::sqrt(2_r - 2_r * std::cos(angleHOH));
     }
 };
 }  // namespace action
