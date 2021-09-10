@@ -13,6 +13,7 @@ class CoulombDSF
 {
 private:
     real_t alpha_;
+    real_t rc_ = 0_r;
     real_t rcSqr_ = 0_r;
     real_t forceShift_ = 0_r;
     real_t energyShift_ = 0_r;
@@ -29,18 +30,31 @@ public:
     KOKKOS_INLINE_FUNCTION
     real_t computeForce(const real_t& distSqr, const real_t q1, const real_t q2) const
     {
-        auto qqrd2e = 1_r;
+        // optimized version, however we are unsure about the units of the constants
+        //        auto qqrd2e = 1_r;
+        //        auto r = std::sqrt(distSqr);
+        //        auto prefactor = qqrd2e * q1 * q2 / r;
+        //        auto erfcd = std::exp(-alpha_ * alpha_ * distSqr);
+        //        auto t = 1_r / (1_r + EWALD_P * alpha_ * r);
+        //        auto erfcc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * erfcd;
+        //
+        //        auto forcecoul =
+        //            prefactor * (erfcc / r + 2_r * alpha_ / M_SQRTPI * erfcd + r * forceShift_) *
+        //            r;
+        //        auto fpair = forcecoul / distSqr;
+        //
+        //        return fpair;
+
+        // DOI: 10.1140/epjst/e2016-60151-6
+        // equation 16
+        real_t prefac = 138.935458_r * q1 * q2;
         auto r = std::sqrt(distSqr);
-        auto prefactor = qqrd2e * q1 * q2 / r;
-        auto erfcd = std::exp(-alpha_ * alpha_ * distSqr);
-        auto t = 1_r / (1_r + EWALD_P * alpha_ * r);
-        auto erfcc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * erfcd;
-
-        auto forcecoul =
-            prefactor * (erfcc / r + 2_r * alpha_ / M_SQRTPI * erfcd + r * forceShift_) * r;
-        auto fpair = forcecoul / distSqr;
-
-        return fpair;
+        auto bracket = 0_r;
+        bracket += std::erfc(alpha_ * r) / distSqr;
+        bracket += 2_r * alpha_ / M_SQRTPI * std::exp(-alpha_ * alpha_ * distSqr) / r;
+        bracket -= std::erfc(alpha_ * rc_) / rcSqr_;
+        bracket -= 2_r * alpha_ / M_SQRTPI * std::exp(-alpha_ * alpha_ * rcSqr_) / rc_;
+        return prefac * bracket / r;
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -58,7 +72,7 @@ public:
         return ecoul;
     }
 
-    CoulombDSF(const real_t& rc, const real_t& alpha) : alpha_(alpha), rcSqr_(rc * rc)
+    CoulombDSF(const real_t& rc, const real_t& alpha) : alpha_(alpha), rc_(rc), rcSqr_(rc * rc)
     {
         real_t erfcc = std::erfc(alpha_ * rc);
         real_t erfcd = std::exp(-alpha_ * alpha_ * rcSqr_);

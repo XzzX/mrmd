@@ -54,5 +54,15 @@ TEST(CoulombDSF, Symmetry)
     EXPECT_FLOAT_EQ(coulomb.computeForce(distSqr, +q, +q), -coulomb.computeForce(distSqr, +q, -q));
 }
 
+TEST(CoulombDSF, shift)
+{
+    constexpr real_t rc = 1.5_r;
+    constexpr real_t alpha = 0.1_r;
+    constexpr real_t q = 1_r;
+    impl::CoulombDSF coulomb(rc, alpha);
+
+    EXPECT_FLOAT_EQ(coulomb.computeForce(rc * rc, +q, +q) + 1_r, 1_r);
+}
+
 }  // namespace action
 }  // namespace mrmd
