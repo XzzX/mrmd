@@ -14,8 +14,8 @@
 #include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
+#include "analysis/KineticEnergy.hpp"
 #include "analysis/SystemMomentum.hpp"
-#include "analysis/Temperature.hpp"
 #include "communication/MultiResGhostLayer.hpp"
 #include "data/Molecules.hpp"
 #include "data/Particles.hpp"
@@ -55,8 +55,8 @@ struct Config
     idx_t estimatedMaxNeighbors = 60;
 
     // thermostat parameters
-    real_t temperature = 1.69_r;
-    real_t gamma = 1_r;
+    real_t temperature = 0.9_r;
+    real_t gamma = 10_r;
 
     // AdResS parameters
     real_t atomisticRegionDiameter = 10_r;
@@ -157,7 +157,7 @@ void initMolecules(data::Molecules& molecules,
 
 void SPC(Config& config)
 {
-    auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {3_r, 3_r, 3_r}, config.neighborCutoff);
+    auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {5_r, 5_r, 5_r}, config.neighborCutoff);
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
 
     data::Particles atoms(0);
@@ -166,7 +166,6 @@ void SPC(Config& config)
     io::dumpCSV("particles_initial.csv", atoms);
 
     std::cout << "molecules added: " << molecules.numLocalMolecules << std::endl;
-    std::cout << "system temperature: " << analysis::getTemperature(atoms) << std::endl;
 
     auto rho = real_c(molecules.numLocalMolecules) / volume;
     std::cout << "global molecule density: " << rho << std::endl;
@@ -257,7 +256,8 @@ void SPC(Config& config)
         //        }
 
         //        thermodynamicForce.apply(atoms);
-        auto E0 = spc.applyForces(molecules, moleculesVerletList, atoms);
+        auto E0 = 0_r;
+        E0 += spc.applyForces(molecules, moleculesVerletList, atoms);
         action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
         if (config.temperature >= 0)
         {
@@ -269,9 +269,9 @@ void SPC(Config& config)
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto T = analysis::getTemperature(atoms);
+            auto Ek = analysis::getKineticEnergy(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto Ek = (3_r / 2_r) * T;
+            auto T = (2_r / (3_r * real_c(atoms.numLocalParticles))) * Ek;
             E0 /= real_c(atoms.numLocalParticles);
 
             // calc chemical potential

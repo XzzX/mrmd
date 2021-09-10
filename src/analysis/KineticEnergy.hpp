@@ -6,7 +6,7 @@ namespace mrmd
 {
 namespace analysis
 {
-real_t getTemperature(data::Particles& particles);
+real_t getKineticEnergy(data::Particles& particles);
 
 }  // namespace analysis
 }  // namespace mrmd

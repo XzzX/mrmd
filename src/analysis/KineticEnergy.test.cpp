@@ -1,4 +1,4 @@
-#include "Temperature.hpp"
+#include "KineticEnergy.hpp"
 
 #include <gtest/gtest.h>
 
@@ -6,7 +6,7 @@
 
 namespace mrmd
 {
-TEST(Temperature, Simple)
+TEST(KineticEnergy, Simple)
 {
     data::Particles particles(3);
     auto d_AoSoA = particles.getAoSoA();
@@ -22,19 +22,19 @@ TEST(Temperature, Simple)
     vel(1, 0) = -0_r;
     vel(1, 1) = -8_r;
     vel(1, 2) = -0_r;
-    mass(1) = 1_r;
+    mass(1) = 2_r;
     vel(2, 0) = +0_r;
     vel(2, 1) = +0_r;
     vel(2, 2) = +16_r;
-    mass(2) = 1_r;
+    mass(2) = 0.5_r;
 
     Cabana::deep_copy(d_AoSoA, h_AoSoA);
 
     particles.numLocalParticles = 3;
     particles.numGhostParticles = 0;
 
-    auto temperature = analysis::getTemperature(particles);
+    auto temperature = analysis::getKineticEnergy(particles);
 
-    EXPECT_FLOAT_EQ(temperature, (4_r + 64_r + 256_r) / 9_r);
+    EXPECT_FLOAT_EQ(temperature, (4_r + 2_r * 64_r + 0.5_r * 256_r) * 0.5_r);
 }
 }  // namespace mrmd

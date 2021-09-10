@@ -11,8 +11,8 @@
 #include "Cabana_NeighborList.hpp"
 #include "action/LangevinThermostat.hpp"
 #include "action/VelocityVerlet.hpp"
+#include "analysis/KineticEnergy.hpp"
 #include "analysis/SystemMomentum.hpp"
-#include "analysis/Temperature.hpp"
 #include "communication/GhostLayer.hpp"
 #include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
@@ -151,9 +151,9 @@ void LJ(Config& config)
         if (config.bOutput && (step % config.outputInterval == 0))
         {
             auto E0 = LJ.computeEnergy(particles, verletList);
-            auto T = analysis::getTemperature(particles);
+            auto Ek = analysis::getKineticEnergy(particles);
             auto systemMomentum = analysis::getSystemMomentum(particles);
-            auto Ek = (3_r / 2_r) * real_c(particles.numLocalParticles) * T;
+            auto T = (2_r / (3_r * real_c(particles.numLocalParticles))) * Ek;
             //            std::cout << "system momentum: " << systemMomentum[0] << " | " <<
             //            systemMomentum[1]
             //                      << " | " << systemMomentum[2] << std::endl;

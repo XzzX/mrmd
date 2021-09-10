@@ -1,10 +1,10 @@
-#include "Temperature.hpp"
+#include "KineticEnergy.hpp"
 
 namespace mrmd
 {
 namespace analysis
 {
-real_t getTemperature(data::Particles& particles)
+real_t getKineticEnergy(data::Particles& particles)
 {
     auto vel = particles.getVel();
     auto mass = particles.getMass();
@@ -15,8 +15,8 @@ real_t getTemperature(data::Particles& particles)
         sum += mass(idx) *
                (vel(idx, 0) * vel(idx, 0) + vel(idx, 1) * vel(idx, 1) + vel(idx, 2) * vel(idx, 2));
     };
-    Kokkos::parallel_reduce("getTemperature", policy, kernel, velSqr);
-    return velSqr / (3_r * real_c(particles.numLocalParticles));
+    Kokkos::parallel_reduce("getKineticEnergy", policy, kernel, velSqr);
+    return 0.5_r * velSqr;
 }
 
 }  // namespace analysis

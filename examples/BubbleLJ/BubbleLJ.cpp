@@ -13,8 +13,8 @@
 #include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
+#include "analysis/KineticEnergy.hpp"
 #include "analysis/SystemMomentum.hpp"
-#include "analysis/Temperature.hpp"
 #include "communication/MultiResGhostLayer.hpp"
 #include "data/Molecules.hpp"
 #include "data/Particles.hpp"
@@ -88,7 +88,6 @@ void LJ(Config& config)
     data::Molecules molecules(numParticles * 2);
     io::restoreLAMMPS("LJ_spartian_3.lammpstrj", atoms, molecules);
     std::cout << "particles added: " << atoms.numLocalParticles << std::endl;
-    std::cout << "system temperature: " << analysis::getTemperature(atoms) << std::endl;
 
     auto rho = real_c(atoms.numLocalParticles) / volume;
     std::cout << "global particle density: " << rho << std::endl;
@@ -188,9 +187,9 @@ void LJ(Config& config)
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto T = analysis::getTemperature(atoms);
+            auto Ek = analysis::getKineticEnergy(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto Ek = (3_r / 2_r) * T;
+            auto T = (2_r / (3_r * real_c(atoms.numLocalParticles))) * Ek;
             E0 /= real_c(atoms.numLocalParticles);
 
             // calc chemical potential

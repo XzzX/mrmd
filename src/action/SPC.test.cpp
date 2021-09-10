@@ -55,7 +55,7 @@ protected:
         realtiveMass(idx * 3 + 0) = 15.999_r / (15.999_r + 2_r * 1.008_r);
 
         // hydrogen 1
-        pos(idx * 3 + 1, 0) = pos(idx * 3 + 0, 0) + 1_r;
+        pos(idx * 3 + 1, 0) = pos(idx * 3 + 0, 0) + SPC::eqDistanceHO;
         pos(idx * 3 + 1, 1) = pos(idx * 3 + 0, 1);
         pos(idx * 3 + 1, 2) = pos(idx * 3 + 0, 2);
 
@@ -69,8 +69,8 @@ protected:
         realtiveMass(idx * 3 + 1) = 1.008_r / (15.999_r + 2_r * 1.008_r);
 
         // hydrogen 2
-        pos(idx * 3 + 2, 0) = pos(idx * 3 + 0, 0) + std::cos(SPC::angleHOH);
-        pos(idx * 3 + 2, 1) = pos(idx * 3 + 0, 1) + std::sin(SPC::angleHOH);
+        pos(idx * 3 + 2, 0) = pos(idx * 3 + 0, 0) + SPC::eqDistanceHO * std::cos(SPC::angleHOH);
+        pos(idx * 3 + 2, 1) = pos(idx * 3 + 0, 1) + SPC::eqDistanceHO * std::sin(SPC::angleHOH);
         pos(idx * 3 + 2, 2) = pos(idx * 3 + 0, 2);
 
         //        vel(idx * 3 + 2, 0) = (randGen.drand() - 0.5_r) * 1_r;
