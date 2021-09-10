@@ -146,15 +146,15 @@ public:
 
                     if (distSqr > rcSqr_) continue;
 
-                    //                    auto ffactor = coulomb_.computeForce(distSqr, q1, q2);
-                    //
-                    //                    forceTmpIdx[0] += dx[0] * ffactor;
-                    //                    forceTmpIdx[1] += dx[1] * ffactor;
-                    //                    forceTmpIdx[2] += dx[2] * ffactor;
-                    //
-                    //                    atomsForce_(jdx, 0) -= dx[0] * ffactor;
-                    //                    atomsForce_(jdx, 1) -= dx[1] * ffactor;
-                    //                    atomsForce_(jdx, 2) -= dx[2] * ffactor;
+                    auto ffactor = coulomb_.computeForce(distSqr, q1, q2);
+
+                    forceTmpIdx[0] += dx[0] * ffactor;
+                    forceTmpIdx[1] += dx[1] * ffactor;
+                    forceTmpIdx[2] += dx[2] * ffactor;
+
+                    atomsForce_(jdx, 0) -= dx[0] * ffactor;
+                    atomsForce_(jdx, 1) -= dx[1] * ffactor;
+                    atomsForce_(jdx, 2) -= dx[2] * ffactor;
                 }
 
                 atomsForce_(idx, 0) += forceTmpIdx[0];
