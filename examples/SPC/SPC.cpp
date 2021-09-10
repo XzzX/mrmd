@@ -45,17 +45,14 @@ struct Config
     // thermodynamic force parameters
     real_t thermodynamicForceModulation = 2_r;
 
-    // LJ parameters
-    real_t rc = action::SPC::rc;
-
     // neighborlist parameters
-    real_t skin = 0.03_r;  ///< unit: nm
-    real_t neighborCutoff = rc + skin;
+    real_t skin = 0.3_r;  ///< unit: nm
+    real_t neighborCutoff = action::SPC::rc + skin;
     real_t cell_ratio = 0.5_r;
     idx_t estimatedMaxNeighbors = 60;
 
     // thermostat parameters
-    real_t temperature = 0.9_r;
+    real_t temperature = 0.6_r;
     real_t gamma = 10_r;
 
     // AdResS parameters
@@ -203,7 +200,7 @@ void SPC(Config& config)
         // update molecule positions
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
-        if (maxParticleDisplacement >= config.skin * 0.5_r)
+        if (maxParticleDisplacement >= -config.skin * 0.5_r)
         {
             // reset displacement
             maxParticleDisplacement = 0_r;
@@ -269,9 +266,8 @@ void SPC(Config& config)
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto Ek = analysis::getKineticEnergy(atoms);
-            auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto T = (2_r / (3_r * real_c(atoms.numLocalParticles))) * Ek;
+            auto Ek = analysis::getKineticEnergy(atoms) / real_c(atoms.numLocalParticles);
+            auto T = Ek;
             E0 /= real_c(atoms.numLocalParticles);
 
             // calc chemical potential
