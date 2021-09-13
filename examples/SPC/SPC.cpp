@@ -159,7 +159,7 @@ void SPC(Config& config)
 
     data::Particles atoms(0);
     data::Molecules molecules(0);
-    initMolecules(molecules, atoms, subdomain, volume * config.rho);
+    initMolecules(molecules, atoms, subdomain, idx_c(volume * config.rho));
     io::dumpCSV("particles_initial.csv", atoms);
 
     std::cout << "molecules added: " << molecules.numLocalMolecules << std::endl;
