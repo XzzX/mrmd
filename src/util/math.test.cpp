@@ -27,5 +27,13 @@ TEST(powInt, negativeExponent)
     EXPECT_FLOAT_EQ(powInt(base, -2), 1_r / (base * base));
     EXPECT_FLOAT_EQ(powInt(base, -3), 1_r / (base * base * base));
 }
+
+TEST(approxErfc, STD)
+{
+    for (auto x = 0.1_r; x < 3_r; x += 0.1_r)
+    {
+        EXPECT_NEAR(std::erfc(x), approxErfc(x), 1e-6_r);
+    }
+}
 }  // namespace util
 }  // namespace mrmd
