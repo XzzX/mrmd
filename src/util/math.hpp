@@ -37,8 +37,10 @@ KOKKOS_INLINE_FUNCTION real_t powInt(const real_t& x, const idx_t n)
  * "Rational Approximations", equation 7.1.27:
  *
  * accuracy: 1.5x10^-7
+ *
+ * @param expX2 intermediate value std::exp(-x * x)
  */
-KOKKOS_INLINE_FUNCTION real_t approxErfc(const real_t& x)
+KOKKOS_INLINE_FUNCTION real_t approxErfc(const real_t& x, real_t& expX2)
 {
     assert(x > 0_r);
 
@@ -49,7 +51,14 @@ KOKKOS_INLINE_FUNCTION real_t approxErfc(const real_t& x)
     constexpr auto a4 = -1.453152027_r;
     constexpr auto a5 = 1.061405429_r;
     auto t = 1_r / (1_r + p * x);
-    return t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5)))) * std::exp(-x * x);
+    expX2 = std::exp(-x * x);
+    return t * (a1 + t * (a2 + t * (a3 + t * (a4 + t * a5)))) * expX2;
+}
+
+KOKKOS_INLINE_FUNCTION real_t approxErfc(const real_t& x)
+{
+    [[maybe_unused]] real_t tmp;
+    return approxErfc(x, tmp);
 }
 
 }  // namespace util
