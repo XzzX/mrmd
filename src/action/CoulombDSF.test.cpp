@@ -25,21 +25,39 @@ constexpr real_t coulombEnergyDSF(
                 (r - rc));
 }
 
-// TEST(CoulombDSF, ExplicitComparison)
-//{
-//     constexpr real_t rc = 5_r;
-//     constexpr real_t alpha = 0.1_r;
-//     constexpr real_t q = 1_r;
-//     constexpr real_t q1 = +q;
-//     constexpr real_t q2 = -q;
-//     impl::CoulombDSF coulomb(rc, alpha);
-//
-//     for (real_t x = 1e-8_r; x < rc; x += 0.01_r)
-//     {
-//         EXPECT_FLOAT_EQ(-coulomb.computeEnergy(x * x, q1, q2),
-//                         coulombEnergyDSF(x, q1, q2, alpha, rc));
-//     }
-// }
+real_t coulombForce(
+    const real_t r, const real_t q1, const real_t q2, const real_t alpha, const real_t rc)
+{
+    // DOI: 10.1140/epjst/e2016-60151-6
+    // equation 16
+
+    real_t prefac = 138.935458_r * q1 * q2;
+    auto distSqr = r * r;
+    auto rcSqr = rc * rc;
+    auto bracket = 0_r;
+    bracket += std::erfc(alpha * r) / distSqr;
+    bracket += 2_r * alpha / M_SQRTPI * std::exp(-alpha * alpha * distSqr) / r;
+    bracket -= std::erfc(alpha * rc) / rcSqr;
+    bracket -= 2_r * alpha / M_SQRTPI * std::exp(-alpha * alpha * rcSqr) / rc;
+    return prefac * bracket / r;
+}
+
+TEST(CoulombDSF, ForceExplicitComparison)
+{
+    constexpr real_t rc = 5_r;
+    constexpr real_t alpha = 0.1_r;
+    constexpr real_t q1 = +1.2_r;
+    constexpr real_t q2 = -1.3_r;
+    impl::CoulombDSF coulomb(rc, alpha);
+
+    for (real_t x = 1e-8_r; x < rc; x += 0.01_r)
+    {
+        auto relativeError =
+            std::abs((coulomb.computeForce(x * x, q1, q2) - coulombForce(x, q1, q2, alpha, rc)) /
+                     coulombForce(x, q1, q2, alpha, rc));
+        EXPECT_LT(relativeError, 1e-4_r);
+    }
+}
 
 TEST(CoulombDSF, Symmetry)
 {
