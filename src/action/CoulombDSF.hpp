@@ -38,8 +38,10 @@ public:
     KOKKOS_INLINE_FUNCTION
     real_t computeEnergy(const real_t& distSqr, const real_t q1, const real_t q2) const
     {
-        assert(1 == 0);
-        exit(EXIT_FAILURE);
+        auto r = std::sqrt(distSqr);
+        real_t prefac = 138.935458_r * q1 * q2;
+        auto erfc = util::approxErfc(alpha_ * r);
+        return prefac * (erfc / r - energyShift_ - forceShift_ * (r - rc_));
     }
 
     CoulombDSF(const real_t& rc, const real_t& alpha) : alpha_(alpha), rc_(rc), rcSqr_(rc * rc)
@@ -47,7 +49,7 @@ public:
         real_t erfc = std::erfc(alpha_ * rc);
         real_t exp = std::exp(-alpha_ * alpha_ * rcSqr_);
         forceShift_ = -(erfc / rcSqr_ + 2_r / M_SQRTPI * alpha_ * exp / rc);
-        energyShift_ = erfc / rc - forceShift_ * rc;
+        energyShift_ = erfc / rc;
     }
 };
 }  // namespace impl
