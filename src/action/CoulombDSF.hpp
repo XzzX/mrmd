@@ -35,6 +35,10 @@ public:
         return force / distSqr;
     }
 
+    /**
+     *  DOI: 10.1140/epjst/e2016-60151-6
+     *  eq 15
+     */
     KOKKOS_INLINE_FUNCTION
     real_t computeEnergy(const real_t& distSqr, const real_t q1, const real_t q2) const
     {
