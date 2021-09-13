@@ -79,7 +79,7 @@ TEST(CoulombDSF, shift)
     constexpr real_t q = 1_r;
     impl::CoulombDSF coulomb(rc, alpha);
 
-    EXPECT_FLOAT_EQ(coulomb.computeForce(rc * rc, +q, +q) + 1_r, 1_r);
+    EXPECT_NEAR(coulomb.computeForce(rc * rc, +q, +q), 0_r, 1e-5_r);
 }
 
 }  // namespace action
