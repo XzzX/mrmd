@@ -25,7 +25,7 @@ constexpr real_t coulombEnergyDSF(
                 (r - rc));
 }
 
-real_t coulombForce(
+real_t coulombForceDSF(
     const real_t r, const real_t q1, const real_t q2, const real_t alpha, const real_t rc)
 {
     // DOI: 10.1140/epjst/e2016-60151-6
@@ -53,8 +53,8 @@ TEST(CoulombDSF, ForceExplicitComparison)
     for (real_t x = 1e-8_r; x < rc; x += 0.01_r)
     {
         auto relativeError =
-            std::abs((coulomb.computeForce(x * x, q1, q2) - coulombForce(x, q1, q2, alpha, rc)) /
-                     coulombForce(x, q1, q2, alpha, rc));
+            std::abs((coulomb.computeForce(x * x, q1, q2) - coulombForceDSF(x, q1, q2, alpha, rc)) /
+                     coulombForceDSF(x, q1, q2, alpha, rc));
         EXPECT_LT(relativeError, 1e-4_r);
     }
 }
