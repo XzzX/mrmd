@@ -36,7 +36,7 @@ struct Config
     idx_t outputInterval = -1;
 
     // general simulation parameters
-    idx_t nsteps = 5000001;
+    idx_t nsteps = 500001;
     real_t dt = 0.002_r;  ///< unit: ps
 
     // simulation box parameters
@@ -52,7 +52,7 @@ struct Config
     idx_t estimatedMaxNeighbors = 60;
 
     // thermostat parameters
-    real_t temperature = 0.6_r;
+    real_t temperature = 2.47_r;  ///< unit: kJ/k_b/mol
     real_t gamma = 10_r;
 
     // AdResS parameters
@@ -200,7 +200,7 @@ void SPC(Config& config)
         // update molecule positions
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
-        if (maxParticleDisplacement >= -config.skin * 0.5_r)
+        if (maxParticleDisplacement >= config.skin * 0.5_r)
         {
             // reset displacement
             maxParticleDisplacement = 0_r;
