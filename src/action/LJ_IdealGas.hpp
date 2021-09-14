@@ -172,7 +172,7 @@ public:
 
                     if (distSqr > rcSqr_) continue;
 
-                    auto ffactor = LJ_.computeForce(distSqr) * weighting;
+                    auto ffactor = LJ_.computeForce(distSqr, 0) * weighting;
 
                     // if (ffactor > 10000_r)
                     //{
@@ -194,7 +194,7 @@ public:
                     atomsForce_(jdx, 1) -= dy * ffactor;
                     atomsForce_(jdx, 2) -= dz * ffactor;
 
-                    auto energy = LJ_.computeEnergy(distSqr);
+                    auto energy = LJ_.computeEnergy(distSqr, 0);
                     sumEnergy += energy * weighting;
                     auto Vij = 0.5_r * energy;
 
@@ -299,7 +299,7 @@ public:
                 const real_t& sigma,
                 const real_t& epsilon,
                 const bool doShift)
-        : LJ_(cappingDistance, rc, sigma, epsilon, doShift), rcSqr_(rc * rc)
+        : LJ_({cappingDistance}, {rc}, {sigma}, {epsilon}, 1, doShift), rcSqr_(rc * rc)
     {
     }
 };

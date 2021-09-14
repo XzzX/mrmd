@@ -109,7 +109,7 @@ public:
 
             if (distSqr < rcSqr_)
             {
-                auto ffactor = LJ_.computeForce(distSqr);
+                auto ffactor = LJ_.computeForce(distSqr, 0);
 
                 atomsForce_(startAtomsBeta, 0) -= dx[0] * ffactor;
                 atomsForce_(startAtomsBeta, 1) -= dx[1] * ffactor;
@@ -211,7 +211,7 @@ public:
     }
 
     SPC()
-        : LJ_(0.7_r * sigma, rc, sigma, epsilon, true),
+        : LJ_({0.7_r * sigma}, {rc}, {sigma}, {epsilon}, 1, true),
           coulomb_(rc, alpha),
           rcSqr_(rc * rc),
           bonds_("bonds", 3)
