@@ -8,6 +8,24 @@ namespace mrmd
 {
 namespace action
 {
+void calcPotentialAndForce(impl::CappedLennardJonesPotential& LJ,
+                           ScalarView& force,
+                           ScalarView& potential,
+                           idx_t steps,
+                           real_t startingPos,
+                           real_t delta)
+{
+    auto policy = Kokkos::RangePolicy<>(0, steps);
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
+    {
+        auto x = startingPos + real_c(idx) * delta;
+        potential(idx) = LJ.computeEnergy(x * x, 0);
+        force(idx) = -x * LJ.computeForce(x * x, 0);
+    };
+    Kokkos::parallel_for(policy, kernel);
+    Kokkos::fence();
+}
+
 TEST(LennardJones, ExplicitComparison)
 {
     constexpr real_t epsilon = 2_r;
@@ -27,15 +45,7 @@ TEST(LennardJones, ExplicitComparison)
     ScalarView force("force", steps);
     ScalarView potential("potential", steps);
 
-    auto policy = Kokkos::RangePolicy<>(0, steps);
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
-    {
-        auto x = startingPos + real_c(idx) * delta;
-        potential(idx) = LJ.computeEnergy(x * x, 0);
-        force(idx) = -x * LJ.computeForce(x * x, 0);
-    };
-    Kokkos::parallel_for(policy, kernel);
-    Kokkos::fence();
+    calcPotentialAndForce(LJ, force, potential, steps, startingPos, delta);
 
     auto hForce = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), force);
     auto hPotential = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), potential);
