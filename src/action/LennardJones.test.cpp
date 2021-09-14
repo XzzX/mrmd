@@ -4,6 +4,8 @@
 
 #include <fstream>
 
+#include "util/math.hpp"
+
 namespace mrmd
 {
 namespace action
@@ -33,7 +35,7 @@ TEST(LennardJones, ExplicitComparison)
     constexpr real_t rc = 2.5_r * sigma;
     constexpr real_t cappingDistance = 0.1_r;
     const auto cutoffPotential =
-        4_r * epsilon * (std::pow(sigma / rc, 12) - std::pow(sigma / rc, 6));
+        4_r * epsilon * (util::powInt(sigma / rc, 12) - util::powInt(sigma / rc, 6));
 
     impl::CappedLennardJonesPotential LJ({cappingDistance}, {rc}, {sigma}, {epsilon}, 1, true);
 
@@ -53,10 +55,12 @@ TEST(LennardJones, ExplicitComparison)
     {
         auto x = startingPos + real_c(idx) * delta;
         auto potential =
-            4_r * epsilon * (std::pow(sigma / x, 12) - std::pow(sigma / x, 6)) - cutoffPotential;
+            4_r * epsilon * (util::powInt(sigma / x, 12) - util::powInt(sigma / x, 6)) -
+            cutoffPotential;
         EXPECT_FLOAT_EQ(hPotential(idx), potential);
-        auto force = 4_r * epsilon * (-12 * std::pow(sigma / x, 12) + 6 * std::pow(sigma / x, 6)) *
-                     x / (x * x);
+        auto force = 4_r * epsilon *
+                     (-12_r * util::powInt(sigma / x, 12) + 6_r * util::powInt(sigma / x, 6)) * x /
+                     (x * x);
         EXPECT_FLOAT_EQ(hForce(idx), force);
     }
 }
