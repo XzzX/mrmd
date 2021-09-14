@@ -95,26 +95,32 @@ public:
 
             hPrecomputedValues(typeIdx).rcSqr = rc[typeIdx] * rc[typeIdx];
 
-            // parameters for the capped part of LJ, use uncapped LJ to compute cappingCoeff
-            hPrecomputedValues(typeIdx).cappingDistance = 0_r;
-            hPrecomputedValues(typeIdx).cappingDistanceSqr = 0_r;
-            hPrecomputedValues(typeIdx).cappingCoeff =
-                computeForce(cappingDistance[typeIdx] * cappingDistance[typeIdx], typeIdx) *
-                cappingDistance[typeIdx];
-            hPrecomputedValues(typeIdx).energyAtCappingPoint =
-                computeEnergy(cappingDistance[typeIdx] * cappingDistance[typeIdx], typeIdx);
             hPrecomputedValues(typeIdx).cappingDistance = cappingDistance[typeIdx];
-            hPrecomputedValues(typeIdx).cappingDistanceSqr =
-                cappingDistance[typeIdx] * cappingDistance[typeIdx];
+        }
+        Kokkos::deep_copy(precomputedValues_, hPrecomputedValues);
+
+        auto policy = Kokkos::RangePolicy<>(0, numTypes * numTypes);
+        auto kernel = [*this, doShift](const idx_t typeIdx)
+        {
+            // reset capping distance to calculate capping factors with real functions
+            auto capDist = precomputedValues_(typeIdx).cappingDistance;
+            precomputedValues_(typeIdx).cappingDistance = 0_r;
+            precomputedValues_(typeIdx).cappingDistanceSqr = 0_r;
+            precomputedValues_(typeIdx).cappingCoeff =
+                computeForce(capDist * capDist, typeIdx) * capDist;
+            precomputedValues_(typeIdx).energyAtCappingPoint =
+                computeEnergy(capDist * capDist, typeIdx);
+            precomputedValues_(typeIdx).cappingDistance = capDist;
+            precomputedValues_(typeIdx).cappingDistanceSqr = capDist * capDist;
 
             if (doShift)
             {
-                hPrecomputedValues(typeIdx).shift =
-                    computeEnergy(hPrecomputedValues(typeIdx).rcSqr, typeIdx);
+                precomputedValues_(typeIdx).shift =
+                    computeEnergy(precomputedValues_(typeIdx).rcSqr, typeIdx);
             }
-        }
-
-        Kokkos::deep_copy(precomputedValues_, hPrecomputedValues);
+        };
+        Kokkos::parallel_for(policy, kernel);
+        Kokkos::fence();
     }
 };
 }  // namespace impl

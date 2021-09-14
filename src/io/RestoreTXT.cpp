@@ -14,6 +14,7 @@ data::Particles restoreParticles(const std::string& filename)
     auto h_AoSoA = Cabana::create_mirror_view(Kokkos::HostSpace(), d_AoSoA);
     auto h_pos = Cabana::slice<data::Particles::POS>(h_AoSoA);
     auto h_mass = Cabana::slice<data::Particles::MASS>(h_AoSoA);
+    auto h_type = Cabana::slice<data::Particles::TYPE>(h_AoSoA);
 
     std::ifstream fin(filename);
     if (!fin.is_open())
@@ -39,6 +40,7 @@ data::Particles restoreParticles(const std::string& filename)
         h_pos(idx, 1) = y;
         h_pos(idx, 2) = z;
         h_mass(idx) = 1_r;
+        h_type(idx) = 0;
         ++idx;
     }
 
