@@ -13,10 +13,10 @@ class CappedLennardJonesPotential
 {
 private:
     const real_t epsilon_;
-    real_t sig2_;
-    real_t sig6_;
-    real_t ff1_;
-    real_t ff2_;
+    real_t ff1_;  ///< force factor 1
+    real_t ff2_;  ///< force factor 2
+    real_t ef1_;  ///< energy factor 1
+    real_t ef2_;  ///< energy factor 2
     real_t rcSqr_ = 0_r;
     real_t cappingDistance_ = 0_r;
     real_t cappingDistanceSqr_ = 0_r;
@@ -33,7 +33,7 @@ public:
         if (distSqr >= cappingDistanceSqr_)
         {
             // normal LJ force calculation
-            auto frac2 = 1.0 / distSqr;
+            auto frac2 = 1_r / distSqr;
             auto frac6 = frac2 * frac2 * frac2;
             return frac6 * (ff1_ * frac6 - ff2_) * frac2;
         }
@@ -48,9 +48,9 @@ public:
         if (distSqr >= cappingDistanceSqr_)
         {
             // normal LJ energy calculation
-            real_t frac2 = sig2_ / distSqr;
+            real_t frac2 = 1_r / distSqr;
             real_t frac6 = frac2 * frac2 * frac2;
-            return 4.0 * epsilon_ * (frac6 * frac6 - frac6) - shift_;
+            return frac6 * (ef1_ * frac6 - ef2_) - shift_;
         }
 
         // capped energy
@@ -65,10 +65,12 @@ public:
                                 const bool doShift)
         : epsilon_(epsilon), rcSqr_(rc * rc)
     {
-        sig2_ = sigma * sigma;
-        sig6_ = sig2_ * sig2_ * sig2_;
-        ff1_ = 48.0 * epsilon * sig6_ * sig6_;
-        ff2_ = 24.0 * epsilon * sig6_;
+        auto sig2 = sigma * sigma;
+        auto sig6 = sig2 * sig2 * sig2;
+        ff1_ = 48_r * epsilon * sig6 * sig6;
+        ff2_ = 24_r * epsilon * sig6;
+        ef1_ = 4_r * epsilon * sig6 * sig6;
+        ef2_ = 4_r * epsilon * sig6;
 
         // parameters for the capped part of LJ, use uncapped LJ to compute cappingCoeff
         cappingDistance_ = 0_r;
