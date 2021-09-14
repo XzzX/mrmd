@@ -11,7 +11,7 @@ namespace impl
 {
 class CappedLennardJonesPotential
 {
-private:
+public:
     struct PrecomputedValues
     {
         real_t ff1;  ///< force factor 1
@@ -25,6 +25,8 @@ private:
         real_t shift;  ///< shifting the potential at rc to zero
         real_t energyAtCappingPoint;
     };
+
+private:
     Kokkos::View<PrecomputedValues*> precomputedValues_;
 
 public:
