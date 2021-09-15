@@ -60,18 +60,28 @@ public:
     /// unit: nm, equilibirum distance between hydrogen and oxygen
     static constexpr real_t eqDistanceHO = 0.1_r;
     static constexpr real_t angleHOH = util::degToRad(109.47_r);  ///< unit: radians
+    const real_t eqDistanceHH = eqDistanceHO * std::sqrt(2_r - 2_r * std::cos(angleHOH));
 
     static constexpr idx_t COMPENSATION_ENERGY_SAMPLING_INTERVAL = 200;
     static constexpr idx_t COMPENSATION_ENERGY_UPDATE_INTERVAL = 20000;
 
     const auto& getMeanCompensationEnergy() const { return meanCompensationEnergy_; }
 
+    struct BondEnergy
+    {
+    };
+    struct CalcInteractions
+    {
+    };
+
     /**
      * Loop over molecules
      *
      * @param alpha first molecule index
      */
-    KOKKOS_INLINE_FUNCTION void operator()(const idx_t& alpha, real_t& sumEnergy) const
+    KOKKOS_INLINE_FUNCTION void operator()(CalcInteractions,
+                                           const idx_t& alpha,
+                                           real_t& sumEnergy) const
     {
         const auto numNeighbors = idx_c(NeighborList::numNeighbor(verletList_, alpha));
         for (idx_t n = 0; n < numNeighbors; ++n)
@@ -192,7 +202,7 @@ public:
         //        compensationEnergyScatter_ = ScalarScatterView(compensationEnergy_.data);
 
         real_t energy = 0_r;
-        auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
+        auto policy = Kokkos::RangePolicy<CalcInteractions>(0, molecules.numLocalMolecules);
         Kokkos::parallel_reduce("SPC::applyForces", policy, *this, energy);
 
         //        Kokkos::Experimental::contribute(compensationEnergy_.data,
@@ -208,6 +218,61 @@ public:
         //        ++runCounter_;
 
         return energy;
+    }
+
+    KOKKOS_INLINE_FUNCTION void operator()(BondEnergy, const idx_t& alpha, real_t& sumEnergy) const
+    {
+        /// inclusive start index of atoms belonging to alpha
+        const auto startAtomsAlpha = moleculesAtomsOffset_(alpha);
+        assert(0 <= startAtomsAlpha);
+
+        auto idxO = startAtomsAlpha;
+        auto idxH0 = startAtomsAlpha + 1;
+        auto idxH1 = startAtomsAlpha + 2;
+
+        real_t dx[3];
+        real_t dist = 0_r;
+
+        dx[0] = atomsPos_(idxO, 0) - atomsPos_(idxH0, 0);
+        dx[1] = atomsPos_(idxO, 1) - atomsPos_(idxH0, 1);
+        dx[2] = atomsPos_(idxO, 2) - atomsPos_(idxH0, 2);
+        dist = std::sqrt(util::dot3(dx, dx));
+        sumEnergy += util::sqr(dist - eqDistanceHO);
+
+        dx[0] = atomsPos_(idxO, 0) - atomsPos_(idxH1, 0);
+        dx[1] = atomsPos_(idxO, 1) - atomsPos_(idxH1, 1);
+        dx[2] = atomsPos_(idxO, 2) - atomsPos_(idxH1, 2);
+        dist = std::sqrt(util::dot3(dx, dx));
+        sumEnergy += util::sqr(dist - eqDistanceHO);
+
+        dx[0] = atomsPos_(idxH0, 0) - atomsPos_(idxH1, 0);
+        dx[1] = atomsPos_(idxH0, 1) - atomsPos_(idxH1, 1);
+        dx[2] = atomsPos_(idxH0, 2) - atomsPos_(idxH1, 2);
+        dist = std::sqrt(util::dot3(dx, dx));
+        sumEnergy += util::sqr(dist - eqDistanceHH);
+    }
+
+    real_t calcBondEnergy(data::Molecules& molecules, data::Particles& atoms)
+    {
+        moleculesPos_ = molecules.getPos();
+        moleculesForce_ = molecules.getForce();
+        moleculesLambda_ = molecules.getLambda();
+        moleculesModulatedLambda_ = molecules.getModulatedLambda();
+        moleculesGradLambda_ = molecules.getGradLambda();
+        moleculesAtomsOffset_ = molecules.getAtomsOffset();
+        moleculesNumAtoms_ = molecules.getNumAtoms();
+        atomsPos_ = atoms.getPos();
+        atomsForce_ = atoms.getForce();
+        atomsCharge_ = atoms.getCharge();
+
+        real_t energy = 0_r;
+        auto policy = Kokkos::RangePolicy<BondEnergy>(
+            0, molecules.numLocalMolecules + molecules.numGhostMolecules);
+        Kokkos::parallel_reduce("SPC::calcHarmonicPotential", policy, *this, energy);
+
+        Kokkos::fence();
+
+        return energy / (molecules.numLocalMolecules + molecules.numGhostMolecules);
     }
 
     SPC()

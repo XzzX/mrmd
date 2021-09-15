@@ -190,8 +190,8 @@ void SPC(Config& config)
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     communication::MultiResGhostLayer ghostLayer(subdomain);
 
-    util::printTable("step", "time", "T", "Ek", "E0", "E", "mu", "Nlocal", "Nghost");
-    util::printTableSep("step", "time", "T", "Ek", "E0", "E", "mu", "Nlocal", "Nghost");
+    util::printTable("step", "time", "T", "Ek", "E0", "Ebond", "E", "mu", "Nlocal", "Nghost");
+    util::printTableSep("step", "time", "T", "Ek", "E0", "Ebond", "E", "mu", "Nlocal", "Nghost");
     for (auto step = 0; step < config.nsteps; ++step)
     {
         assert(atoms.numLocalParticles == molecules.numLocalMolecules * 3);
@@ -268,6 +268,7 @@ void SPC(Config& config)
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
+            auto Ebond = spc.calcBondEnergy(molecules, atoms);
             auto Ek = analysis::getKineticEnergy(atoms) / real_c(atoms.numLocalParticles);
             auto T = Ek;
             E0 /= real_c(atoms.numLocalParticles);
@@ -287,7 +288,8 @@ void SPC(Config& config)
                              T,
                              Ek,
                              E0,
-                             E0 + Ek,
+                             Ebond,
+                             E0 + Ebond + Ek,
                              mu,
                              atoms.numLocalParticles,
                              atoms.numGhostParticles);
