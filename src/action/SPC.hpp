@@ -159,8 +159,6 @@ public:
 
                     auto ffactor = coulomb_.computeForce(distSqr, q1, q2);
                     sumEnergy += coulomb_.computeEnergy(distSqr, q1, q2);
-                    ffactor = std::min(ffactor, +1000_r);
-                    ffactor = std::max(ffactor, -1000_r);
 
                     forceTmpIdx[0] += dx[0] * ffactor;
                     forceTmpIdx[1] += dx[1] * ffactor;

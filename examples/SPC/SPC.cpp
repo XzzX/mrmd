@@ -11,6 +11,7 @@
 #include "action/ContributeMoleculeForceToAtoms.hpp"
 #include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
+#include "action/LimitAcceleration.hpp"
 #include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
@@ -263,6 +264,11 @@ void SPC(Config& config)
             langevinThermostat.apply(atoms);
         }
         ghostLayer.contributeBackGhostToReal(atoms);
+
+        if (step < 5000)
+        {
+            action::limitAccelerationPerComponent(atoms, 1000_r);
+        }
 
         action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 
