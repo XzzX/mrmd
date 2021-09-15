@@ -28,6 +28,7 @@ public:
 
 private:
     Kokkos::View<PrecomputedValues*> precomputedValues_;
+    bool isShifted_;  ///< potential is shifted at rc to 0
 
 public:
     KOKKOS_INLINE_FUNCTION
@@ -67,12 +68,38 @@ public:
                precomputedValues_(typeIdx).shift;
     }
 
+    /**
+     * Initialize shift and capping parameters.
+     * Will be called at initialization.
+     */
+    KOKKOS_INLINE_FUNCTION
+    void operator()(const idx_t& typeIdx) const
+    {
+        // reset capping distance to calculate capping factors with real functions
+        auto capDist = precomputedValues_(typeIdx).cappingDistance;
+        precomputedValues_(typeIdx).cappingDistance = 0_r;
+        precomputedValues_(typeIdx).cappingDistanceSqr = 0_r;
+        precomputedValues_(typeIdx).cappingCoeff =
+            computeForce(capDist * capDist, typeIdx) * capDist;
+        precomputedValues_(typeIdx).energyAtCappingPoint =
+            computeEnergy(capDist * capDist, typeIdx);
+        precomputedValues_(typeIdx).cappingDistance = capDist;
+        precomputedValues_(typeIdx).cappingDistanceSqr = capDist * capDist;
+
+        if (isShifted_)
+        {
+            precomputedValues_(typeIdx).shift =
+                computeEnergy(precomputedValues_(typeIdx).rcSqr, typeIdx);
+        }
+    }
+
     CappedLennardJonesPotential(const std::vector<real_t>& cappingDistance,
                                 const std::vector<real_t>& rc,
                                 const std::vector<real_t>& sigma,
                                 const std::vector<real_t>& epsilon,
                                 const idx_t& numTypes,
-                                const bool doShift)
+                                const bool isShifted)
+        : isShifted_(isShifted)
     {
         assert(cappingDistance.size() == numTypes * numTypes);
         assert(rc.size() == numTypes * numTypes);
@@ -100,26 +127,7 @@ public:
         Kokkos::deep_copy(precomputedValues_, hPrecomputedValues);
 
         auto policy = Kokkos::RangePolicy<>(0, numTypes * numTypes);
-        auto kernel = [*this, doShift](const idx_t typeIdx)
-        {
-            // reset capping distance to calculate capping factors with real functions
-            auto capDist = precomputedValues_(typeIdx).cappingDistance;
-            precomputedValues_(typeIdx).cappingDistance = 0_r;
-            precomputedValues_(typeIdx).cappingDistanceSqr = 0_r;
-            precomputedValues_(typeIdx).cappingCoeff =
-                computeForce(capDist * capDist, typeIdx) * capDist;
-            precomputedValues_(typeIdx).energyAtCappingPoint =
-                computeEnergy(capDist * capDist, typeIdx);
-            precomputedValues_(typeIdx).cappingDistance = capDist;
-            precomputedValues_(typeIdx).cappingDistanceSqr = capDist * capDist;
-
-            if (doShift)
-            {
-                precomputedValues_(typeIdx).shift =
-                    computeEnergy(precomputedValues_(typeIdx).rcSqr, typeIdx);
-            }
-        };
-        Kokkos::parallel_for(policy, kernel);
+        Kokkos::parallel_for(policy, *this);
         Kokkos::fence();
     }
 };
