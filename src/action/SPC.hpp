@@ -272,7 +272,7 @@ public:
 
         Kokkos::fence();
 
-        return energy / (molecules.numLocalMolecules + molecules.numGhostMolecules);
+        return energy / real_c(molecules.numLocalMolecules + molecules.numGhostMolecules);
     }
 
     SPC()
