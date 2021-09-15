@@ -120,6 +120,7 @@ public:
             if (distSqr < rcSqr_)
             {
                 auto ffactor = LJ_.computeForce(distSqr, 0);
+                sumEnergy += LJ_.computeEnergy(distSqr, 0);
 
                 atomsForce_(startAtomsBeta, 0) -= dx[0] * ffactor;
                 atomsForce_(startAtomsBeta, 1) -= dx[1] * ffactor;
@@ -157,6 +158,7 @@ public:
                     if (distSqr > rcSqr_) continue;
 
                     auto ffactor = coulomb_.computeForce(distSqr, q1, q2);
+                    sumEnergy += coulomb_.computeEnergy(distSqr, q1, q2);
                     ffactor = std::min(ffactor, +1000_r);
                     ffactor = std::max(ffactor, -1000_r);
 
