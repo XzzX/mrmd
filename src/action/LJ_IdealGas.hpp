@@ -302,6 +302,23 @@ public:
         : LJ_({cappingDistance}, {rc}, {sigma}, {epsilon}, 1, doShift), rcSqr_(rc * rc)
     {
     }
+
+    LJ_IdealGas(const std::vector<real_t>& cappingDistance,
+                const std::vector<real_t>& rc,
+                const std::vector<real_t>& sigma,
+                const std::vector<real_t>& epsilon,
+                const idx_t numTypes,
+                const bool doShift)
+        : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, doShift)
+    {
+        assert(cappingDistance.size() == numTypes * numTypes);
+        assert(rc.size() == numTypes * numTypes);
+        assert(sigma.size() == numTypes * numTypes);
+        assert(epsilon.size() == numTypes * numTypes);
+
+        auto maxRC = *std::max_element(rc.begin(), rc.end());
+        rcSqr_ = maxRC * maxRC;
+    }
 };
 
 }  // namespace action
