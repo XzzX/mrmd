@@ -68,6 +68,8 @@ struct Config
     real_t DensityBinSize = 0.5_r;
     real_t convSigma = 2_r;
     real_t convRange = 2_r;
+
+    idx_t thermostatInterval = 10;
 };
 
 void initMolecules(data::Molecules& molecules,
@@ -256,7 +258,7 @@ void SPC(Config& config)
         auto E0 = 0_r;
         E0 += spc.applyForces(molecules, moleculesVerletList, atoms);
         action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
-        if (config.temperature >= 0)
+        if ((config.temperature >= 0) && (step % config.thermostatInterval == 0))
         {
             langevinThermostat.apply(atoms);
         }
