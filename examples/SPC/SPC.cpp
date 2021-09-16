@@ -12,6 +12,7 @@
 #include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
 #include "action/LimitAcceleration.hpp"
+#include "action/LimitVelocity.hpp"
 #include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
@@ -267,7 +268,8 @@ void SPC(Config& config)
 
         if (step < 5000)
         {
-            action::limitAccelerationPerComponent(atoms, 1000_r);
+            action::limitAccelerationPerComponent(atoms, 10_r);
+            action::limitVelocityPerComponent(atoms, 1_r);
         }
 
         action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
