@@ -14,16 +14,21 @@ class LangevinThermostat
 {
 private:
     Kokkos::Random_XorShift1024_Pool<> randPool_ = Kokkos::Random_XorShift1024_Pool<>(1234);
+    real_t pref1;
+    real_t pref2;
 
 public:
-    const real_t pref1;
-    const real_t pref2;
-
     void apply(data::Particles& particles);
 
-    LangevinThermostat(const real_t gamma, const real_t temperature, const real_t timestep)
-        : pref1(-gamma), pref2(std::sqrt(24_r * temperature * gamma / timestep))
+    void set(const real_t gamma, const real_t temperature, const real_t timestep)
     {
+        pref1 = -gamma;
+        pref2 = std::sqrt(24_r * temperature * gamma / timestep);
+    }
+
+    LangevinThermostat(const real_t gamma, const real_t temperature, const real_t timestep)
+    {
+        set(gamma, temperature, timestep);
     }
 };
 }  // namespace action
