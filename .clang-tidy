@@ -28,6 +28,7 @@ readability-*,
 -readability-function-cognitive-complexity,
 -readability-magic-numbers,
 -readability-named-parameter,
+-readability-static-accessed-through-instance,
 
 '
 WarningsAsErrors: '*'
