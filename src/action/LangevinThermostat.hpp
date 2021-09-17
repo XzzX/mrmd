@@ -18,6 +18,9 @@ private:
     real_t pref2;
 
 public:
+    auto getPref1() const { return pref1; }
+    auto getPref2() const { return pref2; }
+
     void apply(data::Particles& particles);
 
     void set(const real_t gamma, const real_t temperature, const real_t timestep)
