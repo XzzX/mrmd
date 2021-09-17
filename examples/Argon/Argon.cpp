@@ -64,6 +64,8 @@ data::Particles fillDomainWithParticlesSC(const data::Subdomain& subdomain,
     auto pos = particles.getPos();
     auto vel = particles.getVel();
     auto mass = particles.getMass();
+    auto type = particles.getType();
+    auto charge = particles.getCharge();
 
     auto policy = Kokkos::RangePolicy<>(0, numParticles);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
@@ -79,6 +81,8 @@ data::Particles fillDomainWithParticlesSC(const data::Subdomain& subdomain,
         RNG.free_state(randGen);
 
         mass(idx) = Config::mass;
+        type(idx) = 0;
+        charge(idx) = 0_r;
     };
     Kokkos::parallel_for("fillDomainWithParticlesSC", policy, kernel);
 
