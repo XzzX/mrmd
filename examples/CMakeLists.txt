@@ -1,3 +1,4 @@
+add_subdirectory(Argon)
 add_subdirectory(BubbleLJ)
 add_subdirectory(ComplexAtomics)
 add_subdirectory(IdealGas)
