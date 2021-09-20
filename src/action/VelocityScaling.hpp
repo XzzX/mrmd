@@ -19,7 +19,7 @@ private:
     real_t gamma_;
 
 public:
-    void apply(data::Particles& particles);
+    void apply(data::Particles& particles) const;
 
     void set(const real_t gamma, const real_t targetTemperature)
     {

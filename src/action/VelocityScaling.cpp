@@ -8,10 +8,10 @@ namespace mrmd
 {
 namespace action
 {
-void VelocityScaling::apply(data::Particles& particles)
+void VelocityScaling::apply(data::Particles& particles) const
 {
     auto Ekin = analysis::getKineticEnergy(particles);
-    auto T = Ekin * 2_r / (3_r * particles.numLocalParticles);
+    auto T = Ekin * 2_r / (3_r * real_c(particles.numLocalParticles));
     auto beta = std::sqrt(1_r + gamma_ * (targetTemperature_ / T - 1_r));
 
     auto vel = particles.getVel();
