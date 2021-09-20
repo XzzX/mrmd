@@ -17,7 +17,7 @@ void grow(Kokkos::View<T, P...>& view, idx_t size, real_t safetyMargin = 1.1_r)
         Kokkos::resize(view, idx_c(real_c(size) * safetyMargin));
     }
 
-    assert(view.extent(0) >= size);
+    assert(view.extent(0) >= static_cast<unsigned long>(size));
 }
 }  // namespace util
 }  // namespace mrmd
