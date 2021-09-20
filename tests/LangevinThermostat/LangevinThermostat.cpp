@@ -1,5 +1,7 @@
 #include "action/LangevinThermostat.hpp"
 
+#include <gtest/gtest.h>
+
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
 #include <CLI/Formatter.hpp>
@@ -19,15 +21,15 @@ using namespace mrmd;
 struct Config
 {
     bool bOutput = true;
-    idx_t outputInterval = -1;
+    idx_t outputInterval = 10;
 
-    idx_t nsteps = 2001;
+    idx_t nsteps = 21;
     real_t dt = 0.001_r;
     real_t temperature = 1.12_r;
-    real_t gamma = 0.1_r;
+    real_t gamma = 1_r / dt;
 
     real_t Lx = 10_r;
-    real_t numParticles = 1000;
+    real_t numParticles = 100000;
 
     real_t initialMaxVelocity = 10_r;
 };
@@ -91,6 +93,9 @@ void LJ(Config& config)
             std::cout << "temperature: " << T << std::endl;
         }
     }
+    auto Ek = analysis::getKineticEnergy(particles);
+    auto T = (2_r / (3_r * real_c(particles.numLocalParticles))) * Ek;
+    EXPECT_NEAR(T, config.temperature, 0.01_r);
 }
 
 int main(int argc, char* argv[])  // NOLINT
