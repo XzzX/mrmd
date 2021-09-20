@@ -14,6 +14,7 @@
 #include "action/VelocityScaling.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
+#include "analysis/MeanSquareDisplacement.hpp"
 #include "analysis/SystemMomentum.hpp"
 #include "communication/GhostLayer.hpp"
 #include "data/Particles.hpp"
@@ -107,12 +108,15 @@ void LJ(Config& config)
     action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     action::VelocityScaling velocityScaling(1_r, config.temperature);
+    analysis::MeanSquareDisplacement meanSquareDisplacement(subdomain);
+    meanSquareDisplacement.reset(particles);
+    auto msd = 0_r;
     VerletList verletList;
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;
-    util::printTable("step", "time", "T", "Ek", "E0", "E", "Nlocal", "Nghost");
-    util::printTableSep("step", "time", "T", "Ek", "E0", "E", "Nlocal", "Nghost");
+    util::printTable("step", "time", "T", "Ek", "E0", "E", "msd", "Nlocal", "Nghost");
+    util::printTableSep("step", "time", "T", "Ek", "E0", "E", "msd", "Nlocal", "Nghost");
 
     std::ofstream fStat("statistics.txt");
     for (auto step = 0; step < config.nsteps; ++step)
@@ -157,15 +161,21 @@ void LJ(Config& config)
 
         LJ.applyForces(particles, verletList);
 
-        if (step % 100 == 0)
+        if (step % 1000 == 0)
         {
+            msd = meanSquareDisplacement.calc(particles) / (1000_r * config.dt);
             if ((config.temperature > 0_r) && (step > 5000))
             {
-                config.temperature -= 7.8e-4_r;
+                config.temperature -= 7.8e-3_r;
                 if (config.temperature < 0_r) config.temperature = 0_r;
             }
             velocityScaling.set(1_r, config.temperature);
             velocityScaling.apply(particles);
+
+            //            langevinThermostat.set(config.gamma, config.temperature, config.dt);
+            //            langevinThermostat.apply(particles);
+
+            meanSquareDisplacement.reset(particles);
         }
 
         ghostLayer.contributeBackGhostToReal(particles);
@@ -194,11 +204,12 @@ void LJ(Config& config)
                              Ek,
                              E0,
                              E0 + Ek,
+                             msd,
                              particles.numLocalParticles,
                              particles.numGhostParticles);
 
             fStat << step << " " << timer.seconds() << " " << T << " " << Ek << " " << E0 << " "
-                  << E0 + Ek << " " << particles.numLocalParticles << " "
+                  << E0 + Ek << " " << msd << " " << particles.numLocalParticles << " "
                   << particles.numGhostParticles << " " << std::endl;
 
             io::dumpGRO("particles_" + std::to_string(step) + ".gro",
