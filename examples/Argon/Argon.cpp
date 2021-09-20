@@ -11,6 +11,7 @@
 #include "action/LennardJones.hpp"
 #include "action/LimitAcceleration.hpp"
 #include "action/LimitVelocity.hpp"
+#include "action/VelocityScaling.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/SystemMomentum.hpp"
@@ -105,6 +106,7 @@ void LJ(Config& config)
     communication::GhostLayer ghostLayer(subdomain);
     action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
+    action::VelocityScaling velocityScaling(1_r, config.temperature);
     VerletList verletList;
     Kokkos::Timer timer;
     real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
@@ -162,8 +164,8 @@ void LJ(Config& config)
                 config.temperature -= 7.8e-4_r;
                 if (config.temperature < 0_r) config.temperature = 0_r;
             }
-            langevinThermostat.set(config.gamma, config.temperature, config.dt);
-            langevinThermostat.apply(particles);
+            velocityScaling.set(1_r, config.temperature);
+            velocityScaling.apply(particles);
         }
 
         ghostLayer.contributeBackGhostToReal(particles);
