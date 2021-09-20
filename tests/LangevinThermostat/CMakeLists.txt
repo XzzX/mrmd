@@ -2,7 +2,7 @@ add_executable(LangevinThermostatIntegrationTest
         LangevinThermostat.cpp
         )
 target_link_libraries(LangevinThermostatIntegrationTest
-        PRIVATE mrmd CLI11::CLI11 gtest
+        PRIVATE mrmd gtest
         )
 add_test(NAME IntegrationTest.LangevinThermostat COMMAND ./LangevinThermostat)
 

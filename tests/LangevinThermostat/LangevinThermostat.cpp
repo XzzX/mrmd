@@ -68,8 +68,9 @@ data::Particles fillDomainWithParticlesSC(const data::Subdomain& subdomain,
     return particles;
 }
 
-void LJ(Config& config)
+TEST(LangevinThermostat, Integration)
 {
+    Config config;
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
     auto particles =
         fillDomainWithParticlesSC(subdomain, config.numParticles, config.initialMaxVelocity);
@@ -98,24 +99,9 @@ void LJ(Config& config)
     EXPECT_NEAR(T, config.temperature, 0.01_r);
 }
 
-int main(int argc, char* argv[])  // NOLINT
+int main(int argc, char** argv)
 {
+    ::testing::InitGoogleTest(&argc, argv);
     Kokkos::ScopeGuard scope_guard(argc, argv);
-
-    std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
-
-    Config config;
-    CLI::App app{"Integration test for Langevin thermostat"};
-    app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
-    app.add_option(
-        "-T,--temperature",
-        config.temperature,
-        "temperature of the Langevin thermostat (negative numbers deactivate the thermostat)");
-    app.add_option("-o,--output", config.outputInterval, "output interval");
-    CLI11_PARSE(app, argc, argv);
-
-    if (config.outputInterval < 0) config.bOutput = false;
-    LJ(config);
-
-    return EXIT_SUCCESS;
+    return RUN_ALL_TESTS();
 }
