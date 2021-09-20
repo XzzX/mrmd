@@ -154,19 +154,6 @@ void LJ(Config& config)
         Cabana::deep_copy(force, 0_r);
 
         LJ.applyForces(particles, verletList);
-        if (config.temperature >= 0)
-        {
-            langevinThermostat.apply(particles);
-        }
-        ghostLayer.contributeBackGhostToReal(particles);
-
-        if (step < 5000)
-        {
-            //            action::limitAccelerationPerComponent(particles, 10_r);
-            //            action::limitVelocityPerComponent(particles, 1_r);
-        }
-
-        action::VelocityVerlet::postForceIntegrate(particles, config.dt);
 
         if (step % 100 == 0)
         {
@@ -176,7 +163,18 @@ void LJ(Config& config)
                 if (config.temperature < 0_r) config.temperature = 0_r;
             }
             langevinThermostat.set(config.gamma, config.temperature, config.dt);
+            langevinThermostat.apply(particles);
         }
+
+        ghostLayer.contributeBackGhostToReal(particles);
+
+        if (step < 5000)
+        {
+            //            action::limitAccelerationPerComponent(particles, 10_r);
+            //            action::limitVelocityPerComponent(particles, 1_r);
+        }
+
+        action::VelocityVerlet::postForceIntegrate(particles, config.dt);
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
