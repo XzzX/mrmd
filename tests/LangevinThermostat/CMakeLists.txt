@@ -4,7 +4,7 @@ add_executable(LangevinThermostatIntegrationTest
 target_link_libraries(LangevinThermostatIntegrationTest
         PRIVATE mrmd gtest
         )
-add_test(NAME IntegrationTest.LangevinThermostat COMMAND ./LangevinThermostat)
+add_test(NAME IntegrationTest.LangevinThermostat COMMAND ./LangevinThermostatIntegrationTest)
 
 include(GoogleTest)
 gtest_discover_tests(LangevinThermostatIntegrationTest
