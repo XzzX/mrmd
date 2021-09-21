@@ -26,7 +26,7 @@ struct Config
     real_t gamma = 1_r / dt;
 
     real_t Lx = 10_r;
-    real_t numParticles = 100000;
+    idx_t numParticles = 100000;
 
     real_t initialMaxVelocity = 10_r;
 };
