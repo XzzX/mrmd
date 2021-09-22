@@ -22,6 +22,16 @@ get_target_property(TMP CLI11 INTERFACE_INCLUDE_DIRECTORIES)
 set_target_properties(CLI11 PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
 
 FetchContent_Declare(
+        FMT
+        GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+        GIT_TAG 2742611cad4aee6b1a5638bd1ebf132908f4a3d9
+)
+FetchContent_MakeAvailable(FMT)
+
+get_target_property(TMP fmt INTERFACE_INCLUDE_DIRECTORIES)
+set_target_properties(fmt PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
+
+FetchContent_Declare(
         Cabana
         GIT_REPOSITORY https://github.com/ECP-copa/Cabana.git
         GIT_TAG 98bc54fcb70c6ea6833095b7688d6b4b4e0a37c5
