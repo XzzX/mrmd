@@ -58,7 +58,7 @@ struct Config
     idx_t estimatedMaxNeighbors = 60;
 
     // thermostat parameters
-    real_t temperature = 2.47_r;  ///< unit: kJ/k_b/mol
+    real_t temperature = 3.47_r;  ///< unit: kJ/k_b/mol
     real_t gamma = 10_r;
 
     // AdResS parameters
@@ -214,6 +214,7 @@ void SPC(Config& config)
     {
         assert(atoms.numLocalParticles == molecules.numLocalMolecules * 3);
         assert(atoms.numGhostParticles == molecules.numGhostMolecules * 3);
+
         spc.enforceConstraints(molecules, atoms, config.dt);
         maxParticleDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
@@ -276,20 +277,8 @@ void SPC(Config& config)
         auto E0 = 0_r;
         E0 += spc.applyForces(molecules, moleculesVerletList, atoms);
         action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
-        if ((config.temperature >= 0) && (step % config.thermostatInterval == 0))
-        {
-            //                    langevinThermostat.apply(atoms);
-            velocityScaling.apply(atoms, 2_r);
-        }
+
         ghostLayer.contributeBackGhostToReal(atoms);
-
-        if (step < 1000)
-        {
-            action::limitAccelerationPerComponent(atoms, 1000_r);
-            action::limitVelocityPerComponent(atoms, 100_r);
-        }
-
-        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
@@ -319,17 +308,31 @@ void SPC(Config& config)
                              atoms.numLocalParticles,
                              atoms.numGhostParticles);
 
-            //            io::dumpCSV("particles_" + std::to_string(step) + ".csv", atoms, false);
-            io::dumpGRO(fmt::format("spc_{:0>5}.gro", step),
-                        atoms,
-                        subdomain,
-                        step * config.dt,
-                        "SPC water",
-                        false);
+            io::dumpCSV("particles_" + std::to_string(step) + ".csv", atoms, false);
+            //            io::dumpGRO(fmt::format("spc_{:0>5}.gro", step),
+            //                        atoms,
+            //                        subdomain,
+            //                        step * config.dt,
+            //                        "SPC water",
+            //                        false);
 
             //            fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
             //            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
         }
+
+        if ((config.temperature >= 0) && (step % config.thermostatInterval == 0))
+        {
+            //                    langevinThermostat.apply(atoms);
+            velocityScaling.apply(atoms, 2_r);
+        }
+
+        if (step < 1000)
+        {
+            action::limitAccelerationPerComponent(atoms, 1000_r);
+            action::limitVelocityPerComponent(atoms, 100_r);
+        }
+
+        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
     }
     auto time = timer.seconds();
     std::cout << time << std::endl;
