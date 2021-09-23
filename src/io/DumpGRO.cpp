@@ -6,13 +6,15 @@ namespace mrmd
 {
 namespace io
 {
-/// format specification https://manual.gromacs.org/archive/5.0.4/online/gro.html
+/// format specification
+/// https://manual.gromacs.org/current/reference-manual/file-formats.html?highlight=gro#gro
 void dumpGRO(const std::string& filename,
              data::Particles& particles,
              const data::Subdomain& subdomain,
              const real_t& timestamp,
              const std::string& title,
-             bool dumpGhosts)
+             bool dumpGhosts,
+             bool dumpVelocities)
 {
     // very ugly, will also copy the whole particle data which is unnecessary, custom slicing
     // required
@@ -34,22 +36,37 @@ void dumpGRO(const std::string& filename,
     for (idx_t idx = 0; idx < lastParticleIdx; ++idx)
     {
         char buf[1024];
-        sprintf(buf,
-                "%5d%-5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f",
-                int_c(idx),
-                "H",
-                "H",
-                int_c(idx),
-                pos(idx, 0),
-                pos(idx, 1),
-                pos(idx, 2),
-                vel(idx, 0),
-                vel(idx, 1),
-                vel(idx, 2));
+        if (!dumpVelocities)
+        {
+            sprintf(buf,
+                    "%5d%-5s%5s%5d%8.3f%8.3f%8.3f",
+                    int_c(idx / 3 + 1),
+                    "WATER",
+                    (idx % 3) == 0 ? "OW1" : ((idx % 3) == 1 ? "HW2" : "HW3"),
+                    int_c(idx + 1),
+                    pos(idx, 0),
+                    pos(idx, 1),
+                    pos(idx, 2));
+        }
+        else
+        {
+            sprintf(buf,
+                    "%5d%-5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f",
+                    int_c(idx / 3 + 1),
+                    "WATER",
+                    (idx % 3) == 0 ? "OW1" : ((idx % 3) == 1 ? "HW2" : "HW3"),
+                    int_c(idx + 1),
+                    pos(idx, 0),
+                    pos(idx, 1),
+                    pos(idx, 2),
+                    vel(idx, 0),
+                    vel(idx, 1),
+                    vel(idx, 2));
+        }
         fout << std::string(buf) << std::endl;
     }
-    fout << subdomain.diameter[0] << " " << subdomain.diameter[1] << " " << subdomain.diameter[2]
-         << std::endl;
+    fout << "    " << subdomain.diameter[0] << " " << subdomain.diameter[1] << " "
+         << subdomain.diameter[2] << std::endl;
     fout.close();
 }
 }  // namespace io
