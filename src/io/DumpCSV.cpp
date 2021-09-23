@@ -24,8 +24,7 @@ void dumpCSV(const std::string& filename, data::Atoms& atoms, bool dumpGhosts)
         exit(EXIT_FAILURE);
     }
     fout << "idx, mol, type, pos_x, pos_y, pos_z, vel_x, vel_y, vel_z" << std::endl;
-    auto lastAtomIdx =
-        atoms.numLocalAtoms + (dumpGhosts ? atoms.numGhostAtoms : 0);
+    auto lastAtomIdx = atoms.numLocalAtoms + (dumpGhosts ? atoms.numGhostAtoms : 0);
     for (idx_t idx = 0; idx < lastAtomIdx; ++idx)
     {
         fout << idx << ", " << idx / 3 << ", " << type(idx) << ", " << pos(idx, 0) << ", "

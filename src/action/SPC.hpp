@@ -3,8 +3,8 @@
 #include "CoulombDSF.hpp"
 #include "LennardJones.hpp"
 #include "Shake.hpp"
-#include "data/Histogram.hpp"
 #include "data/Atoms.hpp"
+#include "data/Histogram.hpp"
 #include "datatypes.hpp"
 #include "util/angle.hpp"
 

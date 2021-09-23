@@ -4,8 +4,8 @@
 #include "communication/MultiResPeriodicGhostExchange.hpp"
 #include "communication/MultiResRealAtomsExchange.hpp"
 #include "communication/UpdateGhostAtoms.hpp"
-#include "data/Molecules.hpp"
 #include "data/Atoms.hpp"
+#include "data/Molecules.hpp"
 #include "data/Subdomain.hpp"
 
 namespace mrmd

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "data/Molecules.hpp"
 #include "data/Atoms.hpp"
+#include "data/Molecules.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "util/Kokkos_grow.hpp"
@@ -146,8 +146,7 @@ public:
                 molecules_.numLocalMolecules + molecules_.numGhostMolecules + newMoleculeGhosts;
 
             auto newAtomGhosts = Kokkos::atomic_fetch_add(&newAtomGhostCounter_(), moleculeSize);
-            auto atomNewGhostIdx =
-                atoms_.numLocalAtoms + atoms_.numGhostAtoms + newAtomGhosts;
+            auto atomNewGhostIdx = atoms_.numLocalAtoms + atoms_.numGhostAtoms + newAtomGhosts;
 
             if (moleculeNewGhostIdx < molecules_.size())
             {
@@ -191,8 +190,7 @@ public:
                 molecules_.numLocalMolecules + molecules_.numGhostMolecules + newGhosts;
 
             auto newAtomGhosts = Kokkos::atomic_fetch_add(&newAtomGhostCounter_(), moleculeSize);
-            auto atomNewGhostIdx =
-                atoms_.numLocalAtoms + atoms_.numGhostAtoms + newAtomGhosts;
+            auto atomNewGhostIdx = atoms_.numLocalAtoms + atoms_.numGhostAtoms + newAtomGhosts;
 
             if (moleculeNewGhostIdx < molecules_.size())
             {
@@ -288,8 +286,7 @@ public:
                                hNewMoleculeGhostCounter_();
 
             Kokkos::deep_copy(hNewAtomGhostCounter_, newAtomGhostCounter_);
-            newAtomsSize =
-                atoms.numLocalAtoms + atoms.numGhostAtoms + hNewAtomGhostCounter_();
+            newAtomsSize = atoms.numLocalAtoms + atoms.numGhostAtoms + hNewAtomGhostCounter_();
         } while ((newMoleculesSize > molecules.size()) ||
                  (newAtomsSize > atoms.size()));  // resize and rerun
 

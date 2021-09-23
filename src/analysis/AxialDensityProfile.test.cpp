@@ -20,8 +20,7 @@ TEST(LinearDensityProfile, histogram)
     }
     atoms.numLocalAtoms = idx;
 
-    auto histogram =
-        getAxialDensityProfile(atoms.getPos(), atoms.numLocalAtoms, 0_r, 10_r, 10);
+    auto histogram = getAxialDensityProfile(atoms.getPos(), atoms.numLocalAtoms, 0_r, 10_r, 10);
 
     for (auto i = 0; i < 10; ++i)
     {

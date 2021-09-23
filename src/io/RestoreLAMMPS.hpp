@@ -1,7 +1,7 @@
 #pragma once
 
-#include "data/Molecules.hpp"
 #include "data/Atoms.hpp"
+#include "data/Molecules.hpp"
 
 namespace mrmd
 {

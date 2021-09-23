@@ -78,10 +78,7 @@ public:
     }
 
     KOKKOS_INLINE_FUNCTION
-    void permute(LinkedCellList& linkedCellList) const
-    {
-        Cabana::permute(linkedCellList, atoms_);
-    }
+    void permute(LinkedCellList& linkedCellList) const { Cabana::permute(linkedCellList, atoms_); }
 
     KOKKOS_INLINE_FUNCTION
     void copy(const idx_t dst, const idx_t src) const
@@ -109,10 +106,7 @@ public:
     idx_t numLocalAtoms = 0;
     idx_t numGhostAtoms = 0;
 
-    explicit Atoms(const idx_t numAtoms) : atoms_("atoms", numAtoms)
-    {
-        sliceAll();
-    }
+    explicit Atoms(const idx_t numAtoms) : atoms_("atoms", numAtoms) { sliceAll(); }
 
 private:
     AtomsT atoms_;

@@ -149,8 +149,7 @@ public:
             Kokkos::fence();
 
             Kokkos::deep_copy(hNewGhostCounter_, newGhostCounter_);
-            newSize =
-                atoms.numLocalAtoms + atoms.numGhostAtoms + hNewGhostCounter_();
+            newSize = atoms.numLocalAtoms + atoms.numGhostAtoms + hNewGhostCounter_();
         } while (newSize > atoms.size());  // resize and rerun
 
         atoms.numGhostAtoms += hNewGhostCounter_();

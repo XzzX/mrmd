@@ -54,8 +54,8 @@ public:
         pos_ = atoms.getPos();
         correspondingRealAtom_ = correspondingRealAtom;
 
-        auto policy = Kokkos::RangePolicy<>(atoms.numLocalAtoms,
-                                            atoms.numLocalAtoms + atoms.numGhostAtoms);
+        auto policy =
+            Kokkos::RangePolicy<>(atoms.numLocalAtoms, atoms.numLocalAtoms + atoms.numGhostAtoms);
         Kokkos::parallel_for(policy, *this, "UpdateGhostAtoms::updateOnlyPos");
         Kokkos::fence();
     }

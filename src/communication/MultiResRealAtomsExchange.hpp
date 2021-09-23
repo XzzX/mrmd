@@ -1,7 +1,7 @@
 #pragma once
 
-#include "data/Molecules.hpp"
 #include "data/Atoms.hpp"
+#include "data/Molecules.hpp"
 #include "data/Subdomain.hpp"
 
 namespace mrmd
@@ -20,8 +20,8 @@ namespace communication
  * [min, max) for all coordinate dimensions.
  */
 void realAtomsExchange(const data::Subdomain& subdomain,
-                           const data::Molecules& molecules,
-                           const data::Atoms& atoms)
+                       const data::Molecules& molecules,
+                       const data::Atoms& atoms)
 {
     auto moleculesPos = molecules.getPos();
     auto atomsOffset = molecules.getAtomsOffset();

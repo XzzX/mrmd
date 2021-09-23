@@ -1,7 +1,7 @@
 #pragma once
 
-#include "data/Histogram.hpp"
 #include "data/Atoms.hpp"
+#include "data/Histogram.hpp"
 #include "datatypes.hpp"
 
 namespace mrmd

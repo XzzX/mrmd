@@ -1,8 +1,8 @@
+#include "communication/UpdateGhostAtoms.hpp"
+
 #include <gtest/gtest.h>
 
 #include <data/Atoms.hpp>
-
-#include "communication/UpdateGhostAtoms.hpp"
 
 namespace mrmd
 {
