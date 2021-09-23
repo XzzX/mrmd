@@ -169,11 +169,11 @@ void LJ(Config& config)
                 config.temperature -= 7.8e-3_r;
                 if (config.temperature < 0_r) config.temperature = 0_r;
             }
-            velocityScaling.set(1_r, config.temperature);
-            velocityScaling.apply(particles);
+            //            velocityScaling.set(1_r, config.temperature);
+            //            velocityScaling.apply(particles);
 
-            //            langevinThermostat.set(config.gamma, config.temperature, config.dt);
-            //            langevinThermostat.apply(particles);
+            langevinThermostat.set(config.gamma, config.temperature * 0.5_r, config.dt);
+            langevinThermostat.apply(particles);
 
             meanSquareDisplacement.reset(particles);
         }
@@ -185,8 +185,6 @@ void LJ(Config& config)
             //            action::limitAccelerationPerComponent(particles, 10_r);
             //            action::limitVelocityPerComponent(particles, 1_r);
         }
-
-        action::VelocityVerlet::postForceIntegrate(particles, config.dt);
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
@@ -222,6 +220,8 @@ void LJ(Config& config)
             //            io::dumpCSV("particles_" + std::to_string(step) + ".csv", particles,
             //            false);
         }
+
+        action::VelocityVerlet::postForceIntegrate(particles, config.dt);
     }
     fStat.close();
     auto time = timer.seconds();
