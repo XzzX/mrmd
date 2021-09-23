@@ -1,5 +1,7 @@
 #include "action/SPC.hpp"
 
+#include <fmt/format.h>
+
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
 #include <CLI/Formatter.hpp>
@@ -15,6 +17,7 @@
 #include "action/LimitVelocity.hpp"
 #include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
+#include "action/VelocityScaling.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/SystemMomentum.hpp"
@@ -24,6 +27,7 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
+#include "io/DumpGRO.hpp"
 #include "io/RestoreLAMMPS.hpp"
 #include "util/EnvironmentVariables.hpp"
 #include "util/PrintTable.hpp"
@@ -119,9 +123,16 @@ void initMolecules(data::Molecules& molecules,
         realtiveMass(idx * 3 + 0) = 15.999_r / (15.999_r + 2_r * 1.008_r);
 
         // hydrogen 1
-        pos(idx * 3 + 1, 0) = pos(idx * 3 + 0, 0) + action::SPC::eqDistanceHO;
-        pos(idx * 3 + 1, 1) = pos(idx * 3 + 0, 1);
-        pos(idx * 3 + 1, 2) = pos(idx * 3 + 0, 2);
+        real_t theta = 2_r * M_PI * randGen.drand();
+        real_t phi = acos(1_r - 2_r * randGen.drand());
+        real_t randomDirection[3];
+        randomDirection[0] = std::sin(phi) * std::cos(theta);
+        randomDirection[1] = std::sin(phi) * std::sin(theta);
+        randomDirection[2] = std::cos(phi);
+
+        pos(idx * 3 + 1, 0) = pos(idx * 3 + 0, 0) + randomDirection[0] * action::SPC::eqDistanceHO;
+        pos(idx * 3 + 1, 1) = pos(idx * 3 + 0, 1) + randomDirection[1] * action::SPC::eqDistanceHO;
+        pos(idx * 3 + 1, 2) = pos(idx * 3 + 0, 2) + randomDirection[2] * action::SPC::eqDistanceHO;
 
         //        vel(idx * 3 + 1, 0) = (randGen.drand() - 0.5_r) * 1_r;
         //        vel(idx * 3 + 1, 1) = (randGen.drand() - 0.5_r) * 1_r;
@@ -133,11 +144,15 @@ void initMolecules(data::Molecules& molecules,
         realtiveMass(idx * 3 + 1) = 1.008_r / (15.999_r + 2_r * 1.008_r);
 
         // hydrogen 2
-        pos(idx * 3 + 2, 0) =
-            pos(idx * 3 + 0, 0) + action::SPC::eqDistanceHO * std::cos(action::SPC::angleHOH);
-        pos(idx * 3 + 2, 1) =
-            pos(idx * 3 + 0, 1) + action::SPC::eqDistanceHO * std::sin(action::SPC::angleHOH);
-        pos(idx * 3 + 2, 2) = pos(idx * 3 + 0, 2);
+        theta = 2_r * M_PI * randGen.drand();
+        phi = acos(1_r - 2_r * randGen.drand());
+        randomDirection[0] = std::sin(phi) * std::cos(theta);
+        randomDirection[1] = std::sin(phi) * std::sin(theta);
+        randomDirection[2] = std::cos(phi);
+
+        pos(idx * 3 + 2, 0) = pos(idx * 3 + 0, 0) + randomDirection[0] * action::SPC::eqDistanceHO;
+        pos(idx * 3 + 2, 1) = pos(idx * 3 + 0, 1) + randomDirection[1] * action::SPC::eqDistanceHO;
+        pos(idx * 3 + 2, 2) = pos(idx * 3 + 0, 2) + randomDirection[2] * action::SPC::eqDistanceHO;
 
         //        vel(idx * 3 + 2, 0) = (randGen.drand() - 0.5_r) * 1_r;
         //        vel(idx * 3 + 2, 1) = (randGen.drand() - 0.5_r) * 1_r;
@@ -190,6 +205,7 @@ void SPC(Config& config)
     action::ThermodynamicForce thermodynamicForce(
         config.rho, subdomain, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
+    action::VelocityScaling velocityScaling(1_r, config.temperature);
     communication::MultiResGhostLayer ghostLayer(subdomain);
 
     util::printTable("step", "time", "T", "Ek", "E0", "Ebond", "E", "mu", "Nlocal", "Nghost");
@@ -262,14 +278,15 @@ void SPC(Config& config)
         action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
         if ((config.temperature >= 0) && (step % config.thermostatInterval == 0))
         {
-            langevinThermostat.apply(atoms);
+            //                    langevinThermostat.apply(atoms);
+            velocityScaling.apply(atoms, 2_r);
         }
         ghostLayer.contributeBackGhostToReal(atoms);
 
-        if (step < 5000)
+        if (step < 1000)
         {
-            action::limitAccelerationPerComponent(atoms, 10_r);
-            action::limitVelocityPerComponent(atoms, 1_r);
+            action::limitAccelerationPerComponent(atoms, 1000_r);
+            action::limitVelocityPerComponent(atoms, 100_r);
         }
 
         action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
@@ -302,7 +319,13 @@ void SPC(Config& config)
                              atoms.numLocalParticles,
                              atoms.numGhostParticles);
 
-            io::dumpCSV("particles_" + std::to_string(step) + ".csv", atoms, false);
+            //            io::dumpCSV("particles_" + std::to_string(step) + ".csv", atoms, false);
+            io::dumpGRO(fmt::format("spc_{:0>5}.gro", step),
+                        atoms,
+                        subdomain,
+                        step * config.dt,
+                        "SPC water",
+                        false);
 
             //            fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
             //            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
