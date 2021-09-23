@@ -2,10 +2,10 @@
 
 #include "communication/AccumulateForce.hpp"
 #include "communication/MultiResPeriodicGhostExchange.hpp"
-#include "communication/MultiResRealParticlesExchange.hpp"
-#include "communication/UpdateGhostParticles.hpp"
+#include "communication/MultiResRealAtomsExchange.hpp"
+#include "communication/UpdateGhostAtoms.hpp"
 #include "data/Molecules.hpp"
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 
 namespace mrmd
@@ -16,36 +16,36 @@ class MultiResGhostLayer
 {
 private:
     const data::Subdomain subdomain_;
-    IndexView correspondingRealParticle_;
+    IndexView correspondingRealAtom_;
     impl::MultiResPeriodicGhostExchange ghostExchange_;
-    impl::UpdateGhostParticles updateGhostParticles_;
+    impl::UpdateGhostAtoms updateGhostAtoms_;
     impl::AccumulateForce accumulateForce_;
 
 public:
-    void exchangeRealParticles(data::Molecules& molecules, data::Particles& atoms)
+    void exchangeRealAtoms(data::Molecules& molecules, data::Atoms& atoms)
     {
-        realParticlesExchange(subdomain_, molecules, atoms);
+        realAtomsExchange(subdomain_, molecules, atoms);
     }
 
-    void createGhostParticles(data::Molecules& molecules, data::Particles& atoms)
+    void createGhostAtoms(data::Molecules& molecules, data::Atoms& atoms)
     {
-        correspondingRealParticle_ = ghostExchange_.createGhostParticlesXYZ(molecules, atoms);
+        correspondingRealAtom_ = ghostExchange_.createGhostAtomsXYZ(molecules, atoms);
     }
 
-    void updateGhostParticles(data::Particles& atoms)
+    void updateGhostAtoms(data::Atoms& atoms)
     {
-        assert(correspondingRealParticle_.extent(0) >= atoms.size());
+        assert(correspondingRealAtom_.extent(0) >= atoms.size());
 
-        updateGhostParticles_.updateOnlyPos(atoms, correspondingRealParticle_);
+        updateGhostAtoms_.updateOnlyPos(atoms, correspondingRealAtom_);
     }
 
-    void contributeBackGhostToReal(data::Particles& atoms)
+    void contributeBackGhostToReal(data::Atoms& atoms)
     {
-        accumulateForce_.ghostToReal(atoms, correspondingRealParticle_);
+        accumulateForce_.ghostToReal(atoms, correspondingRealAtom_);
     }
 
     MultiResGhostLayer(const data::Subdomain& subdomain)
-        : subdomain_(subdomain), ghostExchange_(subdomain), updateGhostParticles_(subdomain)
+        : subdomain_(subdomain), ghostExchange_(subdomain), updateGhostAtoms_(subdomain)
     {
     }
 };

@@ -2,14 +2,14 @@
 
 #include <gtest/gtest.h>
 
-#include "data/Particles.hpp"
-#include "test/SingleParticle.hpp"
+#include "data/Atoms.hpp"
+#include "test/SingleAtom.hpp"
 
 namespace mrmd
 {
 namespace analysis
 {
-using MeanSquareDisplacementTest = test::SingleParticle;
+using MeanSquareDisplacementTest = test::SingleAtom;
 
 TEST_F(MeanSquareDisplacementTest, no_displacement)
 {

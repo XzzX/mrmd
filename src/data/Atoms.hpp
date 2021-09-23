@@ -10,7 +10,7 @@ namespace mrmd
 {
 namespace data
 {
-class Particles
+class Atoms
 {
 public:
     enum Props
@@ -30,15 +30,15 @@ public:
                                           real_t,
                                           real_t,
                                           real_t>;
-    using ParticlesT = Cabana::AoSoA<DataTypes, DeviceType, VECTOR_LENGTH>;
+    using AtomsT = Cabana::AoSoA<DataTypes, DeviceType, VECTOR_LENGTH>;
 
-    using pos_t = typename ParticlesT::template member_slice_type<POS>;
-    using vel_t = typename ParticlesT::template member_slice_type<VEL>;
-    using force_t = typename ParticlesT::template member_slice_type<FORCE>;
-    using type_t = typename ParticlesT::template member_slice_type<TYPE>;
-    using mass_t = typename ParticlesT::template member_slice_type<MASS>;
-    using charge_t = typename ParticlesT::template member_slice_type<CHARGE>;
-    using relative_mass_t = typename ParticlesT::template member_slice_type<RELATIVE_MASS>;
+    using pos_t = typename AtomsT::template member_slice_type<POS>;
+    using vel_t = typename AtomsT::template member_slice_type<VEL>;
+    using force_t = typename AtomsT::template member_slice_type<FORCE>;
+    using type_t = typename AtomsT::template member_slice_type<TYPE>;
+    using mass_t = typename AtomsT::template member_slice_type<MASS>;
+    using charge_t = typename AtomsT::template member_slice_type<CHARGE>;
+    using relative_mass_t = typename AtomsT::template member_slice_type<RELATIVE_MASS>;
 
     pos_t pos;
     vel_t vel;
@@ -58,29 +58,29 @@ public:
 
     void sliceAll()
     {
-        pos = Cabana::slice<POS>(particles_);
-        vel = Cabana::slice<VEL>(particles_);
-        force = Cabana::slice<FORCE>(particles_);
-        type = Cabana::slice<TYPE>(particles_);
-        mass = Cabana::slice<MASS>(particles_);
-        charge = Cabana::slice<CHARGE>(particles_);
-        relativeMass = Cabana::slice<RELATIVE_MASS>(particles_);
+        pos = Cabana::slice<POS>(atoms_);
+        vel = Cabana::slice<VEL>(atoms_);
+        force = Cabana::slice<FORCE>(atoms_);
+        type = Cabana::slice<TYPE>(atoms_);
+        mass = Cabana::slice<MASS>(atoms_);
+        charge = Cabana::slice<CHARGE>(atoms_);
+        relativeMass = Cabana::slice<RELATIVE_MASS>(atoms_);
     }
 
-    KOKKOS_INLINE_FUNCTION auto size() const { return particles_.size(); }
-    auto numSoA() const { return particles_.numSoA(); }
-    auto arraySize(size_t s) const { return particles_.arraySize(s); }
+    KOKKOS_INLINE_FUNCTION auto size() const { return atoms_.size(); }
+    auto numSoA() const { return atoms_.numSoA(); }
+    auto arraySize(size_t s) const { return atoms_.arraySize(s); }
 
     void resize(size_t size)
     {
-        particles_.resize(size);
+        atoms_.resize(size);
         sliceAll();
     }
 
     KOKKOS_INLINE_FUNCTION
     void permute(LinkedCellList& linkedCellList) const
     {
-        Cabana::permute(linkedCellList, particles_);
+        Cabana::permute(linkedCellList, atoms_);
     }
 
     KOKKOS_INLINE_FUNCTION
@@ -98,24 +98,24 @@ public:
         relativeMass(dst) = relativeMass(src);
     }
 
-    void removeGhostParticles()
+    void removeGhostAtoms()
     {
-        numGhostParticles = 0;
-        resize(numLocalParticles + numGhostParticles);
+        numGhostAtoms = 0;
+        resize(numLocalAtoms + numGhostAtoms);
     }
 
-    auto getAoSoA() { return particles_; }
+    auto getAoSoA() { return atoms_; }
 
-    idx_t numLocalParticles = 0;
-    idx_t numGhostParticles = 0;
+    idx_t numLocalAtoms = 0;
+    idx_t numGhostAtoms = 0;
 
-    explicit Particles(const idx_t numParticles) : particles_("particles", numParticles)
+    explicit Atoms(const idx_t numAtoms) : atoms_("atoms", numAtoms)
     {
         sliceAll();
     }
 
 private:
-    ParticlesT particles_;
+    AtomsT atoms_;
 };
 }  // namespace data
 }  // namespace mrmd

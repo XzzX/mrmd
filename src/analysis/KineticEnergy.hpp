@@ -1,12 +1,12 @@
 #pragma once
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 
 namespace mrmd
 {
 namespace analysis
 {
-real_t getKineticEnergy(data::Particles& particles);
+real_t getKineticEnergy(data::Atoms& atoms);
 
 }  // namespace analysis
 }  // namespace mrmd

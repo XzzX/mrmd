@@ -6,11 +6,11 @@ namespace mrmd
 {
 namespace action
 {
-void limitVelocityPerComponent(data::Particles& atoms, const real_t& maxVelocityPerComponent)
+void limitVelocityPerComponent(data::Atoms& atoms, const real_t& maxVelocityPerComponent)
 {
     auto vel = atoms.getVel();
 
-    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalParticles);
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
         vel(idx, 0) = std::min(vel(idx, 0), +maxVelocityPerComponent);

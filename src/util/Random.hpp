@@ -2,7 +2,7 @@
 
 #include <Kokkos_Random.hpp>
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "datatypes.hpp"
 
 namespace mrmd

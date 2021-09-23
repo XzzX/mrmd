@@ -4,13 +4,13 @@ namespace mrmd
 {
 namespace analysis
 {
-std::array<real_t, 3> getSystemMomentum(data::Particles& particles)
+std::array<real_t, 3> getSystemMomentum(data::Atoms& atoms)
 {
-    auto vel = particles.getVel();
+    auto vel = atoms.getVel();
     std::array<real_t, 3> velSum = {0_r, 0_r, 0_r};
     idx_t dim = 0;
 
-    auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     dim = 0;
     Kokkos::parallel_reduce(
         "getSystemMomentum",

@@ -26,7 +26,7 @@ TEST_F(ContributeMoleculeForceToAtomsTest, update)
 
     {
         auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-        auto force = Cabana::slice<data::Particles::FORCE>(hAoSoA);
+        auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
         EXPECT_FLOAT_EQ(force(0, 0), 5_r * 0.25_r);
         EXPECT_FLOAT_EQ(force(0, 1), 6_r * 0.25_r);
         EXPECT_FLOAT_EQ(force(0, 2), 7_r * 0.25_r);

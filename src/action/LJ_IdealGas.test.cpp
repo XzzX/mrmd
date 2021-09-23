@@ -2,8 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "data/Atoms.hpp"
 #include "data/Molecules.hpp"
-#include "data/Particles.hpp"
 
 namespace mrmd
 {
@@ -47,7 +47,7 @@ protected:
 
     static auto getAtoms()
     {
-        data::Particles atoms(4);
+        data::Atoms atoms(4);
 
         auto pos = atoms.getPos();
         pos(0, 0) = -0.5_r;
@@ -70,7 +70,7 @@ protected:
         pos(3, 2) = 0_r;
         atoms.getRelativeMass()(3) = 0.5_r;
 
-        atoms.numLocalParticles = 4;
+        atoms.numLocalAtoms = 4;
 
         return atoms;
     }
@@ -108,8 +108,8 @@ protected:
 
     data::Molecules molecules = data::Molecules(1);
     VerletList moleculesVerletList;
-    data::Particles atoms = data::Particles(1);
-    data::Particles::force_t atomsForce;
+    data::Atoms atoms = data::Atoms(1);
+    data::Atoms::force_t atomsForce;
 };
 
 TEST_F(LJ_IdealGas_Test, CG)

@@ -2,14 +2,14 @@
 
 #include <gtest/gtest.h>
 
-#include "data/Particles.hpp"
-#include "test/SingleParticle.hpp"
+#include "data/Atoms.hpp"
+#include "test/SingleAtom.hpp"
 
 namespace mrmd
 {
 namespace action
 {
-using LangevinThermostatTest = test::SingleParticle;
+using LangevinThermostatTest = test::SingleAtom;
 
 TEST_F(LangevinThermostatTest, Simple)
 {
@@ -17,7 +17,7 @@ TEST_F(LangevinThermostatTest, Simple)
     langevinThermostat.apply(atoms);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto force = Cabana::slice<data::Particles::FORCE>(hAoSoA);
+    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
     EXPECT_GE(force(0, 0),
               9_r + langevinThermostat.getPref1() * 1.5_r * 7_r -
                   langevinThermostat.getPref2() * std::sqrt(1.5_r) * 0.5_r);

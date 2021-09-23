@@ -3,9 +3,9 @@
 #include <cassert>
 
 #include "LennardJones.hpp"
+#include "data/Atoms.hpp"
 #include "data/Histogram.hpp"
 #include "data/Molecules.hpp"
-#include "data/Particles.hpp"
 #include "datatypes.hpp"
 #include "weighting_function/CheckRegion.hpp"
 
@@ -56,8 +56,8 @@ private:
     data::Molecules::atoms_offset_t moleculesAtomsOffset_;
     data::Molecules::num_atoms_t moleculesNumAtoms_;
 
-    data::Particles::pos_t atomsPos_;
-    data::Particles::force_t::atomic_access_slice atomsForce_;
+    data::Atoms::pos_t atomsPos_;
+    data::Atoms::force_t::atomic_access_slice atomsForce_;
 
     data::Histogram compensationEnergy_ = data::Histogram("compensationEnergy", 0_r, 1_r, 200);
     ScalarScatterView compensationEnergyScatter_;
@@ -139,8 +139,8 @@ public:
             const auto endAtomsAlpha = startAtomsAlpha + moleculesNumAtoms_(alpha);
             assert(0 <= startAtomsAlpha);
             assert(startAtomsAlpha < endAtomsAlpha);
-            //            assert(endAtomsAlpha <= atoms_.numLocalParticles +
-            //            atoms_.numGhostParticles);
+            //            assert(endAtomsAlpha <= atoms_.numLocalAtoms +
+            //            atoms_.numGhostAtoms);
 
             /// inclusive start index of atoms belonging to beta
             const auto startAtomsBeta = moleculesAtomsOffset_(beta);
@@ -148,8 +148,8 @@ public:
             const auto endAtomsBeta = startAtomsBeta + moleculesNumAtoms_(beta);
             assert(0 <= startAtomsBeta);
             assert(startAtomsBeta < endAtomsBeta);
-            //            assert(endAtomsBeta <= atoms_.numLocalParticles +
-            //            atoms_.numGhostParticles);
+            //            assert(endAtomsBeta <= atoms_.numLocalAtoms +
+            //            atoms_.numGhostAtoms);
 
             /// loop over atoms
             for (idx_t idx = startAtomsAlpha; idx < endAtomsAlpha; ++idx)
@@ -260,7 +260,7 @@ public:
         moleculesForce_(alpha, 2) += forceTmpAlpha[2];
     }
 
-    real_t run(data::Molecules& molecules, VerletList& verletList, data::Particles& atoms)
+    real_t run(data::Molecules& molecules, VerletList& verletList, data::Atoms& atoms)
     {
         moleculesPos_ = molecules.getPos();
         moleculesForce_ = molecules.getForce();

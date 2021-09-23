@@ -7,10 +7,10 @@ namespace mrmd
 {
 namespace action
 {
-void ThermodynamicForce::sample(data::Particles& atoms)
+void ThermodynamicForce::sample(data::Atoms& atoms)
 {
     densityProfile_ += analysis::getAxialDensityProfile(atoms.getPos(),
-                                                        atoms.numLocalParticles,
+                                                        atoms.numLocalAtoms,
                                                         densityProfile_.min,
                                                         densityProfile_.max,
                                                         densityProfile_.numBins);
@@ -46,14 +46,14 @@ void ThermodynamicForce::update()
     densityProfileSamples_ = 0;
 }
 
-void ThermodynamicForce::apply(const data::Particles& atoms) const
+void ThermodynamicForce::apply(const data::Atoms& atoms) const
 {
     auto atomsPos = atoms.getPos();
     auto atomsForce = atoms.getForce();
 
     auto forceHistogram = force_;  // avoid capturing this pointer
 
-    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalParticles);
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
         auto xPos = atomsPos(idx, 0);

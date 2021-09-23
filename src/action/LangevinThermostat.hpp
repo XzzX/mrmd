@@ -2,7 +2,7 @@
 
 #include <Kokkos_Random.hpp>
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "datatypes.hpp"
 #include "util/Random.hpp"
 
@@ -21,7 +21,7 @@ public:
     auto getPref1() const { return pref1; }
     auto getPref2() const { return pref2; }
 
-    void apply(data::Particles& particles);
+    void apply(data::Atoms& atoms);
 
     void set(const real_t gamma, const real_t temperature, const real_t timestep)
     {

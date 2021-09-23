@@ -1,4 +1,4 @@
-#include "MultiResRealParticlesExchange.hpp"
+#include "MultiResRealAtomsExchange.hpp"
 
 #include <gtest/gtest.h>
 
@@ -9,13 +9,13 @@ namespace mrmd
 {
 namespace communication
 {
-using MultiResRealParticlesExchangeTest = test::GridFixture;
+using MultiResRealAtomsExchangeTest = test::GridFixture;
 
-TEST_F(MultiResRealParticlesExchangeTest, SingleAtomTest)
+TEST_F(MultiResRealAtomsExchangeTest, SingleAtomTest)
 {
     init(1);
     data::Subdomain domain({1_r, 1_r, 1_r}, {2_r, 2_r, 2_r}, 0.1_r);
-    realParticlesExchange(domain, molecules, atoms);
+    realAtomsExchange(domain, molecules, atoms);
 
     auto moleculesPos = molecules.getPos();
     for (auto idx = 0; idx < molecules.numLocalMolecules; ++idx)
@@ -28,7 +28,7 @@ TEST_F(MultiResRealParticlesExchangeTest, SingleAtomTest)
     }
 
     auto atomsPos = atoms.getPos();
-    for (auto idx = 0; idx < atoms.numLocalParticles; ++idx)
+    for (auto idx = 0; idx < atoms.numLocalAtoms; ++idx)
     {
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
@@ -38,11 +38,11 @@ TEST_F(MultiResRealParticlesExchangeTest, SingleAtomTest)
     }
 }
 
-TEST_F(MultiResRealParticlesExchangeTest, MultiAtomTest)
+TEST_F(MultiResRealAtomsExchangeTest, MultiAtomTest)
 {
     init(2);
     data::Subdomain domain({1_r, 1_r, 1_r}, {2_r, 2_r, 2_r}, 0.1_r);
-    realParticlesExchange(domain, molecules, atoms);
+    realAtomsExchange(domain, molecules, atoms);
 
     auto moleculesPos = molecules.getPos();
     for (auto idx = 0; idx < molecules.numLocalMolecules; ++idx)
@@ -55,7 +55,7 @@ TEST_F(MultiResRealParticlesExchangeTest, MultiAtomTest)
     }
 
     auto atomsPos = atoms.getPos();
-    for (auto idx = 0; idx < atoms.numLocalParticles; ++idx)
+    for (auto idx = 0; idx < atoms.numLocalAtoms; ++idx)
     {
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {

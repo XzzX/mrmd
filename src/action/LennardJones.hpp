@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "datatypes.hpp"
 
 namespace mrmd
@@ -138,9 +138,9 @@ class LennardJones
 private:
     impl::CappedLennardJonesPotential LJ_;
     real_t rcSqr_;
-    data::Particles::pos_t pos_;
-    data::Particles::force_t::atomic_access_slice force_;
-    data::Particles::type_t type_;
+    data::Atoms::pos_t pos_;
+    data::Atoms::force_t::atomic_access_slice force_;
+    data::Atoms::type_t type_;
 
     VerletList verletList_;
 
@@ -202,27 +202,27 @@ public:
         energy += LJ_.computeEnergy(distSqr, typeIdx);
     }
 
-    void applyForces(data::Particles& particles, VerletList& verletList)
+    void applyForces(data::Atoms& atoms, VerletList& verletList)
     {
-        pos_ = particles.getPos();
-        force_ = particles.getForce();
-        type_ = particles.getType();
+        pos_ = atoms.getPos();
+        force_ = atoms.getForce();
+        type_ = atoms.getType();
         verletList_ = verletList;
 
-        auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
+        auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
         Kokkos::parallel_for(policy, *this, "LennardJones::applyForces");
 
         Kokkos::fence();
     }
 
     template <typename VERLET_LIST>
-    real_t computeEnergy(data::Particles& particles, VERLET_LIST& verletList)
+    real_t computeEnergy(data::Atoms& atoms, VERLET_LIST& verletList)
     {
-        pos_ = particles.getPos();
-        type_ = particles.getType();
+        pos_ = atoms.getPos();
+        type_ = atoms.getType();
 
         real_t E0 = 0_r;
-        Cabana::neighbor_parallel_reduce(Kokkos::RangePolicy<>(0, particles.numLocalParticles),
+        Cabana::neighbor_parallel_reduce(Kokkos::RangePolicy<>(0, atoms.numLocalAtoms),
                                          *this,
                                          verletList,
                                          Cabana::FirstNeighborsTag(),

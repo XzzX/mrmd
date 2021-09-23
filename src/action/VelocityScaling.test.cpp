@@ -2,14 +2,14 @@
 
 #include <gtest/gtest.h>
 
-#include "data/Particles.hpp"
-#include "test/SingleParticle.hpp"
+#include "data/Atoms.hpp"
+#include "test/SingleAtom.hpp"
 
 namespace mrmd
 {
 namespace action
 {
-using VelocityScalingTest = test::SingleParticle;
+using VelocityScalingTest = test::SingleAtom;
 
 TEST_F(VelocityScalingTest, gamma_0)
 {
@@ -19,8 +19,8 @@ TEST_F(VelocityScalingTest, gamma_0)
     velocityScaling.apply(atoms);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto vel = Cabana::slice<data::Particles::VEL>(hAoSoA);
-    auto mass = Cabana::slice<data::Particles::MASS>(hAoSoA);
+    auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
+    auto mass = Cabana::slice<data::Atoms::MASS>(hAoSoA);
     auto Ekin =
         0.5_r * mass(0) * (vel(0, 0) * vel(0, 0) + vel(0, 1) * vel(0, 1) + vel(0, 2) * vel(0, 2));
     auto T = Ekin * 2_r / 3_r;
@@ -37,8 +37,8 @@ TEST_F(VelocityScalingTest, gamma_1)
     velocityScaling.apply(atoms);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto vel = Cabana::slice<data::Particles::VEL>(hAoSoA);
-    auto mass = Cabana::slice<data::Particles::MASS>(hAoSoA);
+    auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
+    auto mass = Cabana::slice<data::Atoms::MASS>(hAoSoA);
     auto Ekin =
         0.5_r * mass(0) * (vel(0, 0) * vel(0, 0) + vel(0, 1) * vel(0, 1) + vel(0, 2) * vel(0, 2));
     auto T = Ekin * 2_r / 3_r;

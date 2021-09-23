@@ -3,8 +3,8 @@
 #include "communication/AccumulateForce.hpp"
 #include "communication/GhostExchange.hpp"
 #include "communication/PeriodicMapping.hpp"
-#include "communication/UpdateGhostParticles.hpp"
-#include "data/Particles.hpp"
+#include "communication/UpdateGhostAtoms.hpp"
+#include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 
 namespace mrmd
@@ -15,40 +15,37 @@ class GhostLayer
 {
 private:
     const data::Subdomain subdomain_;
-    IndexView correspondingRealParticle_;
+    IndexView correspondingRealAtom_;
     impl::PeriodicMapping periodicMapping_;
     impl::GhostExchange ghostExchange_;
-    impl::UpdateGhostParticles updateGhostParticles_;
+    impl::UpdateGhostAtoms updateGhostAtoms_;
     impl::AccumulateForce accumulateForce_;
 
 public:
-    void exchangeRealParticles(data::Particles& particles)
+    void exchangeRealAtoms(data::Atoms& atoms) { periodicMapping_.mapIntoDomain(atoms); }
+
+    void createGhostAtoms(data::Atoms& atoms)
     {
-        periodicMapping_.mapIntoDomain(particles);
+        correspondingRealAtom_ = ghostExchange_.createGhostAtomsXYZ(atoms);
     }
 
-    void createGhostParticles(data::Particles& particles)
+    void updateGhostAtoms(data::Atoms& atoms)
     {
-        correspondingRealParticle_ = ghostExchange_.createGhostParticlesXYZ(particles);
+        assert(correspondingRealAtom_.extent(0) >= atoms.size());
+
+        updateGhostAtoms_.updateOnlyPos(atoms, correspondingRealAtom_);
     }
 
-    void updateGhostParticles(data::Particles& particles)
+    void contributeBackGhostToReal(data::Atoms& atoms)
     {
-        assert(correspondingRealParticle_.extent(0) >= particles.size());
-
-        updateGhostParticles_.updateOnlyPos(particles, correspondingRealParticle_);
-    }
-
-    void contributeBackGhostToReal(data::Particles& particles)
-    {
-        accumulateForce_.ghostToReal(particles, correspondingRealParticle_);
+        accumulateForce_.ghostToReal(atoms, correspondingRealAtom_);
     }
 
     GhostLayer(const data::Subdomain& subdomain)
         : subdomain_(subdomain),
           periodicMapping_(subdomain),
           ghostExchange_(subdomain),
-          updateGhostParticles_(subdomain)
+          updateGhostAtoms_(subdomain)
     {
     }
 };

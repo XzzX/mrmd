@@ -4,8 +4,8 @@ namespace mrmd
 {
 namespace analysis
 {
-data::Histogram getAxialDensityProfile(const data::Particles::pos_t& positions,
-                                       const idx_t numParticles,
+data::Histogram getAxialDensityProfile(const data::Atoms::pos_t& positions,
+                                       const idx_t numAtoms,
                                        const real_t min,
                                        const real_t max,
                                        const int64_t numBins)
@@ -14,7 +14,7 @@ data::Histogram getAxialDensityProfile(const data::Particles::pos_t& positions,
     data::Histogram histogram("density-profile", min, max, numBins);
     ScalarScatterView scatter(histogram.data);
 
-    auto policy = Kokkos::RangePolicy<>(0, numParticles);
+    auto policy = Kokkos::RangePolicy<>(0, numAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
         auto bin = histogram.getBin(positions(idx, COORD_X));

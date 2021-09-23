@@ -28,8 +28,8 @@ TEST_F(ConstraintTest, ShakeVelocityVerlet)
     mc.enforceVelocityConstraints(molecules, atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto pos = Cabana::slice<data::Particles::POS>(hAoSoA);
-    auto vel = Cabana::slice<data::Particles::VEL>(hAoSoA);
+    auto pos = Cabana::slice<data::Atoms::POS>(hAoSoA);
+    auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
     auto calcDist = [=](idx_t idx, idx_t jdx)
     {
         real_t dx[3];

@@ -3,7 +3,7 @@
 #include <Kokkos_Core.hpp>
 #include <cassert>
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 
 namespace mrmd
 {
@@ -14,18 +14,18 @@ namespace impl
 class AccumulateForce
 {
 private:
-    data::Particles::force_t::atomic_access_slice force_;
-    IndexView correspondingRealParticle_;
+    data::Atoms::force_t::atomic_access_slice force_;
+    IndexView correspondingRealAtom_;
 
 public:
     KOKKOS_INLINE_FUNCTION
     void operator()(const idx_t& idx) const
     {
-        if (correspondingRealParticle_(idx) == -1) return;
+        if (correspondingRealAtom_(idx) == -1) return;
 
-        auto realIdx = correspondingRealParticle_(idx);
-        assert(correspondingRealParticle_(realIdx) == -1 &&
-               "We do not want to add forces to ghost particles!");
+        auto realIdx = correspondingRealAtom_(idx);
+        assert(correspondingRealAtom_(realIdx) == -1 &&
+               "We do not want to add forces to ghost atoms!");
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
             force_(realIdx, dim) += force_(idx, dim);
@@ -33,13 +33,13 @@ public:
         }
     }
 
-    void ghostToReal(data::Particles& particles, const IndexView& correspondingRealParticle)
+    void ghostToReal(data::Atoms& atoms, const IndexView& correspondingRealAtom)
     {
-        force_ = particles.getForce();
-        correspondingRealParticle_ = correspondingRealParticle;
+        force_ = atoms.getForce();
+        correspondingRealAtom_ = correspondingRealAtom;
 
         auto policy = Kokkos::RangePolicy<>(
-            particles.numLocalParticles, particles.numLocalParticles + particles.numGhostParticles);
+            atoms.numLocalAtoms, atoms.numLocalAtoms + atoms.numGhostAtoms);
 
         Kokkos::parallel_for(policy, *this, "AccumulateForce::ghostToReal");
         Kokkos::fence();

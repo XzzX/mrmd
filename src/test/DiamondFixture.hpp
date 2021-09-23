@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "data/Atoms.hpp"
 #include "data/Molecules.hpp"
-#include "data/Particles.hpp"
 
 namespace mrmd
 {
@@ -37,7 +37,7 @@ inline void setupMolecules(data::Molecules& molecules)
     molecules.numGhostMolecules = 0;
 }
 
-inline void setupAtoms(data::Particles& atoms)
+inline void setupAtoms(data::Atoms& atoms)
 {
     assert(atoms.size() >= 4);
 
@@ -88,8 +88,8 @@ inline void setupAtoms(data::Particles& atoms)
     Kokkos::parallel_for(policy, kernel);
     Kokkos::fence();
 
-    atoms.numLocalParticles = 4;
-    atoms.numGhostParticles = 0;
+    atoms.numLocalAtoms = 4;
+    atoms.numGhostAtoms = 0;
 }
 }  // namespace impl
 
@@ -113,7 +113,7 @@ protected:
     // void TearDown() override {}
 
     data::Molecules molecules = data::Molecules(2);
-    data::Particles atoms = data::Particles(4);
+    data::Atoms atoms = data::Atoms(4);
 };
 
 }  // namespace test

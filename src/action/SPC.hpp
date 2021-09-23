@@ -4,7 +4,7 @@
 #include "LennardJones.hpp"
 #include "Shake.hpp"
 #include "data/Histogram.hpp"
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "datatypes.hpp"
 #include "util/angle.hpp"
 
@@ -27,9 +27,9 @@ private:
     data::Molecules::atoms_offset_t moleculesAtomsOffset_;
     data::Molecules::num_atoms_t moleculesNumAtoms_;
 
-    data::Particles::pos_t atomsPos_;
-    data::Particles::force_t::atomic_access_slice atomsForce_;
-    data::Particles::charge_t atomsCharge_;
+    data::Atoms::pos_t atomsPos_;
+    data::Atoms::force_t::atomic_access_slice atomsForce_;
+    data::Atoms::charge_t atomsCharge_;
 
     data::Histogram compensationEnergy_ = data::Histogram("compensationEnergy", 0_r, 1_r, 200);
     ScalarScatterView compensationEnergyScatter_;
@@ -176,14 +176,14 @@ public:
         }
     }
 
-    void enforceConstraints(data::Molecules& molecules, data::Particles& atoms, real_t dt)
+    void enforceConstraints(data::Molecules& molecules, data::Atoms& atoms, real_t dt)
     {
         MoleculeConstraints moleculeConstraints(3, 20);
         moleculeConstraints.setConstraints(bonds_);
         moleculeConstraints.enforcePositionalConstraints(molecules, atoms, dt);
     }
 
-    real_t applyForces(data::Molecules& molecules, VerletList& verletList, data::Particles& atoms)
+    real_t applyForces(data::Molecules& molecules, VerletList& verletList, data::Atoms& atoms)
     {
         moleculesPos_ = molecules.getPos();
         moleculesForce_ = molecules.getForce();
@@ -252,7 +252,7 @@ public:
         sumEnergy += util::sqr(dist - eqDistanceHH);
     }
 
-    real_t calcBondEnergy(data::Molecules& molecules, data::Particles& atoms)
+    real_t calcBondEnergy(data::Molecules& molecules, data::Atoms& atoms)
     {
         moleculesPos_ = molecules.getPos();
         moleculesForce_ = molecules.getForce();

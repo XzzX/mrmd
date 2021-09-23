@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "datatypes.hpp"
 #include "util/math.hpp"
 

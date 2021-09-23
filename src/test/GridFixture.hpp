@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "data/Molecules.hpp"
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 
 namespace mrmd
 {
@@ -52,9 +52,9 @@ protected:
                     }
                 }
         EXPECT_EQ(idx, 27 * atomsPerMolecule);
-        atoms.numLocalParticles = 27 * atomsPerMolecule;
-        atoms.numGhostParticles = 0;
-        atoms.resize(atoms.numLocalParticles + atoms.numGhostParticles);
+        atoms.numLocalAtoms = 27 * atomsPerMolecule;
+        atoms.numGhostAtoms = 0;
+        atoms.resize(atoms.numLocalAtoms + atoms.numGhostAtoms);
     }
 
     void SetUp() override { init(2); }
@@ -62,7 +62,7 @@ protected:
 
     data::Subdomain subdomain = data::Subdomain({0_r, 0_r, 0_r}, {3_r, 3_r, 3_r}, 0.7_r);
     data::Molecules molecules = data::Molecules(200);
-    data::Particles atoms = data::Particles(200);
+    data::Atoms atoms = data::Atoms(200);
 };
 
 }  // namespace test

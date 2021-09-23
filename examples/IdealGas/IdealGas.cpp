@@ -9,7 +9,7 @@
 
 #include "action/VelocityVerlet.hpp"
 #include "communication/GhostLayer.hpp"
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
@@ -22,12 +22,12 @@ struct Config
     real_t dt = 0.005;
 };
 
-data::Particles initParticles()
+data::Atoms initAtoms()
 {
     auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
-    auto particles = data::Particles(1000000);
-    auto pos = particles.getPos();
-    auto vel = particles.getVel();
+    auto atoms = data::Atoms(1000000);
+    auto pos = atoms.getPos();
+    auto vel = atoms.getVel();
     auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0}, {100, 100, 100});
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t idy, const idx_t idz)
     {
@@ -45,31 +45,31 @@ data::Particles initParticles()
         // Give the state back, which will allow another thread to acquire it
         RNG.free_state(randGen);
     };
-    Kokkos::parallel_for("initParticles", policy, kernel);
-    particles.numLocalParticles = 1000000;
-    particles.numGhostParticles = 0;
-    return particles;
+    Kokkos::parallel_for("initAtoms", policy, kernel);
+    atoms.numLocalAtoms = 1000000;
+    atoms.numGhostAtoms = 0;
+    return atoms;
 }
 
 void IdealGas(const Config& config)
 {
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {100_r, 100_r, 100_r}, 1_r);
-    auto particles = initParticles();
+    auto atoms = initAtoms();
 
     communication::GhostLayer ghostLayer(subdomain);
     Kokkos::Timer timer;
     for (auto i = 0; i < config.nsteps; ++i)
     {
-        action::VelocityVerlet::preForceIntegrate(particles, config.dt);
+        action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
-        ghostLayer.exchangeRealParticles(particles);
+        ghostLayer.exchangeRealAtoms(atoms);
 
         if (i % 100 == 0)
         {
-            io::dumpCSV("particles_" + std::to_string(i) + ".csv", particles);
+            io::dumpCSV("atoms_" + std::to_string(i) + ".csv", atoms);
         }
 
-        action::VelocityVerlet::postForceIntegrate(particles, config.dt);
+        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
     }
     auto time = timer.seconds();
     std::cout << time << std::endl;

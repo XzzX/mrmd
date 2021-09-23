@@ -26,16 +26,16 @@ TYPED_TEST_SUITE(TypedMultiResPeriodicGhostExchangeTest, MyTypes);
 TYPED_TEST(TypedMultiResPeriodicGhostExchangeTest, SelfExchange)
 {
     EXPECT_EQ(this->molecules.numGhostMolecules, 0);
-    EXPECT_EQ(this->atoms.numGhostParticles, 0);
+    EXPECT_EQ(this->atoms.numGhostAtoms, 0);
     auto ghostExchange = MultiResPeriodicGhostExchange(this->subdomain);
-    auto correspondingRealParticle = ghostExchange.exchangeGhosts<TypeParam>(
+    auto correspondingRealAtom = ghostExchange.exchangeGhosts<TypeParam>(
         this->molecules, this->atoms, this->molecules.numLocalMolecules);
     EXPECT_EQ(this->molecules.numGhostMolecules, 9);
-    EXPECT_EQ(this->atoms.numGhostParticles, 18);
+    EXPECT_EQ(this->atoms.numGhostAtoms, 18);
 
     auto pos = this->atoms.getPos();
-    for (auto idx = this->atoms.numLocalParticles;
-         idx < this->atoms.numLocalParticles + this->atoms.numGhostParticles;
+    for (auto idx = this->atoms.numLocalAtoms;
+         idx < this->atoms.numLocalAtoms + this->atoms.numGhostAtoms;
          ++idx)
     {
         if constexpr (std::is_same_v<TypeParam,  // NOLINT
@@ -71,14 +71,14 @@ TYPED_TEST(TypedMultiResPeriodicGhostExchangeTest, SelfExchange)
     }
 }
 
-TEST_F(MultiResPeriodicGhostExchangeTest, createGhostParticlesXYZ)
+TEST_F(MultiResPeriodicGhostExchangeTest, createGhostAtomsXYZ)
 {
     EXPECT_EQ(molecules.numGhostMolecules, 0);
-    EXPECT_EQ(atoms.numGhostParticles, 0);
+    EXPECT_EQ(atoms.numGhostAtoms, 0);
     auto ghostExchange = MultiResPeriodicGhostExchange(subdomain);
-    auto correspondingRealParticle = ghostExchange.createGhostParticlesXYZ(molecules, atoms);
+    auto correspondingRealAtom = ghostExchange.createGhostAtomsXYZ(molecules, atoms);
     EXPECT_EQ(molecules.numGhostMolecules, 5 * 5 * 5 - 3 * 3 * 3);
-    EXPECT_EQ(atoms.numGhostParticles, (5 * 5 * 5 - 3 * 3 * 3) * 2);
+    EXPECT_EQ(atoms.numGhostAtoms, (5 * 5 * 5 - 3 * 3 * 3) * 2);
 }
 
 }  // namespace impl

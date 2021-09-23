@@ -4,16 +4,16 @@ namespace mrmd
 {
 namespace action
 {
-real_t VelocityVerlet::preForceIntegrate(data::Particles& particles, const real_t dt)
+real_t VelocityVerlet::preForceIntegrate(data::Atoms& atoms, const real_t dt)
 {
     auto dtf(0.5_r * dt);
     auto dtv(dt);
-    auto pos = particles.getPos();
-    auto vel = particles.getVel();
-    auto force = particles.getForce();
-    auto mass = particles.getMass();
+    auto pos = atoms.getPos();
+    auto vel = atoms.getVel();
+    auto force = atoms.getForce();
+    auto mass = atoms.getMass();
 
-    auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx, real_t& maxDistSqr)
     {
         auto dtfm = dtf / mass(idx);
@@ -37,14 +37,14 @@ real_t VelocityVerlet::preForceIntegrate(data::Particles& particles, const real_
     return std::sqrt(maxDistSqr);
 }
 
-void VelocityVerlet::postForceIntegrate(data::Particles& particles, const real_t dt)
+void VelocityVerlet::postForceIntegrate(data::Atoms& atoms, const real_t dt)
 {
     auto dtf = 0.5_r * dt;
-    auto vel = particles.getVel();
-    auto force = particles.getForce();
-    auto mass = particles.getMass();
+    auto vel = atoms.getVel();
+    auto force = atoms.getForce();
+    auto mass = atoms.getMass();
 
-    auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
         auto dtfm = dtf / mass(idx);

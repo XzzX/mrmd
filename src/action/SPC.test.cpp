@@ -2,8 +2,8 @@
 
 #include <gtest/gtest.h>
 
+#include "data/Atoms.hpp"
 #include "data/Molecules.hpp"
-#include "data/Particles.hpp"
 #include "util/angle.hpp"
 
 namespace mrmd
@@ -35,7 +35,7 @@ protected:
 
     static auto getAtoms()
     {
-        data::Particles atoms(6);
+        data::Atoms atoms(6);
 
         auto pos = atoms.getPos();
         auto vel = atoms.getVel();
@@ -82,8 +82,8 @@ protected:
         charge(idx * 3 + 2) = +0.41_r;
         realtiveMass(idx * 3 + 2) = 1.008_r / (15.999_r + 2_r * 1.008_r);
 
-        atoms.numLocalParticles = 3;
-        atoms.numGhostParticles = 0;
+        atoms.numLocalAtoms = 3;
+        atoms.numGhostAtoms = 0;
 
         return atoms;
     }
@@ -111,7 +111,7 @@ protected:
     // void TearDown() override {}
 
     data::Molecules molecules = data::Molecules(1);
-    data::Particles atoms = data::Particles(1);
+    data::Atoms atoms = data::Atoms(1);
     VerletList moleculesVerletList;
 };
 

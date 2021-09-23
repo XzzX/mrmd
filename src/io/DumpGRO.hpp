@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 
 namespace mrmd
@@ -8,7 +8,7 @@ namespace mrmd
 namespace io
 {
 void dumpGRO(const std::string& filename,
-             data::Particles& particles,
+             data::Atoms& atoms,
              const data::Subdomain& subdomain,
              const real_t& timestamp,
              const std::string& title,

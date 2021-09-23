@@ -6,16 +6,16 @@ namespace mrmd
 {
 namespace action
 {
-void LangevinThermostat::apply(data::Particles& particles)
+void LangevinThermostat::apply(data::Atoms& atoms)
 {
     auto RNG = randPool_;
-    auto vel = particles.getVel();
-    auto force = particles.getForce();
-    auto mass = particles.getMass();
+    auto vel = atoms.getVel();
+    auto force = atoms.getForce();
+    auto mass = atoms.getMass();
     auto p1 = pref1;  // avoid capturing this pointer
     auto p2 = pref2;  // avoid capturing this pointer
 
-    auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
         const real_t m = mass(idx);

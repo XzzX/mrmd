@@ -14,7 +14,7 @@
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/SystemMomentum.hpp"
 #include "communication/GhostLayer.hpp"
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
@@ -47,19 +47,19 @@ struct Config
     idx_t estimatedMaxNeighbors = 60;
 };
 
-data::Particles fillDomainWithParticlesSC(const data::Subdomain& subdomain,
-                                          const idx_t& numParticles,
+data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
+                                          const idx_t& numAtoms,
                                           const real_t& maxVelocity)
 {
     auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
 
-    data::Particles particles(numParticles);
+    data::Atoms atoms(numAtoms);
 
-    auto pos = particles.getPos();
-    auto vel = particles.getVel();
-    auto mass = particles.getMass();
+    auto pos = atoms.getPos();
+    auto vel = atoms.getVel();
+    auto mass = atoms.getMass();
 
-    auto policy = Kokkos::RangePolicy<>(0, numParticles);
+    auto policy = Kokkos::RangePolicy<>(0, numAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
         auto randGen = RNG.get_state();
@@ -74,11 +74,11 @@ data::Particles fillDomainWithParticlesSC(const data::Subdomain& subdomain,
 
         mass(idx) = 1_r;
     };
-    Kokkos::parallel_for("fillDomainWithParticlesSC", policy, kernel);
+    Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
 
-    particles.numLocalParticles = numParticles;
-    particles.numGhostParticles = 0;
-    return particles;
+    atoms.numLocalAtoms = numAtoms;
+    atoms.numGhostAtoms = 0;
+    return atoms;
 }
 
 void LJ(Config& config)
@@ -86,8 +86,8 @@ void LJ(Config& config)
     auto subdomain =
         data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
-    auto particles = fillDomainWithParticlesSC(subdomain, idx_c(config.rho * volume), 1_r);
-    auto rho = real_c(particles.numLocalParticles) / volume;
+    auto atoms = fillDomainWithAtomsSC(subdomain, idx_c(config.rho * volume), 1_r);
+    auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
     communication::GhostLayer ghostLayer(subdomain);
@@ -95,35 +95,35 @@ void LJ(Config& config)
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     VerletList verletList;
     Kokkos::Timer timer;
-    real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
+    real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;
     util::printTable("step", "time", "T", "Ek", "E0", "E", "Nlocal", "Nghost");
     util::printTableSep("step", "time", "T", "Ek", "E0", "E", "Nlocal", "Nghost");
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        maxParticleDisplacement += action::VelocityVerlet::preForceIntegrate(particles, config.dt);
+        maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
-        if (maxParticleDisplacement >= config.skin * 0.5_r)
+        if (maxAtomDisplacement >= config.skin * 0.5_r)
         {
             // reset displacement
-            maxParticleDisplacement = 0_r;
+            maxAtomDisplacement = 0_r;
 
-            ghostLayer.exchangeRealParticles(particles);
+            ghostLayer.exchangeRealAtoms(atoms);
 
             real_t gridDelta[3] = {
                 config.neighborCutoff, config.neighborCutoff, config.neighborCutoff};
-            LinkedCellList linkedCellList(particles.getPos(),
+            LinkedCellList linkedCellList(atoms.getPos(),
                                           0,
-                                          particles.numLocalParticles,
+                                          atoms.numLocalAtoms,
                                           gridDelta,
                                           subdomain.minCorner.data(),
                                           subdomain.maxCorner.data());
-            //            particles.permute(linkedCellList);
+            //            atoms.permute(linkedCellList);
 
-            ghostLayer.createGhostParticles(particles);
-            verletList.build(particles.getPos(),
+            ghostLayer.createGhostAtoms(atoms);
+            verletList.build(atoms.getPos(),
                              0,
-                             particles.numLocalParticles,
+                             atoms.numLocalAtoms,
                              config.neighborCutoff,
                              config.cell_ratio,
                              subdomain.minGhostCorner.data(),
@@ -133,27 +133,27 @@ void LJ(Config& config)
         }
         else
         {
-            ghostLayer.updateGhostParticles(particles);
+            ghostLayer.updateGhostAtoms(atoms);
         }
 
-        auto force = particles.getForce();
+        auto force = atoms.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        LJ.applyForces(particles, verletList);
+        LJ.applyForces(atoms, verletList);
         if ((config.temperature >= 0) && (step < 10000))
         {
-            langevinThermostat.apply(particles);
+            langevinThermostat.apply(atoms);
         }
-        ghostLayer.contributeBackGhostToReal(particles);
+        ghostLayer.contributeBackGhostToReal(atoms);
 
-        action::VelocityVerlet::postForceIntegrate(particles, config.dt);
+        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto E0 = LJ.computeEnergy(particles, verletList);
-            auto Ek = analysis::getKineticEnergy(particles);
-            auto systemMomentum = analysis::getSystemMomentum(particles);
-            auto T = (2_r / (3_r * real_c(particles.numLocalParticles))) * Ek;
+            auto E0 = LJ.computeEnergy(atoms, verletList);
+            auto Ek = analysis::getKineticEnergy(atoms);
+            auto systemMomentum = analysis::getSystemMomentum(atoms);
+            auto T = (2_r / (3_r * real_c(atoms.numLocalAtoms))) * Ek;
             //            std::cout << "system momentum: " << systemMomentum[0] << " | " <<
             //            systemMomentum[1]
             //                      << " | " << systemMomentum[2] << std::endl;
@@ -164,10 +164,10 @@ void LJ(Config& config)
                              Ek,
                              E0,
                              E0 + Ek,
-                             particles.numLocalParticles,
-                             particles.numGhostParticles);
+                             atoms.numLocalAtoms,
+                             atoms.numGhostAtoms);
 
-            io::dumpCSV("lj_" + std::to_string(step) + ".csv", particles);
+            io::dumpCSV("lj_" + std::to_string(step) + ".csv", atoms);
         }
     }
     auto time = timer.seconds();
@@ -176,7 +176,7 @@ void LJ(Config& config)
     auto cores = util::getEnvironmentVariable("OMP_NUM_THREADS");
 
     std::ofstream fout("ecab.perf", std::ofstream::app);
-    fout << cores << ", " << time << ", " << particles.numLocalParticles << ", " << config.nsteps
+    fout << cores << ", " << time << ", " << atoms.numLocalAtoms << ", " << config.nsteps
          << std::endl;
     fout.close();
 }

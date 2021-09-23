@@ -1,12 +1,12 @@
 #pragma once
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 
 namespace mrmd
 {
 namespace analysis
 {
-std::array<real_t, 3> getSystemMomentum(data::Particles& particles);
+std::array<real_t, 3> getSystemMomentum(data::Atoms& atoms);
 
 }  // namespace analysis
 }  // namespace mrmd

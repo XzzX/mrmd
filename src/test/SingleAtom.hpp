@@ -2,8 +2,8 @@
 
 #include <cassert>
 
+#include "data/Atoms.hpp"
 #include "data/Molecules.hpp"
-#include "data/Particles.hpp"
 
 namespace mrmd
 {
@@ -11,7 +11,7 @@ namespace test
 {
 namespace impl
 {
-inline void setup(data::Particles& atoms)
+inline void setup(data::Atoms& atoms)
 {
     assert(atoms.size() >= 1);
     auto pos = atoms.getPos();
@@ -41,18 +41,18 @@ inline void setup(data::Particles& atoms)
     Kokkos::parallel_for(policy, kernel);
     Kokkos::fence();
 
-    atoms.numLocalParticles = 1;
-    atoms.numGhostParticles = 0;
+    atoms.numLocalAtoms = 1;
+    atoms.numGhostAtoms = 0;
 }
 }  // namespace impl
-class SingleParticle : public ::testing::Test
+class SingleAtom : public ::testing::Test
 {
 protected:
     void SetUp() override { impl::setup(atoms); }
 
     // void TearDown() override {}
 
-    data::Particles atoms = data::Particles(1);
+    data::Atoms atoms = data::Atoms(1);
 };
 
 }  // namespace test

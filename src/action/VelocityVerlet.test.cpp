@@ -2,13 +2,13 @@
 
 #include <gtest/gtest.h>
 
-#include "test/SingleParticle.hpp"
+#include "test/SingleAtom.hpp"
 
 namespace mrmd
 {
 namespace action
 {
-using VelocityVerletTest = test::SingleParticle;
+using VelocityVerletTest = test::SingleAtom;
 
 TEST_F(VelocityVerletTest, preForceIntegration)
 {
@@ -16,9 +16,9 @@ TEST_F(VelocityVerletTest, preForceIntegration)
     VelocityVerlet::preForceIntegrate(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto pos = Cabana::slice<data::Particles::POS>(hAoSoA);
-    auto vel = Cabana::slice<data::Particles::VEL>(hAoSoA);
-    auto force = Cabana::slice<data::Particles::FORCE>(hAoSoA);
+    auto pos = Cabana::slice<data::Atoms::POS>(hAoSoA);
+    auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
+    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
 
     EXPECT_FLOAT_EQ(force(0, 0), 9_r);
     EXPECT_FLOAT_EQ(force(0, 1), 7_r);
@@ -39,9 +39,9 @@ TEST_F(VelocityVerletTest, postForceIntegration)
     VelocityVerlet::postForceIntegrate(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto pos = Cabana::slice<data::Particles::POS>(hAoSoA);
-    auto vel = Cabana::slice<data::Particles::VEL>(hAoSoA);
-    auto force = Cabana::slice<data::Particles::FORCE>(hAoSoA);
+    auto pos = Cabana::slice<data::Atoms::POS>(hAoSoA);
+    auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
+    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
 
     EXPECT_FLOAT_EQ(force(0, 0), 9_r);
     EXPECT_FLOAT_EQ(force(0, 1), 7_r);

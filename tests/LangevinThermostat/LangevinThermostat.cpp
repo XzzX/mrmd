@@ -9,7 +9,7 @@
 
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 
@@ -26,24 +26,24 @@ struct Config
     real_t gamma = 1_r / dt;
 
     real_t Lx = 10_r;
-    idx_t numParticles = 100000;
+    idx_t numAtoms = 100000;
 
     real_t initialMaxVelocity = 10_r;
 };
 
-data::Particles fillDomainWithParticlesSC(const data::Subdomain& subdomain,
-                                          const idx_t& numParticles,
+data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
+                                          const idx_t& numAtoms,
                                           const real_t& maxVelocity)
 {
     auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
 
-    data::Particles particles(numParticles);
+    data::Atoms atoms(numAtoms);
 
-    auto pos = particles.getPos();
-    auto vel = particles.getVel();
-    auto mass = particles.getMass();
+    auto pos = atoms.getPos();
+    auto vel = atoms.getVel();
+    auto mass = atoms.getMass();
 
-    auto policy = Kokkos::RangePolicy<>(0, numParticles);
+    auto policy = Kokkos::RangePolicy<>(0, numAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
         auto randGen = RNG.get_state();
@@ -58,41 +58,41 @@ data::Particles fillDomainWithParticlesSC(const data::Subdomain& subdomain,
 
         mass(idx) = 1_r;
     };
-    Kokkos::parallel_for("fillDomainWithParticlesSC", policy, kernel);
+    Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
 
-    particles.numLocalParticles = numParticles;
-    particles.numGhostParticles = 0;
-    return particles;
+    atoms.numLocalAtoms = numAtoms;
+    atoms.numGhostAtoms = 0;
+    return atoms;
 }
 
 TEST(LangevinThermostat, Integration)
 {
     Config config;
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
-    auto particles =
-        fillDomainWithParticlesSC(subdomain, config.numParticles, config.initialMaxVelocity);
+    auto atoms =
+        fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
 
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        action::VelocityVerlet::preForceIntegrate(particles, config.dt);
+        action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
-        auto force = particles.getForce();
+        auto force = atoms.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        langevinThermostat.apply(particles);
+        langevinThermostat.apply(atoms);
 
-        action::VelocityVerlet::postForceIntegrate(particles, config.dt);
+        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto Ek = analysis::getKineticEnergy(particles);
-            auto T = (2_r / (3_r * real_c(particles.numLocalParticles))) * Ek;
+            auto Ek = analysis::getKineticEnergy(atoms);
+            auto T = (2_r / (3_r * real_c(atoms.numLocalAtoms))) * Ek;
             std::cout << "temperature: " << T << std::endl;
         }
     }
-    auto Ek = analysis::getKineticEnergy(particles);
-    auto T = (2_r / (3_r * real_c(particles.numLocalParticles))) * Ek;
+    auto Ek = analysis::getKineticEnergy(atoms);
+    auto T = (2_r / (3_r * real_c(atoms.numLocalAtoms))) * Ek;
     EXPECT_NEAR(T, config.temperature, 0.01_r);
 }
 

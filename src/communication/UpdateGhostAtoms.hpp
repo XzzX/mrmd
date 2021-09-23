@@ -3,7 +3,7 @@
 #include <Kokkos_Core.hpp>
 #include <cassert>
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 
 namespace mrmd
@@ -12,21 +12,21 @@ namespace communication
 {
 namespace impl
 {
-class UpdateGhostParticles
+class UpdateGhostAtoms
 {
 private:
-    data::Particles::pos_t pos_;
+    data::Atoms::pos_t pos_;
     data::Subdomain subdomain_;
-    IndexView correspondingRealParticle_;
+    IndexView correspondingRealAtom_;
 
 public:
     KOKKOS_INLINE_FUNCTION
     void operator()(const idx_t idx) const
     {
-        auto realIdx = correspondingRealParticle_(idx);
+        auto realIdx = correspondingRealAtom_(idx);
 
         assert(realIdx != idx);
-        assert(correspondingRealParticle_(realIdx) == -1);
+        assert(correspondingRealAtom_(realIdx) == -1);
 
         real_t dx[3];
         dx[0] = pos_(idx, 0) - pos_(realIdx, 0);
@@ -49,18 +49,18 @@ public:
         if (dx[2] < -delta[2]) pos_(idx, 2) -= subdomain_.diameter[2];
     }
 
-    void updateOnlyPos(data::Particles& particles, const IndexView& correspondingRealParticle)
+    void updateOnlyPos(data::Atoms& atoms, const IndexView& correspondingRealAtom)
     {
-        pos_ = particles.getPos();
-        correspondingRealParticle_ = correspondingRealParticle;
+        pos_ = atoms.getPos();
+        correspondingRealAtom_ = correspondingRealAtom;
 
-        auto policy = Kokkos::RangePolicy<>(
-            particles.numLocalParticles, particles.numLocalParticles + particles.numGhostParticles);
-        Kokkos::parallel_for(policy, *this, "UpdateGhostParticles::updateOnlyPos");
+        auto policy = Kokkos::RangePolicy<>(atoms.numLocalAtoms,
+                                            atoms.numLocalAtoms + atoms.numGhostAtoms);
+        Kokkos::parallel_for(policy, *this, "UpdateGhostAtoms::updateOnlyPos");
         Kokkos::fence();
     }
 
-    UpdateGhostParticles(const data::Subdomain& subdomain) : subdomain_(subdomain) {}
+    UpdateGhostAtoms(const data::Subdomain& subdomain) : subdomain_(subdomain) {}
 };
 
 }  // namespace impl

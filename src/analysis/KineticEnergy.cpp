@@ -4,12 +4,12 @@ namespace mrmd
 {
 namespace analysis
 {
-real_t getKineticEnergy(data::Particles& particles)
+real_t getKineticEnergy(data::Atoms& atoms)
 {
-    auto vel = particles.getVel();
-    auto mass = particles.getMass();
+    auto vel = atoms.getVel();
+    auto mass = atoms.getMass();
     real_t velSqr = 0_r;
-    auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, real_t& sum)
     {
         sum += mass(idx) *

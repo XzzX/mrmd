@@ -23,7 +23,7 @@
 #include "analysis/SystemMomentum.hpp"
 #include "communication/MultiResGhostLayer.hpp"
 #include "data/Molecules.hpp"
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
@@ -79,7 +79,7 @@ struct Config
 };
 
 void initMolecules(data::Molecules& molecules,
-                   data::Particles& atoms,
+                   data::Atoms& atoms,
                    data::Subdomain& subdomain,
                    idx_t numMolecules)
 {
@@ -167,8 +167,8 @@ void initMolecules(data::Molecules& molecules,
         RNG.free_state(randGen);
     };
     Kokkos::parallel_for("initAtoms", atomPolicy, atomKernel);
-    atoms.numLocalParticles = numMolecules * 3;
-    atoms.numGhostParticles = 0;
+    atoms.numLocalAtoms = numMolecules * 3;
+    atoms.numGhostAtoms = 0;
 }
 
 void SPC(Config& config)
@@ -176,10 +176,10 @@ void SPC(Config& config)
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {5_r, 5_r, 5_r}, config.neighborCutoff);
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
 
-    data::Particles atoms(0);
+    data::Atoms atoms(0);
     data::Molecules molecules(0);
     initMolecules(molecules, atoms, subdomain, idx_c(volume * config.rho));
-    io::dumpCSV("particles_initial.csv", atoms);
+    io::dumpCSV("atoms_initial.csv", atoms);
 
     std::cout << "molecules added: " << molecules.numLocalMolecules << std::endl;
 
@@ -191,7 +191,7 @@ void SPC(Config& config)
     idx_t verletlistRebuildCounter = 0;
 
     Kokkos::Timer timer;
-    real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
+    real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     auto weightingFunction = weighting_function::Slab({0_r, 0_r, 0_r},
                                                       config.atomisticRegionDiameter,
                                                       config.hybridRegionDiameter,
@@ -212,21 +212,21 @@ void SPC(Config& config)
     util::printTableSep("step", "time", "T", "Ek", "E0", "Ebond", "E", "mu", "Nlocal", "Nghost");
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        assert(atoms.numLocalParticles == molecules.numLocalMolecules * 3);
-        assert(atoms.numGhostParticles == molecules.numGhostMolecules * 3);
+        assert(atoms.numLocalAtoms == molecules.numLocalMolecules * 3);
+        assert(atoms.numGhostAtoms == molecules.numGhostMolecules * 3);
 
         spc.enforceConstraints(molecules, atoms, config.dt);
-        maxParticleDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
+        maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
         // update molecule positions
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
-        if (maxParticleDisplacement >= config.skin * 0.5_r)
+        if (maxAtomDisplacement >= config.skin * 0.5_r)
         {
             // reset displacement
-            maxParticleDisplacement = 0_r;
+            maxAtomDisplacement = 0_r;
 
-            ghostLayer.exchangeRealParticles(molecules, atoms);
+            ghostLayer.exchangeRealAtoms(molecules, atoms);
 
             //            real_t gridDelta[3] = {
             //                config.neighborCutoff, config.neighborCutoff,
@@ -234,13 +234,13 @@ void SPC(Config& config)
             //};
             //            LinkedCellList linkedCellList(atoms.getPos(),
             //                                          0,
-            //                                          atoms.numLocalParticles,
+            //                                          atoms.numLocalAtoms,
             //                                          gridDelta,
             //                                          subdomain.minCorner.data(),
             //                                          subdomain.maxCorner.data());
-            //            particles.permute(linkedCellList);
+            //            atoms.permute(linkedCellList);
 
-            ghostLayer.createGhostParticles(molecules, atoms);
+            ghostLayer.createGhostAtoms(molecules, atoms);
             moleculesVerletList.build(molecules.getPos(),
                                       0,
                                       molecules.numLocalMolecules,
@@ -253,7 +253,7 @@ void SPC(Config& config)
         }
         else
         {
-            ghostLayer.updateGhostParticles(atoms);
+            ghostLayer.updateGhostAtoms(atoms);
         }
 
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
@@ -283,9 +283,9 @@ void SPC(Config& config)
         if (config.bOutput && (step % config.outputInterval == 0))
         {
             auto Ebond = spc.calcBondEnergy(molecules, atoms);
-            auto Ek = analysis::getKineticEnergy(atoms) / real_c(atoms.numLocalParticles);
+            auto Ek = analysis::getKineticEnergy(atoms) / real_c(atoms.numLocalAtoms);
             auto T = Ek;
-            E0 /= real_c(atoms.numLocalParticles);
+            E0 /= real_c(atoms.numLocalAtoms);
 
             // calc chemical potential
             auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
@@ -305,10 +305,10 @@ void SPC(Config& config)
                              Ebond,
                              E0 + Ebond + Ek,
                              mu,
-                             atoms.numLocalParticles,
-                             atoms.numGhostParticles);
+                             atoms.numLocalAtoms,
+                             atoms.numGhostAtoms);
 
-            io::dumpCSV("particles_" + std::to_string(step) + ".csv", atoms, false);
+            io::dumpCSV("atoms_" + std::to_string(step) + ".csv", atoms, false);
             //            io::dumpGRO(fmt::format("spc_{:0>5}.gro", step),
             //                        atoms,
             //                        subdomain,
@@ -343,7 +343,7 @@ void SPC(Config& config)
     auto cores = util::getEnvironmentVariable("OMP_NUM_THREADS");
 
     std::ofstream fout("ecab.perf", std::ofstream::app);
-    fout << cores << ", " << time << ", " << atoms.numLocalParticles << ", " << config.nsteps
+    fout << cores << ", " << time << ", " << atoms.numLocalAtoms << ", " << config.nsteps
          << std::endl;
     fout.close();
 }

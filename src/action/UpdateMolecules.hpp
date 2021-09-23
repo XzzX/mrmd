@@ -1,7 +1,7 @@
 #pragma once
 
 #include "data/Molecules.hpp"
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "datatypes.hpp"
 
 namespace mrmd
@@ -13,7 +13,7 @@ class UpdateMolecules
 public:
     template <typename WEIGHTING_FUNCTION>
     static void update(const data::Molecules& molecules,
-                       const data::Particles& atoms,
+                       const data::Atoms& atoms,
                        const WEIGHTING_FUNCTION& weight)
     {
         auto moleculesPos = molecules.getPos();

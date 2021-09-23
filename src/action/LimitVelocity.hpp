@@ -1,12 +1,12 @@
 #pragma once
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "datatypes.hpp"
 
 namespace mrmd
 {
 namespace action
 {
-void limitVelocityPerComponent(data::Particles& atoms, const real_t& maxVelocityPerComponent);
+void limitVelocityPerComponent(data::Atoms& atoms, const real_t& maxVelocityPerComponent);
 }  // namespace action
 }  // namespace mrmd

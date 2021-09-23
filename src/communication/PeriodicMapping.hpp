@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 
 namespace mrmd
@@ -12,15 +12,15 @@ namespace impl
 class PeriodicMapping
 {
 private:
-    data::Particles::pos_t pos_;
+    data::Atoms::pos_t pos_;
     const data::Subdomain subdomain_;
 
 public:
     /**
      *
-     * @pre Particle position is at most one periodic copy away
+     * @pre Atom position is at most one periodic copy away
      * from the subdomain.
-     * @post Particle position lies within half-open interval
+     * @post Atom position lies within half-open interval
      * [min, max) for all coordinate dimensions.
      */
     KOKKOS_INLINE_FUNCTION
@@ -50,10 +50,10 @@ public:
         }
     }
 
-    void mapIntoDomain(data::Particles& particles)
+    void mapIntoDomain(data::Atoms& atoms)
     {
-        pos_ = particles.getPos();
-        auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
+        pos_ = atoms.getPos();
+        auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
         Kokkos::parallel_for(policy, *this, "PeriodicMapping::mapIntoDomain");
         Kokkos::fence();
     }

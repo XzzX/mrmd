@@ -16,8 +16,8 @@
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/SystemMomentum.hpp"
 #include "communication/MultiResGhostLayer.hpp"
+#include "data/Atoms.hpp"
 #include "data/Molecules.hpp"
-#include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
@@ -82,22 +82,22 @@ void LJ(Config& config)
         config.neighborCutoff);
 
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
-    const idx_t numParticles = idx_c(config.rho * volume);
+    const idx_t numAtoms = idx_c(config.rho * volume);
     util::Random RNG;
-    data::Particles atoms(numParticles * 2);
-    data::Molecules molecules(numParticles * 2);
+    data::Atoms atoms(numAtoms * 2);
+    data::Molecules molecules(numAtoms * 2);
     io::restoreLAMMPS("LJ_spartian_3.lammpstrj", atoms, molecules);
-    std::cout << "particles added: " << atoms.numLocalParticles << std::endl;
+    std::cout << "atoms added: " << atoms.numLocalAtoms << std::endl;
 
-    auto rho = real_c(atoms.numLocalParticles) / volume;
-    std::cout << "global particle density: " << rho << std::endl;
+    auto rho = real_c(atoms.numLocalAtoms) / volume;
+    std::cout << "global atom density: " << rho << std::endl;
 
     // data allocations
     VerletList moleculesVerletList;
     idx_t verletlistRebuildCounter = 0;
 
     Kokkos::Timer timer;
-    real_t maxParticleDisplacement = std::numeric_limits<real_t>::max();
+    real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     auto weightingFunction = weighting_function::Slab({0_r, 0_r, 0_r},
                                                       config.atomisticRegionDiameter,
                                                       config.hybridRegionDiameter,
@@ -117,31 +117,31 @@ void LJ(Config& config)
     util::printTableSep("step", "time", "T", "Ek", "E0", "E", "mu", "Nlocal", "Nghost");
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        assert(atoms.numLocalParticles == molecules.numLocalMolecules);
-        assert(atoms.numGhostParticles == molecules.numGhostMolecules);
-        maxParticleDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
+        assert(atoms.numLocalAtoms == molecules.numLocalMolecules);
+        assert(atoms.numGhostAtoms == molecules.numGhostMolecules);
+        maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
         // update molecule positions
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
-        if (maxParticleDisplacement >= config.skin * 0.5_r)
+        if (maxAtomDisplacement >= config.skin * 0.5_r)
         {
             // reset displacement
-            maxParticleDisplacement = 0_r;
+            maxAtomDisplacement = 0_r;
 
-            ghostLayer.exchangeRealParticles(molecules, atoms);
+            ghostLayer.exchangeRealAtoms(molecules, atoms);
 
             //            real_t gridDelta[3] = {
             //                config.neighborCutoff, config.neighborCutoff, config.neighborCutoff};
             //            LinkedCellList linkedCellList(atoms.getPos(),
             //                                          0,
-            //                                          atoms.numLocalParticles,
+            //                                          atoms.numLocalAtoms,
             //                                          gridDelta,
             //                                          subdomain.minCorner.data(),
             //                                          subdomain.maxCorner.data());
-            //            particles.permute(linkedCellList);
+            //            atoms.permute(linkedCellList);
 
-            ghostLayer.createGhostParticles(molecules, atoms);
+            ghostLayer.createGhostAtoms(molecules, atoms);
             moleculesVerletList.build(molecules.getPos(),
                                       0,
                                       molecules.numLocalMolecules,
@@ -154,7 +154,7 @@ void LJ(Config& config)
         }
         else
         {
-            ghostLayer.updateGhostParticles(atoms);
+            ghostLayer.updateGhostAtoms(atoms);
         }
 
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
@@ -189,8 +189,8 @@ void LJ(Config& config)
         {
             auto Ek = analysis::getKineticEnergy(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto T = (2_r / (3_r * real_c(atoms.numLocalParticles))) * Ek;
-            E0 /= real_c(atoms.numLocalParticles);
+            auto T = (2_r / (3_r * real_c(atoms.numLocalAtoms))) * Ek;
+            E0 /= real_c(atoms.numLocalAtoms);
 
             // calc chemical potential
             auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
@@ -209,10 +209,10 @@ void LJ(Config& config)
                              E0,
                              E0 + Ek,
                              mu,
-                             atoms.numLocalParticles,
-                             atoms.numGhostParticles);
+                             atoms.numLocalAtoms,
+                             atoms.numGhostAtoms);
 
-            io::dumpCSV("particles_" + std::to_string(step) + ".csv", atoms);
+            io::dumpCSV("atoms_" + std::to_string(step) + ".csv", atoms);
 
             fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
             fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
@@ -227,7 +227,7 @@ void LJ(Config& config)
     auto cores = util::getEnvironmentVariable("OMP_NUM_THREADS");
 
     std::ofstream fout("ecab.perf", std::ofstream::app);
-    fout << cores << ", " << time << ", " << atoms.numLocalParticles << ", " << config.nsteps
+    fout << cores << ", " << time << ", " << atoms.numLocalAtoms << ", " << config.nsteps
          << std::endl;
     fout.close();
 }

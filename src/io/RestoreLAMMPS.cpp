@@ -7,7 +7,7 @@ namespace mrmd
 {
 namespace io
 {
-void restoreLAMMPS(const std::string& filename, data::Particles& atoms, data::Molecules& molecules)
+void restoreLAMMPS(const std::string& filename, data::Atoms& atoms, data::Molecules& molecules)
 {
     std::string tmp;
     std::ifstream fin(filename);
@@ -18,17 +18,17 @@ void restoreLAMMPS(const std::string& filename, data::Particles& atoms, data::Mo
     }
     fin >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp >> tmp;
 
-    idx_t numParticles;
-    fin >> numParticles;
-    atoms.resize(2 * numParticles);
+    idx_t numAtoms;
+    fin >> numAtoms;
+    atoms.resize(2 * numAtoms);
     auto d_Atoms = atoms.getAoSoA();
     auto h_Atoms = Cabana::create_mirror_view(Kokkos::HostSpace(), d_Atoms);
-    auto h_pos = Cabana::slice<data::Particles::POS>(h_Atoms);
-    auto h_vel = Cabana::slice<data::Particles::VEL>(h_Atoms);
-    auto h_mass = Cabana::slice<data::Particles::MASS>(h_Atoms);
-    auto h_relativeMass = Cabana::slice<data::Particles::RELATIVE_MASS>(h_Atoms);
+    auto h_pos = Cabana::slice<data::Atoms::POS>(h_Atoms);
+    auto h_vel = Cabana::slice<data::Atoms::VEL>(h_Atoms);
+    auto h_mass = Cabana::slice<data::Atoms::MASS>(h_Atoms);
+    auto h_relativeMass = Cabana::slice<data::Atoms::RELATIVE_MASS>(h_Atoms);
 
-    molecules.resize(2 * numParticles);
+    molecules.resize(2 * numAtoms);
     auto d_Molecules = molecules.getAoSoA();
     auto h_Molecules = Cabana::create_mirror_view(Kokkos::HostSpace(), d_Molecules);
     auto h_AtomsOffset = Cabana::slice<data::Molecules::ATOMS_OFFSET>(h_Molecules);
@@ -43,7 +43,7 @@ void restoreLAMMPS(const std::string& filename, data::Particles& atoms, data::Mo
     idx_t idx = 0;
     while (!fin.eof())
     {
-        idx_t particleIndexInFile;
+        idx_t atomIndexInFile;
 
         double posX;
         double posY;
@@ -53,10 +53,10 @@ void restoreLAMMPS(const std::string& filename, data::Particles& atoms, data::Mo
         double velY;
         double velZ;
 
-        fin >> particleIndexInFile;
+        fin >> atomIndexInFile;
         if (fin.eof()) break;
         fin >> tmp >> tmp >> posX >> posY >> posZ >> velX >> velY >> velZ;
-        assert(particleIndexInFile == idx + 1);
+        assert(atomIndexInFile == idx + 1);
         if (std::isnan(posX) || std::isnan(posY) || std::isnan(posZ))
         {
             std::cout << "invalid position: " << posX << " " << posY << " " << posZ << std::endl;
@@ -84,8 +84,8 @@ void restoreLAMMPS(const std::string& filename, data::Particles& atoms, data::Mo
 
     Cabana::deep_copy(d_Atoms, h_Atoms);
     Cabana::deep_copy(d_Molecules, h_Molecules);
-    assert(idx == numParticles);
-    atoms.numLocalParticles = idx;
+    assert(idx == numAtoms);
+    atoms.numLocalAtoms = idx;
     molecules.numLocalMolecules = idx;
 
     auto force = atoms.getForce();

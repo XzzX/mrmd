@@ -10,14 +10,14 @@ namespace action
 {
 using ShakeTest = test::DiamondFixture;
 
-void integratePosition(data::Particles& atoms, real_t dt)
+void integratePosition(data::Atoms& atoms, real_t dt)
 {
     auto pos = atoms.getPos();
     auto vel = atoms.getVel();
     auto force = atoms.getForce();
     auto mass = atoms.getMass();
 
-    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalParticles);
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(idx_t idx)
     {
         auto dtv = dt;
@@ -31,11 +31,11 @@ void integratePosition(data::Particles& atoms, real_t dt)
     Kokkos::fence();
 }
 
-void enforceSingleConstraint(data::Particles& atoms, real_t dt, real_t eqDistance)
+void enforceSingleConstraint(data::Atoms& atoms, real_t dt, real_t eqDistance)
 {
     impl::Shake shake(atoms, dt);
     Kokkos::parallel_for(
-        Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(0, atoms.numLocalParticles), shake);
+        Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(0, atoms.numLocalAtoms), shake);
     auto policy = Kokkos::RangePolicy<>(0, 1);
     auto kernel = KOKKOS_LAMBDA(idx_t idx) { shake.enforcePositionalConstraint(0, 1, eqDistance); };
     Kokkos::parallel_for(policy, kernel);
@@ -50,8 +50,8 @@ TEST_F(ShakeTest, Attraction)
     integratePosition(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto newPos = Cabana::slice<data::Particles::POS>(hAoSoA);
-    auto force = Cabana::slice<data::Particles::FORCE>(hAoSoA);
+    auto newPos = Cabana::slice<data::Atoms::POS>(hAoSoA);
+    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
 
     EXPECT_FLOAT_EQ(force(0, 0), -force(1, 0));
     EXPECT_FLOAT_EQ(force(0, 1), -force(1, 1));
@@ -78,8 +78,8 @@ TEST_F(ShakeTest, Repulsion)
     integratePosition(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto newPos = Cabana::slice<data::Particles::POS>(hAoSoA);
-    auto force = Cabana::slice<data::Particles::FORCE>(hAoSoA);
+    auto newPos = Cabana::slice<data::Atoms::POS>(hAoSoA);
+    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
 
     EXPECT_FLOAT_EQ(force(0, 0), -force(1, 0));
     EXPECT_FLOAT_EQ(force(0, 1), -force(1, 1));
@@ -98,11 +98,11 @@ TEST_F(ShakeTest, Repulsion)
     EXPECT_FLOAT_EQ(calcDist(0, 1), 2_r);
 }
 
-void enforceConstraints(data::Particles& atoms, real_t dt, const data::BondView& bonds)
+void enforceConstraints(data::Atoms& atoms, real_t dt, const data::BondView& bonds)
 {
     impl::Shake shake(atoms, dt);
     Kokkos::parallel_for(
-        Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(0, atoms.numLocalParticles), shake);
+        Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(0, atoms.numLocalAtoms), shake);
     Kokkos::fence();
     auto policy = Kokkos::RangePolicy<>(0, bonds.extent(0));
     auto kernel = KOKKOS_LAMBDA(idx_t bondIdx)
@@ -145,7 +145,7 @@ TEST_F(ShakeTest, Shrink)
     integratePosition(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto newPos = Cabana::slice<data::Particles::POS>(hAoSoA);
+    auto newPos = Cabana::slice<data::Atoms::POS>(hAoSoA);
     auto calcDist = [=](idx_t idx, idx_t jdx)
     {
         auto dx = newPos(idx, 0) - newPos(jdx, 0);
@@ -189,7 +189,7 @@ TEST_F(ShakeTest, Grow)
     integratePosition(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto newPos = Cabana::slice<data::Particles::POS>(hAoSoA);
+    auto newPos = Cabana::slice<data::Atoms::POS>(hAoSoA);
     auto calcDist = [=](idx_t idx, idx_t jdx)
     {
         auto dx = newPos(idx, 0) - newPos(jdx, 0);
@@ -216,7 +216,7 @@ TEST_F(ShakeTest, Molecules)
     mc.enforcePositionalConstraints(molecules, atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto force = Cabana::slice<data::Particles::FORCE>(hAoSoA);
+    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
 
     EXPECT_FLOAT_EQ(force(0, 0), -force(1, 0));
     EXPECT_FLOAT_EQ(force(0, 1), -force(1, 1));

@@ -6,15 +6,15 @@ namespace mrmd
 {
 namespace io
 {
-data::Particles restoreParticles(const std::string& filename)
+data::Atoms restoreAtoms(const std::string& filename)
 {
-    constexpr idx_t numInitiallyAllocatedParticles = 100000;
-    data::Particles p(numInitiallyAllocatedParticles);
+    constexpr idx_t numInitiallyAllocatedAtoms = 100000;
+    data::Atoms p(numInitiallyAllocatedAtoms);
     auto d_AoSoA = p.getAoSoA();
     auto h_AoSoA = Cabana::create_mirror_view(Kokkos::HostSpace(), d_AoSoA);
-    auto h_pos = Cabana::slice<data::Particles::POS>(h_AoSoA);
-    auto h_mass = Cabana::slice<data::Particles::MASS>(h_AoSoA);
-    auto h_type = Cabana::slice<data::Particles::TYPE>(h_AoSoA);
+    auto h_pos = Cabana::slice<data::Atoms::POS>(h_AoSoA);
+    auto h_mass = Cabana::slice<data::Atoms::MASS>(h_AoSoA);
+    auto h_type = Cabana::slice<data::Atoms::TYPE>(h_AoSoA);
 
     std::ifstream fin(filename);
     if (!fin.is_open())
@@ -47,8 +47,8 @@ data::Particles restoreParticles(const std::string& filename)
     fin.close();
 
     Cabana::deep_copy(d_AoSoA, h_AoSoA);
-    p.numLocalParticles = idx;
-    p.resize(p.numLocalParticles);
+    p.numLocalAtoms = idx;
+    p.resize(p.numLocalAtoms);
 
     auto vel = p.getVel();
     auto force = p.getForce();

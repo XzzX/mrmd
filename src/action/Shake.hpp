@@ -1,8 +1,8 @@
 #pragma once
 
+#include "data/Atoms.hpp"
 #include "data/Bond.hpp"
 #include "data/Molecules.hpp"
-#include "data/Particles.hpp"
 #include "datatypes.hpp"
 #include "util/Kokkos_grow.hpp"
 #include "util/math.hpp"
@@ -20,10 +20,10 @@ namespace impl
 class Shake
 {
 private:
-    data::Particles::pos_t pos_;
-    data::Particles::vel_t vel_;
-    data::Particles::force_t::atomic_access_slice force_;
-    data::Particles::mass_t mass_;
+    data::Atoms::pos_t pos_;
+    data::Atoms::vel_t vel_;
+    data::Atoms::force_t::atomic_access_slice force_;
+    data::Atoms::mass_t mass_;
     VectorView updatedPos_;
 
     real_t dtv_;
@@ -48,7 +48,7 @@ public:
         dist[0] = pos_(idx, 0) - pos_(jdx, 0);
         dist[1] = pos_(idx, 1) - pos_(jdx, 1);
         dist[2] = pos_(idx, 2) - pos_(jdx, 2);
-        /// squared distances between particles
+        /// squared distances between atoms
         auto distSq = util::dot3(dist, dist);
 
         auto invMassI = 1_r / mass_(idx);
@@ -81,7 +81,7 @@ public:
         dist[0] = pos_(idx, 0) - pos_(jdx, 0);
         dist[1] = pos_(idx, 1) - pos_(jdx, 1);
         dist[2] = pos_(idx, 2) - pos_(jdx, 2);
-        /// squared distances between particles
+        /// squared distances between atoms
         real_t distSq = util::dot3(dist, dist);
 
         /// distance between atoms after unconstrained update
@@ -89,7 +89,7 @@ public:
         updatedDist[0] = updatedPos_(idx, 0) - updatedPos_(jdx, 0);
         updatedDist[1] = updatedPos_(idx, 1) - updatedPos_(jdx, 1);
         updatedDist[2] = updatedPos_(idx, 2) - updatedPos_(jdx, 2);
-        /// squared distances between updated particles
+        /// squared distances between updated atoms
         real_t updatedDistSq = util::dot3(updatedDist, updatedDist);
 
         auto invMassI = 1_r / mass_(idx);
@@ -128,14 +128,14 @@ public:
         updatedPos_(idx, 2) = pos_(idx, 2) + dtv_ * vel_(idx, 2) + dtfm * force_(idx, 2);
     }
 
-    Shake(data::Particles& particles, const real_t& dt)
+    Shake(data::Atoms& atoms, const real_t& dt)
     {
-        pos_ = particles.getPos();
-        vel_ = particles.getVel();
-        force_ = particles.getForce();
-        mass_ = particles.getMass();
+        pos_ = atoms.getPos();
+        vel_ = atoms.getVel();
+        force_ = atoms.getForce();
+        mass_ = atoms.getMass();
 
-        util::grow(updatedPos_, idx_c(particles.numLocalParticles + particles.numGhostParticles));
+        util::grow(updatedPos_, idx_c(atoms.numLocalAtoms + atoms.numGhostAtoms));
 
         dtv_ = dt;
         dtf_ = 0.5_r * dt * dt;
@@ -153,7 +153,7 @@ private:
 
 public:
     void enforcePositionalConstraints(data::Molecules& molecules,
-                                      data::Particles& atoms,
+                                      data::Atoms& atoms,
                                       const real_t dt)
     {
         impl::Shake shake(atoms, dt);
@@ -161,7 +161,7 @@ public:
         for (int iteration = 0; iteration < numConstraintIterations_; ++iteration)
         {
             auto policy = Kokkos::RangePolicy<impl::Shake::UnconstraintUpdate>(
-                0, atoms.numLocalParticles + atoms.numGhostParticles);
+                0, atoms.numLocalAtoms + atoms.numGhostAtoms);
             Kokkos::parallel_for("Shake::UnconstraintUpdate", policy, shake);
             Kokkos::fence();
 
@@ -191,9 +191,7 @@ public:
         }
     }
 
-    void enforceVelocityConstraints(data::Molecules& molecules,
-                                    data::Particles& atoms,
-                                    const real_t dt)
+    void enforceVelocityConstraints(data::Molecules& molecules, data::Atoms& atoms, const real_t dt)
     {
         impl::Shake shake(atoms, dt);
 

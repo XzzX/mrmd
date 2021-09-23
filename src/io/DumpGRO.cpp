@@ -9,18 +9,18 @@ namespace io
 /// format specification
 /// https://manual.gromacs.org/current/reference-manual/file-formats.html?highlight=gro#gro
 void dumpGRO(const std::string& filename,
-             data::Particles& particles,
+             data::Atoms& atoms,
              const data::Subdomain& subdomain,
              const real_t& timestamp,
              const std::string& title,
              bool dumpGhosts,
              bool dumpVelocities)
 {
-    // very ugly, will also copy the whole particle data which is unnecessary, custom slicing
+    // very ugly, will also copy the whole atom data which is unnecessary, custom slicing
     // required
-    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), particles.getAoSoA());
-    auto pos = Cabana::slice<data::Particles::POS>(hAoSoA);
-    auto vel = Cabana::slice<data::Particles::VEL>(hAoSoA);
+    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
+    auto pos = Cabana::slice<data::Atoms::POS>(hAoSoA);
+    auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
 
     std::ofstream fout(filename);
     if (!fout.is_open())
@@ -29,11 +29,10 @@ void dumpGRO(const std::string& filename,
         exit(EXIT_FAILURE);
     }
 
-    auto lastParticleIdx =
-        particles.numLocalParticles + (dumpGhosts ? particles.numGhostParticles : 0);
+    auto lastAtomIdx = atoms.numLocalAtoms + (dumpGhosts ? atoms.numGhostAtoms : 0);
     fout << title << ", t=" << timestamp << std::endl;
-    fout << lastParticleIdx << std::endl;
-    for (idx_t idx = 0; idx < lastParticleIdx; ++idx)
+    fout << lastAtomIdx << std::endl;
+    for (idx_t idx = 0; idx < lastAtomIdx; ++idx)
     {
         char buf[1024];
         if (!dumpVelocities)

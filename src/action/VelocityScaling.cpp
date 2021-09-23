@@ -8,15 +8,15 @@ namespace mrmd
 {
 namespace action
 {
-void VelocityScaling::apply(data::Particles& particles, const real_t& degreesOfFreedomPerAtom) const
+void VelocityScaling::apply(data::Atoms& atoms, const real_t& degreesOfFreedomPerAtom) const
 {
-    auto Ekin = analysis::getKineticEnergy(particles);
-    auto T = Ekin * 2_r / (degreesOfFreedomPerAtom * real_c(particles.numLocalParticles));
+    auto Ekin = analysis::getKineticEnergy(atoms);
+    auto T = Ekin * 2_r / (degreesOfFreedomPerAtom * real_c(atoms.numLocalAtoms));
     auto beta = std::sqrt(1_r + gamma_ * (targetTemperature_ / T - 1_r));
 
-    auto vel = particles.getVel();
+    auto vel = atoms.getVel();
 
-    auto policy = Kokkos::RangePolicy<>(0, particles.numLocalParticles);
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
         vel(idx, 0) *= beta;

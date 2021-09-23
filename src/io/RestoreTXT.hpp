@@ -1,11 +1,11 @@
 #pragma once
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 
 namespace mrmd
 {
 namespace io
 {
-data::Particles restoreParticles(const std::string& filename);
+data::Atoms restoreAtoms(const std::string& filename);
 }  // namespace io
 }  // namespace mrmd

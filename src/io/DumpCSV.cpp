@@ -2,20 +2,20 @@
 
 #include <fstream>
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 
 namespace mrmd
 {
 namespace io
 {
-void dumpCSV(const std::string& filename, data::Particles& particles, bool dumpGhosts)
+void dumpCSV(const std::string& filename, data::Atoms& atoms, bool dumpGhosts)
 {
-    // very ugly, will also copy the whole particle data which is unnecessary, custom slicing
+    // very ugly, will also copy the whole atom data which is unnecessary, custom slicing
     // required
-    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), particles.getAoSoA());
-    auto pos = Cabana::slice<data::Particles::POS>(hAoSoA);
-    auto vel = Cabana::slice<data::Particles::VEL>(hAoSoA);
-    auto type = Cabana::slice<data::Particles::TYPE>(hAoSoA);
+    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
+    auto pos = Cabana::slice<data::Atoms::POS>(hAoSoA);
+    auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
+    auto type = Cabana::slice<data::Atoms::TYPE>(hAoSoA);
 
     std::ofstream fout(filename);
     if (!fout.is_open())
@@ -24,9 +24,9 @@ void dumpCSV(const std::string& filename, data::Particles& particles, bool dumpG
         exit(EXIT_FAILURE);
     }
     fout << "idx, mol, type, pos_x, pos_y, pos_z, vel_x, vel_y, vel_z" << std::endl;
-    auto lastParticleIdx =
-        particles.numLocalParticles + (dumpGhosts ? particles.numGhostParticles : 0);
-    for (idx_t idx = 0; idx < lastParticleIdx; ++idx)
+    auto lastAtomIdx =
+        atoms.numLocalAtoms + (dumpGhosts ? atoms.numGhostAtoms : 0);
+    for (idx_t idx = 0; idx < lastAtomIdx; ++idx)
     {
         fout << idx << ", " << idx / 3 << ", " << type(idx) << ", " << pos(idx, 0) << ", "
              << pos(idx, 1) << ", " << pos(idx, 2) << ", " << vel(idx, 0) << ", " << vel(idx, 1)

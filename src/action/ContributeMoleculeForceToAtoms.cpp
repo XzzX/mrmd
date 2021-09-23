@@ -5,7 +5,7 @@ namespace mrmd
 namespace action
 {
 void ContributeMoleculeForceToAtoms::update(const data::Molecules& molecules,
-                                            const data::Particles& atoms)
+                                            const data::Atoms& atoms)
 {
     auto moleculesForce = molecules.getForce();
     auto moleculesAtomsOffset = molecules.getAtomsOffset();

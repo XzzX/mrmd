@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "util/Kokkos_grow.hpp"
@@ -14,15 +14,15 @@ namespace impl
 class GhostExchange
 {
 private:
-    data::Particles particles_ = data::Particles(0);
+    data::Atoms atoms_ = data::Atoms(0);
     const data::Subdomain subdomain_;
 
-    data::Particles::pos_t pos_;
+    data::Atoms::pos_t pos_;
 
     Kokkos::View<idx_t> newGhostCounter_;
     Kokkos::View<idx_t>::host_mirror_type hNewGhostCounter_;
-    /// Stores the corresponding real particle index for every ghost particle.
-    IndexView correspondingRealParticle_;
+    /// Stores the corresponding real atom index for every ghost atom.
+    IndexView correspondingRealAtom_;
 
 public:
     struct DIRECTION_X_HIGH
@@ -48,32 +48,32 @@ public:
     idx_t findRealIdx(const idx_t src) const
     {
         auto realIdx = src;
-        while (correspondingRealParticle_(realIdx) != -1)
+        while (correspondingRealAtom_(realIdx) != -1)
         {
-            realIdx = correspondingRealParticle_(realIdx);
+            realIdx = correspondingRealAtom_(realIdx);
             assert(0 <= realIdx);
-            assert(realIdx < particles_.numLocalParticles + particles_.numGhostParticles);
+            assert(realIdx < atoms_.numLocalAtoms + atoms_.numGhostAtoms);
         }
         return realIdx;
     }
 
     /**
-     * @return -1, if no ghost particle was created, idx of new ghost particle otherwise
+     * @return -1, if no ghost atom was created, idx of new ghost atom otherwise
      */
     KOKKOS_INLINE_FUNCTION
     idx_t copySelfLow(const idx_t idx, const idx_t dim) const
     {
         if (pos_(idx, dim) < subdomain_.minInnerCorner[dim])
         {
-            auto newGhostIdx = particles_.numLocalParticles + particles_.numGhostParticles +
+            auto newGhostIdx = atoms_.numLocalAtoms + atoms_.numGhostAtoms +
                                Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
-            if (newGhostIdx < particles_.size())
+            if (newGhostIdx < atoms_.size())
             {
-                particles_.copy(newGhostIdx, idx);
+                atoms_.copy(newGhostIdx, idx);
                 pos_(newGhostIdx, dim) += subdomain_.diameter[dim];
                 assert(pos_(newGhostIdx, dim) >= subdomain_.maxCorner[dim]);
                 assert(pos_(newGhostIdx, dim) <= subdomain_.maxGhostCorner[dim]);
-                correspondingRealParticle_(newGhostIdx) = findRealIdx(idx);
+                correspondingRealAtom_(newGhostIdx) = findRealIdx(idx);
                 return newGhostIdx;
             }
             return -1;
@@ -82,22 +82,22 @@ public:
     }
 
     /**
-     * @return -1, if no ghost particle was created, idx of new ghost particle otherwise
+     * @return -1, if no ghost atom was created, idx of new ghost atom otherwise
      */
     KOKKOS_INLINE_FUNCTION
     idx_t copySelfHigh(const idx_t idx, const idx_t dim) const
     {
         if (pos_(idx, dim) > subdomain_.maxInnerCorner[dim])
         {
-            auto newGhostIdx = particles_.numLocalParticles + particles_.numGhostParticles +
+            auto newGhostIdx = atoms_.numLocalAtoms + atoms_.numGhostAtoms +
                                Kokkos::atomic_fetch_add(&newGhostCounter_(), 1);
-            if (newGhostIdx < particles_.size())
+            if (newGhostIdx < atoms_.size())
             {
-                particles_.copy(newGhostIdx, idx);
+                atoms_.copy(newGhostIdx, idx);
                 pos_(newGhostIdx, dim) -= subdomain_.diameter[dim];
                 assert(pos_(newGhostIdx, dim) <= subdomain_.minCorner[dim]);
                 assert(pos_(newGhostIdx, dim) >= subdomain_.minGhostCorner[dim]);
-                correspondingRealParticle_(newGhostIdx) = findRealIdx(idx);
+                correspondingRealAtom_(newGhostIdx) = findRealIdx(idx);
                 return newGhostIdx;
             }
             return -1;
@@ -119,28 +119,28 @@ public:
     void operator()(DIRECTION_Z_LOW, const idx_t& idx) const { copySelfLow(idx, 2); }
 
     template <typename EXCHANGE_DIRECTION>
-    IndexView exchangeGhosts(data::Particles& particles, idx_t maxIdx)
+    IndexView exchangeGhosts(data::Atoms& atoms, idx_t maxIdx)
     {
-        if (correspondingRealParticle_.extent(0) < particles.numLocalParticles)
+        if (correspondingRealAtom_.extent(0) < atoms.numLocalAtoms)
         {
-            // initialize correspondingRealParticle_ for all real particles
-            util::grow(correspondingRealParticle_, particles.numLocalParticles);
-            Kokkos::deep_copy(correspondingRealParticle_, -1);
+            // initialize correspondingRealAtom_ for all real atoms
+            util::grow(correspondingRealAtom_, atoms.numLocalAtoms);
+            Kokkos::deep_copy(correspondingRealAtom_, -1);
         }
-        assert(correspondingRealParticle_.extent(0) >= particles.size());
+        assert(correspondingRealAtom_.extent(0) >= atoms.size());
 
-        auto newSize = particles.numLocalParticles + particles.numGhostParticles;
+        auto newSize = atoms.numLocalAtoms + atoms.numGhostAtoms;
         do
         {
-            if (newSize > particles.size())
+            if (newSize > atoms.size())
             {
                 // resize
-                particles.resize(newSize);
-                util::grow(correspondingRealParticle_, newSize);
+                atoms.resize(newSize);
+                util::grow(correspondingRealAtom_, newSize);
             }
 
-            particles_ = particles;
-            pos_ = particles.getPos();
+            atoms_ = atoms;
+            pos_ = atoms.getPos();
 
             Kokkos::deep_copy(newGhostCounter_, 0);
 
@@ -150,40 +150,40 @@ public:
 
             Kokkos::deep_copy(hNewGhostCounter_, newGhostCounter_);
             newSize =
-                particles.numLocalParticles + particles.numGhostParticles + hNewGhostCounter_();
-        } while (newSize > particles.size());  // resize and rerun
+                atoms.numLocalAtoms + atoms.numGhostAtoms + hNewGhostCounter_();
+        } while (newSize > atoms.size());  // resize and rerun
 
-        particles.numGhostParticles += hNewGhostCounter_();
-        return correspondingRealParticle_;
+        atoms.numGhostAtoms += hNewGhostCounter_();
+        return correspondingRealAtom_;
     }
 
-    IndexView createGhostParticlesXYZ(data::Particles& particles)
+    IndexView createGhostAtomsXYZ(data::Atoms& atoms)
     {
-        particles.numGhostParticles = 0;
-        util::grow(correspondingRealParticle_, particles.numLocalParticles);
-        Kokkos::deep_copy(correspondingRealParticle_, -1);
-        particles.resize(correspondingRealParticle_.extent(0));
+        atoms.numGhostAtoms = 0;
+        util::grow(correspondingRealAtom_, atoms.numLocalAtoms);
+        Kokkos::deep_copy(correspondingRealAtom_, -1);
+        atoms.resize(correspondingRealAtom_.extent(0));
 
-        auto maxIdx = particles.numLocalParticles + particles.numGhostParticles;
-        exchangeGhosts<impl::GhostExchange::DIRECTION_X_HIGH>(particles, maxIdx);
-        exchangeGhosts<impl::GhostExchange::DIRECTION_X_LOW>(particles, maxIdx);
-        maxIdx = particles.numLocalParticles + particles.numGhostParticles;
-        exchangeGhosts<impl::GhostExchange::DIRECTION_Y_HIGH>(particles, maxIdx);
-        exchangeGhosts<impl::GhostExchange::DIRECTION_Y_LOW>(particles, maxIdx);
-        maxIdx = particles.numLocalParticles + particles.numGhostParticles;
-        exchangeGhosts<impl::GhostExchange::DIRECTION_Z_HIGH>(particles, maxIdx);
-        exchangeGhosts<impl::GhostExchange::DIRECTION_Z_LOW>(particles, maxIdx);
+        auto maxIdx = atoms.numLocalAtoms + atoms.numGhostAtoms;
+        exchangeGhosts<impl::GhostExchange::DIRECTION_X_HIGH>(atoms, maxIdx);
+        exchangeGhosts<impl::GhostExchange::DIRECTION_X_LOW>(atoms, maxIdx);
+        maxIdx = atoms.numLocalAtoms + atoms.numGhostAtoms;
+        exchangeGhosts<impl::GhostExchange::DIRECTION_Y_HIGH>(atoms, maxIdx);
+        exchangeGhosts<impl::GhostExchange::DIRECTION_Y_LOW>(atoms, maxIdx);
+        maxIdx = atoms.numLocalAtoms + atoms.numGhostAtoms;
+        exchangeGhosts<impl::GhostExchange::DIRECTION_Z_HIGH>(atoms, maxIdx);
+        exchangeGhosts<impl::GhostExchange::DIRECTION_Z_LOW>(atoms, maxIdx);
         Kokkos::fence();
 
-        particles.resize(particles.numLocalParticles + particles.numGhostParticles);
-        return correspondingRealParticle_;
+        atoms.resize(atoms.numLocalAtoms + atoms.numGhostAtoms);
+        return correspondingRealAtom_;
     }
 
     GhostExchange(const data::Subdomain& subdomain)
         : subdomain_(subdomain),
           newGhostCounter_("newGhostCounter"),
           hNewGhostCounter_("hNewGhostCounter"),
-          correspondingRealParticle_("correspondingRealParticle", 0)
+          correspondingRealAtom_("correspondingRealAtom", 0)
     {
     }
 };

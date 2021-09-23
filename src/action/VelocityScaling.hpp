@@ -1,6 +1,6 @@
 #pragma once
 
-#include "data/Particles.hpp"
+#include "data/Atoms.hpp"
 #include "datatypes.hpp"
 
 namespace mrmd
@@ -19,7 +19,7 @@ private:
     real_t gamma_;
 
 public:
-    void apply(data::Particles& particles, const real_t& degreesOfFreedomPerAtom = 3_r) const;
+    void apply(data::Atoms& atoms, const real_t& degreesOfFreedomPerAtom = 3_r) const;
 
     void set(const real_t gamma, const real_t targetTemperature)
     {

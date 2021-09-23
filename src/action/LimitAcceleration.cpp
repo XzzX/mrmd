@@ -6,13 +6,12 @@ namespace mrmd
 {
 namespace action
 {
-void limitAccelerationPerComponent(data::Particles& atoms,
-                                   const real_t& maxAccelerationPerComponent)
+void limitAccelerationPerComponent(data::Atoms& atoms, const real_t& maxAccelerationPerComponent)
 {
     auto force = atoms.getForce();
     auto mass = atoms.getMass();
 
-    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalParticles);
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
         auto m = mass(idx);

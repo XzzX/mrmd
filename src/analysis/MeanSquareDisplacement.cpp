@@ -7,15 +7,15 @@ namespace mrmd
 {
 namespace analysis
 {
-void MeanSquareDisplacement::reset(data::Particles& atoms)
+void MeanSquareDisplacement::reset(data::Atoms& atoms)
 {
-    numParticles_ = atoms.numLocalParticles;
-    util::grow(initialPosition_, numParticles_);
+    numAtoms_ = atoms.numLocalAtoms;
+    util::grow(initialPosition_, numAtoms_);
 
     auto initialPos = initialPosition_;
     auto pos = atoms.getPos();
 
-    auto policy = Kokkos::RangePolicy<>(0, numParticles_);
+    auto policy = Kokkos::RangePolicy<>(0, numAtoms_);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
         initialPos(idx, 0) = pos(idx, 0);
@@ -24,9 +24,9 @@ void MeanSquareDisplacement::reset(data::Particles& atoms)
     };
     Kokkos::parallel_for("MeanSquareDisplacement::reset", policy, kernel);
 }
-real_t MeanSquareDisplacement::calc(data::Particles& atoms)
+real_t MeanSquareDisplacement::calc(data::Atoms& atoms)
 {
-    assert(numParticles_ == atoms.numLocalParticles);
+    assert(numAtoms_ == atoms.numLocalAtoms);
 
     auto initialPos = initialPosition_;
     auto pos = atoms.getPos();
@@ -34,7 +34,7 @@ real_t MeanSquareDisplacement::calc(data::Particles& atoms)
 
     auto sqDisplacement = 0_r;
 
-    auto policy = Kokkos::RangePolicy<>(0, numParticles_);
+    auto policy = Kokkos::RangePolicy<>(0, numAtoms_);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, real_t& squareDisplacement)
     {
         real_t dx[3];
@@ -49,7 +49,7 @@ real_t MeanSquareDisplacement::calc(data::Particles& atoms)
         squareDisplacement += util::dot3(dx, dx);
     };
     Kokkos::parallel_reduce("MeanSquareDisplacement::calc", policy, kernel, sqDisplacement);
-    return sqDisplacement / real_c(numParticles_);
+    return sqDisplacement / real_c(numAtoms_);
 }
 
 }  // namespace analysis

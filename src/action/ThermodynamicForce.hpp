@@ -1,7 +1,7 @@
 #pragma once
 
+#include "data/Atoms.hpp"
 #include "data/Histogram.hpp"
-#include "data/Particles.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 
@@ -25,9 +25,9 @@ public:
     inline const auto& getDensityProfile() const { return densityProfile_; }
     inline const auto& getNumberOfDensityProfileSamples() const { return densityProfileSamples_; }
 
-    void sample(data::Particles& atoms);
+    void sample(data::Atoms& atoms);
     void update();
-    void apply(const data::Particles& atoms) const;
+    void apply(const data::Atoms& atoms) const;
 
     ThermodynamicForce(const real_t targetDensity,
                        const data::Subdomain& subdomain,
