@@ -33,8 +33,8 @@ TEST(KineticEnergy, Simple)
     atoms.numLocalAtoms = 3;
     atoms.numGhostAtoms = 0;
 
-    auto temperature = analysis::getKineticEnergy(atoms);
+    auto energy = analysis::getKineticEnergy(atoms) * atoms.numLocalAtoms;
 
-    EXPECT_FLOAT_EQ(temperature, (4_r + 2_r * 64_r + 0.5_r * 256_r) * 0.5_r);
+    EXPECT_FLOAT_EQ(energy, (4_r + 2_r * 64_r + 0.5_r * 256_r) * 0.5_r);
 }
 }  // namespace mrmd
