@@ -16,7 +16,7 @@ real_t getKineticEnergy(data::Atoms& atoms)
                (vel(idx, 0) * vel(idx, 0) + vel(idx, 1) * vel(idx, 1) + vel(idx, 2) * vel(idx, 2));
     };
     Kokkos::parallel_reduce("getKineticEnergy", policy, kernel, velSqr);
-    return 0.5_r * velSqr;
+    return 0.5_r * velSqr / real_c(atoms.numLocalAtoms);
 }
 
 }  // namespace analysis
