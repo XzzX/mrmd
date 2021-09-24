@@ -1,3 +1,5 @@
+#include <fmt/format.h>
+
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
 #include <CLI/Formatter.hpp>
@@ -15,6 +17,7 @@
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/MeanSquareDisplacement.hpp"
+#include "analysis/Pressure.hpp"
 #include "analysis/SystemMomentum.hpp"
 #include "communication/GhostLayer.hpp"
 #include "data/Atoms.hpp"
@@ -33,7 +36,7 @@ struct Config
     bool bOutput = true;
     idx_t outputInterval = -1;
 
-    idx_t nsteps = 2001;
+    idx_t nsteps = 400001;
     static constexpr idx_t numAtoms = 16 * 16 * 16;
 
     static constexpr real_t sigma = 0.34_r;        ///< units: nm
@@ -115,8 +118,8 @@ void LJ(Config& config)
     Kokkos::Timer timer;
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;
-    util::printTable("step", "time", "T", "Ek", "E0", "E", "msd", "Nlocal", "Nghost");
-    util::printTableSep("step", "time", "T", "Ek", "E0", "E", "msd", "Nlocal", "Nghost");
+    util::printTable("step", "time", "T", "Ek", "E0", "E", "p", "msd", "Nlocal", "Nghost");
+    util::printTableSep("step", "time", "T", "Ek", "E0", "E", "p", "msd", "Nlocal", "Nghost");
 
     std::ofstream fStat("statistics.txt");
     for (auto step = 0; step < config.nsteps; ++step)
@@ -161,6 +164,45 @@ void LJ(Config& config)
 
         LJ.applyForces(atoms, verletList);
 
+        ghostLayer.contributeBackGhostToReal(atoms);
+
+        if (config.bOutput && (step % config.outputInterval == 0))
+        {
+            auto E0 = LJ.computeEnergy(atoms, verletList) / real_c(atoms.numLocalAtoms);
+            auto Ek = analysis::getKineticEnergy(atoms);
+            auto systemMomentum = analysis::getSystemMomentum(atoms);
+            auto T = (2_r / 3_r) * Ek;
+            //            std::cout << "system momentum: " << systemMomentum[0] << " | " <<
+            //            systemMomentum[1]
+            //                      << " | " << systemMomentum[2] << std::endl;
+            //            std::cout << "rebuild counter: " << rebuildCounter << std::endl;
+            auto p = analysis::getPressure(atoms, subdomain);
+            util::printTable(step,
+                             timer.seconds(),
+                             T,
+                             Ek,
+                             E0,
+                             E0 + Ek,
+                             p,
+                             msd,
+                             atoms.numLocalAtoms,
+                             atoms.numGhostAtoms);
+
+            fStat << step << " " << timer.seconds() << " " << T << " " << Ek << " " << E0 << " "
+                  << E0 + Ek << " " << p << " " << msd << " " << atoms.numLocalAtoms << " "
+                  << atoms.numGhostAtoms << " " << std::endl;
+
+            io::dumpGRO(fmt::format("argon_{:0>6}.gro", step),
+                        atoms,
+                        subdomain,
+                        step * config.dt,
+                        "Argon",
+                        false);
+
+            //            io::dumpCSV("atoms_" + std::to_string(step) + ".csv", atoms,
+            //            false);
+        }
+
         if (step % 1000 == 0)
         {
             msd = meanSquareDisplacement.calc(atoms) / (1000_r * config.dt);
@@ -176,49 +218,6 @@ void LJ(Config& config)
             langevinThermostat.apply(atoms);
 
             meanSquareDisplacement.reset(atoms);
-        }
-
-        ghostLayer.contributeBackGhostToReal(atoms);
-
-        if (step < 5000)
-        {
-            //            action::limitAccelerationPerComponent(atoms, 10_r);
-            //            action::limitVelocityPerComponent(atoms, 1_r);
-        }
-
-        if (config.bOutput && (step % config.outputInterval == 0))
-        {
-            auto E0 = LJ.computeEnergy(atoms, verletList);
-            auto Ek = analysis::getKineticEnergy(atoms);
-            auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto T = (2_r / (3_r * real_c(atoms.numLocalAtoms))) * Ek;
-            //            std::cout << "system momentum: " << systemMomentum[0] << " | " <<
-            //            systemMomentum[1]
-            //                      << " | " << systemMomentum[2] << std::endl;
-            //            std::cout << "rebuild counter: " << rebuildCounter << std::endl;
-            util::printTable(step,
-                             timer.seconds(),
-                             T,
-                             Ek,
-                             E0,
-                             E0 + Ek,
-                             msd,
-                             atoms.numLocalAtoms,
-                             atoms.numGhostAtoms);
-
-            fStat << step << " " << timer.seconds() << " " << T << " " << Ek << " " << E0 << " "
-                  << E0 + Ek << " " << msd << " " << atoms.numLocalAtoms << " "
-                  << atoms.numGhostAtoms << " " << std::endl;
-
-            io::dumpGRO("atoms_" + std::to_string(step) + ".gro",
-                        atoms,
-                        subdomain,
-                        step * config.dt,
-                        "Argon",
-                        false);
-
-            //            io::dumpCSV("atoms_" + std::to_string(step) + ".csv", atoms,
-            //            false);
         }
 
         action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
