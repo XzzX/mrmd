@@ -32,8 +32,8 @@ struct Config
 };
 
 data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
-                                          const idx_t& numAtoms,
-                                          const real_t& maxVelocity)
+                                  const idx_t& numAtoms,
+                                  const real_t& maxVelocity)
 {
     auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
 
@@ -69,8 +69,7 @@ TEST(LangevinThermostat, Integration)
 {
     Config config;
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
-    auto atoms =
-        fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
+    auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
 
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     for (auto step = 0; step < config.nsteps; ++step)
@@ -87,12 +86,12 @@ TEST(LangevinThermostat, Integration)
         if (config.bOutput && (step % config.outputInterval == 0))
         {
             auto Ek = analysis::getKineticEnergy(atoms);
-            auto T = (2_r / (3_r * real_c(atoms.numLocalAtoms))) * Ek;
+            auto T = (2_r / 3_r) * Ek;
             std::cout << "temperature: " << T << std::endl;
         }
     }
     auto Ek = analysis::getKineticEnergy(atoms);
-    auto T = (2_r / (3_r * real_c(atoms.numLocalAtoms))) * Ek;
+    auto T = (2_r / 3_r) * Ek;
     EXPECT_NEAR(T, config.temperature, 0.01_r);
 }
 
