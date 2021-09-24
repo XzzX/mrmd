@@ -289,8 +289,7 @@ public:
         bonds_(1).eqDistance = eqDistanceHO;
         bonds_(2).idx = 1;
         bonds_(2).jdx = 2;
-        // law of cosines
-        bonds_(2).eqDistance = eqDistanceHO * std::sqrt(2_r - 2_r * std::cos(angleHOH));
+        bonds_(2).eqDistance = eqDistanceHH;
     }
 };
 }  // namespace action
