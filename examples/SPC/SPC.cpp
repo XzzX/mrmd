@@ -42,7 +42,7 @@ struct Config
     idx_t outputInterval = -1;
 
     // general simulation parameters
-    idx_t nsteps = 8001;
+    idx_t nsteps = 40001;
     real_t dt = 0.002_r;  ///< unit: ps
 
     // simulation box parameters
@@ -323,6 +323,7 @@ void SPC(Config& config)
             //            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
         }
 
+        if (step == 2000) config.thermostatInterval = 500;
         if ((config.temperature >= 0) && (step % config.thermostatInterval == 0))
         {
             //                    langevinThermostat.apply(atoms);
