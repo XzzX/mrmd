@@ -22,8 +22,8 @@
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/SystemMomentum.hpp"
 #include "communication/MultiResGhostLayer.hpp"
-#include "data/Molecules.hpp"
 #include "data/Atoms.hpp"
+#include "data/Molecules.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
@@ -42,7 +42,7 @@ struct Config
     idx_t outputInterval = -1;
 
     // general simulation parameters
-    idx_t nsteps = 500001;
+    idx_t nsteps = 8001;
     real_t dt = 0.002_r;  ///< unit: ps
 
     // simulation box parameters
@@ -58,7 +58,7 @@ struct Config
     idx_t estimatedMaxNeighbors = 60;
 
     // thermostat parameters
-    real_t temperature = 3.47_r;  ///< unit: kJ/k_b/mol
+    real_t temperature = 300_r / toSI::temperature;  ///< unit: kJ/k_b/mol
     real_t gamma = 10_r;
 
     // AdResS parameters
@@ -118,9 +118,10 @@ void initMolecules(data::Molecules& molecules,
         //        vel(idx * 3 + 0, 2) = (randGen.drand() - 0.5_r) * 1_r;
 
         type(idx * 3 + 0) = 0;
-        mass(idx * 3 + 0) = 15.999_r;  ///< unit: g/mol
-        charge(idx * 3 + 0) = -0.82_r;
-        realtiveMass(idx * 3 + 0) = 15.999_r / (15.999_r + 2_r * 1.008_r);
+        mass(idx * 3 + 0) = action::SPC::massO;  ///< unit: g/mol
+        charge(idx * 3 + 0) = action::SPC::chargeO;
+        realtiveMass(idx * 3 + 0) =
+            action::SPC::massO / (action::SPC::massO + 2_r * action::SPC::massH);
 
         // hydrogen 1
         real_t theta = 2_r * M_PI * randGen.drand();
@@ -139,9 +140,10 @@ void initMolecules(data::Molecules& molecules,
         //        vel(idx * 3 + 1, 2) = (randGen.drand() - 0.5_r) * 1_r;
 
         type(idx * 3 + 1) = 1;
-        mass(idx * 3 + 1) = 1.008_r;  ///< unit: g/mol
-        charge(idx * 3 + 1) = +0.41_r;
-        realtiveMass(idx * 3 + 1) = 1.008_r / (15.999_r + 2_r * 1.008_r);
+        mass(idx * 3 + 1) = action::SPC::massH;
+        charge(idx * 3 + 1) = action::SPC::chargeH;
+        realtiveMass(idx * 3 + 1) =
+            action::SPC::massH / (action::SPC::massO + 2_r * action::SPC::massH);
 
         // hydrogen 2
         theta = 2_r * M_PI * randGen.drand();
@@ -159,9 +161,10 @@ void initMolecules(data::Molecules& molecules,
         //        vel(idx * 3 + 2, 2) = (randGen.drand() - 0.5_r) * 1_r;
 
         type(idx * 3 + 2) = 1;
-        mass(idx * 3 + 2) = 1.008_r;  ///< unit: g/mol
-        charge(idx * 3 + 2) = +0.41_r;
-        realtiveMass(idx * 3 + 2) = 1.008_r / (15.999_r + 2_r * 1.008_r);
+        mass(idx * 3 + 2) = action::SPC::massH;
+        charge(idx * 3 + 2) = action::SPC::chargeH;
+        realtiveMass(idx * 3 + 2) =
+            action::SPC::massH / (action::SPC::massO + 2_r * action::SPC::massH);
 
         // Give the state back, which will allow another thread to acquire it
         RNG.free_state(randGen);
@@ -283,9 +286,9 @@ void SPC(Config& config)
         if (config.bOutput && (step % config.outputInterval == 0))
         {
             auto Ebond = spc.calcBondEnergy(molecules, atoms);
-            auto Ek = analysis::getKineticEnergy(atoms) / real_c(atoms.numLocalAtoms);
-            auto T = Ek;
-            E0 /= real_c(atoms.numLocalAtoms);
+            auto Ek = analysis::getKineticEnergy(atoms);
+            auto T = Ek * toSI::temperature;
+            E0 /= real_c(molecules.numLocalMolecules);
 
             // calc chemical potential
             auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
@@ -308,13 +311,13 @@ void SPC(Config& config)
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
-            io::dumpCSV("atoms_" + std::to_string(step) + ".csv", atoms, false);
-            //            io::dumpGRO(fmt::format("spc_{:0>5}.gro", step),
-            //                        atoms,
-            //                        subdomain,
-            //                        step * config.dt,
-            //                        "SPC water",
-            //                        false);
+            io::dumpCSV(fmt::format("spc_{:0>6}.csv", step), atoms, false);
+            io::dumpGRO(fmt::format("spc_{:0>6}.gro", step),
+                        atoms,
+                        subdomain,
+                        step * config.dt,
+                        "SPC water",
+                        false);
 
             //            fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
             //            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;

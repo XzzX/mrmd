@@ -49,10 +49,17 @@ private:
     data::BondView::host_mirror_type bonds_;
 
 public:
-    // LJ parameters
-    static constexpr real_t sigma = 0.35533_r;   ///< unit: nm
-    static constexpr real_t epsilon = 0.6498_r;  ///< unit: kJ / mol
-    static constexpr real_t rc = 1.2_r;          ///< unit: nm
+    static constexpr real_t massO = 15.999_r;  ///< unit: g/mol
+    static constexpr real_t chargeO = -0.82_r;
+
+    static constexpr real_t massH = 1.008_r;  ///< unit: g/mol
+    static constexpr real_t chargeH = +0.41_r;
+
+    // LJ parameters for O-O interaction
+    // DOI: 10.1021/j100308a038
+    static constexpr real_t sigma = 0.31655578901998815_r;   ///< unit: nm
+    static constexpr real_t epsilon = 0.6501695808187486_r;  ///< unit: kJ / mol
+    static constexpr real_t rc = 1.2_r;                      ///< unit: nm
 
     // Coulomb DSF parameters
     static constexpr real_t alpha = 2.0_r;  ///< unit: 1/nm
