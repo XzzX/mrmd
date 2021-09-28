@@ -333,7 +333,7 @@ void SPC(Config& config)
         if ((config.temperature >= 0) && (step % config.thermostatInterval == 0))
         {
             selfDiffusion = meanSquareDisplacement.calc(molecules) /
-                            (6_r * config.thermostatInterval * config.dt);
+                            (6_r * real_c(config.thermostatInterval) * config.dt);
             meanSquareDisplacement.reset(molecules);
 
             //                    langevinThermostat.apply(atoms);
