@@ -20,6 +20,7 @@
 #include "action/VelocityScaling.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
+#include "analysis/MeanSquareDisplacement.hpp"
 #include "analysis/SystemMomentum.hpp"
 #include "communication/MultiResGhostLayer.hpp"
 #include "data/Atoms.hpp"
@@ -209,10 +210,14 @@ void SPC(Config& config)
         config.rho, subdomain, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     action::VelocityScaling velocityScaling(1_r, config.temperature);
+    analysis::MeanSquareDisplacement meanSquareDisplacement(subdomain);
+    meanSquareDisplacement.reset(atoms);
+    auto selfDiffusion = 0_r;
     communication::MultiResGhostLayer ghostLayer(subdomain);
 
-    util::printTable("step", "time", "T", "Ek", "E0", "Ebond", "E", "mu", "Nlocal", "Nghost");
-    util::printTableSep("step", "time", "T", "Ek", "E0", "Ebond", "E", "mu", "Nlocal", "Nghost");
+    util::printTable("step", "time", "T", "Ek", "E0", "Ebond", "E", "mu", "D", "Nlocal", "Nghost");
+    util::printTableSep(
+        "step", "time", "T", "Ek", "E0", "Ebond", "E", "mu", "D", "Nlocal", "Nghost");
     for (auto step = 0; step < config.nsteps; ++step)
     {
         assert(atoms.numLocalAtoms == molecules.numLocalMolecules * 3);
@@ -308,6 +313,7 @@ void SPC(Config& config)
                              Ebond,
                              E0 + Ebond + Ek,
                              mu,
+                             selfDiffusion * 1e3,
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
@@ -326,6 +332,10 @@ void SPC(Config& config)
         if (step == 2000) config.thermostatInterval = 500;
         if ((config.temperature >= 0) && (step % config.thermostatInterval == 0))
         {
+            selfDiffusion = meanSquareDisplacement.calc(molecules) /
+                            (6_r * config.thermostatInterval * config.dt);
+            meanSquareDisplacement.reset(molecules);
+
             //                    langevinThermostat.apply(atoms);
             velocityScaling.apply(atoms, 2_r);
         }
