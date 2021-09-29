@@ -317,20 +317,37 @@ void SPC(Config& config)
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
+            //            fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
+            //            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
+        }
+
+        if (config.bOutput && (step > config.nsteps - 5000) && (step % 100 == 0))
+        {
             io::dumpCSV(fmt::format("spc_{:0>6}.csv", step), atoms, false);
             io::dumpGRO(fmt::format("spc_{:0>6}.gro", step),
                         atoms,
                         subdomain,
                         step * config.dt,
                         "SPC water",
-                        false);
-
-            //            fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
-            //            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
+                        false,
+                        true);
         }
 
-        if (step == 2000) config.thermostatInterval = 500;
-        if ((config.temperature >= 0) && (step % config.thermostatInterval == 0))
+        if (config.bOutput && (step > config.nsteps - 500) && (step % 10 == 0))
+        {
+            io::dumpCSV(fmt::format("spc_{:0>6}.csv", step), atoms, false);
+            io::dumpGRO(fmt::format("spc_{:0>6}.gro", step),
+                        atoms,
+                        subdomain,
+                        step * config.dt,
+                        "SPC water",
+                        false,
+                        true);
+        }
+
+        if (step == 2000) config.thermostatInterval = 2000;
+        if ((config.temperature >= 0) && (step < config.nsteps - 5000) &&
+            (step % config.thermostatInterval == 0))
         {
             selfDiffusion = meanSquareDisplacement.calc(molecules) /
                             (6_r * real_c(config.thermostatInterval) * config.dt);
