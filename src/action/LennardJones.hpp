@@ -240,6 +240,18 @@ public:
         : LJ_({cappingDistance}, {rc}, {sigma}, {epsilon}, 1, false), rcSqr_(rc * rc), numTypes_(1)
     {
     }
+
+    LennardJones(const std::vector<real_t>& cappingDistance,
+                 const std::vector<real_t>& rc,
+                 const std::vector<real_t>& sigma,
+                 const std::vector<real_t>& epsilon,
+                 const idx_t& numTypes,
+                 const bool isShifted)
+        : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, isShifted), numTypes_(1)
+    {
+        auto rcMax = *std::max_element(rc.begin(), rc.end());
+        rcSqr_ = rcMax * rcMax;
+    }
 };
 }  // namespace action
 }  // namespace mrmd
