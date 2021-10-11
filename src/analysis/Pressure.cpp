@@ -13,7 +13,7 @@ real_t getPressure(data::Atoms& atoms, const data::Subdomain& subdomain)
     auto force = atoms.getForce();
     auto mass = atoms.getMass();
     real_t pressure = 0_r;
-    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms + atoms.numGhostAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, real_t& sum)
     {
         sum += mass(idx) *
