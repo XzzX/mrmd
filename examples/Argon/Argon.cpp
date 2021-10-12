@@ -169,7 +169,7 @@ void LJ(Config& config)
         if (config.bOutput && (step % config.outputInterval == 0))
         {
             auto E0 = LJ.computeEnergy(atoms, verletList) / real_c(atoms.numLocalAtoms);
-            auto Ek = analysis::getKineticEnergy(atoms);
+            auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
             auto T = (2_r / 3_r) * Ek;
             //            std::cout << "system momentum: " << systemMomentum[0] << " | " <<
@@ -212,7 +212,7 @@ void LJ(Config& config)
                 if (config.temperature < 0_r) config.temperature = 0_r;
             }
             //            velocityScaling.set(1_r, config.temperature);
-            //            velocityScaling.apply(atoms);
+            //            velocityScaling.apply(atoms, 3_r * atoms.numLocalAtoms);
 
             langevinThermostat.set(config.gamma, config.temperature * 0.5_r, config.dt);
             langevinThermostat.apply(atoms);

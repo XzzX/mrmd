@@ -170,7 +170,7 @@ void LJ(Config& config)
         LJ.applyForces(atoms, verletList);
         if ((config.temperature >= 0) && (step % 100 == 0))
         {
-            velocityScaling.apply(atoms);
+            velocityScaling.apply(atoms, 3_r * atoms.numLocalAtoms);
         }
         pressure << analysis::getPressure(atoms, subdomain);
         ghostLayer.contributeBackGhostToReal(atoms);
@@ -180,7 +180,7 @@ void LJ(Config& config)
         if (config.bOutput && (step % config.outputInterval == 0))
         {
             auto E0 = LJ.computeEnergy(atoms, verletList);
-            auto Ek = analysis::getKineticEnergy(atoms);
+            auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto T = (2_r / 3_r) * Ek;
             util::printTable(step,
                              timer.seconds(),

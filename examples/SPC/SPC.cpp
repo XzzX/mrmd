@@ -354,7 +354,7 @@ void SPC(Config& config)
             meanSquareDisplacement.reset(molecules);
 
             //                    langevinThermostat.apply(atoms);
-            velocityScaling.apply(atoms, 2_r);
+            velocityScaling.apply(atoms, 2_r * atoms.numLocalAtoms);
         }
 
         if (step < 1000)

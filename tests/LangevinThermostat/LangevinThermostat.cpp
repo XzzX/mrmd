@@ -86,12 +86,12 @@ TEST(Integration, LangevinThermostat)
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto Ek = analysis::getKineticEnergy(atoms);
+            auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto T = (2_r / 3_r) * Ek;
             std::cout << "temperature: " << T << std::endl;
         }
     }
-    auto Ek = analysis::getKineticEnergy(atoms);
+    auto Ek = analysis::getMeanKineticEnergy(atoms);
     auto T = (2_r / 3_r) * Ek;
     EXPECT_NEAR(T, config.temperature, 0.01_r);
 }
@@ -110,12 +110,12 @@ TEST(Integration, VelocityVerletLangevinThermostat)
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto Ek = analysis::getKineticEnergy(atoms);
+            auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto T = (2_r / 3_r) * Ek;
             std::cout << "temperature: " << T << std::endl;
         }
     }
-    auto Ek = analysis::getKineticEnergy(atoms);
+    auto Ek = analysis::getMeanKineticEnergy(atoms);
     auto T = (2_r / 3_r) * Ek;
     EXPECT_NEAR(T, config.temperature, 0.01_r);
 }

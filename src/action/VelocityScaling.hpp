@@ -19,7 +19,10 @@ private:
     real_t gamma_;
 
 public:
-    void apply(data::Atoms& atoms, const real_t& degreesOfFreedomPerAtom = 3_r) const;
+    /**
+     * @param degreesOfFreedom in 3D typically 3N - 3
+     */
+    void apply(data::Atoms& atoms, const real_t& degreesOfFreedom) const;
 
     void set(const real_t gamma, const real_t targetTemperature)
     {

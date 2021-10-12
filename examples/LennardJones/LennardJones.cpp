@@ -48,8 +48,8 @@ struct Config
 };
 
 data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
-                                          const idx_t& numAtoms,
-                                          const real_t& maxVelocity)
+                                  const idx_t& numAtoms,
+                                  const real_t& maxVelocity)
 {
     auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
 
@@ -151,9 +151,9 @@ void LJ(Config& config)
         if (config.bOutput && (step % config.outputInterval == 0))
         {
             auto E0 = LJ.computeEnergy(atoms, verletList);
-            auto Ek = analysis::getKineticEnergy(atoms);
+            auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto T = (2_r / (3_r * real_c(atoms.numLocalAtoms))) * Ek;
+            auto T = (2_r / 3_r) * Ek;
             //            std::cout << "system momentum: " << systemMomentum[0] << " | " <<
             //            systemMomentum[1]
             //                      << " | " << systemMomentum[2] << std::endl;

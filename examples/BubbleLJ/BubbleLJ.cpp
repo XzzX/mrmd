@@ -187,7 +187,7 @@ void LJ(Config& config)
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto Ek = analysis::getKineticEnergy(atoms);
+            auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
             auto T = (2_r / (3_r * real_c(atoms.numLocalAtoms))) * Ek;
             E0 /= real_c(atoms.numLocalAtoms);

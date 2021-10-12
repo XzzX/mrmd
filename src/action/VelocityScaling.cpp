@@ -8,10 +8,10 @@ namespace mrmd
 {
 namespace action
 {
-void VelocityScaling::apply(data::Atoms& atoms, const real_t& degreesOfFreedomPerAtom) const
+void VelocityScaling::apply(data::Atoms& atoms, const real_t& degreesOfFreedom) const
 {
     auto Ekin = analysis::getKineticEnergy(atoms);
-    auto T = Ekin * 2_r / degreesOfFreedomPerAtom;
+    auto T = Ekin * 2_r / degreesOfFreedom;
     auto beta = std::sqrt(1_r + gamma_ * (targetTemperature_ / T - 1_r));
 
     auto vel = atoms.getVel();
