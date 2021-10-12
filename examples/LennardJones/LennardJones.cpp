@@ -12,6 +12,7 @@
 #include "action/LangevinThermostat.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
+#include "analysis/Pressure.hpp"
 #include "analysis/SystemMomentum.hpp"
 #include "communication/GhostLayer.hpp"
 #include "data/Atoms.hpp"
@@ -97,8 +98,8 @@ void LJ(Config& config)
     Kokkos::Timer timer;
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;
-    util::printTable("step", "time", "T", "Ek", "E0", "E", "Nlocal", "Nghost");
-    util::printTableSep("step", "time", "T", "Ek", "E0", "E", "Nlocal", "Nghost");
+    util::printTable("step", "time", "T", "Ek", "E0", "E", "p", "p2", "Nlocal", "Nghost");
+    util::printTableSep("step", "time", "T", "Ek", "E0", "E", "p", "p2", "Nlocal", "Nghost");
     for (auto step = 0; step < config.nsteps; ++step)
     {
         maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
@@ -140,35 +141,38 @@ void LJ(Config& config)
         Cabana::deep_copy(force, 0_r);
 
         LJ.applyForces(atoms, verletList);
-        if ((config.temperature >= 0) && (step < 10000))
-        {
-            langevinThermostat.apply(atoms);
-        }
-        ghostLayer.contributeBackGhostToReal(atoms);
-
-        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto E0 = LJ.computeEnergy(atoms, verletList);
-            auto Ek = analysis::getMeanKineticEnergy(atoms);
+            auto E0 = LJ.computeEnergy(atoms, verletList) / atoms.numLocalAtoms;
+            auto Ek = analysis::getKineticEnergy(atoms);
+            auto p2 = 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
+            Ek /= atoms.numLocalAtoms;
             auto systemMomentum = analysis::getSystemMomentum(atoms);
             auto T = (2_r / 3_r) * Ek;
-            //            std::cout << "system momentum: " << systemMomentum[0] << " | " <<
-            //            systemMomentum[1]
-            //                      << " | " << systemMomentum[2] << std::endl;
-            //            std::cout << "rebuild counter: " << rebuildCounter << std::endl;
+            auto p = analysis::getPressure(atoms, subdomain);
+
             util::printTable(step,
                              timer.seconds(),
                              T,
                              Ek,
                              E0,
                              E0 + Ek,
+                             p,
+                             p2,
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
             io::dumpCSV("lj_" + std::to_string(step) + ".csv", atoms);
         }
+
+        if ((config.temperature >= 0) && (step < 10000))
+        {
+            langevinThermostat.apply(atoms);
+        }
+
+        ghostLayer.contributeBackGhostToReal(atoms);
+        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
     }
     auto time = timer.seconds();
     std::cout << time << std::endl;

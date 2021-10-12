@@ -146,6 +146,8 @@ private:
 
     const idx_t numTypes_;
 
+    Kokkos::View<real_t, Kokkos::MemoryTraits<Kokkos::Atomic>> virial_;
+
 public:
     KOKKOS_INLINE_FUNCTION
     void operator()(const idx_t& idx) const
@@ -173,6 +175,7 @@ public:
 
             auto typeIdx = type_(idx) * numTypes_ + type_(jdx);
             auto ffactor = LJ_.computeForce(distSqr, typeIdx);
+            virial_() -= 0.5_r * ffactor * distSqr;
 
             forceTmp[0] += dx * ffactor;
             forceTmp[1] += dy * ffactor;
@@ -204,6 +207,8 @@ public:
 
     void applyForces(data::Atoms& atoms, VerletList& verletList)
     {
+        Kokkos::deep_copy(virial_, 0_r);
+
         pos_ = atoms.getPos();
         force_ = atoms.getForce();
         type_ = atoms.getType();
@@ -233,11 +238,17 @@ public:
         return E0;
     }
 
+    real_t getVirial() const
+    {
+        auto virial = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), virial_);
+        return virial();
+    }
+
     LennardJones(const real_t rc,
                  const real_t& sigma,
                  const real_t& epsilon,
                  const real_t& cappingDistance = 0_r)
-        : LJ_({cappingDistance}, {rc}, {sigma}, {epsilon}, 1, false), rcSqr_(rc * rc), numTypes_(1)
+        : LennardJones({cappingDistance}, {rc}, {sigma}, {epsilon}, 1, false)
     {
     }
 
@@ -247,7 +258,9 @@ public:
                  const std::vector<real_t>& epsilon,
                  const idx_t& numTypes,
                  const bool isShifted)
-        : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, isShifted), numTypes_(1)
+        : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, isShifted),
+          numTypes_(1),
+          virial_("virial")
     {
         auto rcMax = *std::max_element(rc.begin(), rc.end());
         rcSqr_ = rcMax * rcMax;
