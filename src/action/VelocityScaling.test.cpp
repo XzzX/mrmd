@@ -32,9 +32,9 @@ TEST_F(VelocityScalingTest, gamma_1)
     constexpr real_t gamma = 1_r;
     constexpr real_t targetTemperature = 3.8_r;
     VelocityScaling velocityScaling(gamma, targetTemperature);
-    velocityScaling.apply(atoms, 3_r * atoms.numLocalAtoms);
-    velocityScaling.apply(atoms, 3_r * atoms.numLocalAtoms);
-    velocityScaling.apply(atoms, 3_r * atoms.numLocalAtoms);
+    velocityScaling.apply(atoms, 3_r * real_c(atoms.numLocalAtoms));
+    velocityScaling.apply(atoms, 3_r * real_c(atoms.numLocalAtoms));
+    velocityScaling.apply(atoms, 3_r * real_c(atoms.numLocalAtoms));
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
     auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
