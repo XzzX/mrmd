@@ -144,10 +144,10 @@ void LJ(Config& config)
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto E0 = LJ.computeEnergy(atoms, verletList) / atoms.numLocalAtoms;
+            auto E0 = LJ.computeEnergy(atoms, verletList) / real_c(atoms.numLocalAtoms);
             auto Ek = analysis::getKineticEnergy(atoms);
             auto p2 = 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
-            Ek /= atoms.numLocalAtoms;
+            Ek /= real_c(atoms.numLocalAtoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
             auto T = (2_r / 3_r) * Ek;
             auto p = analysis::getPressure(atoms, subdomain);
