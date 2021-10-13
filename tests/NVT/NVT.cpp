@@ -167,14 +167,14 @@ TEST_P(NVT, pressure)
                 p = util::ExponentialMovingAverage(0.1_r);
                 T = util::ExponentialMovingAverage(0.1_r);
             }
-            auto E0 = LJ.computeEnergy(atoms, verletList) / atoms.numLocalAtoms;
+            auto E0 = LJ.computeEnergy(atoms, verletList) / real_c(atoms.numLocalAtoms);
             auto Ek = analysis::getKineticEnergy(atoms);
             p << 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
-            Ek /= atoms.numLocalAtoms;
+            Ek /= real_c(atoms.numLocalAtoms);
             T << (2_r / 3_r) * Ek;
         }
 
-        velocityScaling.apply(atoms, 3_r * atoms.numLocalAtoms);
+        velocityScaling.apply(atoms, 3_r * real_c(atoms.numLocalAtoms));
 
         ghostLayer.contributeBackGhostToReal(atoms);
         action::VelocityVerlet::postForceIntegrate(atoms, Config::dt);
