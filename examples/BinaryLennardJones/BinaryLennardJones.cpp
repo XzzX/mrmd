@@ -170,7 +170,7 @@ void LJ(Config& config)
         LJ.applyForces(atoms, verletList);
         if ((config.temperature >= 0) && (step % 100 == 0))
         {
-            velocityScaling.apply(atoms, 3_r * atoms.numLocalAtoms);
+            velocityScaling.apply(atoms, 3_r * real_c(atoms.numLocalAtoms));
         }
         pressure << analysis::getPressure(atoms, subdomain);
         ghostLayer.contributeBackGhostToReal(atoms);
