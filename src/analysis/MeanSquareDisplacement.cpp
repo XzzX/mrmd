@@ -43,13 +43,12 @@ void MeanSquareDisplacement::reset(data::Molecules& molecules)
     Kokkos::parallel_for("MeanSquareDisplacement::reset", policy, kernel);
 }
 
-real_t MeanSquareDisplacement::calc(data::Atoms& atoms)
+real_t MeanSquareDisplacement::calc(data::Atoms& atoms, const data::Subdomain& subdomain)
 {
     assert(numAtoms_ == atoms.numLocalAtoms);
 
     auto initialPos = initialPosition_;
     auto pos = atoms.getPos();
-    auto subdomain = subdomain_;
 
     auto sqDisplacement = 0_r;
 
@@ -71,13 +70,12 @@ real_t MeanSquareDisplacement::calc(data::Atoms& atoms)
     return sqDisplacement / real_c(numAtoms_);
 }
 
-real_t MeanSquareDisplacement::calc(data::Molecules& molecules)
+real_t MeanSquareDisplacement::calc(data::Molecules& molecules, const data::Subdomain& subdomain)
 {
     assert(numAtoms_ == molecules.numLocalMolecules);
 
     auto initialPos = initialPosition_;
     auto pos = molecules.getPos();
-    auto subdomain = subdomain_;
 
     auto sqDisplacement = 0_r;
 

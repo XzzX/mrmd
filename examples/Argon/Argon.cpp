@@ -111,7 +111,7 @@ void LJ(Config& config)
     action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     action::VelocityScaling velocityScaling(1_r, config.temperature);
-    analysis::MeanSquareDisplacement meanSquareDisplacement(subdomain);
+    analysis::MeanSquareDisplacement meanSquareDisplacement;
     meanSquareDisplacement.reset(atoms);
     auto msd = 0_r;
     VerletList verletList;
@@ -205,7 +205,7 @@ void LJ(Config& config)
 
         if (step % 1000 == 0)
         {
-            msd = meanSquareDisplacement.calc(atoms) / (1000_r * config.dt);
+            msd = meanSquareDisplacement.calc(atoms, subdomain) / (1000_r * config.dt);
             if ((config.temperature > 0_r) && (step > 5000))
             {
                 config.temperature -= 7.8e-3_r;

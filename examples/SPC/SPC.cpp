@@ -210,7 +210,7 @@ void SPC(Config& config)
         config.rho, subdomain, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     action::VelocityScaling velocityScaling(1_r, config.temperature);
-    analysis::MeanSquareDisplacement meanSquareDisplacement(subdomain);
+    analysis::MeanSquareDisplacement meanSquareDisplacement;
     meanSquareDisplacement.reset(atoms);
     auto selfDiffusion = 0_r;
     communication::MultiResGhostLayer ghostLayer;
@@ -349,7 +349,7 @@ void SPC(Config& config)
         if ((config.temperature >= 0) && (step < config.nsteps - 5000) &&
             (step % config.thermostatInterval == 0))
         {
-            selfDiffusion = meanSquareDisplacement.calc(molecules) /
+            selfDiffusion = meanSquareDisplacement.calc(molecules, subdomain) /
                             (6_r * real_c(config.thermostatInterval) * config.dt);
             meanSquareDisplacement.reset(molecules);
 

@@ -14,7 +14,6 @@ class MeanSquareDisplacement
 private:
     VectorView initialPosition_;
     idx_t numAtoms_;
-    data::Subdomain subdomain_;
 
 public:
     /**
@@ -26,13 +25,10 @@ public:
      * Compare current positions against the starting point
      * @return mean squre displacement
      */
-    real_t calc(data::Atoms& atoms);
-    real_t calc(data::Molecules& molecules);
+    real_t calc(data::Atoms& atoms, const data::Subdomain& subdomain);
+    real_t calc(data::Molecules& molecules, const data::Subdomain& subdomain);
 
-    MeanSquareDisplacement(const data::Subdomain& subdomain)
-        : initialPosition_("MeanSquareDisplacement::initialPosition", 0), subdomain_(subdomain)
-    {
-    }
+    MeanSquareDisplacement() : initialPosition_("MeanSquareDisplacement::initialPosition", 0) {}
 };
 
 }  // namespace analysis

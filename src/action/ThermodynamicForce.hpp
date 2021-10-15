@@ -17,7 +17,6 @@ private:
     idx_t densityProfileSamples_ = 0;
     const real_t binVolume_;
     const real_t targetDensity_;
-    const data::Subdomain subdomain_;
     const real_t thermodynamicForceModulation_;
 
 public:
@@ -36,7 +35,6 @@ public:
           densityProfile_("density-profile", subdomain.minCorner[0], subdomain.maxCorner[0], 100),
           binVolume_(subdomain.diameter[1] * subdomain.diameter[2] * densityProfile_.binSize),
           targetDensity_(targetDensity),
-          subdomain_(subdomain),
           thermodynamicForceModulation_(thermodynamicForceModulation)
     {
     }
