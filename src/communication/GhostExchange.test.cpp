@@ -80,9 +80,9 @@ protected:
 TEST_F(GhostExchangeTest, SelfExchangeXHigh)
 {
     EXPECT_EQ(atoms.numGhostAtoms, 0);
-    auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealAtom =
-        ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X_HIGH>(atoms, atoms.numLocalAtoms);
+    auto ghostExchange = GhostExchange();
+    auto correspondingRealAtom = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X_HIGH>(
+        atoms, atoms.numLocalAtoms, subdomain);
     EXPECT_EQ(atoms.numGhostAtoms, 9);
     for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
     {
@@ -100,9 +100,9 @@ TEST_F(GhostExchangeTest, SelfExchangeXHigh)
 TEST_F(GhostExchangeTest, SelfExchangeXLow)
 {
     EXPECT_EQ(atoms.numGhostAtoms, 0);
-    auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealAtom =
-        ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X_LOW>(atoms, atoms.numLocalAtoms);
+    auto ghostExchange = GhostExchange();
+    auto correspondingRealAtom = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X_LOW>(
+        atoms, atoms.numLocalAtoms, subdomain);
     EXPECT_EQ(atoms.numGhostAtoms, 9);
     for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
     {
@@ -119,9 +119,9 @@ TEST_F(GhostExchangeTest, SelfExchangeXLow)
 
 TEST_F(GhostExchangeTest, SelfExchangeYHigh)
 {
-    auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealAtom =
-        ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y_HIGH>(atoms, atoms.numLocalAtoms);
+    auto ghostExchange = GhostExchange();
+    auto correspondingRealAtom = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y_HIGH>(
+        atoms, atoms.numLocalAtoms, subdomain);
     EXPECT_EQ(atoms.numGhostAtoms, 9);
     for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
     {
@@ -138,9 +138,9 @@ TEST_F(GhostExchangeTest, SelfExchangeYHigh)
 
 TEST_F(GhostExchangeTest, SelfExchangeYLow)
 {
-    auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealAtom =
-        ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y_LOW>(atoms, atoms.numLocalAtoms);
+    auto ghostExchange = GhostExchange();
+    auto correspondingRealAtom = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y_LOW>(
+        atoms, atoms.numLocalAtoms, subdomain);
     EXPECT_EQ(atoms.numGhostAtoms, 9);
     for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
     {
@@ -157,9 +157,9 @@ TEST_F(GhostExchangeTest, SelfExchangeYLow)
 
 TEST_F(GhostExchangeTest, SelfExchangeZHigh)
 {
-    auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealAtom =
-        ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z_HIGH>(atoms, atoms.numLocalAtoms);
+    auto ghostExchange = GhostExchange();
+    auto correspondingRealAtom = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z_HIGH>(
+        atoms, atoms.numLocalAtoms, subdomain);
     EXPECT_EQ(atoms.numGhostAtoms, 9);
     for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
     {
@@ -176,9 +176,9 @@ TEST_F(GhostExchangeTest, SelfExchangeZHigh)
 
 TEST_F(GhostExchangeTest, SelfExchangeZLow)
 {
-    auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealAtom =
-        ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z_LOW>(atoms, atoms.numLocalAtoms);
+    auto ghostExchange = GhostExchange();
+    auto correspondingRealAtom = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z_LOW>(
+        atoms, atoms.numLocalAtoms, subdomain);
     EXPECT_EQ(atoms.numGhostAtoms, 9);
     for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
     {
@@ -195,8 +195,8 @@ TEST_F(GhostExchangeTest, SelfExchangeZLow)
 
 TEST_F(GhostExchangeTest, SelfExchangeXYZ)
 {
-    auto ghostExchange = GhostExchange(subdomain);
-    auto correspondingRealAtom = ghostExchange.createGhostAtomsXYZ(atoms);
+    auto ghostExchange = GhostExchange();
+    auto correspondingRealAtom = ghostExchange.createGhostAtomsXYZ(atoms, subdomain);
     EXPECT_EQ(atoms.numGhostAtoms, 98);
     for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
     {
@@ -220,8 +220,8 @@ TEST_F(GhostExchangeTest, CountPairs)
     numPairs = countWithinCutoff(atoms, 1.1_r, subdomain.diameter.data(), true);
     EXPECT_EQ(numPairs, 27 * 6 / 2);
 
-    auto ghostExchange = GhostExchange(subdomain);
-    ghostExchange.createGhostAtomsXYZ(atoms);
+    auto ghostExchange = GhostExchange();
+    ghostExchange.createGhostAtomsXYZ(atoms, subdomain);
     EXPECT_EQ(atoms.numGhostAtoms, 98);
 
     numPairs = countWithinCutoff(atoms, 1.1_r, subdomain.diameter.data(), false);

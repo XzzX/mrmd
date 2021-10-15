@@ -11,6 +11,7 @@ namespace data
 {
 struct Subdomain
 {
+    Subdomain() = default;
     Subdomain(const std::array<real_t, 3>& minCornerArg,
               const std::array<real_t, 3>& maxCornerArg,
               real_t ghostLayerThicknessArg)
@@ -32,19 +33,34 @@ struct Subdomain
         }
     }
 
-    std::array<real_t, 3> minCorner;
-    std::array<real_t, 3> maxCorner;
+    std::array<real_t, 3> minCorner = {std::numeric_limits<real_t>::signaling_NaN(),
+                                       std::numeric_limits<real_t>::signaling_NaN(),
+                                       std::numeric_limits<real_t>::signaling_NaN()};
+    std::array<real_t, 3> maxCorner = {
+        std::numeric_limits<real_t>::signaling_NaN(),
+        std::numeric_limits<real_t>::signaling_NaN(),
+        std::numeric_limits<real_t>::signaling_NaN()};  // namespace data
 
-    real_t ghostLayerThickness;
+    real_t ghostLayerThickness = std::numeric_limits<real_t>::signaling_NaN();
 
-    std::array<real_t, 3> minGhostCorner;
-    std::array<real_t, 3> maxGhostCorner;
+    std::array<real_t, 3> minGhostCorner = {std::numeric_limits<real_t>::signaling_NaN(),
+                                            std::numeric_limits<real_t>::signaling_NaN(),
+                                            std::numeric_limits<real_t>::signaling_NaN()};
+    std::array<real_t, 3> maxGhostCorner = {std::numeric_limits<real_t>::signaling_NaN(),
+                                            std::numeric_limits<real_t>::signaling_NaN(),
+                                            std::numeric_limits<real_t>::signaling_NaN()};
 
-    std::array<real_t, 3> minInnerCorner;
-    std::array<real_t, 3> maxInnerCorner;
+    std::array<real_t, 3> minInnerCorner = {std::numeric_limits<real_t>::signaling_NaN(),
+                                            std::numeric_limits<real_t>::signaling_NaN(),
+                                            std::numeric_limits<real_t>::signaling_NaN()};
+    std::array<real_t, 3> maxInnerCorner = {std::numeric_limits<real_t>::signaling_NaN(),
+                                            std::numeric_limits<real_t>::signaling_NaN(),
+                                            std::numeric_limits<real_t>::signaling_NaN()};
 
-    std::array<real_t, 3> diameter;
-};
+    std::array<real_t, 3> diameter = {std::numeric_limits<real_t>::signaling_NaN(),
+                                      std::numeric_limits<real_t>::signaling_NaN(),
+                                      std::numeric_limits<real_t>::signaling_NaN()};
+};  // namespace mrmd
 
 }  // namespace data
 }  // namespace mrmd

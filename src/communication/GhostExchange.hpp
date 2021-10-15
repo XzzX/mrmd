@@ -15,7 +15,7 @@ class GhostExchange
 {
 private:
     data::Atoms atoms_ = data::Atoms(0);
-    const data::Subdomain subdomain_;
+    data::Subdomain subdomain_;
 
     data::Atoms::pos_t pos_;
 
@@ -119,8 +119,10 @@ public:
     void operator()(DIRECTION_Z_LOW, const idx_t& idx) const { copySelfLow(idx, 2); }
 
     template <typename EXCHANGE_DIRECTION>
-    IndexView exchangeGhosts(data::Atoms& atoms, idx_t maxIdx)
+    IndexView exchangeGhosts(data::Atoms& atoms, idx_t maxIdx, const data::Subdomain& subdomain)
     {
+        subdomain_ = subdomain;
+
         if (correspondingRealAtom_.extent(0) < atoms.numLocalAtoms)
         {
             // initialize correspondingRealAtom_ for all real atoms
@@ -156,7 +158,7 @@ public:
         return correspondingRealAtom_;
     }
 
-    IndexView createGhostAtomsXYZ(data::Atoms& atoms)
+    IndexView createGhostAtomsXYZ(data::Atoms& atoms, const data::Subdomain& subdomain)
     {
         atoms.numGhostAtoms = 0;
         util::grow(correspondingRealAtom_, atoms.numLocalAtoms);
@@ -164,23 +166,22 @@ public:
         atoms.resize(correspondingRealAtom_.extent(0));
 
         auto maxIdx = atoms.numLocalAtoms + atoms.numGhostAtoms;
-        exchangeGhosts<impl::GhostExchange::DIRECTION_X_HIGH>(atoms, maxIdx);
-        exchangeGhosts<impl::GhostExchange::DIRECTION_X_LOW>(atoms, maxIdx);
+        exchangeGhosts<impl::GhostExchange::DIRECTION_X_HIGH>(atoms, maxIdx, subdomain);
+        exchangeGhosts<impl::GhostExchange::DIRECTION_X_LOW>(atoms, maxIdx, subdomain);
         maxIdx = atoms.numLocalAtoms + atoms.numGhostAtoms;
-        exchangeGhosts<impl::GhostExchange::DIRECTION_Y_HIGH>(atoms, maxIdx);
-        exchangeGhosts<impl::GhostExchange::DIRECTION_Y_LOW>(atoms, maxIdx);
+        exchangeGhosts<impl::GhostExchange::DIRECTION_Y_HIGH>(atoms, maxIdx, subdomain);
+        exchangeGhosts<impl::GhostExchange::DIRECTION_Y_LOW>(atoms, maxIdx, subdomain);
         maxIdx = atoms.numLocalAtoms + atoms.numGhostAtoms;
-        exchangeGhosts<impl::GhostExchange::DIRECTION_Z_HIGH>(atoms, maxIdx);
-        exchangeGhosts<impl::GhostExchange::DIRECTION_Z_LOW>(atoms, maxIdx);
+        exchangeGhosts<impl::GhostExchange::DIRECTION_Z_HIGH>(atoms, maxIdx, subdomain);
+        exchangeGhosts<impl::GhostExchange::DIRECTION_Z_LOW>(atoms, maxIdx, subdomain);
         Kokkos::fence();
 
         atoms.resize(atoms.numLocalAtoms + atoms.numGhostAtoms);
         return correspondingRealAtom_;
     }
 
-    GhostExchange(const data::Subdomain& subdomain)
-        : subdomain_(subdomain),
-          newGhostCounter_("newGhostCounter"),
+    GhostExchange()
+        : newGhostCounter_("newGhostCounter"),
           hNewGhostCounter_("hNewGhostCounter"),
           correspondingRealAtom_("correspondingRealAtom", 0)
     {

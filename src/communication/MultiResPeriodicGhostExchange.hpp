@@ -63,8 +63,7 @@ DoubleCounter operator+(const DoubleCounter& lhs, const DoubleCounter& rhs)
 class MultiResPeriodicGhostExchange
 {
 private:
-    data::Subdomain subdomain_ = data::Subdomain({0_r, 0_r, 0_r}, {0_r, 0_r, 0_r}, 0_r);
-
+    data::Subdomain subdomain_;
     data::Atoms atoms_ = data::Atoms(0);
     data::Atoms::pos_t atomPos_;
     /// Stores the corresponding real atom index for every ghost atom.

@@ -23,9 +23,9 @@ public:
         impl::PeriodicMapping::mapIntoDomain(atoms, subdomain);
     }
 
-    void createGhostAtoms(data::Atoms& atoms)
+    void createGhostAtoms(data::Atoms& atoms, const data::Subdomain& subdomain)
     {
-        correspondingRealAtom_ = ghostExchange_.createGhostAtomsXYZ(atoms);
+        correspondingRealAtom_ = ghostExchange_.createGhostAtomsXYZ(atoms, subdomain);
     }
 
     void updateGhostAtoms(data::Atoms& atoms, const data::Subdomain& subdomain)
@@ -39,8 +39,6 @@ public:
     {
         impl::AccumulateForce::ghostToReal(atoms, correspondingRealAtom_);
     }
-
-    GhostLayer(const data::Subdomain& subdomain) : ghostExchange_(subdomain) {}
 };
 
 }  // namespace communication
