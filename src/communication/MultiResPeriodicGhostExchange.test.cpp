@@ -27,9 +27,9 @@ TYPED_TEST(TypedMultiResPeriodicGhostExchangeTest, SelfExchange)
 {
     EXPECT_EQ(this->molecules.numGhostMolecules, 0);
     EXPECT_EQ(this->atoms.numGhostAtoms, 0);
-    auto ghostExchange = MultiResPeriodicGhostExchange(this->subdomain);
+    auto ghostExchange = MultiResPeriodicGhostExchange();
     auto correspondingRealAtom = ghostExchange.exchangeGhosts<TypeParam>(
-        this->molecules, this->atoms, this->molecules.numLocalMolecules);
+        this->molecules, this->atoms, this->molecules.numLocalMolecules, this->subdomain);
     EXPECT_EQ(this->molecules.numGhostMolecules, 9);
     EXPECT_EQ(this->atoms.numGhostAtoms, 18);
 
@@ -75,8 +75,8 @@ TEST_F(MultiResPeriodicGhostExchangeTest, createGhostAtomsXYZ)
 {
     EXPECT_EQ(molecules.numGhostMolecules, 0);
     EXPECT_EQ(atoms.numGhostAtoms, 0);
-    auto ghostExchange = MultiResPeriodicGhostExchange(subdomain);
-    auto correspondingRealAtom = ghostExchange.createGhostAtomsXYZ(molecules, atoms);
+    auto ghostExchange = MultiResPeriodicGhostExchange();
+    auto correspondingRealAtom = ghostExchange.createGhostAtomsXYZ(molecules, atoms, subdomain);
     EXPECT_EQ(molecules.numGhostMolecules, 5 * 5 * 5 - 3 * 3 * 3);
     EXPECT_EQ(atoms.numGhostAtoms, (5 * 5 * 5 - 3 * 3 * 3) * 2);
 }

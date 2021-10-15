@@ -62,7 +62,7 @@ void IdealGas(const Config& config)
     {
         action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
-        ghostLayer.exchangeRealAtoms(atoms);
+        ghostLayer.exchangeRealAtoms(atoms, subdomain);
 
         if (i % 100 == 0)
         {

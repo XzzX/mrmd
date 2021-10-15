@@ -56,8 +56,7 @@ TEST_P(UpdateGhostAtomsTest, Check)
     pos(1, 1) = 0.5_r + GetParam().initialDelta[1];
     pos(1, 2) = 0.5_r + GetParam().initialDelta[2];
 
-    UpdateGhostAtoms updateGhostAtoms(subdomain);
-    updateGhostAtoms.updateOnlyPos(atoms, correspondingRealAtom);
+    UpdateGhostAtoms::updateOnlyPos(atoms, correspondingRealAtom, subdomain);
 
     EXPECT_FLOAT_EQ(pos(1, 0), 0.5_r + GetParam().finalDelta[0]);
     EXPECT_FLOAT_EQ(pos(1, 1), 0.5_r + GetParam().finalDelta[1]);

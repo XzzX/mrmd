@@ -38,8 +38,7 @@ TEST_P(PeriodicMappingTest, Check)
     pos(0, 0) = GetParam().initialPos[0];
     pos(0, 1) = GetParam().initialPos[1];
     pos(0, 2) = GetParam().initialPos[2];
-    PeriodicMapping periodicMapping(subdomain);
-    periodicMapping.mapIntoDomain(atoms);
+    PeriodicMapping::mapIntoDomain(atoms, subdomain);
     EXPECT_FLOAT_EQ(pos(0, 0), GetParam().mappedPos[0]);
     EXPECT_FLOAT_EQ(pos(0, 1), GetParam().mappedPos[1]);
     EXPECT_FLOAT_EQ(pos(0, 2), GetParam().mappedPos[2]);

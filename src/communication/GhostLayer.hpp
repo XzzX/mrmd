@@ -14,40 +14,33 @@ namespace communication
 class GhostLayer
 {
 private:
-    const data::Subdomain subdomain_;
     IndexView correspondingRealAtom_;
-    impl::PeriodicMapping periodicMapping_;
     impl::GhostExchange ghostExchange_;
-    impl::UpdateGhostAtoms updateGhostAtoms_;
-    impl::AccumulateForce accumulateForce_;
 
 public:
-    void exchangeRealAtoms(data::Atoms& atoms) { periodicMapping_.mapIntoDomain(atoms); }
+    void exchangeRealAtoms(data::Atoms& atoms, const data::Subdomain& subdomain)
+    {
+        impl::PeriodicMapping::mapIntoDomain(atoms, subdomain);
+    }
 
     void createGhostAtoms(data::Atoms& atoms)
     {
         correspondingRealAtom_ = ghostExchange_.createGhostAtomsXYZ(atoms);
     }
 
-    void updateGhostAtoms(data::Atoms& atoms)
+    void updateGhostAtoms(data::Atoms& atoms, const data::Subdomain& subdomain)
     {
         assert(correspondingRealAtom_.extent(0) >= atoms.size());
 
-        updateGhostAtoms_.updateOnlyPos(atoms, correspondingRealAtom_);
+        impl::UpdateGhostAtoms::updateOnlyPos(atoms, correspondingRealAtom_, subdomain);
     }
 
     void contributeBackGhostToReal(data::Atoms& atoms)
     {
-        accumulateForce_.ghostToReal(atoms, correspondingRealAtom_);
+        impl::AccumulateForce::ghostToReal(atoms, correspondingRealAtom_);
     }
 
-    GhostLayer(const data::Subdomain& subdomain)
-        : subdomain_(subdomain),
-          periodicMapping_(subdomain),
-          ghostExchange_(subdomain),
-          updateGhostAtoms_(subdomain)
-    {
-    }
+    GhostLayer(const data::Subdomain& subdomain) : ghostExchange_(subdomain) {}
 };
 
 }  // namespace communication

@@ -128,7 +128,7 @@ TEST_P(NVT, pressure)
             // reset displacement
             maxAtomDisplacement = 0_r;
 
-            ghostLayer.exchangeRealAtoms(atoms);
+            ghostLayer.exchangeRealAtoms(atoms, subdomain);
 
             real_t gridDelta[3] = {
                 Config::neighborCutoff, Config::neighborCutoff, Config::neighborCutoff};
@@ -152,7 +152,7 @@ TEST_P(NVT, pressure)
         }
         else
         {
-            ghostLayer.updateGhostAtoms(atoms);
+            ghostLayer.updateGhostAtoms(atoms, subdomain);
         }
 
         auto force = atoms.getForce();

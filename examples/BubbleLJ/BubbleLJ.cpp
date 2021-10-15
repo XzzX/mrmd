@@ -111,7 +111,7 @@ void LJ(Config& config)
     action::ThermodynamicForce thermodynamicForce(
         config.rho, subdomain, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
-    communication::MultiResGhostLayer ghostLayer(subdomain);
+    communication::MultiResGhostLayer ghostLayer;
 
     util::printTable("step", "time", "T", "Ek", "E0", "E", "mu", "Nlocal", "Nghost");
     util::printTableSep("step", "time", "T", "Ek", "E0", "E", "mu", "Nlocal", "Nghost");
@@ -129,7 +129,7 @@ void LJ(Config& config)
             // reset displacement
             maxAtomDisplacement = 0_r;
 
-            ghostLayer.exchangeRealAtoms(molecules, atoms);
+            ghostLayer.exchangeRealAtoms(molecules, atoms, subdomain);
 
             //            real_t gridDelta[3] = {
             //                config.neighborCutoff, config.neighborCutoff, config.neighborCutoff};
@@ -141,7 +141,7 @@ void LJ(Config& config)
             //                                          subdomain.maxCorner.data());
             //            atoms.permute(linkedCellList);
 
-            ghostLayer.createGhostAtoms(molecules, atoms);
+            ghostLayer.createGhostAtoms(molecules, atoms, subdomain);
             moleculesVerletList.build(molecules.getPos(),
                                       0,
                                       molecules.numLocalMolecules,
@@ -154,7 +154,7 @@ void LJ(Config& config)
         }
         else
         {
-            ghostLayer.updateGhostAtoms(atoms);
+            ghostLayer.updateGhostAtoms(atoms, subdomain);
         }
 
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);

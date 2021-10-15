@@ -25,8 +25,7 @@ TEST(AccumulateForceTest, ghostToReal)
     auto force = atoms.getForce();
     Cabana::deep_copy(force, 1_r);
 
-    AccumulateForce accumulateForce;
-    accumulateForce.ghostToReal(atoms, correspondingRealAtom);
+    AccumulateForce::ghostToReal(atoms, correspondingRealAtom);
 
     EXPECT_FLOAT_EQ(force(0, 0), 101_r);
     EXPECT_FLOAT_EQ(force(0, 1), 101_r);

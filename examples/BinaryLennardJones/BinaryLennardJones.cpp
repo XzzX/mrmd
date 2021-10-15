@@ -34,24 +34,26 @@ struct Config
     idx_t outputInterval = -1;
 
     idx_t nsteps = 40001;
-    real_t rc = 2.5;
-    real_t skin = 0.3;
-    real_t neighborCutoff = rc + skin;
+    real_t dt = 0.001_r;
+
     real_t sigma = 1_r;
     real_t epsilon = 1_r;
-    real_t dt = 0.001;
+    bool isShifted = true;
+    real_t rc = 2.5;
+
     real_t temperature = 1.02_r;
     real_t gamma = 1_r;
 
-    real_t Lx = 20_r;
-    real_t rho = 1.2_r;
+    real_t Lx = 36_r * sigma;
+    real_t Ly = 5_r * sigma;
+    real_t Lz = 5_r * sigma;
+    idx_t numParticles = 3600;
+    real_t fracTypeA = 0.8_r;
 
     real_t cell_ratio = 1.0_r;
-
     idx_t estimatedMaxNeighbors = 60;
-
-    real_t fracTypeA = 0.8_r;
-    bool isShifted = true;
+    real_t skin = 0.3;
+    real_t neighborCutoff = rc + skin;
 };
 
 data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
@@ -99,10 +101,9 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
 void LJ(Config& config)
 {
     auto subdomain =
-        data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
+        data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Ly, config.Lz}, config.neighborCutoff);
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
-    auto atoms =
-        fillDomainWithAtomsSC(subdomain, idx_c(config.rho * volume), config.fracTypeA, 1_r);
+    auto atoms = fillDomainWithAtomsSC(subdomain, config.numParticles, config.fracTypeA, 1_r);
     auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
@@ -136,7 +137,7 @@ void LJ(Config& config)
             // reset displacement
             maxAtomDisplacement = 0_r;
 
-            ghostLayer.exchangeRealAtoms(atoms);
+            ghostLayer.exchangeRealAtoms(atoms, subdomain);
 
             real_t gridDelta[3] = {
                 config.neighborCutoff, config.neighborCutoff, config.neighborCutoff};
@@ -161,7 +162,7 @@ void LJ(Config& config)
         }
         else
         {
-            ghostLayer.updateGhostAtoms(atoms);
+            ghostLayer.updateGhostAtoms(atoms, subdomain);
         }
 
         auto force = atoms.getForce();

@@ -213,7 +213,7 @@ void SPC(Config& config)
     analysis::MeanSquareDisplacement meanSquareDisplacement(subdomain);
     meanSquareDisplacement.reset(atoms);
     auto selfDiffusion = 0_r;
-    communication::MultiResGhostLayer ghostLayer(subdomain);
+    communication::MultiResGhostLayer ghostLayer;
 
     util::printTable("step", "time", "T", "Ek", "E0", "Ebond", "E", "mu", "D", "Nlocal", "Nghost");
     util::printTableSep(
@@ -234,7 +234,7 @@ void SPC(Config& config)
             // reset displacement
             maxAtomDisplacement = 0_r;
 
-            ghostLayer.exchangeRealAtoms(molecules, atoms);
+            ghostLayer.exchangeRealAtoms(molecules, atoms, subdomain);
 
             //            real_t gridDelta[3] = {
             //                config.neighborCutoff, config.neighborCutoff,
@@ -248,7 +248,7 @@ void SPC(Config& config)
             //                                          subdomain.maxCorner.data());
             //            atoms.permute(linkedCellList);
 
-            ghostLayer.createGhostAtoms(molecules, atoms);
+            ghostLayer.createGhostAtoms(molecules, atoms, subdomain);
             moleculesVerletList.build(molecules.getPos(),
                                       0,
                                       molecules.numLocalMolecules,
@@ -261,7 +261,7 @@ void SPC(Config& config)
         }
         else
         {
-            ghostLayer.updateGhostAtoms(atoms);
+            ghostLayer.updateGhostAtoms(atoms, subdomain);
         }
 
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);

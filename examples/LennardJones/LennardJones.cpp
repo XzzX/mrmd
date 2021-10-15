@@ -109,7 +109,7 @@ void LJ(Config& config)
             // reset displacement
             maxAtomDisplacement = 0_r;
 
-            ghostLayer.exchangeRealAtoms(atoms);
+            ghostLayer.exchangeRealAtoms(atoms, subdomain);
 
             real_t gridDelta[3] = {
                 config.neighborCutoff, config.neighborCutoff, config.neighborCutoff};
@@ -134,7 +134,7 @@ void LJ(Config& config)
         }
         else
         {
-            ghostLayer.updateGhostAtoms(atoms);
+            ghostLayer.updateGhostAtoms(atoms, subdomain);
         }
 
         auto force = atoms.getForce();

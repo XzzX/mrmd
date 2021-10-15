@@ -15,38 +15,34 @@ namespace communication
 class MultiResGhostLayer
 {
 private:
-    const data::Subdomain subdomain_;
     IndexView correspondingRealAtom_;
     impl::MultiResPeriodicGhostExchange ghostExchange_;
-    impl::UpdateGhostAtoms updateGhostAtoms_;
-    impl::AccumulateForce accumulateForce_;
 
 public:
-    void exchangeRealAtoms(data::Molecules& molecules, data::Atoms& atoms)
+    void exchangeRealAtoms(data::Molecules& molecules,
+                           data::Atoms& atoms,
+                           const data::Subdomain& subdomain)
     {
-        realAtomsExchange(subdomain_, molecules, atoms);
+        realAtomsExchange(subdomain, molecules, atoms);
     }
 
-    void createGhostAtoms(data::Molecules& molecules, data::Atoms& atoms)
+    void createGhostAtoms(data::Molecules& molecules,
+                          data::Atoms& atoms,
+                          const data::Subdomain& subdomain)
     {
-        correspondingRealAtom_ = ghostExchange_.createGhostAtomsXYZ(molecules, atoms);
+        correspondingRealAtom_ = ghostExchange_.createGhostAtomsXYZ(molecules, atoms, subdomain);
     }
 
-    void updateGhostAtoms(data::Atoms& atoms)
+    void updateGhostAtoms(data::Atoms& atoms, const data::Subdomain& subdomain)
     {
         assert(correspondingRealAtom_.extent(0) >= atoms.size());
 
-        updateGhostAtoms_.updateOnlyPos(atoms, correspondingRealAtom_);
+        impl::UpdateGhostAtoms::updateOnlyPos(atoms, correspondingRealAtom_, subdomain);
     }
 
     void contributeBackGhostToReal(data::Atoms& atoms)
     {
-        accumulateForce_.ghostToReal(atoms, correspondingRealAtom_);
-    }
-
-    MultiResGhostLayer(const data::Subdomain& subdomain)
-        : subdomain_(subdomain), ghostExchange_(subdomain), updateGhostAtoms_(subdomain)
-    {
+        impl::AccumulateForce::ghostToReal(atoms, correspondingRealAtom_);
     }
 };
 

@@ -63,7 +63,7 @@ DoubleCounter operator+(const DoubleCounter& lhs, const DoubleCounter& rhs)
 class MultiResPeriodicGhostExchange
 {
 private:
-    const data::Subdomain subdomain_;
+    data::Subdomain subdomain_ = data::Subdomain({0_r, 0_r, 0_r}, {0_r, 0_r, 0_r}, 0_r);
 
     data::Atoms atoms_ = data::Atoms(0);
     data::Atoms::pos_t atomPos_;
@@ -231,8 +231,12 @@ public:
     void operator()(DIRECTION_Z_LOW, const idx_t& idx) const { copySelfLow(idx, 2); }
 
     template <typename EXCHANGE_DIRECTION>
-    IndexView exchangeGhosts(data::Molecules& molecules, data::Atoms& atoms, idx_t maxIdx)
+    IndexView exchangeGhosts(data::Molecules& molecules,
+                             data::Atoms& atoms,
+                             idx_t maxIdx,
+                             const data::Subdomain& subdomain)
     {
+        subdomain_ = subdomain;
         if (atomCorrespondingRealAtom_.extent(0) < atoms.numLocalAtoms)
         {
             // initialize atomCorrespondingRealAtom_ for all real atoms
@@ -295,7 +299,9 @@ public:
         return atomCorrespondingRealAtom_;
     }
 
-    IndexView createGhostAtomsXYZ(data::Molecules& molecules, data::Atoms& atoms)
+    IndexView createGhostAtomsXYZ(data::Molecules& molecules,
+                                  data::Atoms& atoms,
+                                  const data::Subdomain& subdomain)
     {
         // reset ghost atoms
         atoms.numGhostAtoms = 0;
@@ -310,14 +316,14 @@ public:
         molecules.resize(moleculesCorrespondingRealAtom_.extent(0));
 
         auto maxIdx = molecules.numLocalMolecules + molecules.numGhostMolecules;
-        exchangeGhosts<DIRECTION_X_HIGH>(molecules, atoms, maxIdx);
-        exchangeGhosts<DIRECTION_X_LOW>(molecules, atoms, maxIdx);
+        exchangeGhosts<DIRECTION_X_HIGH>(molecules, atoms, maxIdx, subdomain);
+        exchangeGhosts<DIRECTION_X_LOW>(molecules, atoms, maxIdx, subdomain);
         maxIdx = molecules.numLocalMolecules + molecules.numGhostMolecules;
-        exchangeGhosts<DIRECTION_Y_HIGH>(molecules, atoms, maxIdx);
-        exchangeGhosts<DIRECTION_Y_LOW>(molecules, atoms, maxIdx);
+        exchangeGhosts<DIRECTION_Y_HIGH>(molecules, atoms, maxIdx, subdomain);
+        exchangeGhosts<DIRECTION_Y_LOW>(molecules, atoms, maxIdx, subdomain);
         maxIdx = molecules.numLocalMolecules + molecules.numGhostMolecules;
-        exchangeGhosts<DIRECTION_Z_HIGH>(molecules, atoms, maxIdx);
-        exchangeGhosts<DIRECTION_Z_LOW>(molecules, atoms, maxIdx);
+        exchangeGhosts<DIRECTION_Z_HIGH>(molecules, atoms, maxIdx, subdomain);
+        exchangeGhosts<DIRECTION_Z_LOW>(molecules, atoms, maxIdx, subdomain);
         Kokkos::fence();
 
         molecules.resize(molecules.numLocalMolecules + molecules.numGhostMolecules);
@@ -325,9 +331,8 @@ public:
         return atomCorrespondingRealAtom_;
     }
 
-    MultiResPeriodicGhostExchange(const data::Subdomain& subdomain)
-        : subdomain_(subdomain),
-          atomCorrespondingRealAtom_("atomCorrespondingRealAtom", 0),
+    MultiResPeriodicGhostExchange()
+        : atomCorrespondingRealAtom_("atomCorrespondingRealAtom", 0),
           moleculesCorrespondingRealAtom_("moleculeCorrespondingRealAtom", 0),
           newMoleculeGhostCounter_("newMoleculeGhostCounter_"),
           hNewMoleculeGhostCounter_("hNewMoleculeGhostCounter_"),
