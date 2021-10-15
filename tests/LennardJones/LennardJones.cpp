@@ -36,9 +36,7 @@ idx_t countWithinCutoff(data::Atoms& atoms,
         Kokkos::RangePolicy<>(0, atoms.numLocalAtoms),
         KOKKOS_LAMBDA(const idx_t idx, idx_t& sum)
         {
-            for (auto jdx = idx + 1;
-                 jdx < atoms.numLocalAtoms + atoms.numGhostAtoms;
-                 ++jdx)
+            for (auto jdx = idx + 1; jdx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++jdx)
             {
                 auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
                 if (periodic && (dx > box[0] * 0.5_r)) dx -= box[0];
@@ -85,8 +83,8 @@ TEST(LennardJones, ESPPComparison)
     EXPECT_EQ(bfAtomPairs, ESPP_NEIGHBORS);
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
-    auto ghostExchange = communication::GhostLayer(subdomain);
-    ghostExchange.createGhostAtoms(atoms);
+    auto ghostExchange = communication::GhostLayer();
+    ghostExchange.createGhostAtoms(atoms, subdomain);
     Kokkos::fence();
     EXPECT_EQ(atoms.numLocalAtoms, ESPP_REAL);
     EXPECT_EQ(atoms.numGhostAtoms, ESPP_GHOST);

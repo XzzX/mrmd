@@ -107,7 +107,7 @@ void LJ(Config& config)
 
     io::dumpGRO("atoms_initial.gro", atoms, subdomain, 0_r, "Argon", false);
 
-    communication::GhostLayer ghostLayer(subdomain);
+    communication::GhostLayer ghostLayer;
     action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     action::VelocityScaling velocityScaling(1_r, config.temperature);
@@ -143,7 +143,7 @@ void LJ(Config& config)
             //                                          subdomain.maxCorner.data());
             //            atoms.permute(linkedCellList);
 
-            ghostLayer.createGhostAtoms(atoms);
+            ghostLayer.createGhostAtoms(atoms, subdomain);
             verletList.build(atoms.getPos(),
                              0,
                              atoms.numLocalAtoms,

@@ -56,7 +56,7 @@ void IdealGas(const Config& config)
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {100_r, 100_r, 100_r}, 1_r);
     auto atoms = initAtoms();
 
-    communication::GhostLayer ghostLayer(subdomain);
+    communication::GhostLayer ghostLayer;
     Kokkos::Timer timer;
     for (auto i = 0; i < config.nsteps; ++i)
     {

@@ -107,7 +107,7 @@ void LJ(Config& config)
     auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
-    communication::GhostLayer ghostLayer(subdomain);
+    communication::GhostLayer ghostLayer;
     std::vector<real_t> sigma = {
         config.sigma, 0.80_r * config.sigma, 0.80_r * config.sigma, 0.88_r * config.sigma};
     std::vector<real_t> epsilon = {
@@ -149,7 +149,7 @@ void LJ(Config& config)
                                           subdomain.maxCorner.data());
             atoms.permute(linkedCellList);
 
-            ghostLayer.createGhostAtoms(atoms);
+            ghostLayer.createGhostAtoms(atoms, subdomain);
             verletList.build(atoms.getPos(),
                              0,
                              atoms.numLocalAtoms,

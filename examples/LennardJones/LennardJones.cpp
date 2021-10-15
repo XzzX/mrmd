@@ -91,7 +91,7 @@ void LJ(Config& config)
     auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
-    communication::GhostLayer ghostLayer(subdomain);
+    communication::GhostLayer ghostLayer;
     action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     VerletList verletList;
@@ -121,7 +121,7 @@ void LJ(Config& config)
                                           subdomain.maxCorner.data());
             //            atoms.permute(linkedCellList);
 
-            ghostLayer.createGhostAtoms(atoms);
+            ghostLayer.createGhostAtoms(atoms, subdomain);
             verletList.build(atoms.getPos(),
                              0,
                              atoms.numLocalAtoms,

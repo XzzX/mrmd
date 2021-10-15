@@ -104,7 +104,6 @@ public:
           volume(subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]),
           atoms(fillDomainWithAtomsSC(subdomain, idx_c(Config::rho * volume), 1_r)),
           rho(real_c(atoms.numLocalAtoms) / volume),
-          ghostLayer(subdomain),
           LJ(Config::rc, Config::sigma, Config::epsilon, 0.7_r * Config::sigma),
           velocityScaling(Config::gamma, 0_r)
     {
@@ -140,7 +139,7 @@ TEST_P(NVT, pressure)
                                           subdomain.maxCorner.data());
             atoms.permute(linkedCellList);
 
-            ghostLayer.createGhostAtoms(atoms);
+            ghostLayer.createGhostAtoms(atoms, subdomain);
             verletList.build(atoms.getPos(),
                              0,
                              atoms.numLocalAtoms,
