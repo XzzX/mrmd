@@ -19,7 +19,7 @@ void ghostToReal(data::Atoms& atoms, const IndexView& correspondingRealAtom)
         if (correspondingRealAtom(idx) == -1) return;
 
         auto realIdx = correspondingRealAtom(idx);
-        assert(correspondingRealAtom_(realIdx) == -1 &&
+        assert(correspondingRealAtom(realIdx) == -1 &&
                "We do not want to add forces to ghost atoms!");
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {

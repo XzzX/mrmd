@@ -1,7 +1,6 @@
 #include "UpdateGhostAtoms.hpp"
 
 #include <Kokkos_Core.hpp>
-
 #include <cassert>
 
 #include "data/Atoms.hpp"
@@ -28,7 +27,7 @@ void updateOnlyPos(data::Atoms& atoms,
         auto realIdx = correspondingRealAtom(idx);
 
         assert(realIdx != idx);
-        assert(correspondingRealAtom_(realIdx) == -1);
+        assert(correspondingRealAtom(realIdx) == -1);
 
         real_t dx[3];
         dx[0] = pos(idx, 0) - pos(realIdx, 0);
