@@ -28,10 +28,10 @@ struct Subdomain
             maxInnerCorner[dim] = maxCorner[dim] - ghostLayerThickness;
 
             diameter[dim] = maxCorner[dim] - minCorner[dim];
-            assert(diameter[dim] >= 0_r);
-            assert(diameter[dim] > ghostLayerThickness && "ghost layer to larger than subdomain");
         }
     }
+
+    void scale(const real_t& scalingFactor);
 
     std::array<real_t, 3> minCorner = {std::numeric_limits<real_t>::signaling_NaN(),
                                        std::numeric_limits<real_t>::signaling_NaN(),
@@ -60,7 +60,9 @@ struct Subdomain
     std::array<real_t, 3> diameter = {std::numeric_limits<real_t>::signaling_NaN(),
                                       std::numeric_limits<real_t>::signaling_NaN(),
                                       std::numeric_limits<real_t>::signaling_NaN()};
-};  // namespace mrmd
+};
+
+void checkInvariants(const Subdomain& subdomain);
 
 }  // namespace data
 }  // namespace mrmd
