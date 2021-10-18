@@ -1,4 +1,5 @@
 add_subdirectory(Constraints)
 add_subdirectory(LangevinThermostat)
 add_subdirectory(LennardJones)
+add_subdirectory(NPT)
 add_subdirectory(NVT)
