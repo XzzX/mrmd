@@ -6,9 +6,9 @@
 #include <iostream>
 
 #include "Cabana_NeighborList.hpp"
+#include "action/BerendsenThermostat.hpp"
 #include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
-#include "action/VelocityScaling.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/Pressure.hpp"
@@ -94,7 +94,6 @@ protected:
     real_t rho;
     communication::GhostLayer ghostLayer;
     action::LennardJones LJ;
-    action::VelocityScaling velocityScaling;
 
     VerletList verletList;
 
@@ -104,16 +103,14 @@ public:
           volume(subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]),
           atoms(fillDomainWithAtomsSC(subdomain, idx_c(Config::rho * volume), 1_r)),
           rho(real_c(atoms.numLocalAtoms) / volume),
-          LJ(Config::rc, Config::sigma, Config::epsilon, 0.7_r * Config::sigma),
-          velocityScaling(Config::gamma, 0_r)
+          LJ(Config::rc, Config::sigma, Config::epsilon, 0.7_r * Config::sigma)
     {
     }
 };
 
 TEST_P(NVT, pressure)
 {
-    auto temperature = GetParam();
-    velocityScaling.set(Config::gamma, temperature);
+    auto targetTemperature = GetParam();
 
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     util::ExponentialMovingAverage p(0.01_r);
@@ -173,17 +170,17 @@ TEST_P(NVT, pressure)
             T << (2_r / 3_r) * Ek;
         }
 
-        velocityScaling.apply(atoms, 3_r * real_c(atoms.numLocalAtoms));
+        action::BerendsenThermostat::apply(atoms, T, targetTemperature, Config::gamma);
 
         ghostLayer.contributeBackGhostToReal(atoms);
         action::VelocityVerlet::postForceIntegrate(atoms, Config::dt);
     }
 
-    EXPECT_NEAR(
-        p,
-        -0.89528939_r * temperature * temperature + 7.48553466_r * temperature - 4.00636731_r,
-        0.2_r);
-    EXPECT_NEAR(T, temperature, 0.01_r);
+    EXPECT_NEAR(p,
+                -0.89528939_r * targetTemperature * targetTemperature +
+                    7.48553466_r * targetTemperature - 4.00636731_r,
+                0.2_r);
+    EXPECT_NEAR(T, targetTemperature, 0.01_r);
 }
 
 INSTANTIATE_TEST_CASE_P(Pressure, NVT, ::testing::Values(0.8_r, 1.0_r, 1.2_r, 1.4_r, 1.6_r));

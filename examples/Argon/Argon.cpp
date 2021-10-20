@@ -9,11 +9,11 @@
 #include <iostream>
 
 #include "Cabana_NeighborList.hpp"
+#include "action/BerendsenThermostat.hpp"
 #include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
 #include "action/LimitAcceleration.hpp"
 #include "action/LimitVelocity.hpp"
-#include "action/VelocityScaling.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/MeanSquareDisplacement.hpp"
@@ -110,7 +110,6 @@ void LJ(Config& config)
     communication::GhostLayer ghostLayer;
     action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
-    action::VelocityScaling velocityScaling(1_r, config.temperature);
     analysis::MeanSquareDisplacement meanSquareDisplacement;
     meanSquareDisplacement.reset(atoms);
     auto msd = 0_r;
@@ -211,8 +210,6 @@ void LJ(Config& config)
                 config.temperature -= 7.8e-3_r;
                 if (config.temperature < 0_r) config.temperature = 0_r;
             }
-            //            velocityScaling.set(1_r, config.temperature);
-            //            velocityScaling.apply(atoms, 3_r * atoms.numLocalAtoms);
 
             langevinThermostat.set(config.gamma, config.temperature * 0.5_r, config.dt);
             langevinThermostat.apply(atoms);

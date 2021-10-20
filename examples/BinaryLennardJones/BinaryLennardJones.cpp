@@ -9,9 +9,9 @@
 #include <iostream>
 
 #include "Cabana_NeighborList.hpp"
+#include "action/BerendsenThermostat.hpp"
 #include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
-#include "action/VelocityScaling.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/Pressure.hpp"
@@ -120,7 +120,6 @@ void LJ(Config& config)
 
     action::LennardJones LJ(cappingDistance, rc, sigma, epsilon, 2, config.isShifted);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
-    action::VelocityScaling velocityScaling(0.5_r, config.temperature);
     VerletList verletList;
     Kokkos::Timer timer;
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
@@ -171,7 +170,10 @@ void LJ(Config& config)
         LJ.applyForces(atoms, verletList);
         if ((config.temperature >= 0) && (step % 100 == 0))
         {
-            velocityScaling.apply(atoms, 3_r * real_c(atoms.numLocalAtoms));
+            auto currentTemperature =
+                analysis::getMeanKineticEnergy(atoms) * 2_r / (3_r * real_c(atoms.numLocalAtoms));
+            action::BerendsenThermostat::apply(
+                atoms, currentTemperature, config.temperature, 0.5_r);
         }
         pressure << analysis::getPressure(atoms, subdomain);
         ghostLayer.contributeBackGhostToReal(atoms);

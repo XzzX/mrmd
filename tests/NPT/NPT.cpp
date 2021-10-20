@@ -7,9 +7,9 @@
 
 #include "Cabana_NeighborList.hpp"
 #include "action/BerendsenBarostat.hpp"
+#include "action/BerendsenThermostat.hpp"
 #include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
-#include "action/VelocityScaling.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/Pressure.hpp"
@@ -107,7 +107,6 @@ protected:
     real_t rho;
     communication::GhostLayer ghostLayer;
     action::LennardJones LJ = action::LennardJones(0_r, 0_r, 0_r, 0_r);
-    action::VelocityScaling velocityScaling = action::VelocityScaling(0_r, 0_r);
 
     VerletList verletList;
 
@@ -117,8 +116,7 @@ public:
           volume(subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]),
           atoms(fillDomainWithAtomsSC(subdomain, idx_c(Config::rho * volume), 1_r)),
           rho(real_c(atoms.numLocalAtoms) / volume),
-          LJ(Config::rc, Config::sigma, Config::epsilon, 0.7_r * Config::sigma),
-          velocityScaling(Config::gamma, 0_r)
+          LJ(Config::rc, Config::sigma, Config::epsilon, 0.7_r * Config::sigma)
     {
     }
 };
@@ -127,11 +125,11 @@ TEST_P(NPT, pressure)
 {
     auto targetTemperature = GetParam().targetTemperature;
     auto targetPressure = GetParam().targetPressure;
-    velocityScaling.set(Config::gamma, targetTemperature);
 
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     util::ExponentialMovingAverage p(0.01_r);
     util::ExponentialMovingAverage T(0.01_r);
+    T << analysis::getMeanKineticEnergy(atoms) * 2_r / 3_r;
     for (auto step = 0; step < Config::nsteps; ++step)
     {
         maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, Config::dt);
@@ -143,7 +141,7 @@ TEST_P(NPT, pressure)
             volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
             maxAtomDisplacement = std::numeric_limits<real_t>::max();
         }
-        velocityScaling.apply(atoms, 3_r * real_c(atoms.numLocalAtoms));
+        action::BerendsenThermostat::apply(atoms, T, targetTemperature, Config::gamma);
 
         if (maxAtomDisplacement >= Config::skin * 0.5_r)
         {

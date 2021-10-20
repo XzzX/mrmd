@@ -10,6 +10,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "action/BerendsenThermostat.hpp"
 #include "action/ContributeMoleculeForceToAtoms.hpp"
 #include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
@@ -17,7 +18,6 @@
 #include "action/LimitVelocity.hpp"
 #include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
-#include "action/VelocityScaling.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/MeanSquareDisplacement.hpp"
@@ -209,7 +209,6 @@ void SPC(Config& config)
     action::ThermodynamicForce thermodynamicForce(
         config.rho, subdomain, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
-    action::VelocityScaling velocityScaling(1_r, config.temperature);
     analysis::MeanSquareDisplacement meanSquareDisplacement;
     meanSquareDisplacement.reset(atoms);
     auto selfDiffusion = 0_r;
@@ -353,8 +352,9 @@ void SPC(Config& config)
                             (6_r * real_c(config.thermostatInterval) * config.dt);
             meanSquareDisplacement.reset(molecules);
 
-            //                    langevinThermostat.apply(atoms);
-            velocityScaling.apply(atoms, 2_r * real_c(atoms.numLocalAtoms));
+            auto currentTemperature =
+                analysis::getMeanKineticEnergy(atoms) * 2_r / (3_r * real_c(atoms.numLocalAtoms));
+            action::BerendsenThermostat::apply(atoms, currentTemperature, config.temperature, 1_r);
         }
 
         if (step < 1000)
