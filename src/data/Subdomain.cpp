@@ -23,7 +23,7 @@ void Subdomain::scale(const real_t& scalingFactor)
     checkInvariants(*this);
 }
 
-void checkInvariants(const Subdomain& subdomain)
+void checkInvariants([[maybe_unused]] const Subdomain& subdomain)
 {
     for (auto dim = 0; dim < DIMENSIONS; ++dim)
     {
