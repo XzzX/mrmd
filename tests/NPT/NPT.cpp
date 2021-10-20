@@ -38,7 +38,7 @@ struct Config
     static constexpr real_t sigma = 1_r;
     static constexpr real_t epsilon = 1_r;
     static constexpr real_t dt = 0.005;
-    static constexpr real_t gamma = 1_r;
+    static constexpr real_t gamma = 0.1_r;
 
     static constexpr real_t Lx = 16.92926877476863_r;
     static constexpr real_t rho = 0.8442_r;
@@ -48,9 +48,9 @@ struct Config
     static constexpr idx_t estimatedMaxNeighbors = 60;
 };
 
-data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
-                                  const idx_t& numAtoms,
-                                  const real_t& maxVelocity)
+data::Atoms fillDomainWithAtomsSC(const data::Subdomain &subdomain,
+                                  const idx_t &numAtoms,
+                                  const real_t &maxVelocity)
 {
     auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
 
@@ -82,25 +82,37 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
     return atoms;
 }
 
-class NVT : public ::testing::TestWithParam<real_t>
+struct Input
 {
-private:
+    real_t targetTemperature;
+    real_t targetPressure;
+};
+
+std::ostream &operator<<(std::ostream &os, const Input &input)
+{
+    os << "T: " << input.targetTemperature << " | "
+       << "p: " << input.targetPressure;
+    return os;
+}
+
+class NPT : public ::testing::TestWithParam<Input>
+{
 protected:
     // void SetUp() override {}
     // void TearDown() override {}
 
     data::Subdomain subdomain;
     real_t volume;
-    data::Atoms atoms;
+    data::Atoms atoms = data::Atoms(0);
     real_t rho;
     communication::GhostLayer ghostLayer;
-    action::LennardJones LJ;
-    action::VelocityScaling velocityScaling;
+    action::LennardJones LJ = action::LennardJones(0_r, 0_r, 0_r, 0_r);
+    action::VelocityScaling velocityScaling = action::VelocityScaling(0_r, 0_r);
 
     VerletList verletList;
 
 public:
-    NVT()
+    NPT()
         : subdomain({0_r, 0_r, 0_r}, {Config::Lx, Config::Lx, Config::Lx}, Config::neighborCutoff),
           volume(subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]),
           atoms(fillDomainWithAtomsSC(subdomain, idx_c(Config::rho * volume), 1_r)),
@@ -111,10 +123,11 @@ public:
     }
 };
 
-TEST_P(NVT, pressure)
+TEST_P(NPT, pressure)
 {
-    auto temperature = GetParam();
-    velocityScaling.set(Config::gamma, temperature);
+    auto targetTemperature = GetParam().targetTemperature;
+    auto targetPressure = GetParam().targetPressure;
+    velocityScaling.set(Config::gamma, targetTemperature);
 
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     util::ExponentialMovingAverage p(0.01_r);
@@ -122,6 +135,15 @@ TEST_P(NVT, pressure)
     for (auto step = 0; step < Config::nsteps; ++step)
     {
         maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, Config::dt);
+
+        if ((step > 200) && (step % 100 == 0))
+        {
+            action::BerendsenBarostat::apply(
+                atoms, p, targetPressure, Config::gamma * 0.1_r, subdomain);
+            volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
+            maxAtomDisplacement = std::numeric_limits<real_t>::max();
+        }
+        velocityScaling.apply(atoms, 3_r * real_c(atoms.numLocalAtoms));
 
         if (maxAtomDisplacement >= Config::skin * 0.5_r)
         {
@@ -160,44 +182,36 @@ TEST_P(NVT, pressure)
 
         LJ.applyForces(atoms, verletList);
 
-        p = util::ExponentialMovingAverage(0.1_r);
+        if (step < 201)
+        {
+            p = util::ExponentialMovingAverage(0.1_r);
+            T = util::ExponentialMovingAverage(0.1_r);
+        }
         auto Ek = analysis::getKineticEnergy(atoms);
         p << 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
-
-        if ((step > 200) && (step % 100 == 0))
-        {
-            action::BerendsenBarostat::apply(atoms, p, 1_r, 1_r, subdomain);
-            volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
-        }
-
-        if (Config::bOutput && (step % Config::outputInterval == 0))
-        {
-            if (step < 201)
-            {
-                T = util::ExponentialMovingAverage(0.1_r);
-            }
-            auto E0 = LJ.computeEnergy(atoms, verletList) / real_c(atoms.numLocalAtoms);
-            Ek /= real_c(atoms.numLocalAtoms);
-            T << (2_r / 3_r) * Ek;
-            std::cout << p << " " << volume << std::endl;
-        }
-
-        velocityScaling.apply(atoms, 3_r * real_c(atoms.numLocalAtoms));
+        Ek /= real_c(atoms.numLocalAtoms);
+        T << (2_r / 3_r) * Ek;
 
         ghostLayer.contributeBackGhostToReal(atoms);
         action::VelocityVerlet::postForceIntegrate(atoms, Config::dt);
+
+        if (Config::bOutput && (step % Config::outputInterval == 0))
+        {
+            //            std::cout << step << " " << T << " " << p << " " << volume << std::endl;
+        }
     }
 
-    EXPECT_NEAR(
-        p,
-        -0.89528939_r * temperature * temperature + 7.48553466_r * temperature - 4.00636731_r,
-        0.2_r);
-    EXPECT_NEAR(T, temperature, 0.01_r);
+    EXPECT_NEAR(T, targetTemperature, 0.01_r);
+    EXPECT_NEAR(p, targetPressure, 0.1_r);
 }
 
-INSTANTIATE_TEST_CASE_P(Pressure, NVT, ::testing::Values(2.0_r));
+INSTANTIATE_TEST_CASE_P(Pressure,
+                        NPT,
+                        ::testing::Values(Input{3.0_r, 9.0_r},
+                                          Input{2.5_r, 8.5_r},
+                                          Input{2.0_r, 8.0_r}));
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
     Kokkos::ScopeGuard scope_guard(argc, argv);
