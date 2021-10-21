@@ -32,6 +32,16 @@ get_target_property(TMP fmt INTERFACE_INCLUDE_DIRECTORIES)
 set_target_properties(fmt PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
 
 FetchContent_Declare(
+        YAML_CPP
+        GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+        GIT_TAG yaml-cpp-0.7.0
+)
+FetchContent_MakeAvailable(YAML_CPP)
+
+get_target_property(TMP yaml-cpp INTERFACE_INCLUDE_DIRECTORIES)
+set_target_properties(yaml-cpp PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
+
+FetchContent_Declare(
         Cabana
         GIT_REPOSITORY https://github.com/ECP-copa/Cabana.git
         GIT_TAG 98bc54fcb70c6ea6833095b7688d6b4b4e0a37c5
