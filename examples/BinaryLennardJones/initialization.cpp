@@ -56,7 +56,7 @@ void init(const YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdoma
                                  config["box"][2].as<real_t>()},
                                 0.1_r);
     atoms = fillDomainWithAtomsSC(subdomain,
-                                  config["num_atoms"].as<real_t>(),
+                                  config["num_atoms"].as<int64_t>(),
                                   config["fraction_type_A"].as<real_t>(),
                                   config["max_velocity"].as<real_t>());
 }
