@@ -46,6 +46,8 @@ struct Config
     static constexpr real_t cell_ratio = 1.0_r;
 
     static constexpr idx_t estimatedMaxNeighbors = 60;
+
+    static constexpr real_t weightingFactor = 0.02_r;
 };
 
 data::Atoms fillDomainWithAtomsSC(const data::Subdomain &subdomain,
@@ -127,8 +129,8 @@ TEST_P(NPT, pressure)
     auto targetPressure = GetParam().targetPressure;
 
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
-    util::ExponentialMovingAverage p(0.01_r);
-    util::ExponentialMovingAverage T(0.01_r);
+    util::ExponentialMovingAverage p(Config::weightingFactor);
+    util::ExponentialMovingAverage T(Config::weightingFactor);
     T << analysis::getMeanKineticEnergy(atoms) * 2_r / 3_r;
     for (auto step = 0; step < Config::nsteps; ++step)
     {
@@ -182,8 +184,8 @@ TEST_P(NPT, pressure)
 
         if (step < 201)
         {
-            p = util::ExponentialMovingAverage(0.1_r);
-            T = util::ExponentialMovingAverage(0.1_r);
+            p = util::ExponentialMovingAverage(Config::weightingFactor);
+            T = util::ExponentialMovingAverage(Config::weightingFactor);
         }
         auto Ek = analysis::getKineticEnergy(atoms);
         p << 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
@@ -199,8 +201,8 @@ TEST_P(NPT, pressure)
         }
     }
 
-    EXPECT_NEAR(T, targetTemperature, 0.1_r);
-    EXPECT_NEAR(p, targetPressure, 0.2_r);
+    EXPECT_NEAR(T, targetTemperature, 0.01_r);
+    EXPECT_NEAR(p, targetPressure, 0.1_r);
 }
 
 INSTANTIATE_TEST_CASE_P(Pressure,
