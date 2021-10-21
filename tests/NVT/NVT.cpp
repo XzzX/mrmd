@@ -180,7 +180,7 @@ TEST_P(NVT, pressure)
                 -0.89528939_r * targetTemperature * targetTemperature +
                     7.48553466_r * targetTemperature - 4.00636731_r,
                 0.2_r);
-    EXPECT_NEAR(T, targetTemperature, 0.01_r);
+    EXPECT_NEAR(T, targetTemperature, 0.1_r);
 }
 
 INSTANTIATE_TEST_CASE_P(Pressure, NVT, ::testing::Values(0.8_r, 1.0_r, 1.2_r, 1.4_r, 1.6_r));
