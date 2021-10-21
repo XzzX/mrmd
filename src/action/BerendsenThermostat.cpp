@@ -1,6 +1,6 @@
-#include <Kokkos_Core.hpp>
-
 #include "BerendsenThermostat.hpp"
+
+#include <Kokkos_Core.hpp>
 
 namespace mrmd
 {
