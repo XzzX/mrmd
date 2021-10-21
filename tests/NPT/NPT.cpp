@@ -201,8 +201,8 @@ TEST_P(NPT, pressure)
         }
     }
 
-    EXPECT_NEAR(T, targetTemperature, 0.01_r);
-    EXPECT_NEAR(p, targetPressure, 0.1_r);
+    EXPECT_NEAR(T, targetTemperature, 0.1_r);
+    EXPECT_NEAR(p, targetPressure, 0.2_r);
 }
 
 INSTANTIATE_TEST_CASE_P(Pressure,
