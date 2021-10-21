@@ -35,7 +35,7 @@ public:
     }
 };
 
-ExponentialMovingAverage& operator<<(ExponentialMovingAverage& lhs, const real_t& rhs)
+inline ExponentialMovingAverage& operator<<(ExponentialMovingAverage& lhs, const real_t& rhs)
 {
     lhs.append(rhs);
     return lhs;
