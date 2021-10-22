@@ -6,23 +6,24 @@ initialization:
   max_velocity: 1.0
 
 NPT:
-  dt: 0.005
+  dt: 0.002
   time_steps: 100000
 
   LJ:
     cutoff: [ 2.5, 2.5, 2.5, 2.5 ]
     sigma: [ 1.0, 1.0, 1.0, 1.0 ]
     epsilon: [ 1.0, 1.0, 1.0, 1.0 ]
-    capping: [ 2.0, 2.0, 2.0, 2.0 ]
+    capping: [ 0.7, 0.7, 0.7, 0.7 ]
+    skin: 0.3
 
   target_pressure: 5.0
-  pressure_relaxation_coefficient: 0.01
+  pressure_relaxation_coefficient: 0.005
   pressure_averaging_coefficient: 0.02
   barostat_interval: 200
 
   target_temperature: 2.0
-  temperature_relaxation_coefficient: 0.1
-  temperature_averaging_coefficient: 0.1
+  temperature_relaxation_coefficient: 1.0
+  temperature_averaging_coefficient: 0.2
   thermostat_interval: 1
 
   enable_output: true

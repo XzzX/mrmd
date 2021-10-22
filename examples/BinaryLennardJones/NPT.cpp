@@ -7,6 +7,7 @@
 #include "analysis/KineticEnergy.hpp"
 #include "communication/GhostLayer.hpp"
 #include "util/ExponentialMovingAverage.hpp"
+#include "util/PrintTable.hpp"
 
 namespace mrmd
 {
@@ -14,19 +15,32 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
 {
     constexpr int64_t estimatedMaxNeighbors = 60;
     constexpr real_t cellRatio = 0.5_r;
-    constexpr real_t skin = 0.3_r;
-    constexpr real_t rc = 2.5_r;
-    constexpr real_t neighborCutoff = rc + skin;
+    const real_t skin = config["LJ"]["skin"].as<real_t>();
+    auto rcVec = config["LJ"]["cutoff"].as<std::vector<real_t>>();
+    const real_t rc = *std::max_element(rcVec.begin(), rcVec.end());
+    const real_t neighborCutoff = rc + skin;
     auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
 
     communication::GhostLayer ghostLayer;
-    action::LennardJones LJ = action::LennardJones(rc, 1_r, 1_r, 0.8_r);
+    auto LJ = action::LennardJones(config["LJ"]["capping"].as<std::vector<real_t>>(),
+                                   config["LJ"]["cutoff"].as<std::vector<real_t>>(),
+                                   config["LJ"]["sigma"].as<std::vector<real_t>>(),
+                                   config["LJ"]["epsilon"].as<std::vector<real_t>>(),
+                                   2,
+                                   true);
     VerletList verletList;
 
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
-    util::ExponentialMovingAverage p(config["pressure_averaging_coefficient"].as<real_t>());
-    util::ExponentialMovingAverage T(config["temperature_averaging_coefficient"].as<real_t>());
-    T << analysis::getMeanKineticEnergy(atoms) * 2_r / 3_r;
+    util::ExponentialMovingAverage currentPressure(
+        config["pressure_averaging_coefficient"].as<real_t>());
+    util::ExponentialMovingAverage currentTemperature(
+        config["temperature_averaging_coefficient"].as<real_t>());
+    currentTemperature << analysis::getMeanKineticEnergy(atoms) * 2_r / 3_r;
+
+    if (config["enable_output"].as<bool>())
+        util::printTable("step", "T", "p", "V", "Nlocal", "Nghost");
+    if (config["enable_output"].as<bool>())
+        util::printTableSep("step", "T", "p", "V", "Nlocal", "Nghost");
     for (auto step = 0; step < config["time_steps"].as<int64_t>(); ++step)
     {
         maxAtomDisplacement +=
@@ -35,7 +49,7 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
         if ((step > 200) && (step % config["barostat_interval"].as<int64_t>() == 0))
         {
             action::BerendsenBarostat::apply(atoms,
-                                             p,
+                                             currentPressure,
                                              config["target_pressure"].as<real_t>(),
                                              config["pressure_relaxation_coefficient"].as<real_t>(),
                                              subdomain);
@@ -47,7 +61,7 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
         {
             action::BerendsenThermostat::apply(
                 atoms,
-                T,
+                currentTemperature,
                 config["target_temperature"].as<real_t>(),
                 config["temperature_relaxation_coefficient"].as<real_t>());
         }
@@ -90,15 +104,15 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
 
         if (step < 201)
         {
-            p = util::ExponentialMovingAverage(
+            currentPressure = util::ExponentialMovingAverage(
                 config["pressure_averaging_coefficient"].as<real_t>());
-            T = util::ExponentialMovingAverage(
+            currentTemperature = util::ExponentialMovingAverage(
                 config["temperature_averaging_coefficient"].as<real_t>());
         }
         auto Ek = analysis::getKineticEnergy(atoms);
-        p << 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
+        currentPressure << 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
         Ek /= real_c(atoms.numLocalAtoms);
-        T << (2_r / 3_r) * Ek;
+        currentTemperature << (2_r / 3_r) * Ek;
 
         ghostLayer.contributeBackGhostToReal(atoms);
         action::VelocityVerlet::postForceIntegrate(atoms, config["dt"].as<real_t>());
@@ -106,8 +120,15 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
         if ((config["enable_output"].as<bool>()) &&
             (step % config["output_interval"].as<int64_t>() == 0))
         {
-            std::cout << step << " " << T << " " << p << " " << volume << std::endl;
+            util::printTable(step,
+                             currentTemperature,
+                             currentPressure,
+                             volume,
+                             atoms.numLocalAtoms,
+                             atoms.numGhostAtoms);
         }
     }
+    if (config["enable_output"].as<bool>())
+        util::printTableSep("step", "T", "p", "V", "Nlocal", "Nghost");
 }
 }  // namespace mrmd
