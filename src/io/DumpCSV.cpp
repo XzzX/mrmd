@@ -23,13 +23,14 @@ void dumpCSV(const std::string& filename, data::Atoms& atoms, bool dumpGhosts)
         std::cerr << "Could not open file: " << filename << std::endl;
         exit(EXIT_FAILURE);
     }
-    fout << "idx, mol, type, pos_x, pos_y, pos_z, vel_x, vel_y, vel_z" << std::endl;
+    fout << "idx, mol, type, ghost, pos_x, pos_y, pos_z, vel_x, vel_y, vel_z" << std::endl;
     auto lastAtomIdx = atoms.numLocalAtoms + (dumpGhosts ? atoms.numGhostAtoms : 0);
     for (idx_t idx = 0; idx < lastAtomIdx; ++idx)
     {
-        fout << idx << ", " << idx / 3 << ", " << type(idx) << ", " << pos(idx, 0) << ", "
-             << pos(idx, 1) << ", " << pos(idx, 2) << ", " << vel(idx, 0) << ", " << vel(idx, 1)
-             << ", " << vel(idx, 2) << std::endl;
+        fout << idx << ", " << idx / 3 << ", " << type(idx) << ", "
+             << ((idx < atoms.numLocalAtoms) ? 0 : 1) << ", " << pos(idx, 0) << ", " << pos(idx, 1)
+             << ", " << pos(idx, 2) << ", " << vel(idx, 0) << ", " << vel(idx, 1) << ", "
+             << vel(idx, 2) << std::endl;
     }
     fout.close();
 }
