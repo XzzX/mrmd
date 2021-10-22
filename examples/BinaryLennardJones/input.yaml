@@ -1,7 +1,7 @@
 ---
 initialization:
   num_atoms: 3600
-  box: [ 36, 36, 5 ]
+  box: [ 36, 5, 5 ]
   fraction_type_A: 0.1
   max_velocity: 1.0
 
