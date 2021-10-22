@@ -31,6 +31,7 @@ struct Subdomain
         }
     }
 
+    void scaleDim(const real_t& scalingFactor, const idx_t& dim);
     void scale(const real_t& scalingFactor);
 
     std::array<real_t, 3> minCorner = {std::numeric_limits<real_t>::signaling_NaN(),
