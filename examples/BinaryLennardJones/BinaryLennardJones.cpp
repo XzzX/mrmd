@@ -10,23 +10,11 @@
 
 #include "Cabana_NeighborList.hpp"
 #include "NPT.hpp"
-#include "action/BerendsenThermostat.hpp"
-#include "action/LangevinThermostat.hpp"
-#include "action/LennardJones.hpp"
-#include "action/VelocityVerlet.hpp"
-#include "analysis/KineticEnergy.hpp"
-#include "analysis/Pressure.hpp"
-#include "analysis/SystemMomentum.hpp"
-#include "communication/GhostLayer.hpp"
+#include "SPARTIAN.hpp"
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "initialization.hpp"
-#include "io/DumpCSV.hpp"
-#include "io/RestoreTXT.hpp"
-#include "util/EnvironmentVariables.hpp"
-#include "util/ExponentialMovingAverage.hpp"
-#include "util/PrintTable.hpp"
 
 using namespace mrmd;
 
@@ -70,6 +58,12 @@ void LJ(YAML::Node& config)
 
     auto NPTConfig = config["NPT"];
     npt(NPTConfig, atoms, subdomain);
+
+    atoms.numGhostAtoms = 0;
+    auto molecules = initMolecules(atoms.numLocalAtoms);
+
+    auto spartianConfig = config["SPARTIAN"];
+    spartian(spartianConfig, molecules, atoms, subdomain);
 }
 
 int main(int argc, char* argv[])  // NOLINT

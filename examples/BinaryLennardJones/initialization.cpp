@@ -53,11 +53,31 @@ void init(const YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdoma
                                 {config["box"][0].as<real_t>(),
                                  config["box"][1].as<real_t>(),
                                  config["box"][2].as<real_t>()},
-                                0.1_r);
+                                config["ghost_layer_thickness"].as<real_t>());
     atoms = fillDomainWithAtomsSC(subdomain,
                                   config["num_atoms"].as<int64_t>(),
                                   config["fraction_type_A"].as<real_t>(),
                                   config["max_velocity"].as<real_t>());
+}
+
+data::Molecules initMolecules(const idx_t& numAtoms)
+{
+    auto molecules = data::Molecules(2 * numAtoms);
+    auto offset = molecules.getAtomsOffset();
+    auto size = molecules.getNumAtoms();
+
+    auto policy = Kokkos::RangePolicy<>(0, numAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
+    {
+        offset(idx) = idx;
+        size(idx) = 1;
+    };
+    Kokkos::parallel_for(policy, kernel, "initMolecules");
+    Kokkos::fence();
+
+    molecules.numLocalMolecules = numAtoms;
+
+    return molecules;
 }
 
 }  // namespace mrmd

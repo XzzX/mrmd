@@ -9,6 +9,8 @@
 
 namespace mrmd
 {
-void init(const YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain);
-data::Molecules initMolecules(const idx_t& numAtoms);
-}  // namespace mrmd
+void spartian(YAML::Node& config,
+              data::Molecules& molecules,
+              data::Atoms& atoms,
+              data::Subdomain& subdomain);
+}
