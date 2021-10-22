@@ -39,7 +39,6 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
         mass(idx) = 1_r;
 
         type(idx) = idx < numAtomsA ? 0 : 1;
-        type(idx) = 0;
     };
     Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
 
