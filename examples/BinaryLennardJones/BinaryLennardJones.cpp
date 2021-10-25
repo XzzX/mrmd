@@ -18,43 +18,13 @@
 
 using namespace mrmd;
 
-struct Config
-{
-    bool bOutput = true;
-    idx_t outputInterval = -1;
-
-    idx_t nsteps = 40001;
-    real_t dt = 0.001_r;
-
-    real_t sigma = 1_r;
-    real_t epsilon = 1_r;
-    bool isShifted = true;
-    real_t rc = 2.5;
-
-    real_t temperature = 1.02_r;
-    real_t gamma = 1_r;
-
-    real_t Lx = 36_r * sigma;
-    real_t Ly = 5_r * sigma;
-    real_t Lz = 5_r * sigma;
-    idx_t numParticles = 3600;
-    real_t fracTypeA = 0.8_r;
-
-    real_t cell_ratio = 1.0_r;
-    idx_t estimatedMaxNeighbors = 60;
-    real_t skin = 0.3;
-    real_t neighborCutoff = rc + skin;
-};
-
 void LJ(YAML::Node& config)
 {
-    auto initializationConfig = config["initialization"];
     data::Subdomain subdomain;
     data::Atoms atoms(0);
+
+    auto initializationConfig = config["initialization"];
     init(initializationConfig, atoms, subdomain);
-    const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
-    auto rho = real_c(atoms.numLocalAtoms) / volume;
-    std::cout << "rho: " << rho << std::endl;
 
     auto NPTConfig = config["NPT"];
     npt(NPTConfig, atoms, subdomain);
