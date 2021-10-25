@@ -55,8 +55,8 @@ void spartian(YAML::Node& config,
                                   config["center"][2].as<real_t>()},
                                  config["atomistic_region_diameter"].as<real_t>(),
                                  config["hybrid_region_diameter"].as<real_t>(),
-                                 config["lambda_exponent"].as<real_t>());
-    auto rho = atoms.numLocalAtoms / volume;
+                                 config["lambda_exponent"].as<int64_t>());
+    auto rho = real_c(atoms.numLocalAtoms) / volume;
     action::ThermodynamicForce thermodynamicForce(
         rho, subdomain, config["thermodynamic_force_modulation"].as<real_t>());
 
