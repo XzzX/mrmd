@@ -65,9 +65,9 @@ void spartian(YAML::Node& config,
     std::ofstream fDriftForceCompensation("driftForce.txt");
 
     if (config["enable_output"].as<bool>())
-        util::printTable("step", "T", "p", "V", "Nlocal", "Nghost");
+        util::printTable("step", "T", "p", "V", "mu", "Nlocal", "Nghost");
     if (config["enable_output"].as<bool>())
-        util::printTableSep("step", "T", "p", "V", "Nlocal", "Nghost");
+        util::printTableSep("step", "T", "p", "V", "mu", "Nlocal", "Nghost");
     for (auto step = 0; step < config["time_steps"].as<int64_t>(); ++step)
     {
         assert(atoms.numLocalAtoms == molecules.numLocalMolecules);
@@ -173,17 +173,18 @@ void spartian(YAML::Node& config,
                              currentTemperature,
                              currentPressure,
                              volume,
+                             mu,
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
             fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
-            //            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
+            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
 
-            io::dumpCSV(fmt::format("spartian_{:0>6}.csv", step), atoms);
+            io::dumpCSV(fmt::format("spartian_{:0>6}.csv", step), atoms, false);
         }
     }
     if (config["enable_output"].as<bool>())
-        util::printTableSep("step", "T", "p", "V", "Nlocal", "Nghost");
+        util::printTableSep("step", "T", "p", "V", "mu", "Nlocal", "Nghost");
 
     fDensityOut.close();
     fThermodynamicForceOut.close();

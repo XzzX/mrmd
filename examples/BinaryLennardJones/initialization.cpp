@@ -19,6 +19,7 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
     auto pos = atoms.getPos();
     auto vel = atoms.getVel();
     auto mass = atoms.getMass();
+    auto relativeMass = atoms.getRelativeMass();
     auto type = atoms.getType();
 
     auto numAtomsA = int_c(real_c(numAtoms) * fracTypeA);
@@ -37,6 +38,7 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
         RNG.free_state(randGen);
 
         mass(idx) = 1_r;
+        relativeMass(idx) = 1_r;
 
         type(idx) = idx < numAtomsA ? 0 : 1;
     };
