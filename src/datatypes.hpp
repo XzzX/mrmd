@@ -115,6 +115,8 @@ using IntScatterView = Kokkos::Experimental::ScatterView<idx_t *>;
 using PairView = Kokkos::View<idx_t *[2]>;
 using ScalarView = Kokkos::View<real_t *>;
 using ScalarScatterView = Kokkos::Experimental::ScatterView<real_t *>;
+using MultiView = Kokkos::View<real_t **>;
+using MultiScatterView = Kokkos::Experimental::ScatterView<real_t **>;
 using VectorView = Kokkos::View<real_t *[3]>;
 using VectorScatterView = Kokkos::Experimental::ScatterView<real_t *[3]>;
 
