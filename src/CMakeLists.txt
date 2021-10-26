@@ -7,7 +7,7 @@ set(MRMD_VECTOR_LENGTH 1 CACHE STRING "vector length of AoSoA data structure")
 configure_file(cmake.hpp.in cmake.hpp @ONLY)
 
 add_library(mrmd ${MRMD_SOURCES})
-target_link_libraries(mrmd PUBLIC Kokkos::kokkos Cabana::cabanacore)
+target_link_libraries(mrmd PUBLIC Kokkos::kokkos Cabana::cabanacore PRIVATE fmt::fmt)
 target_include_directories(mrmd
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 target_include_directories(mrmd PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
