@@ -56,9 +56,22 @@ void spartian(YAML::Node& config,
                                  config["atomistic_region_diameter"].as<real_t>(),
                                  config["hybrid_region_diameter"].as<real_t>(),
                                  config["lambda_exponent"].as<int64_t>());
-    auto rho = real_c(atoms.numLocalAtoms) / volume;
+
+    idx_t countTypeA = 0;
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t& idx, idx_t& count)
+    {
+        count += atoms.getType()(idx) == 0 ? 1 : 0;
+    };
+    Kokkos::parallel_reduce(policy, kernel, countTypeA);
+    Kokkos::fence();
+    auto rhoA = countTypeA / volume;
+    auto rhoB = (real_c(atoms.numLocalAtoms) - countTypeA) / volume;
+    std::cout << rhoA << " " << rhoB << std::endl;
     action::ThermodynamicForce thermodynamicForce(
-        rho, subdomain, config["thermodynamic_force_modulation"].as<real_t>());
+        {rhoA, rhoB},
+        subdomain,
+        config["thermodynamic_force_modulation"].as<std::vector<real_t>>());
 
     std::ofstream fDensityOut("densityProfile.txt");
     std::ofstream fThermodynamicForceOut("thermodynamicForce.txt");
@@ -161,7 +174,7 @@ void spartian(YAML::Node& config,
         {
             // calc chemical potential
             auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
-                                                           thermodynamicForce.getForce().data);
+                                                           thermodynamicForce.getForce(1));
             auto mu = 0_r;
             for (auto i = 0; i < Fth.extent(0) / 2; ++i)
             {
@@ -177,7 +190,12 @@ void spartian(YAML::Node& config,
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
-            fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
+            for (auto i = 0; i < Fth.extent(0); ++i)
+            {
+                fThermodynamicForceOut << Fth(i) << " ";
+            }
+            fThermodynamicForceOut << std::endl;
+
             fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
 
             io::dumpCSV(fmt::format("spartian_{:0>6}.csv", step), atoms, false);

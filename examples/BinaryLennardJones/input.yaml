@@ -1,14 +1,14 @@
 ---
 initialization:
   num_atoms: 3600
-  box: [ 36, 5, 5 ]
+  box: [ 36, 5, 10 ]
   fraction_type_A: 0.1
   max_velocity: 1.0
   ghost_layer_thickness: 2.8
 
 NPT:
   dt: 0.002
-  time_steps: 5000
+  time_steps: 10000
 
   LJ:
     cutoff: [ 2.5, 2.5, 2.5, 2.5 ]
@@ -28,7 +28,7 @@ NPT:
   thermostat_interval: 1
 
   enable_output: true
-  output_interval: 100
+  output_interval: 1000
 
 SPARTIAN:
   dt: 0.002
@@ -53,11 +53,11 @@ SPARTIAN:
   hybrid_region_diameter: 10.0
   lambda_exponent: 7
 
-  thermodynamic_force_modulation: 2.0
+  thermodynamic_force_modulation: [ 2.0, 2.0 ]
 
   density_sampling_interval: 200
   density_update_interval: 1000
 
   enable_output: true
-  output_interval: 100
+  output_interval: 1000
 
