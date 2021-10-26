@@ -35,10 +35,11 @@ void ThermodynamicForce::update()
 
     auto smoothedDensityGradient =
         data::gradient(analysis::smoothenDensityProfile(densityProfile_, 2_r, 2_r));
+    auto forceFactor = forceFactor_;  ///< avoid capturing this pointer
     Kokkos::parallel_for(
         policy,
         KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histogramIdx)
-        { smoothedDensityGradient.data(binIdx, histogramIdx) *= forceFactor_(histogramIdx); },
+        { smoothedDensityGradient.data(binIdx, histogramIdx) *= forceFactor(histogramIdx); },
         "ThermodynamicForce::calc_force");
     Kokkos::fence();
 
