@@ -10,7 +10,7 @@ namespace analysis
  * increasing density of type 0 atoms from left to right
  * decreasing density of type 1 atoms from right to left
  */
-auto initAtoms()
+data::Atoms initAtoms()
 {
     data::Atoms atoms(100 * 2);
     atoms.numLocalAtoms = 200;
