@@ -65,8 +65,8 @@ void spartian(YAML::Node& config,
     };
     Kokkos::parallel_reduce(policy, kernel, countTypeA);
     Kokkos::fence();
-    auto rhoA = countTypeA / volume;
-    auto rhoB = (real_c(atoms.numLocalAtoms) - countTypeA) / volume;
+    auto rhoA = real_c(countTypeA) / volume;
+    auto rhoB = real_c(atoms.numLocalAtoms - countTypeA) / volume;
     std::cout << rhoA << " " << rhoB << std::endl;
     action::ThermodynamicForce thermodynamicForce(
         {rhoA, rhoB},
