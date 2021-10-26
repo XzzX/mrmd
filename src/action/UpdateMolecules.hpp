@@ -39,6 +39,8 @@ public:
 
             for (auto atomIdx = atomsStart; atomIdx < atomsEnd; ++atomIdx)
             {
+                assert(atomsRelativeMass(atomIdx) > 1e-8 &&
+                       "Contribution almost zero. Did you forget to set relative mass?");
                 moleculesPos(moleculeIdx, 0) += atomsPos(atomIdx, 0) * atomsRelativeMass(atomIdx);
                 moleculesPos(moleculeIdx, 1) += atomsPos(atomIdx, 1) * atomsRelativeMass(atomIdx);
                 moleculesPos(moleculeIdx, 2) += atomsPos(atomIdx, 2) * atomsRelativeMass(atomIdx);
