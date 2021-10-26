@@ -296,7 +296,7 @@ void SPC(Config& config)
 
             // calc chemical potential
             auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
-                                                           thermodynamicForce.getForce().data);
+                                                           thermodynamicForce.getForce(0));
             auto mu = 0_r;
             for (auto i = 0; i < Fth.extent(0) / 2; ++i)
             {
@@ -316,7 +316,11 @@ void SPC(Config& config)
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
-            //            fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
+            //            for (auto i = 0; i < Fth.extent(0); ++i)
+            //            {
+            //                fThermodynamicForceOut << Fth(i) << " ";
+            //            }
+            //            fThermodynamicForceOut << std::endl;
             //            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
         }
 
