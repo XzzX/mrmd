@@ -20,14 +20,17 @@ private:
     const std::vector<real_t> thermodynamicForceModulation_;
     idx_t numTypes_;
 
+    ScalarView forceFactor_;  ///< precalculated prefactor for force calculation
+
 public:
-    inline auto getForce(const idx_t& typeId = 0) const
+    inline auto getForce() const { return force_; }
+    inline auto getForce(const idx_t& typeId) const
     {
         assert(typeId < numTypes_);
         assert(typeId >= 0);
         return Kokkos::subview(force_.data, Kokkos::ALL(), typeId);
     }
-    inline auto getDensityProfile(const idx_t& typeId = 0) const
+    inline auto getDensityProfile(const idx_t& typeId) const
     {
         assert(typeId < numTypes_);
         assert(typeId >= 0);
@@ -54,11 +57,19 @@ public:
                           targetDensity.size()),
           binVolume_(subdomain.diameter[1] * subdomain.diameter[2] * densityProfile_.binSize),
           targetDensity_(targetDensity),
-          thermodynamicForceModulation_(thermodynamicForceModulation)
+          thermodynamicForceModulation_(thermodynamicForceModulation),
+          forceFactor_("force-factor", targetDensity.size())
     {
         assert(targetDensity.size() == thermodynamicForceModulation.size());
         numTypes_ = targetDensity.size();
         assert(numTypes_ > 0);
+
+        auto hForceFactor = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), forceFactor_);
+        for (auto i = 0; i < numTypes_; ++i)
+        {
+            hForceFactor(i) = thermodynamicForceModulation_[i] / targetDensity_[i];
+        }
+        Kokkos::deep_copy(forceFactor_, hForceFactor);
     }
 
     ThermodynamicForce(const real_t targetDensity,
