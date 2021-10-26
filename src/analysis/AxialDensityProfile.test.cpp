@@ -43,8 +43,8 @@ TEST(LinearDensityProfile, histogram)
 
     for (auto i = 0; i < 10; ++i)
     {
-        EXPECT_FLOAT_EQ(histogram[0].data(i), real_c(i + 1));
-        EXPECT_FLOAT_EQ(histogram[1].data(i), real_c(11 - (i + 1)));
+        EXPECT_FLOAT_EQ(histogram.data(i, 0), real_c(i + 1));
+        EXPECT_FLOAT_EQ(histogram.data(i, 1), real_c(11 - (i + 1)));
     }
 }
 }  // namespace analysis
