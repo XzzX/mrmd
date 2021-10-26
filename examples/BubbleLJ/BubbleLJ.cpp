@@ -1,3 +1,5 @@
+#include <fmt/format.h>
+
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
 #include <CLI/Formatter.hpp>
@@ -189,12 +191,12 @@ void LJ(Config& config)
         {
             auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto T = (2_r / (3_r * real_c(atoms.numLocalAtoms))) * Ek;
+            auto T = (2_r / 3_r) * Ek;
             E0 /= real_c(atoms.numLocalAtoms);
 
             // calc chemical potential
             auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
-                                                           thermodynamicForce.getForce().data);
+                                                           thermodynamicForce.getForce(0));
             auto mu = 0_r;
             for (auto i = 0; i < Fth.extent(0) / 2; ++i)
             {
@@ -212,9 +214,14 @@ void LJ(Config& config)
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
-            io::dumpCSV("atoms_" + std::to_string(step) + ".csv", atoms);
+            io::dumpCSV(fmt::format("atoms_{:0>6}.csv", step), atoms);
 
-            fThermodynamicForceOut << thermodynamicForce.getForce() << std::endl;
+            for (auto i = 0; i < Fth.extent(0); ++i)
+            {
+                fThermodynamicForceOut << Fth(i) << " ";
+            }
+            fThermodynamicForceOut << std::endl;
+
             fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
         }
     }
