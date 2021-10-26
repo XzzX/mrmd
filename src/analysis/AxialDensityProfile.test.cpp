@@ -10,7 +10,7 @@ namespace analysis
  * increasing density of type 0 atoms from left to right
  * decreasing density of type 1 atoms from right to left
  */
-TEST(LinearDensityProfile, histogram)
+auto initAtoms()
 {
     data::Atoms atoms(100 * 2);
     atoms.numLocalAtoms = 200;
@@ -37,9 +37,16 @@ TEST(LinearDensityProfile, histogram)
     idx_t numAtoms = 0;
     Kokkos::parallel_reduce("LinearDensityProfile::histogram", policy, kernel, numAtoms);
     Kokkos::fence();
+    atoms.numLocalAtoms = numAtoms;
 
-    auto histogram =
-        getAxialDensityProfile(numAtoms, atoms.getPos(), atoms.getType(), 2, 0_r, 10_r, 10);
+    return atoms;
+}
+TEST(LinearDensityProfile, histogram)
+{
+    auto atoms = initAtoms();
+
+    auto histogram = getAxialDensityProfile(
+        atoms.numLocalAtoms, atoms.getPos(), atoms.getType(), 2, 0_r, 10_r, 10);
 
     for (auto i = 0; i < 10; ++i)
     {
