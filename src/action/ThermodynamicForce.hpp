@@ -42,26 +42,26 @@ public:
     void update();
     void apply(const data::Atoms& atoms) const;
 
-    ThermodynamicForce(const std::vector<real_t> targetDensity,
+    ThermodynamicForce(const std::vector<real_t>& targetDensity,
                        const data::Subdomain& subdomain,
-                       const std::vector<real_t> thermodynamicForceModulation)
+                       const std::vector<real_t>& thermodynamicForceModulation)
         : force_("thermodynamic-force",
                  subdomain.minCorner[0],
                  subdomain.maxCorner[0],
                  100,
-                 targetDensity.size()),
+                 idx_c(targetDensity.size())),
           densityProfile_("density-profile",
                           subdomain.minCorner[0],
                           subdomain.maxCorner[0],
                           100,
-                          targetDensity.size()),
+                          idx_c(targetDensity.size())),
           binVolume_(subdomain.diameter[1] * subdomain.diameter[2] * densityProfile_.binSize),
           targetDensity_(targetDensity),
           thermodynamicForceModulation_(thermodynamicForceModulation),
           forceFactor_("force-factor", targetDensity.size())
     {
         assert(targetDensity.size() == thermodynamicForceModulation.size());
-        numTypes_ = targetDensity.size();
+        numTypes_ = idx_c(targetDensity.size());
         assert(numTypes_ > 0);
 
         auto hForceFactor = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), forceFactor_);
