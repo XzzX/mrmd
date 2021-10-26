@@ -13,7 +13,7 @@ MultiHistogram& MultiHistogram::operator+=(const MultiHistogram& rhs)
     assert(max == rhs.max);
 
     auto lhs = data;
-    auto policy = Kokkos::MDRangePolicy<>({0, 0}, {numBins, numHistograms});
+    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {numBins, numHistograms});
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
     {
         lhs(idx, jdx) += rhs.data(idx, jdx);
@@ -29,7 +29,8 @@ data::MultiHistogram gradient(const data::MultiHistogram& input)
     const auto inverseDoubleSpacing = 0.5_r * input.inverseBinSize;
 
     data::MultiHistogram grad("gradient", input.min, input.max, input.numBins, input.numHistograms);
-    auto policy = Kokkos::MDRangePolicy<>({0, 0}, {input.numBins, input.numHistograms});
+    auto policy =
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {input.numBins, input.numHistograms});
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
     {
         if (idx == 0)
