@@ -146,7 +146,8 @@ private:
 
     const idx_t numTypes_;
 
-    Kokkos::View<real_t, Kokkos::MemoryTraits<Kokkos::Atomic>> virial_;
+    SingleView virial_;
+    SingleScatterView scatterVirial_;
 
 public:
     KOKKOS_INLINE_FUNCTION
@@ -175,7 +176,10 @@ public:
 
             auto typeIdx = type_(idx) * numTypes_ + type_(jdx);
             auto ffactor = LJ_.computeForce(distSqr, typeIdx);
-            virial_() -= 0.5_r * ffactor * distSqr;
+            {
+                auto access = scatterVirial_.access();
+                access() -= 0.5_r * ffactor * distSqr;
+            }
 
             forceTmp[0] += dx * ffactor;
             forceTmp[1] += dy * ffactor;
@@ -208,6 +212,7 @@ public:
     void applyForces(data::Atoms& atoms, VerletList& verletList)
     {
         Kokkos::deep_copy(virial_, 0_r);
+        scatterVirial_ = SingleScatterView(virial_);
 
         pos_ = atoms.getPos();
         force_ = atoms.getForce();
@@ -216,7 +221,7 @@ public:
 
         auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
         Kokkos::parallel_for(policy, *this, "LennardJones::applyForces");
-
+        Kokkos::Experimental::contribute(virial_, scatterVirial_);
         Kokkos::fence();
     }
 
