@@ -146,12 +146,15 @@ private:
 
     const idx_t numTypes_;
 
-    SingleView virial_;
-    SingleScatterView scatterVirial_;
+    real_t virial_ = 0_r;
 
 public:
+    struct ForceCalculation
+    {
+    };
+
     KOKKOS_INLINE_FUNCTION
-    void operator()(const idx_t& idx) const
+    void operator()(ForceCalculation, const idx_t& idx, real_t& virial) const
     {
         real_t posTmp[3];
         posTmp[0] = pos_(idx, 0);
@@ -176,10 +179,7 @@ public:
 
             auto typeIdx = type_(idx) * numTypes_ + type_(jdx);
             auto ffactor = LJ_.computeForce(distSqr, typeIdx);
-            {
-                auto access = scatterVirial_.access();
-                access() -= 0.5_r * ffactor * distSqr;
-            }
+            virial -= 0.5_r * ffactor * distSqr;
 
             forceTmp[0] += dx * ffactor;
             forceTmp[1] += dy * ffactor;
@@ -211,17 +211,15 @@ public:
 
     void applyForces(data::Atoms& atoms, VerletList& verletList)
     {
-        Kokkos::deep_copy(virial_, 0_r);
-        scatterVirial_ = SingleScatterView(virial_);
+        virial_ = 0;
 
         pos_ = atoms.getPos();
         force_ = atoms.getForce();
         type_ = atoms.getType();
         verletList_ = verletList;
 
-        auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
-        Kokkos::parallel_for(policy, *this, "LennardJones::applyForces");
-        Kokkos::Experimental::contribute(virial_, scatterVirial_);
+        auto policy = Kokkos::RangePolicy<ForceCalculation>(0, atoms.numLocalAtoms);
+        Kokkos::parallel_reduce("LennardJones::applyForces", policy, *this, virial_);
         Kokkos::fence();
     }
 
@@ -243,11 +241,7 @@ public:
         return E0;
     }
 
-    real_t getVirial() const
-    {
-        auto virial = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), virial_);
-        return virial();
-    }
+    real_t getVirial() const { return virial_; }
 
     LennardJones(const real_t rc,
                  const real_t& sigma,
@@ -263,9 +257,7 @@ public:
                  const std::vector<real_t>& epsilon,
                  const idx_t& numTypes,
                  const bool isShifted)
-        : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, isShifted),
-          numTypes_(1),
-          virial_("virial")
+        : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, isShifted), numTypes_(1)
     {
         auto rcMax = *std::max_element(rc.begin(), rc.end());
         rcSqr_ = rcMax * rcMax;
