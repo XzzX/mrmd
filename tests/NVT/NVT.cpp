@@ -179,7 +179,7 @@ TEST_P(NVT, pressure)
     EXPECT_NEAR(p,
                 -0.89528939_r * targetTemperature * targetTemperature +
                     7.48553466_r * targetTemperature - 4.00636731_r,
-                0.2_r);
+                0.3_r);
     EXPECT_NEAR(T, targetTemperature, 0.1_r);
 }
 
