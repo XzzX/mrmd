@@ -53,6 +53,7 @@ public:
             pi / (2_r * hybridRegionDiameter_) * (absDx - atomisticRegionHalfDiameter_);
         auto base = std::cos(arg);
         lambda = base * base;
+        assert(!std::isnan(lambda));
         modulatedLambda = util::powInt(base, exponent_);
 
         auto factor = -pi / (2_r * hybridRegionDiameter_) * real_c(exponent_) * std::sin(arg) *

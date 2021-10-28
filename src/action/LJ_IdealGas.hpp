@@ -58,6 +58,7 @@ private:
 
     data::Atoms::pos_t atomsPos_;
     data::Atoms::force_t::atomic_access_slice atomsForce_;
+    data::Atoms::type_t atomsType_;
 
     data::Histogram compensationEnergy_ = data::Histogram("compensationEnergy", 0_r, 1_r, 200);
     ScalarScatterView compensationEnergyScatter_;
@@ -73,6 +74,7 @@ private:
     VerletList verletList_;
 
     idx_t runCounter_ = 0;
+    idx_t numTypes_;
 
 public:
     static constexpr idx_t COMPENSATION_ENERGY_SAMPLING_INTERVAL = 200;
@@ -172,19 +174,10 @@ public:
 
                     if (distSqr > rcSqr_) continue;
 
-                    auto ffactor = LJ_.computeForce(distSqr, 0) * weighting;
-
-                    // if (ffactor > 10000_r)
-                    //{
-                    //     std::cout << "f: " << ffactor << " | " << std::sqrt(distSqr) <<
-                    //     std::endl; std::cout << "x: " << posTmp[0] << " | " << atomsPos_(jdx, 0)
-                    //     << " | "
-                    //               << std::abs(dx) << std::endl;
-                    //     std::cout << "y: " << posTmp[1] << " | " << atomsPos_(jdx, 1) << " | "
-                    //               << std::abs(dy) << std::endl;
-                    //     std::cout << "z: " << posTmp[2] << " | " << atomsPos_(jdx, 2) << " | "
-                    //               << std::abs(dz) << std::endl;
-                    // }
+                    auto typeIdx = atomsType_(idx) * numTypes_ + atomsType_(jdx);
+                    assert(!std::isnan(distSqr));
+                    auto ffactor = LJ_.computeForce(distSqr, typeIdx) * weighting;
+                    assert(!std::isnan(ffactor));
 
                     forceTmpIdx[0] += dx * ffactor;
                     forceTmpIdx[1] += dy * ffactor;
@@ -271,6 +264,7 @@ public:
         moleculesNumAtoms_ = molecules.getNumAtoms();
         atomsPos_ = atoms.getPos();
         atomsForce_ = atoms.getForce();
+        atomsType_ = atoms.getType();
         verletList_ = verletList;
 
         isDriftCompensationSamplingRun_ = runCounter_ % COMPENSATION_ENERGY_SAMPLING_INTERVAL == 0;
@@ -309,7 +303,7 @@ public:
                 const std::vector<real_t>& epsilon,
                 const idx_t numTypes,
                 const bool doShift)
-        : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, doShift)
+        : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, doShift), numTypes_(numTypes)
     {
         assert(cappingDistance.size() == numTypes * numTypes);
         assert(rc.size() == numTypes * numTypes);

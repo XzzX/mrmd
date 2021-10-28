@@ -22,6 +22,7 @@ void ThermodynamicForce::sample(data::Atoms& atoms)
 
 void ThermodynamicForce::update()
 {
+    assert(densityProfileSamples_ > 0);
     auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
 
     auto hist = densityProfile_.data;  // avoid capturing this pointer
@@ -66,6 +67,7 @@ void ThermodynamicForce::apply(const data::Atoms& atoms) const
         if (bin != -1)
         {
             assert(atomsType(idx) < forceHistogram.numHistograms);
+            assert(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
             atomsForce(idx, 0) -= forceHistogram.data(bin, atomsType(idx));
         }
     };

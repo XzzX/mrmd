@@ -179,6 +179,7 @@ public:
 
             auto typeIdx = type_(idx) * numTypes_ + type_(jdx);
             auto ffactor = LJ_.computeForce(distSqr, typeIdx);
+            assert(!std::isnan(ffactor));
             virial -= 0.5_r * ffactor * distSqr;
 
             forceTmp[0] += dx * ffactor;
