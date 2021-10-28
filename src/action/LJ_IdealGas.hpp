@@ -187,7 +187,8 @@ public:
                     atomsForce_(jdx, 1) -= dy * ffactor;
                     atomsForce_(jdx, 2) -= dz * ffactor;
 
-                    auto energy = LJ_.computeEnergy(distSqr, 0);
+                    auto energy = LJ_.computeEnergy(distSqr, typeIdx);
+                    assert(!std::isnan(energy));
                     sumEnergy += energy * weighting;
                     auto Vij = 0.5_r * energy;
 

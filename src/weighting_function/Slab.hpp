@@ -58,6 +58,8 @@ public:
 
         auto factor = -pi / (2_r * hybridRegionDiameter_) * real_c(exponent_) * std::sin(arg) *
                       util::powInt(base, exponent_ - 1) / absDx;
+        assert(!std::isnan(factor));
+        assert(!std::isnan(dx));
         gradLambdaX = factor * dx;
         gradLambdaY = 0_r;
         gradLambdaZ = 0_r;

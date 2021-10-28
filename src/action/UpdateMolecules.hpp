@@ -52,8 +52,8 @@ public:
                    moleculesLambda(moleculeIdx),
                    moleculesModulatedLambda(moleculeIdx),
                    moleculesGradLambda(moleculeIdx, 0),
-                   moleculesGradLambda(moleculeIdx, 0),
-                   moleculesGradLambda(moleculeIdx, 0));
+                   moleculesGradLambda(moleculeIdx, 1),
+                   moleculesGradLambda(moleculeIdx, 2));
         };
         Kokkos::parallel_for(policy, kernel, "UpdateMolecules::update");
         Kokkos::fence();
