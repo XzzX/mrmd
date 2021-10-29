@@ -60,14 +60,17 @@ private:
     data::Atoms::force_t::atomic_access_slice atomsForce_;
     data::Atoms::type_t atomsType_;
 
-    data::Histogram compensationEnergy_ = data::Histogram("compensationEnergy", 0_r, 1_r, 200);
+    static constexpr idx_t COMPENSATION_ENERGY_BINS = 200;
+
+    data::Histogram compensationEnergy_ =
+        data::Histogram("compensationEnergy", 0_r, 1_r, COMPENSATION_ENERGY_BINS);
     ScalarScatterView compensationEnergyScatter_;
 
     data::Histogram compensationEnergyCounter_ =
-        data::Histogram("compensationEnergyCounter", 0_r, 1_r, 200);
+        data::Histogram("compensationEnergyCounter", 0_r, 1_r, COMPENSATION_ENERGY_BINS);
 
     data::Histogram meanCompensationEnergy_ =
-        data::Histogram("meanCompensationEnergy", 0_r, 1_r, 200);
+        data::Histogram("meanCompensationEnergy", 0_r, 1_r, COMPENSATION_ENERGY_BINS);
 
     bool isDriftCompensationSamplingRun_ = false;
 
@@ -76,10 +79,18 @@ private:
     idx_t runCounter_ = 0;
     idx_t numTypes_;
 
-public:
-    static constexpr idx_t COMPENSATION_ENERGY_SAMPLING_INTERVAL = 200;
-    static constexpr idx_t COMPENSATION_ENERGY_UPDATE_INTERVAL = 20000;
+    idx_t compensationEnergySamplingInterval = 200;
+    idx_t compensationEnergyUpdateInveral = 20000;
 
+public:
+    void setCompensationEnergySamplingInterval(const idx_t& interval)
+    {
+        compensationEnergySamplingInterval = interval;
+    }
+    void setCompensationEnergyUpdateInterval(const idx_t& interval)
+    {
+        compensationEnergyUpdateInveral = interval;
+    }
     const auto& getMeanCompensationEnergy() const { return meanCompensationEnergy_; }
 
     /**
@@ -268,7 +279,7 @@ public:
         atomsType_ = atoms.getType();
         verletList_ = verletList;
 
-        isDriftCompensationSamplingRun_ = runCounter_ % COMPENSATION_ENERGY_SAMPLING_INTERVAL == 0;
+        isDriftCompensationSamplingRun_ = runCounter_ % compensationEnergySamplingInterval == 0;
 
         compensationEnergyScatter_ = ScalarScatterView(compensationEnergy_.data);
 
@@ -280,7 +291,7 @@ public:
 
         Kokkos::fence();
 
-        if (runCounter_ % COMPENSATION_ENERGY_UPDATE_INTERVAL == 0)
+        if (runCounter_ % compensationEnergyUpdateInveral == 0)
             updateMeanCompensationEnergy(
                 compensationEnergy_, compensationEnergyCounter_, meanCompensationEnergy_, 10_r);
 

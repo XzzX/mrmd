@@ -40,6 +40,10 @@ void spartian(YAML::Node& config,
                                   config["LJ"]["epsilon"].as<std::vector<real_t>>(),
                                   2,
                                   true);
+    LJ.setCompensationEnergySamplingInterval(
+        config["compensation_energy_sampling_interval"].as<idx_t>());
+    LJ.setCompensationEnergyUpdateInterval(
+        config["compensation_energy_update_interval"].as<idx_t>());
     VerletList verletList;
 
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();

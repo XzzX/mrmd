@@ -217,7 +217,7 @@ public:
 
         Kokkos::fence();
 
-        //        if (runCounter_ % COMPENSATION_ENERGY_UPDATE_INTERVAL == 0)
+        //        if (runCounter_ % compensationEnergyUpdateInveral == 0)
         //            updateMeanCompensationEnergy(
         //                compensationEnergy_, compensationEnergyCounter_, meanCompensationEnergy_,
         //                10_r);

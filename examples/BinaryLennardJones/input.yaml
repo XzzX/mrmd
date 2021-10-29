@@ -58,6 +58,9 @@ SPARTIAN:
   density_sampling_interval: 200
   density_update_interval: 1000
 
+  compensation_energy_sampling_interval: 200
+  compensation_energy_update_interval: 20000
+
   enable_output: true
   output_interval: 1000
 
