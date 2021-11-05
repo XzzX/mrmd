@@ -210,7 +210,7 @@ void SPC(Config& config)
         config.rho, subdomain, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     analysis::MeanSquareDisplacement meanSquareDisplacement;
-    meanSquareDisplacement.reset(atoms);
+    meanSquareDisplacement.reset(molecules);
     auto selfDiffusion = 0_r;
     communication::MultiResGhostLayer ghostLayer;
 
