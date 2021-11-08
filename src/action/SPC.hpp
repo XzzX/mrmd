@@ -8,6 +8,46 @@
 #include "datatypes.hpp"
 #include "util/angle.hpp"
 
+namespace mrmd::action::impl
+{
+struct Energy
+{
+    real_t LJ = 0_r;
+    real_t coulomb = 0_r;
+
+    KOKKOS_INLINE_FUNCTION
+    Energy() = default;
+    KOKKOS_INLINE_FUNCTION
+    Energy(const Energy& rhs) = default;
+
+    KOKKOS_INLINE_FUNCTION
+    Energy& operator+=(const Energy& src)
+    {
+        LJ += src.LJ;
+        coulomb += src.coulomb;
+        return *this;
+    }
+    KOKKOS_INLINE_FUNCTION
+    void operator+=(const volatile Energy& src) volatile
+    {
+        LJ += src.LJ;
+        coulomb += src.coulomb;
+    }
+};
+}  // namespace mrmd::action::impl
+
+namespace Kokkos
+{  // reduction identity must be defined in Kokkos namespace
+template <>
+struct reduction_identity<mrmd::action::impl::Energy>
+{
+    KOKKOS_FORCEINLINE_FUNCTION static mrmd::action::impl::Energy sum()
+    {
+        return mrmd::action::impl::Energy();
+    }
+};
+}  // namespace Kokkos
+
 namespace mrmd
 {
 namespace action
@@ -49,6 +89,12 @@ private:
     data::BondView::host_mirror_type bonds_;
 
 public:
+    real_t sumEnergyLJ_;
+    real_t sumEnergyCoulomb_;
+
+    auto getEnergyLJ() const { return sumEnergyLJ_; }
+    auto getEnergyCoulomb() const { return sumEnergyCoulomb_; }
+
     static constexpr real_t massO = 15.999_r;  ///< unit: g/mol
     static constexpr real_t chargeO = -0.82_r;
 
@@ -88,7 +134,7 @@ public:
      */
     KOKKOS_INLINE_FUNCTION void operator()(CalcInteractions,
                                            const idx_t& alpha,
-                                           real_t& sumEnergy) const
+                                           impl::Energy& sumEnergy) const
     {
         const auto numNeighbors = idx_c(NeighborList::numNeighbor(verletList_, alpha));
         for (idx_t n = 0; n < numNeighbors; ++n)
@@ -127,7 +173,7 @@ public:
             if (distSqr < rcSqr_)
             {
                 auto ffactor = LJ_.computeForce(distSqr, 0);
-                sumEnergy += LJ_.computeEnergy(distSqr, 0);
+                sumEnergy.LJ += LJ_.computeEnergy(distSqr, 0);
 
                 atomsForce_(startAtomsBeta, 0) -= dx[0] * ffactor;
                 atomsForce_(startAtomsBeta, 1) -= dx[1] * ffactor;
@@ -165,7 +211,7 @@ public:
                     if (distSqr > rcSqr_) continue;
 
                     auto ffactor = coulomb_.computeForce(distSqr, q1, q2);
-                    sumEnergy += coulomb_.computeEnergy(distSqr, q1, q2);
+                    sumEnergy.coulomb += coulomb_.computeEnergy(distSqr, q1, q2);
 
                     forceTmpIdx[0] += dx[0] * ffactor;
                     forceTmpIdx[1] += dx[1] * ffactor;
@@ -190,7 +236,7 @@ public:
         moleculeConstraints.enforcePositionalConstraints(molecules, atoms, dt);
     }
 
-    real_t applyForces(data::Molecules& molecules, VerletList& verletList, data::Atoms& atoms)
+    void applyForces(data::Molecules& molecules, VerletList& verletList, data::Atoms& atoms)
     {
         moleculesPos_ = molecules.getPos();
         moleculesForce_ = molecules.getForce();
@@ -208,9 +254,10 @@ public:
 
         //        compensationEnergyScatter_ = ScalarScatterView(compensationEnergy_.data);
 
-        real_t energy = 0_r;
+        auto energy = impl::Energy();
         auto policy = Kokkos::RangePolicy<CalcInteractions>(0, molecules.numLocalMolecules);
-        Kokkos::parallel_reduce("SPC::applyForces", policy, *this, energy);
+        Kokkos::parallel_reduce(
+            "SPC::applyForces", policy, *this, Kokkos::Sum<impl::Energy>(energy));
 
         //        Kokkos::Experimental::contribute(compensationEnergy_.data,
         //        compensationEnergyScatter_);
@@ -224,7 +271,8 @@ public:
         //
         //        ++runCounter_;
 
-        return energy;
+        sumEnergyLJ_ = energy.LJ;
+        sumEnergyCoulomb_ = energy.coulomb;
     }
 
     KOKKOS_INLINE_FUNCTION void operator()(BondEnergy, const idx_t& alpha, real_t& sumEnergy) const

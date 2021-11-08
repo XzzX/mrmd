@@ -13,7 +13,6 @@
 #include "action/BerendsenThermostat.hpp"
 #include "action/ContributeMoleculeForceToAtoms.hpp"
 #include "action/LangevinThermostat.hpp"
-#include "action/LennardJones.hpp"
 #include "action/LimitAcceleration.hpp"
 #include "action/LimitVelocity.hpp"
 #include "action/ThermodynamicForce.hpp"
@@ -214,9 +213,30 @@ void SPC(Config& config)
     auto selfDiffusion = 0_r;
     communication::MultiResGhostLayer ghostLayer;
 
-    util::printTable("step", "time", "T", "Ek", "E0", "Ebond", "E", "mu", "D", "Nlocal", "Nghost");
-    util::printTableSep(
-        "step", "time", "T", "Ek", "E0", "Ebond", "E", "mu", "D", "Nlocal", "Nghost");
+    util::printTable("step",
+                     "time",
+                     "T",
+                     "Ek",
+                     "E_LJ",
+                     "E_coulomb",
+                     "Ebond",
+                     "E",
+                     "mu",
+                     "D",
+                     "Nlocal",
+                     "Nghost");
+    util::printTableSep("step",
+                        "time",
+                        "T",
+                        "Ek",
+                        "E_LJ",
+                        "E_coulomb",
+                        "Ebond",
+                        "E",
+                        "mu",
+                        "D",
+                        "Nlocal",
+                        "Nghost");
     for (auto step = 0; step < config.nsteps; ++step)
     {
         assert(atoms.numLocalAtoms == molecules.numLocalMolecules * 3);
@@ -281,8 +301,7 @@ void SPC(Config& config)
         //        }
 
         //        thermodynamicForce.apply(atoms);
-        auto E0 = 0_r;
-        E0 += spc.applyForces(molecules, moleculesVerletList, atoms);
+        spc.applyForces(molecules, moleculesVerletList, atoms);
         action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
 
         ghostLayer.contributeBackGhostToReal(atoms);
@@ -290,9 +309,10 @@ void SPC(Config& config)
         if (config.bOutput && (step % config.outputInterval == 0))
         {
             auto Ebond = spc.calcBondEnergy(molecules, atoms);
-            auto Ek = analysis::getKineticEnergy(atoms);
-            auto T = Ek * toSI::temperature;
-            E0 /= real_c(molecules.numLocalMolecules);
+            auto Ek = analysis::getMeanKineticEnergy(atoms);
+            auto T = Ek;
+            auto E_LJ = spc.getEnergyLJ() / real_c(molecules.numLocalMolecules);
+            auto E_coulomb = spc.getEnergyCoulomb() / real_c(molecules.numLocalMolecules);
 
             // calc chemical potential
             auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
@@ -308,9 +328,10 @@ void SPC(Config& config)
                              timer.seconds(),
                              T,
                              Ek,
-                             E0,
+                             E_LJ,
+                             E_coulomb,
                              Ebond,
-                             E0 + Ebond + Ek,
+                             E_LJ + E_coulomb + Ebond + Ek,
                              mu,
                              selfDiffusion * 1e3,
                              atoms.numLocalAtoms,
@@ -356,8 +377,7 @@ void SPC(Config& config)
                             (6_r * real_c(config.thermostatInterval) * config.dt);
             meanSquareDisplacement.reset(molecules);
 
-            auto currentTemperature =
-                analysis::getMeanKineticEnergy(atoms) * 2_r / (3_r * real_c(atoms.numLocalAtoms));
+            auto currentTemperature = analysis::getMeanKineticEnergy(atoms);
             action::BerendsenThermostat::apply(atoms, currentTemperature, config.temperature, 1_r);
         }
 
