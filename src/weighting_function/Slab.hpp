@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assert.hpp"
 #include "constants.hpp"
 #include "datatypes.hpp"
 #include "util/math.hpp"
@@ -53,7 +54,7 @@ public:
             pi / (2_r * hybridRegionDiameter_) * (absDx - atomisticRegionHalfDiameter_);
         auto base = std::cos(arg);
         lambda = base * base;
-        assert(!std::isnan(lambda));
+        ASSERT(!std::isnan(lambda), "absDx: " << absDx);
         modulatedLambda = util::powInt(base, exponent_);
 
         auto factor = -pi / (2_r * hybridRegionDiameter_) * real_c(exponent_) * std::sin(arg) *
