@@ -46,7 +46,7 @@ jobs:
           path: 'mrmd'
 
       - name: Configure
-        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Debug
+        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Debug -DMRMD_VERBOSE_ASSERTS=ON
 
       - name: Build
         run: cmake --build mrmd-build --target all -j 2
@@ -94,7 +94,7 @@ jobs:
           path: 'mrmd'
 
       - name: Configure
-        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Release -DMRMD_VERBOSE_ASSERTS=ON
 
       - name: Build
         run: cmake --build mrmd-build --target all -j 2
@@ -142,7 +142,7 @@ jobs:
           path: 'mrmd'
 
       - name: Configure
-        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Release -DMRMD_VERBOSE_ASSERTS=ON
 
       - name: Build
         run: cmake --build mrmd-build --target all -j 2
@@ -212,7 +212,7 @@ jobs:
           path: 'mrmd'
 
       - name: Configure
-        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Debug -DMRMD_CLANG_TIDY=ON
+        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Debug -DMRMD_CLANG_TIDY=ON -DMRMD_VERBOSE_ASSERTS=ON
 
       - name: Build
         run: cmake --build mrmd-build --target all -j 2

@@ -88,6 +88,7 @@ enable_testing()
 option(MRMD_CLANG_TIDY "Run clang-tidy checks during compilation." OFF)
 option(MRMD_LOCAL_ARCHITECTURE "Use instruction set of the local architecture." OFF)
 option(MRMD_VEC_REPORT "Enable reporting of loop vectorization." OFF)
+option(MRMD_VERBOSE_ASSERTS "Verbose asserts are only available on CPU!" OFF)
 option(MRMD_WERROR "Treat warnings as errors." OFF)
 
 if (MRMD_CLANG_TIDY)

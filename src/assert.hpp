@@ -1,8 +1,8 @@
 #pragma once
 
-#define VERBOSE_ASSERT
+#include "cmake.hpp"
 
-#ifdef VERBOSE_ASSERT
+#ifdef MRMD_VERBOSE_ASSERTS
 #include "verbose_assert.hpp"
 #else
 #include "normal_assert.hpp"

@@ -6,4 +6,6 @@ namespace mrmd
 {
 /// vector length of the AoSoA data structures
 constexpr static int VECTOR_LENGTH = @MRMD_VECTOR_LENGTH@;
+
+#cmakedefine MRMD_VERBOSE_ASSERTS
 }  // namespace mrmd
