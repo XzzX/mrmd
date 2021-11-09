@@ -242,8 +242,9 @@ void SPC(Config& config)
         assert(atoms.numLocalAtoms == molecules.numLocalMolecules * 3);
         assert(atoms.numGhostAtoms == molecules.numGhostMolecules * 3);
 
-        spc.enforceConstraints(molecules, atoms, config.dt);
+        spc.enforcePositionalConstraints(molecules, atoms, config.dt);
         maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
+        spc.enforceVelocityConstraints(molecules, atoms, config.dt);
 
         // update molecule positions
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
@@ -308,11 +309,11 @@ void SPC(Config& config)
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto Ebond = spc.calcBondEnergy(molecules, atoms);
+            auto Ebond = spc.calcBondEnergy(molecules, atoms, 20000_r);
             auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto T = Ek;
-            auto E_LJ = spc.getEnergyLJ() / real_c(molecules.numLocalMolecules);
-            auto E_coulomb = spc.getEnergyCoulomb() / real_c(molecules.numLocalMolecules);
+            auto E_LJ = spc.getEnergyLJ() / real_c(atoms.numLocalAtoms);
+            auto E_coulomb = spc.getEnergyCoulomb() / real_c(atoms.numLocalAtoms);
 
             // calc chemical potential
             auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),

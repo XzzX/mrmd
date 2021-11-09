@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assert.hpp"
 #include "data/Atoms.hpp"
 #include "data/Bond.hpp"
 #include "data/Molecules.hpp"
@@ -101,22 +102,21 @@ public:
         real_t c = updatedDistSq - util::sqr(eqDistance);
 
         real_t determinant = b * b - 4_r * a * c;
-        assert(determinant >= 0);
+        ASSERT_GREATER(determinant, 1e-8);
+        determinant = std::max(0_r, determinant);  // ensure positive determinant
 
         // solve for lambda
         auto lambda1 = (-b + std::sqrt(determinant)) / (2_r * a);
         auto lambda2 = (-b - std::sqrt(determinant)) / (2_r * a);
         auto lambda = std::abs(lambda1) < std::abs(lambda2) ? lambda1 : lambda2;
 
-        lambda /= dtf_;
+        pos_(idx, 0) += lambda * dist[0] * invMassI;
+        pos_(idx, 1) += lambda * dist[1] * invMassI;
+        pos_(idx, 2) += lambda * dist[2] * invMassI;
 
-        force_(idx, 0) += lambda * dist[0];
-        force_(idx, 1) += lambda * dist[1];
-        force_(idx, 2) += lambda * dist[2];
-
-        force_(jdx, 0) -= lambda * dist[0];
-        force_(jdx, 1) -= lambda * dist[1];
-        force_(jdx, 2) -= lambda * dist[2];
+        pos_(jdx, 0) -= lambda * dist[0] * invMassJ;
+        pos_(jdx, 1) -= lambda * dist[1] * invMassJ;
+        pos_(jdx, 2) -= lambda * dist[2] * invMassJ;
     }
 
     KOKKOS_INLINE_FUNCTION

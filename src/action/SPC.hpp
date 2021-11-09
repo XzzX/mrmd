@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CoulombDSF.hpp"
+#include "Coulomb.hpp"
 #include "LennardJones.hpp"
 #include "Shake.hpp"
 #include "data/Atoms.hpp"
@@ -56,7 +56,7 @@ class SPC
 {
 private:
     impl::CappedLennardJonesPotential LJ_;
-    impl::CoulombDSF coulomb_;
+    impl::Coulomb coulomb_;
     real_t rcSqr_ = 0_r;
 
     data::Molecules::pos_t moleculesPos_;
@@ -229,11 +229,18 @@ public:
         }
     }
 
-    void enforceConstraints(data::Molecules& molecules, data::Atoms& atoms, real_t dt)
+    void enforcePositionalConstraints(data::Molecules& molecules, data::Atoms& atoms, real_t dt)
     {
         MoleculeConstraints moleculeConstraints(3, 20);
         moleculeConstraints.setConstraints(bonds_);
         moleculeConstraints.enforcePositionalConstraints(molecules, atoms, dt);
+    }
+
+    void enforceVelocityConstraints(data::Molecules& molecules, data::Atoms& atoms, real_t dt)
+    {
+        MoleculeConstraints moleculeConstraints(3, 20);
+        moleculeConstraints.setConstraints(bonds_);
+        moleculeConstraints.enforceVelocityConstraints(molecules, atoms, dt);
     }
 
     void applyForces(data::Molecules& molecules, VerletList& verletList, data::Atoms& atoms)
@@ -307,7 +314,9 @@ public:
         sumEnergy += util::sqr(dist - eqDistanceHH);
     }
 
-    real_t calcBondEnergy(data::Molecules& molecules, data::Atoms& atoms)
+    real_t calcBondEnergy(data::Molecules& molecules,
+                          data::Atoms& atoms,
+                          const real_t& harmonicPreFactor)
     {
         moleculesPos_ = molecules.getPos();
         moleculesForce_ = molecules.getForce();
@@ -327,12 +336,12 @@ public:
 
         Kokkos::fence();
 
-        return energy / real_c(molecules.numLocalMolecules + molecules.numGhostMolecules);
+        return harmonicPreFactor * energy / real_c(atoms.numLocalAtoms + atoms.numGhostAtoms);
     }
 
     SPC()
         : LJ_({0.7_r * sigma}, {rc}, {sigma}, {epsilon}, 1, true),
-          coulomb_(rc, alpha),
+          coulomb_(),
           rcSqr_(rc * rc),
           bonds_("bonds", 3)
     {
