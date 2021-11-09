@@ -15,9 +15,13 @@ void apply(data::Atoms& atoms,
            const real_t& targetTemperature,
            const real_t& gamma)
 {
-    ASSERT(currentTemperature > 0_r);
+    if (currentTemperature <= 0_r)
+    {
+        return;
+    }
+
     ASSERT(targetTemperature > 0_r);
-    
+
     auto beta = std::sqrt(1_r + gamma * (targetTemperature / currentTemperature - 1_r));
 
     auto vel = atoms.getVel();
