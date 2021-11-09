@@ -76,7 +76,7 @@ std::string generateAssertionMessage(const T& lhs,
         std::stringstream ss;      \
         ss << msg;                 \
         assumption::log(ss.str()); \
-    }  // NOLINT
+    }
 
 template <typename FLOAT>
 bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
@@ -124,7 +124,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
                 assert(false);                                     \
             }                                                      \
         } while (0);                                               \
-    }  // NOLINT
+    }
 
 #define CHECK_NULLPTR_1(X)                                              \
     {                                                                   \
@@ -151,7 +151,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
                 assert(false);                                            \
             }                                                             \
         } while (0);                                                      \
-    }  // NOLINT
+    }
 
 #define CHECK_NOT_NULLPTR_1(X)                                           \
     {                                                                    \
@@ -178,7 +178,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
                 assert(false);                                             \
             }                                                              \
         } while (0);                                                       \
-    }  // NOLINT
+    }
 
 #define CHECK_EQUAL_2(X, Y)                                                   \
     {                                                                         \
@@ -205,7 +205,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
                 assert(false);                                                  \
             }                                                                   \
         } while (0);                                                            \
-    }  // NOLINT
+    }
 
 #define CHECK_FLOAT_EQUAL_2(X, Y)                                             \
     {                                                                         \
@@ -232,7 +232,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
                 assert(false);                                                  \
             }                                                                   \
         } while (0);                                                            \
-    }  // NOLINT
+    }
 
 #define CHECK_NOT_EQUAL_2(X, Y)                                               \
     {                                                                         \
@@ -259,7 +259,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
                 assert(false);                                                  \
             }                                                                   \
         } while (0);                                                            \
-    }  // NOLINT
+    }
 
 #define CHECK_GREATER_2(X, Y)                                                \
     {                                                                        \
@@ -286,7 +286,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
                 assert(false);                                                 \
             }                                                                  \
         } while (0);                                                           \
-    }  // NOLINT
+    }
 
 #define CHECK_LESS_2(X, Y)                                                   \
     {                                                                        \
@@ -313,7 +313,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
                 assert(false);                                                 \
             }                                                                  \
         } while (0);                                                           \
-    }  // NOLINT
+    }
 
 #define CHECK_GREATEREQUAL_2(X, Y)                                            \
     {                                                                         \
@@ -340,7 +340,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
                 assert(false);                                                  \
             }                                                                   \
         } while (0);                                                            \
-    }  // NOLINT
+    }
 
 #define CHECK_LESSEQUAL_2(X, Y)                                               \
     {                                                                         \
@@ -367,7 +367,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
                 assert(false);                                                  \
             }                                                                   \
         } while (0);                                                            \
-    }  // NOLINT
+    }
 
 #define CHECK(...) MACRO_OVERLOAD(CHECK_, __VA_ARGS__)
 #define CHECK_NULLPTR(...) MACRO_OVERLOAD(CHECK_EQUAL_, __VA_ARGS__)
