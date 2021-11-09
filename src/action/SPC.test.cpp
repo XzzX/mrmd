@@ -120,7 +120,7 @@ TEST_F(SPC_Test, CHECK_CONSTRAINTS)
     constexpr auto dt = 0.1_r;
 
     SPC spc;
-    spc.enforceConstraints(molecules, atoms, dt);
+    spc.enforcePositionalConstraints(molecules, atoms, dt);
 
     auto force = atoms.getForce();
     EXPECT_FLOAT_EQ(force(0, 0) + 1_r, 1_r);
