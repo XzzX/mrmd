@@ -110,13 +110,15 @@ public:
         auto lambda2 = (-b - std::sqrt(determinant)) / (2_r * a);
         auto lambda = std::abs(lambda1) < std::abs(lambda2) ? lambda1 : lambda2;
 
-        pos_(idx, 0) += lambda * dist[0] * invMassI;
-        pos_(idx, 1) += lambda * dist[1] * invMassI;
-        pos_(idx, 2) += lambda * dist[2] * invMassI;
+        lambda /= dtf_;
 
-        pos_(jdx, 0) -= lambda * dist[0] * invMassJ;
-        pos_(jdx, 1) -= lambda * dist[1] * invMassJ;
-        pos_(jdx, 2) -= lambda * dist[2] * invMassJ;
+        force_(idx, 0) += lambda * dist[0];
+        force_(idx, 1) += lambda * dist[1];
+        force_(idx, 2) += lambda * dist[2];
+
+        force_(jdx, 0) -= lambda * dist[0];
+        force_(jdx, 1) -= lambda * dist[1];
+        force_(jdx, 2) -= lambda * dist[2];
     }
 
     KOKKOS_INLINE_FUNCTION
