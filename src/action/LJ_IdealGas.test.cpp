@@ -141,21 +141,24 @@ TEST_F(LJ_IdealGas_Test, HY)
     constexpr auto xForce = 0.22156665_r * 0.5_r;
     constexpr auto yForce = 1.3825009_r * 0.5_r;
 
-    EXPECT_FLOAT_EQ(atomsForce(0, 0), -xForce);
-    EXPECT_FLOAT_EQ(atomsForce(0, 1), +yForce);
-    EXPECT_FLOAT_EQ(atomsForce(0, 2), 0_r);
+    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
+    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
 
-    EXPECT_FLOAT_EQ(atomsForce(1, 0), -xForce);
-    EXPECT_FLOAT_EQ(atomsForce(1, 1), -yForce);
-    EXPECT_FLOAT_EQ(atomsForce(1, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(0, 0), -xForce);
+    EXPECT_FLOAT_EQ(force(0, 1), +yForce);
+    EXPECT_FLOAT_EQ(force(0, 2), 0_r);
 
-    EXPECT_FLOAT_EQ(atomsForce(2, 0), +xForce);
-    EXPECT_FLOAT_EQ(atomsForce(2, 1), +yForce);
-    EXPECT_FLOAT_EQ(atomsForce(2, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(1, 0), -xForce);
+    EXPECT_FLOAT_EQ(force(1, 1), -yForce);
+    EXPECT_FLOAT_EQ(force(1, 2), 0_r);
 
-    EXPECT_FLOAT_EQ(atomsForce(3, 0), +xForce);
-    EXPECT_FLOAT_EQ(atomsForce(3, 1), -yForce);
-    EXPECT_FLOAT_EQ(atomsForce(3, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(2, 0), +xForce);
+    EXPECT_FLOAT_EQ(force(2, 1), +yForce);
+    EXPECT_FLOAT_EQ(force(2, 2), 0_r);
+
+    EXPECT_FLOAT_EQ(force(3, 0), +xForce);
+    EXPECT_FLOAT_EQ(force(3, 1), -yForce);
+    EXPECT_FLOAT_EQ(force(3, 2), 0_r);
 }
 
 TEST_F(LJ_IdealGas_Test, AT)
@@ -169,21 +172,24 @@ TEST_F(LJ_IdealGas_Test, AT)
     constexpr auto xForce = 0.22156665_r;
     constexpr auto yForce = 1.3825009_r;
 
-    EXPECT_FLOAT_EQ(atomsForce(0, 0), -xForce);
-    EXPECT_FLOAT_EQ(atomsForce(0, 1), +yForce);
-    EXPECT_FLOAT_EQ(atomsForce(0, 2), 0_r);
+    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
+    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
 
-    EXPECT_FLOAT_EQ(atomsForce(1, 0), -xForce);
-    EXPECT_FLOAT_EQ(atomsForce(1, 1), -yForce);
-    EXPECT_FLOAT_EQ(atomsForce(1, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(0, 0), -xForce);
+    EXPECT_FLOAT_EQ(force(0, 1), +yForce);
+    EXPECT_FLOAT_EQ(force(0, 2), 0_r);
 
-    EXPECT_FLOAT_EQ(atomsForce(2, 0), +xForce);
-    EXPECT_FLOAT_EQ(atomsForce(2, 1), +yForce);
-    EXPECT_FLOAT_EQ(atomsForce(2, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(1, 0), -xForce);
+    EXPECT_FLOAT_EQ(force(1, 1), -yForce);
+    EXPECT_FLOAT_EQ(force(1, 2), 0_r);
 
-    EXPECT_FLOAT_EQ(atomsForce(3, 0), +xForce);
-    EXPECT_FLOAT_EQ(atomsForce(3, 1), -yForce);
-    EXPECT_FLOAT_EQ(atomsForce(3, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(2, 0), +xForce);
+    EXPECT_FLOAT_EQ(force(2, 1), +yForce);
+    EXPECT_FLOAT_EQ(force(2, 2), 0_r);
+
+    EXPECT_FLOAT_EQ(force(3, 0), +xForce);
+    EXPECT_FLOAT_EQ(force(3, 1), -yForce);
+    EXPECT_FLOAT_EQ(force(3, 2), 0_r);
 }
 
 }  // namespace action
