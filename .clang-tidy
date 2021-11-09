@@ -4,6 +4,8 @@ Checks: '
 -*,
 
 bugprone-*,
+-bugprone-lambda-function-name,
+-bugprone-macro-parentheses,
 
 modernize-*,
 -modernize-use-auto,
