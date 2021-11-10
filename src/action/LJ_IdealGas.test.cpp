@@ -79,6 +79,9 @@ protected:
 
         Cabana::deep_copy(atoms.getAoSoA(), hAtoms);
 
+        auto type = atoms.getType();
+        Cabana::deep_copy(type, 0);
+
         atoms.numLocalAtoms = 4;
 
         return atoms;
