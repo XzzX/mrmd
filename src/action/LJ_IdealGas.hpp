@@ -1,8 +1,7 @@
 #pragma once
 
-#include <cassert>
-
 #include "LennardJones.hpp"
+#include "assert.hpp"
 #include "data/Atoms.hpp"
 #include "data/Histogram.hpp"
 #include "data/Molecules.hpp"
@@ -186,6 +185,8 @@ public:
                     if (distSqr > rcSqr_) continue;
 
                     auto typeIdx = atomsType_(idx) * numTypes_ + atomsType_(jdx);
+                    ASSERT_GREATEREQUAL(typeIdx, 0);
+                    ASSERT_LESS(typeIdx, numTypes_ * numTypes_);
                     assert(!std::isnan(distSqr));
                     auto ffactor = LJ_.computeForce(distSqr, typeIdx) * weighting;
                     assert(!std::isnan(ffactor));
@@ -305,7 +306,7 @@ public:
                 const real_t& sigma,
                 const real_t& epsilon,
                 const bool doShift)
-        : LJ_({cappingDistance}, {rc}, {sigma}, {epsilon}, 1, doShift), rcSqr_(rc * rc)
+        : LJ_IdealGas({cappingDistance}, {rc}, {sigma}, {epsilon}, 1, doShift)
     {
     }
 
