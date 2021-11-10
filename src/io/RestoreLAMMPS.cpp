@@ -90,6 +90,8 @@ void restoreLAMMPS(const std::string& filename, data::Atoms& atoms, data::Molecu
 
     auto force = atoms.getForce();
     Cabana::deep_copy(force, 0_r);
+    auto type = atoms.getType();
+    Cabana::deep_copy(type, 0);
 }
 }  // namespace io
 }  // namespace mrmd
