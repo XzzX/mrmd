@@ -24,7 +24,10 @@ protected:
     {
         data::Molecules molecules(2);
 
-        auto pos = molecules.getPos();
+        auto hMolecules =
+            Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), molecules.getAoSoA());
+
+        auto pos = Cabana::slice<data::Molecules::POS>(hMolecules);
         pos(0, 0) = -0.5_r;
         pos(0, 1) = 0_r;
         pos(0, 2) = 0_r;
@@ -33,12 +36,13 @@ protected:
         pos(1, 1) = 0_r;
         pos(1, 2) = 0_r;
 
-        auto moleculesAtomsOffset = molecules.getAtomsOffset();
-        auto moleculesNumAtoms = molecules.getNumAtoms();
+        auto moleculesAtomsOffset = Cabana::slice<data::Molecules::ATOMS_OFFSET>(hMolecules);
+        auto moleculesNumAtoms = Cabana::slice<data::Molecules::NUM_ATOMS>(hMolecules);
         moleculesAtomsOffset(0) = 0;
         moleculesNumAtoms(0) = 2;
         moleculesAtomsOffset(1) = 2;
         moleculesNumAtoms(1) = 2;
+        Cabana::deep_copy(molecules.getAoSoA(), hMolecules);
 
         molecules.numLocalMolecules = 2;
 
@@ -49,26 +53,31 @@ protected:
     {
         data::Atoms atoms(4);
 
-        auto pos = atoms.getPos();
+        auto hAtoms = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
+        auto pos = Cabana::slice<data::Atoms::POS>(hAtoms);
+        auto relativeMass = Cabana::slice<data::Atoms::RELATIVE_MASS>(hAtoms);
+
         pos(0, 0) = -0.5_r;
         pos(0, 1) = -0.5_r;
         pos(0, 2) = 0_r;
-        atoms.getRelativeMass()(0) = 0.5_r;
+        relativeMass(0) = 0.5_r;
 
         pos(1, 0) = -0.5_r;
         pos(1, 1) = +0.5_r;
         pos(1, 2) = 0_r;
-        atoms.getRelativeMass()(1) = 0.5_r;
+        relativeMass(1) = 0.5_r;
 
         pos(2, 0) = +0.5_r;
         pos(2, 1) = -0.5_r;
         pos(2, 2) = 0_r;
-        atoms.getRelativeMass()(2) = 0.5_r;
+        relativeMass(2) = 0.5_r;
 
         pos(3, 0) = +0.5_r;
         pos(3, 1) = +0.5_r;
         pos(3, 2) = 0_r;
-        atoms.getRelativeMass()(3) = 0.5_r;
+        relativeMass(3) = 0.5_r;
+
+        Cabana::deep_copy(atoms.getAoSoA(), hAtoms);
 
         atoms.numLocalAtoms = 4;
 

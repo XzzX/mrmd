@@ -101,7 +101,7 @@ public:
         resize(numLocalAtoms + numGhostAtoms);
     }
 
-    auto getAoSoA() { return atoms_; }
+    auto& getAoSoA() { return atoms_; }
 
     idx_t numLocalAtoms = 0;
     idx_t numGhostAtoms = 0;
