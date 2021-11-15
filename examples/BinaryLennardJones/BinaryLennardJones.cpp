@@ -10,6 +10,7 @@
 
 #include "Cabana_NeighborList.hpp"
 #include "NPT.hpp"
+#include "NVT.hpp"
 #include "SPARTIAN.hpp"
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
@@ -28,6 +29,9 @@ void LJ(YAML::Node& config)
 
     auto NPTConfig = config["NPT"];
     npt(NPTConfig, atoms, subdomain);
+
+    auto NVTConfig = config["NVT"];
+    nvt(NVTConfig, atoms, subdomain);
 
     atoms.numGhostAtoms = 0;
     auto molecules = initMolecules(atoms.numLocalAtoms);
