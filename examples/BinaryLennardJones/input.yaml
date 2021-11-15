@@ -41,6 +41,8 @@ NVT:
     capping: [ 0.7, 0.7, 0.7, 0.7 ]
     skin: 0.3
 
+  pressure_averaging_coefficient: 0.02
+
   target_temperature: 2.0
   temperature_relaxation_coefficient: 1.0
   temperature_averaging_coefficient: 0.2
@@ -81,5 +83,5 @@ SPARTIAN:
   compensation_energy_update_interval: 20000
 
   enable_output: true
-  output_interval: 10000
+  output_interval: 1000
 
