@@ -50,7 +50,7 @@ NVT:
   output_interval: 10000
 
 SPARTIAN:
-  dt: 0.002
+  dt: 0.001
   time_steps: 100000
 
   LJ:
@@ -81,5 +81,5 @@ SPARTIAN:
   compensation_energy_update_interval: 20000
 
   enable_output: true
-  output_interval: 1000
+  output_interval: 10000
 

@@ -3,6 +3,7 @@ add_executable(BinaryLennardJones
         BinaryLennardJones.cpp
         initialization.cpp
         NPT.cpp
+        NVT.cpp
         SPARTIAN.cpp
         )
 target_link_libraries(BinaryLennardJones
