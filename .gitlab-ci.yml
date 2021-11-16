@@ -18,8 +18,7 @@ gpu:
       -DMRMD_WERROR=ON
     - cmake --build mrmd-build --target all -j 32
     - cd mrmd-build
-    - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 compute-sanitizer --tool memcheck ctest --rerun-failed --output-on-failure -j 2
-    - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 compute-sanitizer --tool initcheck ctest --rerun-failed --output-on-failure -j 2
+    - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 ctest --rerun-failed --output-on-failure -j 2
   variables:
     CMAKE_PREFIX_PATH: "~/software/kokkos-install"
     OMP_PROC_BIND: "spread"
