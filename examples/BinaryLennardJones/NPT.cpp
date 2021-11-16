@@ -41,9 +41,9 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
     currentTemperature << analysis::getMeanKineticEnergy(atoms) * 2_r / 3_r;
 
     if (config["enable_output"].as<bool>())
-        util::printTable("step", "T", "p", "V", "Nlocal", "Nghost");
+        util::printTable("step", "T", "p", "V", "E_kin", "E_LJ", "E_total", "Nlocal", "Nghost");
     if (config["enable_output"].as<bool>())
-        util::printTableSep("step", "T", "p", "V", "Nlocal", "Nghost");
+        util::printTableSep("step", "T", "p", "V", "E_kin", "E_LJ", "E_total", "Nlocal", "Nghost");
     for (auto step = 0; step < config["time_steps"].as<int64_t>(); ++step)
     {
         maxAtomDisplacement +=
@@ -128,6 +128,9 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
                              currentTemperature,
                              currentPressure,
                              volume,
+                             Ek,
+                             LJ.getEnergy() / real_c(atoms.numLocalAtoms),
+                             Ek + LJ.getEnergy() / real_c(atoms.numLocalAtoms),
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
@@ -135,6 +138,6 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
         }
     }
     if (config["enable_output"].as<bool>())
-        util::printTableSep("step", "T", "p", "V", "Nlocal", "Nghost");
+        util::printTableSep("step", "T", "p", "V", "E_kin", "E_LJ", "E_total", "Nlocal", "Nghost");
 }
 }  // namespace mrmd
