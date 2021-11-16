@@ -21,8 +21,9 @@ void calcPotentialAndForce(impl::CappedLennardJonesPotential& LJ,
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
         auto x = startingPos + real_c(idx) * delta;
-        potential(idx) = LJ.computeEnergy(x * x, 0);
-        force(idx) = -x * LJ.computeForce(x * x, 0);
+        auto forceAndEnergy = LJ.computeForceAndEnergy(x * x, 0);
+        potential(idx) = forceAndEnergy.energy;
+        force(idx) = -x * forceAndEnergy.forceFactor;
     };
     Kokkos::parallel_for(policy, kernel);
     Kokkos::fence();

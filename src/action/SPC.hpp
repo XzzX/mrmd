@@ -172,16 +172,16 @@ public:
 
             if (distSqr < rcSqr_)
             {
-                auto ffactor = LJ_.computeForce(distSqr, 0);
-                sumEnergy.LJ += LJ_.computeEnergy(distSqr, 0);
+                auto forceAndVirial = LJ_.computeForceAndEnergy(distSqr, 0);
+                sumEnergy.LJ += forceAndVirial.energy;
 
-                atomsForce_(startAtomsBeta, 0) -= dx[0] * ffactor;
-                atomsForce_(startAtomsBeta, 1) -= dx[1] * ffactor;
-                atomsForce_(startAtomsBeta, 2) -= dx[2] * ffactor;
+                atomsForce_(startAtomsBeta, 0) -= dx[0] * forceAndVirial.forceFactor;
+                atomsForce_(startAtomsBeta, 1) -= dx[1] * forceAndVirial.forceFactor;
+                atomsForce_(startAtomsBeta, 2) -= dx[2] * forceAndVirial.forceFactor;
 
-                atomsForce_(startAtomsAlpha, 0) += dx[0] * ffactor;
-                atomsForce_(startAtomsAlpha, 1) += dx[1] * ffactor;
-                atomsForce_(startAtomsAlpha, 2) += dx[2] * ffactor;
+                atomsForce_(startAtomsAlpha, 0) += dx[0] * forceAndVirial.forceFactor;
+                atomsForce_(startAtomsAlpha, 1) += dx[1] * forceAndVirial.forceFactor;
+                atomsForce_(startAtomsAlpha, 2) += dx[2] * forceAndVirial.forceFactor;
             }
 
             /// loop over atoms

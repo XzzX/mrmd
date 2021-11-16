@@ -140,11 +140,11 @@ void LJ(Config& config)
         auto force = atoms.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        LJ.applyForces(atoms, verletList);
+        LJ.apply(atoms, verletList);
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto E0 = LJ.computeEnergy(atoms, verletList) / real_c(atoms.numLocalAtoms);
+            auto E0 = LJ.getEnergy() / real_c(atoms.numLocalAtoms);
             auto Ek = analysis::getKineticEnergy(atoms);
             auto p2 = 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
             Ek /= real_c(atoms.numLocalAtoms);

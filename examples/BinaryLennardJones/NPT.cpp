@@ -104,7 +104,7 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
         auto force = atoms.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        LJ.applyForces(atoms, verletList);
+        LJ.apply(atoms, verletList);
 
         if (step < 201)
         {

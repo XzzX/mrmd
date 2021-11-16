@@ -188,7 +188,8 @@ public:
                     ASSERT_GREATEREQUAL(typeIdx, 0);
                     ASSERT_LESS(typeIdx, numTypes_ * numTypes_);
                     assert(!std::isnan(distSqr));
-                    auto ffactor = LJ_.computeForce(distSqr, typeIdx) * weighting;
+                    auto forceAndEnergy = LJ_.computeForceAndEnergy(distSqr, typeIdx);
+                    auto ffactor = forceAndEnergy.forceFactor * weighting;
                     assert(!std::isnan(ffactor));
 
                     forceTmpIdx[0] += dx * ffactor;
@@ -199,10 +200,9 @@ public:
                     atomsForce_(jdx, 1) -= dy * ffactor;
                     atomsForce_(jdx, 2) -= dz * ffactor;
 
-                    auto energy = LJ_.computeEnergy(distSqr, typeIdx);
-                    assert(!std::isnan(energy));
-                    sumEnergy += energy * weighting;
-                    auto Vij = 0.5_r * energy;
+                    assert(!std::isnan(forceAndEnergy.energy));
+                    sumEnergy += forceAndEnergy.energy * weighting;
+                    auto Vij = 0.5_r * forceAndEnergy.energy;
 
                     if (weighting_function::isInHYRegion(modulatedLambdaAlpha) ||
                         weighting_function::isInHYRegion(modulatedLambdaBeta))

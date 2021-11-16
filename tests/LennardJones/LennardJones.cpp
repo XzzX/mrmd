@@ -109,7 +109,8 @@ TEST(LennardJones, ESPPComparison)
     std::cout << "create verlet list: " << timer.seconds() << std::endl;
 
     action::LennardJones LJ(rc, 1_r, 1_r);
-    real_t totalEnergy = LJ.computeEnergy(atoms, verlet_list);
+    LJ.apply(atoms, verlet_list);
+    real_t totalEnergy = LJ.getEnergy();
     EXPECT_FLOAT_EQ(totalEnergy, ESPP_INITIAL_ENERGY);
     std::cout << "starting energy: " << totalEnergy << std::endl;
 
@@ -117,7 +118,7 @@ TEST(LennardJones, ESPPComparison)
     Kokkos::fence();
     std::cout << "pre force integrate: " << timer.seconds() << std::endl;
 
-    LJ.applyForces(atoms, verlet_list);
+    LJ.apply(atoms, verlet_list);
     Kokkos::fence();
     std::cout << "lennard jones: " << timer.seconds() << std::endl;
 

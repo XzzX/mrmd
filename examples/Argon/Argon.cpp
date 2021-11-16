@@ -161,13 +161,13 @@ void LJ(Config& config)
         auto force = atoms.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        LJ.applyForces(atoms, verletList);
+        LJ.apply(atoms, verletList);
 
         ghostLayer.contributeBackGhostToReal(atoms);
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto E0 = LJ.computeEnergy(atoms, verletList) / real_c(atoms.numLocalAtoms);
+            auto E0 = LJ.getEnergy() / real_c(atoms.numLocalAtoms);
             auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
             auto T = (2_r / 3_r) * Ek;

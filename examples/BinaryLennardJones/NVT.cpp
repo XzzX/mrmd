@@ -90,7 +90,7 @@ void nvt(YAML::Node& config, data::Atoms& atoms, const data::Subdomain& subdomai
         auto force = atoms.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        LJ.applyForces(atoms, verletList);
+        LJ.apply(atoms, verletList);
 
         if (step < 201)
         {

@@ -154,7 +154,7 @@ TEST_P(NVT, pressure)
         auto force = atoms.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        LJ.applyForces(atoms, verletList);
+        LJ.apply(atoms, verletList);
 
         if (Config::bOutput && (step % Config::outputInterval == 0))
         {
@@ -163,7 +163,7 @@ TEST_P(NVT, pressure)
                 p = util::ExponentialMovingAverage(0.1_r);
                 T = util::ExponentialMovingAverage(0.1_r);
             }
-            auto E0 = LJ.computeEnergy(atoms, verletList) / real_c(atoms.numLocalAtoms);
+            auto E0 = LJ.getEnergy() / real_c(atoms.numLocalAtoms);
             auto Ek = analysis::getKineticEnergy(atoms);
             p << 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
             Ek /= real_c(atoms.numLocalAtoms);

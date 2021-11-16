@@ -1,13 +1,10 @@
 #pragma once
 
 #include "data/Atoms.hpp"
+#include "data/EnergyAndVirialReducer.hpp"
 #include "datatypes.hpp"
 
-namespace mrmd
-{
-namespace action
-{
-namespace impl
+namespace mrmd::action::impl
 {
 class CappedLennardJonesPotential
 {
@@ -26,46 +23,43 @@ public:
         real_t energyAtCappingPoint;
     };
 
+    struct ForceAndEnergy
+    {
+        real_t forceFactor;
+        real_t energy;
+    };
+
 private:
     Kokkos::View<PrecomputedValues*> precomputedValues_;
     bool isShifted_;  ///< potential is shifted at rc to 0
 
 public:
     KOKKOS_INLINE_FUNCTION
-    real_t computeForce(const real_t& distSqr, const idx_t& typeIdx) const
+    ForceAndEnergy computeForceAndEnergy(const real_t& distSqr, const idx_t& typeIdx) const
     {
+        ForceAndEnergy ret;
         if (distSqr >= precomputedValues_(typeIdx).cappingDistanceSqr)
         {
-            // normal LJ force calculation
+            // normal LJ calculation
             auto frac2 = 1_r / distSqr;
             auto frac6 = frac2 * frac2 * frac2;
-            return frac6 *
-                   (precomputedValues_(typeIdx).ff1 * frac6 - precomputedValues_(typeIdx).ff2) *
-                   frac2;
+            ret.forceFactor =
+                frac6 *
+                (precomputedValues_(typeIdx).ff1 * frac6 - precomputedValues_(typeIdx).ff2) * frac2;
+            ret.energy = frac6 * (precomputedValues_(typeIdx).ef1 * frac6 -
+                                  precomputedValues_(typeIdx).ef2) -
+                         precomputedValues_(typeIdx).shift;
+            return ret;
         }
 
         // force capping
-        return precomputedValues_(typeIdx).cappingCoeff / std::sqrt(distSqr);
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    real_t computeEnergy(const real_t& distSqr, const idx_t& typeIdx) const
-    {
-        if (distSqr >= precomputedValues_(typeIdx).cappingDistanceSqr)
-        {
-            // normal LJ energy calculation
-            real_t frac2 = 1_r / distSqr;
-            real_t frac6 = frac2 * frac2 * frac2;
-            return frac6 *
-                       (precomputedValues_(typeIdx).ef1 * frac6 - precomputedValues_(typeIdx).ef2) -
-                   precomputedValues_(typeIdx).shift;
-        }
-
-        // capped energy
-        return precomputedValues_(typeIdx).energyAtCappingPoint -
-               (std::sqrt(distSqr) - precomputedValues_(typeIdx).cappingDistance) *
-                   precomputedValues_(typeIdx).cappingCoeff -
-               precomputedValues_(typeIdx).shift;
+        auto dist = std::sqrt(distSqr);
+        ret.forceFactor = precomputedValues_(typeIdx).cappingCoeff / dist;
+        ret.energy = precomputedValues_(typeIdx).energyAtCappingPoint -
+                     (dist - precomputedValues_(typeIdx).cappingDistance) *
+                         precomputedValues_(typeIdx).cappingCoeff -
+                     precomputedValues_(typeIdx).shift;
+        return ret;
     }
 
     /**
@@ -79,17 +73,16 @@ public:
         auto capDist = precomputedValues_(typeIdx).cappingDistance;
         precomputedValues_(typeIdx).cappingDistance = 0_r;
         precomputedValues_(typeIdx).cappingDistanceSqr = 0_r;
-        precomputedValues_(typeIdx).cappingCoeff =
-            computeForce(capDist * capDist, typeIdx) * capDist;
-        precomputedValues_(typeIdx).energyAtCappingPoint =
-            computeEnergy(capDist * capDist, typeIdx);
+        auto forceAndEnergy = computeForceAndEnergy(capDist * capDist, typeIdx);
+        precomputedValues_(typeIdx).cappingCoeff = forceAndEnergy.forceFactor * capDist;
+        precomputedValues_(typeIdx).energyAtCappingPoint = forceAndEnergy.energy;
         precomputedValues_(typeIdx).cappingDistance = capDist;
         precomputedValues_(typeIdx).cappingDistanceSqr = capDist * capDist;
 
         if (isShifted_)
         {
             precomputedValues_(typeIdx).shift =
-                computeEnergy(precomputedValues_(typeIdx).rcSqr, typeIdx);
+                computeForceAndEnergy(precomputedValues_(typeIdx).rcSqr, typeIdx).energy;
         }
     }
 
@@ -131,8 +124,10 @@ public:
         Kokkos::fence();
     }
 };
-}  // namespace impl
+}  // namespace mrmd::action::impl
 
+namespace mrmd::action
+{
 class LennardJones
 {
 private:
@@ -146,15 +141,11 @@ private:
 
     const idx_t numTypes_;
 
-    real_t virial_ = 0_r;
+    data::EnergyAndVirialReducer energyAndVirial_;
 
 public:
-    struct ForceCalculation
-    {
-    };
-
     KOKKOS_INLINE_FUNCTION
-    void operator()(ForceCalculation, const idx_t& idx, real_t& virial) const
+    void operator()(const idx_t& idx, data::EnergyAndVirialReducer& energyAndVirial) const
     {
         real_t posTmp[3];
         posTmp[0] = pos_(idx, 0);
@@ -178,17 +169,18 @@ public:
             if (distSqr > rcSqr_) continue;
 
             auto typeIdx = type_(idx) * numTypes_ + type_(jdx);
-            auto ffactor = LJ_.computeForce(distSqr, typeIdx);
-            assert(!std::isnan(ffactor));
-            virial -= 0.5_r * ffactor * distSqr;
+            auto forceAndEnergy = LJ_.computeForceAndEnergy(distSqr, typeIdx);
+            assert(!std::isnan(forceAndEnergy.forceFactor));
+            energyAndVirial.energy += forceAndEnergy.energy;
+            energyAndVirial.virial -= 0.5_r * forceAndEnergy.forceFactor * distSqr;
 
-            forceTmp[0] += dx * ffactor;
-            forceTmp[1] += dy * ffactor;
-            forceTmp[2] += dz * ffactor;
+            forceTmp[0] += dx * forceAndEnergy.forceFactor;
+            forceTmp[1] += dy * forceAndEnergy.forceFactor;
+            forceTmp[2] += dz * forceAndEnergy.forceFactor;
 
-            force_(jdx, 0) -= dx * ffactor;
-            force_(jdx, 1) -= dy * ffactor;
-            force_(jdx, 2) -= dz * ffactor;
+            force_(jdx, 0) -= dx * forceAndEnergy.forceFactor;
+            force_(jdx, 1) -= dy * forceAndEnergy.forceFactor;
+            force_(jdx, 2) -= dz * forceAndEnergy.forceFactor;
         }
 
         force_(idx, 0) += forceTmp[0];
@@ -196,73 +188,21 @@ public:
         force_(idx, 2) += forceTmp[2];
     }
 
-    KOKKOS_INLINE_FUNCTION
-    void operator()(const idx_t& idx, const idx_t& jdx, real_t& energy) const
-    {
-        auto dx = pos_(idx, 0) - pos_(jdx, 0);
-        auto dy = pos_(idx, 1) - pos_(jdx, 1);
-        auto dz = pos_(idx, 2) - pos_(jdx, 2);
-        auto distSqr = dx * dx + dy * dy + dz * dz;
+    real_t getEnergy() const { return energyAndVirial_.energy; }
+    real_t getVirial() const { return energyAndVirial_.virial; }
 
-        if (distSqr > rcSqr_) return;
-
-        auto typeIdx = type_(idx) * numTypes_ + type_(jdx);
-        energy += LJ_.computeEnergy(distSqr, typeIdx);
-    }
-
-    void applyForces(data::Atoms& atoms, VerletList& verletList)
-    {
-        virial_ = 0;
-
-        pos_ = atoms.getPos();
-        force_ = atoms.getForce();
-        type_ = atoms.getType();
-        verletList_ = verletList;
-
-        auto policy = Kokkos::RangePolicy<ForceCalculation>(0, atoms.numLocalAtoms);
-        Kokkos::parallel_reduce("LennardJones::applyForces", policy, *this, virial_);
-        Kokkos::fence();
-    }
-
-    template <typename VERLET_LIST>
-    real_t computeEnergy(data::Atoms& atoms, VERLET_LIST& verletList)
-    {
-        pos_ = atoms.getPos();
-        type_ = atoms.getType();
-
-        real_t E0 = 0_r;
-        Cabana::neighbor_parallel_reduce(Kokkos::RangePolicy<>(0, atoms.numLocalAtoms),
-                                         *this,
-                                         verletList,
-                                         Cabana::FirstNeighborsTag(),
-                                         Cabana::TeamOpTag(),
-                                         E0,
-                                         "LennardJones::computeEnergy");
-
-        return E0;
-    }
-
-    real_t getVirial() const { return virial_; }
+    void apply(data::Atoms& atoms, VerletList& verletList);
 
     LennardJones(const real_t rc,
                  const real_t& sigma,
                  const real_t& epsilon,
-                 const real_t& cappingDistance = 0_r)
-        : LennardJones({cappingDistance}, {rc}, {sigma}, {epsilon}, 1, false)
-    {
-    }
+                 const real_t& cappingDistance = 0_r);
 
     LennardJones(const std::vector<real_t>& cappingDistance,
                  const std::vector<real_t>& rc,
                  const std::vector<real_t>& sigma,
                  const std::vector<real_t>& epsilon,
                  const idx_t& numTypes,
-                 const bool isShifted)
-        : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, isShifted), numTypes_(1)
-    {
-        auto rcMax = *std::max_element(rc.begin(), rc.end());
-        rcSqr_ = rcMax * rcMax;
-    }
+                 const bool isShifted);
 };
-}  // namespace action
-}  // namespace mrmd
+}  // namespace mrmd::action
