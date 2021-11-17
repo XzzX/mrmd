@@ -4,11 +4,47 @@
 
 #include <assert.hpp>
 
-namespace mrmd
+namespace mrmd::communication::impl
 {
-namespace communication
+struct PositiveNegativeCoutner
 {
-namespace impl
+    idx_t positive = 0;
+    idx_t negative = 0;
+
+    KOKKOS_INLINE_FUNCTION
+    PositiveNegativeCoutner() = default;
+    KOKKOS_INLINE_FUNCTION
+    PositiveNegativeCoutner(const PositiveNegativeCoutner& rhs) = default;
+
+    KOKKOS_INLINE_FUNCTION
+    PositiveNegativeCoutner& operator+=(const PositiveNegativeCoutner& src)
+    {
+        positive += src.positive;
+        negative += src.negative;
+        return *this;
+    }
+    KOKKOS_INLINE_FUNCTION
+    void operator+=(const volatile PositiveNegativeCoutner& src) volatile
+    {
+        positive += src.positive;
+        negative += src.negative;
+    }
+};
+}  // namespace mrmd::communication::impl
+
+namespace Kokkos
+{  // reduction identity must be defined in Kokkos namespace
+template <>
+struct reduction_identity<mrmd::communication::impl::PositiveNegativeCoutner>
+{
+    KOKKOS_FORCEINLINE_FUNCTION static mrmd::communication::impl::PositiveNegativeCoutner sum()
+    {
+        return mrmd::communication::impl::PositiveNegativeCoutner();
+    }
+};
+}  // namespace Kokkos
+
+namespace mrmd::communication::impl
 {
 IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
                                           const data::Subdomain& subdomain,
@@ -31,27 +67,34 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
         Kokkos::deep_copy(numberOfAtomsToCommunicate_, 0);
 
         auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms + atoms.numGhostAtoms);
-        auto kernel = KOKKOS_CLASS_LAMBDA(idx_t idx)
+        auto kernel =
+            KOKKOS_CLASS_LAMBDA(const idx_t idx, PositiveNegativeCoutner& update, const bool final)
         {
             if (pos(idx, dim) < subdomain.minInnerCorner[dim])
             {
-                auto commIdx = Kokkos::atomic_fetch_add(&numberOfAtomsToCommunicate_(0), 1);
-                if (commIdx < idx_c(atomsToCommunicateAll_.extent(0)))
+                if (final && (update.positive < idx_c(atomsToCommunicateAll_.extent(0))))
                 {
-                    atomsToCommunicateAll_(commIdx, 0) = idx;
+                    atomsToCommunicateAll_(update.positive, 0) = idx;
                 }
+                update.positive += 1;
             }
 
             if (pos(idx, dim) >= subdomain.maxInnerCorner[dim])
             {
-                auto commIdx = Kokkos::atomic_fetch_add(&numberOfAtomsToCommunicate_(1), 1);
-                if (commIdx < idx_c(atomsToCommunicateAll_.extent(0)))
+                if (final && (update.negative < idx_c(atomsToCommunicateAll_.extent(0))))
                 {
-                    atomsToCommunicateAll_(commIdx, 1) = idx;
+                    atomsToCommunicateAll_(update.negative, 1) = idx;
                 }
+                update.negative += 1;
+            }
+
+            if (idx == atoms.numLocalAtoms + atoms.numGhostAtoms - 1)
+            {
+                numberOfAtomsToCommunicate_(0) = update.positive;
+                numberOfAtomsToCommunicate_(1) = update.negative;
             }
         };
-        Kokkos::parallel_for(fmt::format("GhostExchange::selectAtoms_{}", dim), policy, kernel);
+        Kokkos::parallel_scan(fmt::format("GhostExchange::selectAtoms_{}", dim), policy, kernel);
         Kokkos::fence();
         Kokkos::deep_copy(h_numberOfAtomsToCommunicate, numberOfAtomsToCommunicate_);
         newAtoms = std::max(h_numberOfAtomsToCommunicate(0), h_numberOfAtomsToCommunicate(1));
@@ -137,6 +180,4 @@ GhostExchange::GhostExchange(const idx_t& initialSize)
 {
 }
 
-}  // namespace impl
-}  // namespace communication
-}  // namespace mrmd
+}  // namespace mrmd::communication::impl
