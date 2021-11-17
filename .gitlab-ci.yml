@@ -11,16 +11,13 @@ gpu:
       cmake -S . -B mrmd-build \
       -DCMAKE_PREFIX_PATH=~/software/kokkos-uvm \
       -DCMAKE_BUILD_TYPE=Debug \
-      -DKokkos_ENABLE_DEBUG=ON \
-      -DKokkos_ENABLE_DEBUG_BOUNDS_CHECK=ON \
-      -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
       -DCabana_ENABLE_CAJITA=OFF \
       -DMRMD_WERROR=ON
     - cmake --build mrmd-build --target all -j 32
     - cd mrmd-build
     - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 ctest --rerun-failed --output-on-failure -j 2
   variables:
-    CMAKE_PREFIX_PATH: "~/software/kokkos-install"
+    CMAKE_PREFIX_PATH: "~/software/kokkos-gpu"
     OMP_PROC_BIND: "spread"
     OMP_PLACES: "threads"
     CXX: "g++"
