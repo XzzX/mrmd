@@ -1,3 +1,4 @@
+configure_file(positions.txt . COPYONLY)
 configure_file(push_performance.py . COPYONLY)
 add_executable(LennardJones
         LennardJones.cpp

@@ -27,6 +27,7 @@ using namespace mrmd;
 
 struct Config
 {
+    std::string filename = "";
     bool bOutput = true;
     idx_t outputInterval = -1;
 
@@ -87,7 +88,17 @@ void LJ(Config& config)
     auto subdomain =
         data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
-    auto atoms = fillDomainWithAtomsSC(subdomain, idx_c(config.rho * volume), 1_r);
+    data::Atoms atoms(0);
+
+    if (config.filename != "")
+    {
+        atoms = io::restoreAtoms(config.filename);
+    }
+    else
+    {
+        atoms = fillDomainWithAtomsSC(subdomain, idx_c(config.rho * volume), 1_r);
+    }
+
     auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
@@ -200,8 +211,8 @@ int main(int argc, char* argv[])  // NOLINT
         config.temperature,
         "temperature of the Langevin thermostat (negative numbers deactivate the thermostat)");
     app.add_option("-o,--output", config.outputInterval, "output interval");
+    app.add_option("-f,--filename", config.filename, "input file");
     CLI11_PARSE(app, argc, argv);
-
     if (config.outputInterval < 0) config.bOutput = false;
     LJ(config);
 
