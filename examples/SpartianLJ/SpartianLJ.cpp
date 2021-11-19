@@ -20,6 +20,7 @@
 #include "communication/MultiResGhostLayer.hpp"
 #include "data/Atoms.hpp"
 #include "data/Molecules.hpp"
+#include "data/MoleculesFromAtoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
@@ -87,8 +88,8 @@ void LJ(Config& config)
     const idx_t numAtoms = idx_c(config.rho * volume);
     util::Random RNG;
     data::Atoms atoms(numAtoms * 2);
-    data::Molecules molecules(numAtoms * 2);
-    io::restoreLAMMPS("LJ_spartian_3.lammpstrj", atoms, molecules);
+    io::restoreLAMMPS("LJ_spartian_3.lammpstrj", atoms);
+    auto molecules = data::createMoleculeForEachAtom(atoms);
     std::cout << "atoms added: " << atoms.numLocalAtoms << std::endl;
 
     auto rho = real_c(atoms.numLocalAtoms) / volume;

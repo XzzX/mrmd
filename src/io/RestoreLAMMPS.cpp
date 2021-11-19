@@ -3,11 +3,9 @@
 #include <cassert>
 #include <fstream>
 
-namespace mrmd
+namespace mrmd::io
 {
-namespace io
-{
-void restoreLAMMPS(const std::string& filename, data::Atoms& atoms, data::Molecules& molecules)
+void restoreLAMMPS(const std::string& filename, data::Atoms& atoms)
 {
     std::string tmp;
     std::ifstream fin(filename);
@@ -27,12 +25,6 @@ void restoreLAMMPS(const std::string& filename, data::Atoms& atoms, data::Molecu
     auto h_vel = Cabana::slice<data::Atoms::VEL>(h_Atoms);
     auto h_mass = Cabana::slice<data::Atoms::MASS>(h_Atoms);
     auto h_relativeMass = Cabana::slice<data::Atoms::RELATIVE_MASS>(h_Atoms);
-
-    molecules.resize(2 * numAtoms);
-    auto d_Molecules = molecules.getAoSoA();
-    auto h_Molecules = Cabana::create_mirror_view(Kokkos::HostSpace(), d_Molecules);
-    auto h_AtomsOffset = Cabana::slice<data::Molecules::ATOMS_OFFSET>(h_Molecules);
-    auto h_NumAtoms = Cabana::slice<data::Molecules::NUM_ATOMS>(h_Molecules);
 
     fin >> tmp >> tmp >> tmp >> tmp >> tmp;
     fin >> tmp >> tmp >> tmp >> tmp >> tmp;
@@ -74,24 +66,18 @@ void restoreLAMMPS(const std::string& filename, data::Atoms& atoms, data::Molecu
 
         h_relativeMass(idx) = 1_r;
 
-        h_AtomsOffset(idx) = idx;
-        h_NumAtoms(idx) = 1;
-
         ++idx;
     }
 
     fin.close();
 
     Cabana::deep_copy(d_Atoms, h_Atoms);
-    Cabana::deep_copy(d_Molecules, h_Molecules);
     assert(idx == numAtoms);
     atoms.numLocalAtoms = idx;
-    molecules.numLocalMolecules = idx;
 
     auto force = atoms.getForce();
     Cabana::deep_copy(force, 0_r);
     auto type = atoms.getType();
     Cabana::deep_copy(type, 0);
 }
-}  // namespace io
-}  // namespace mrmd
+}  // namespace mrmd::io
