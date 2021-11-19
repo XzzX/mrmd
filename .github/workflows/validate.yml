@@ -36,6 +36,7 @@ jobs:
             -S kokkos \
             -B kokkos-build \
             -DCMAKE_BUILD_TYPE=Debug \
+            -DKokkos_CXX_STANDARD=17 \
             -DKokkos_ENABLE_DEBUG=ON \
             -DKokkos_ENABLE_DEBUG_BOUNDS_CHECK=ON \
             -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
@@ -91,6 +92,7 @@ jobs:
             -S kokkos \
             -B kokkos-build \
             -DCMAKE_BUILD_TYPE=Release \
+            -DKokkos_CXX_STANDARD=17 \
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -D${{ matrix.BACKEND }}=ON
@@ -126,6 +128,7 @@ jobs:
             -S kokkos \
             -B kokkos-build \
             -DCMAKE_BUILD_TYPE=Release \
+            -DKokkos_CXX_STANDARD=17 \
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON
@@ -189,7 +192,7 @@ jobs:
 
       - name: kokkos
         run: |
-          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=Debug
+          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=Debug -DKokkos_CXX_STANDARD=17
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
@@ -213,7 +216,7 @@ jobs:
 
       - name: kokkos
         run: |
-          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=Debug
+          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=Debug -DKokkos_CXX_STANDARD=17
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
