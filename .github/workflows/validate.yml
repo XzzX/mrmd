@@ -16,6 +16,7 @@ jobs:
       - name: versions
         run: |
           cat /etc/os-release
+          echo $PATH
           git --version
           cmake --version
           $CC --version
@@ -70,6 +71,7 @@ jobs:
       - name: versions
         run: |
           cat /etc/os-release
+          echo $PATH
           git --version
           cmake --version
           $CC --version
