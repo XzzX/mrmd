@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: load environment variables
         if: ${{ matrix.CONTAINER =='icc' || matrix.CONTAINER =='icx' }}
-        run: source /opt/intel/oneapi/setvars.sh
+        run: . /opt/intel/oneapi/setvars.sh
 
       - name: versions
         run: |
