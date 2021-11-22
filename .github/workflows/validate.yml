@@ -14,9 +14,9 @@ jobs:
     container: xzzx/devel:${{ matrix.CONTAINER }}
     steps:
       - name: load environment variables
+        if: ${{ matrix.CONTAINER =='icc' || matrix.CONTAINER =='icx' }}
         run: source /opt/intel/oneapi/setvars.sh
-        if: ${{ matrix.CONTAINER }}=='icc' || ${{ matrix.CONTAINER }}=='icx'
-        
+
       - name: versions
         run: |
           cat /etc/os-release
