@@ -18,6 +18,8 @@ jobs:
           cat /etc/os-release
           git --version
           cmake --version
+          $CC --version
+          $CXX --version
 
       - uses: actions/checkout@v2
         with:
@@ -70,6 +72,8 @@ jobs:
           cat /etc/os-release
           git --version
           cmake --version
+          $CC --version
+          $CXX --version
 
       - uses: actions/checkout@v2
         with:
