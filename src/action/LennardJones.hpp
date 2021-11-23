@@ -94,10 +94,10 @@ public:
                                 const bool isShifted)
         : isShifted_(isShifted)
     {
-        assert(cappingDistance.size() == numTypes * numTypes);
-        assert(rc.size() == numTypes * numTypes);
-        assert(sigma.size() == numTypes * numTypes);
-        assert(epsilon.size() == numTypes * numTypes);
+        assert(idx_c(cappingDistance.size()) == numTypes * numTypes);
+        assert(idx_c(rc.size()) == numTypes * numTypes);
+        assert(idx_c(sigma.size()) == numTypes * numTypes);
+        assert(idx_c(epsilon.size()) == numTypes * numTypes);
 
         precomputedValues_ = Kokkos::View<PrecomputedValues*>(
             "CappedLennardJonesPotential::PrecomputedValues", numTypes * numTypes);

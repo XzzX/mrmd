@@ -11,6 +11,8 @@ struct EnergyAndVirialReducer
     EnergyAndVirialReducer() = default;
     KOKKOS_INLINE_FUNCTION
     EnergyAndVirialReducer(const EnergyAndVirialReducer& rhs) = default;
+    KOKKOS_INLINE_FUNCTION
+    EnergyAndVirialReducer& operator=(const EnergyAndVirialReducer& rhs) = default;
 
     KOKKOS_INLINE_FUNCTION
     EnergyAndVirialReducer& operator+=(const EnergyAndVirialReducer& src)

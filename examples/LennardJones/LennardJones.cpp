@@ -90,7 +90,7 @@ void LJ(Config& config)
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
     data::Atoms atoms(0);
 
-    if (config.filename != "")
+    if (!config.filename.empty())
     {
         atoms = io::restoreAtoms(config.filename);
     }
