@@ -13,10 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
     steps:
-      - name: load environment variables
-        if: ${{ matrix.CONTAINER =='icc' || matrix.CONTAINER =='icx' }}
-        run: /bin/bash -c "source /opt/intel/oneapi/setvars.sh"
-
       - name: versions
         run: |
           cat /etc/os-release
