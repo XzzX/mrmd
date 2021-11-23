@@ -24,26 +24,25 @@ size_t countWithinCutoff(const data::Atoms& atoms,
     real_t box_diameter[3] = {box[0], box[1], box[2]};
 
     size_t count = 0;
-    Kokkos::parallel_reduce(
-        Kokkos::RangePolicy<>(0, atoms.numLocalAtoms),
-        KOKKOS_LAMBDA(const idx_t idx, size_t& sum)
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx, size_t& sum)
+    {
+        for (auto jdx = idx + 1; jdx < numLocalAtoms + numGhostAtoms; ++jdx)
         {
-            for (auto jdx = idx + 1; jdx < numLocalAtoms + numGhostAtoms; ++jdx)
+            auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
+            if (periodic && (dx > box_diameter[0] * 0.5_r)) dx -= box_diameter[0];
+            auto dy = std::abs(pos(idx, 1) - pos(jdx, 1));
+            if (periodic && (dy > box_diameter[1] * 0.5_r)) dy -= box_diameter[1];
+            auto dz = std::abs(pos(idx, 2) - pos(jdx, 2));
+            if (periodic && (dz > box_diameter[2] * 0.5_r)) dz -= box_diameter[2];
+            auto distSqr = dx * dx + dy * dy + dz * dz;
+            if (distSqr < rcSqr)
             {
-                auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
-                if (periodic && (dx > box_diameter[0] * 0.5_r)) dx -= box_diameter[0];
-                auto dy = std::abs(pos(idx, 1) - pos(jdx, 1));
-                if (periodic && (dy > box_diameter[1] * 0.5_r)) dy -= box_diameter[1];
-                auto dz = std::abs(pos(idx, 2) - pos(jdx, 2));
-                if (periodic && (dz > box_diameter[2] * 0.5_r)) dz -= box_diameter[2];
-                auto distSqr = dx * dx + dy * dy + dz * dz;
-                if (distSqr < rcSqr)
-                {
-                    ++sum;
-                }
+                ++sum;
             }
-        },
-        count);
+        }
+    };
+    Kokkos::parallel_reduce(policy, kernel, count);
 
     return count;
 }
