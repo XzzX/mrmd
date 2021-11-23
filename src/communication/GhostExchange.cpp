@@ -58,7 +58,7 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
     auto h_numberOfAtomsToCommunicate =
         Kokkos::create_mirror_view(Kokkos::HostSpace(), numberOfAtomsToCommunicate_);
 
-    auto newAtoms = 0;
+    idx_t newAtoms = 0;
     do
     {
         // reset selected atoms
