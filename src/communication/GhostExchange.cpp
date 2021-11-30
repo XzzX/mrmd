@@ -6,25 +6,25 @@
 
 namespace mrmd::communication::impl
 {
-struct PositiveNegativeCoutner
+struct PositiveNegativeCounter
 {
     idx_t positive = 0;
     idx_t negative = 0;
 
     KOKKOS_INLINE_FUNCTION
-    PositiveNegativeCoutner() = default;
+    PositiveNegativeCounter() = default;
     KOKKOS_INLINE_FUNCTION
-    PositiveNegativeCoutner(const PositiveNegativeCoutner& rhs) = default;
+    PositiveNegativeCounter(const PositiveNegativeCounter& rhs) = default;
 
     KOKKOS_INLINE_FUNCTION
-    PositiveNegativeCoutner& operator+=(const PositiveNegativeCoutner& src)
+    PositiveNegativeCounter& operator+=(const PositiveNegativeCounter& src)
     {
         positive += src.positive;
         negative += src.negative;
         return *this;
     }
     KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile PositiveNegativeCoutner& src) volatile
+    void operator+=(const volatile PositiveNegativeCounter& src) volatile
     {
         positive += src.positive;
         negative += src.negative;
@@ -35,11 +35,11 @@ struct PositiveNegativeCoutner
 namespace Kokkos
 {  // reduction identity must be defined in Kokkos namespace
 template <>
-struct reduction_identity<mrmd::communication::impl::PositiveNegativeCoutner>
+struct reduction_identity<mrmd::communication::impl::PositiveNegativeCounter>
 {
-    KOKKOS_FORCEINLINE_FUNCTION static mrmd::communication::impl::PositiveNegativeCoutner sum()
+    KOKKOS_FORCEINLINE_FUNCTION static mrmd::communication::impl::PositiveNegativeCounter sum()
     {
-        return mrmd::communication::impl::PositiveNegativeCoutner();
+        return mrmd::communication::impl::PositiveNegativeCounter();
     }
 };
 }  // namespace Kokkos
@@ -68,7 +68,7 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
 
         auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms + atoms.numGhostAtoms);
         auto kernel =
-            KOKKOS_CLASS_LAMBDA(const idx_t idx, PositiveNegativeCoutner& update, const bool final)
+            KOKKOS_CLASS_LAMBDA(const idx_t idx, PositiveNegativeCounter& update, const bool final)
         {
             if (pos(idx, dim) < subdomain.minInnerCorner[dim])
             {
