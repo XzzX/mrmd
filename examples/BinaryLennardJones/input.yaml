@@ -8,7 +8,7 @@ initialization:
 
 NPT:
   dt: 0.005
-  time_steps: 100000
+  time_steps: 100001
 
   LJ:
     cutoff: [ 2.5, 2.5, 2.5, 2.5 ]
@@ -32,7 +32,7 @@ NPT:
 
 NVT:
   dt: 0.001
-  time_steps: 100000
+  time_steps: 100001
 
   LJ:
     cutoff: [ 2.5, 2.5, 2.5, 2.5 ]
@@ -53,7 +53,7 @@ NVT:
 
 SPARTIAN:
   dt: 0.001
-  time_steps: 100000
+  time_steps: 1000001
 
   LJ:
     cutoff: [ 2.5, 2.5, 2.5, 2.5 ]
@@ -76,12 +76,12 @@ SPARTIAN:
 
   thermodynamic_force_modulation: [ 2.0, 2.0 ]
 
-  density_sampling_interval: 200
-  density_update_interval: 1000
+  density_sampling_interval: 10
+  density_update_interval: 10000
 
-  compensation_energy_sampling_interval: 200
-  compensation_energy_update_interval: 20000
+  compensation_energy_sampling_interval: 10
+  compensation_energy_update_interval: 5000
 
   enable_output: true
-  output_interval: 1000
+  output_interval: 10000
 
