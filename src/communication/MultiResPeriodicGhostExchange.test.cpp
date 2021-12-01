@@ -12,7 +12,7 @@ TEST_F(MultiResPeriodicGhostExchangeTest, createGhostAtomsX)
 {
     EXPECT_EQ(molecules.numGhostMolecules, 0);
     EXPECT_EQ(atoms.numGhostAtoms, 0);
-    auto ghostExchange = MultiResPeriodicGhostExchange(200);
+    auto ghostExchange = MultiResPeriodicGhostExchange();
     ghostExchange.resetCorrespondingRealAtoms(atoms);
     ghostExchange.resetCorrespondingRealMolecules(molecules);
     auto correspondingRealAtom =
@@ -25,7 +25,7 @@ TEST_F(MultiResPeriodicGhostExchangeTest, createGhostAtomsY)
 {
     EXPECT_EQ(molecules.numGhostMolecules, 0);
     EXPECT_EQ(atoms.numGhostAtoms, 0);
-    auto ghostExchange = MultiResPeriodicGhostExchange(200);
+    auto ghostExchange = MultiResPeriodicGhostExchange();
     ghostExchange.resetCorrespondingRealAtoms(atoms);
     ghostExchange.resetCorrespondingRealMolecules(molecules);
     auto correspondingRealAtom =
@@ -38,7 +38,7 @@ TEST_F(MultiResPeriodicGhostExchangeTest, createGhostAtomsZ)
 {
     EXPECT_EQ(molecules.numGhostMolecules, 0);
     EXPECT_EQ(atoms.numGhostAtoms, 0);
-    auto ghostExchange = MultiResPeriodicGhostExchange(200);
+    auto ghostExchange = MultiResPeriodicGhostExchange();
     ghostExchange.resetCorrespondingRealAtoms(atoms);
     ghostExchange.resetCorrespondingRealMolecules(molecules);
     auto correspondingRealAtom =
@@ -51,7 +51,7 @@ TEST_F(MultiResPeriodicGhostExchangeTest, createGhostAtomsXYZ)
 {
     EXPECT_EQ(molecules.numGhostMolecules, 0);
     EXPECT_EQ(atoms.numGhostAtoms, 0);
-    auto ghostExchange = MultiResPeriodicGhostExchange(0);
+    auto ghostExchange = MultiResPeriodicGhostExchange();
     auto correspondingRealAtom = ghostExchange.createGhostAtomsXYZ(molecules, atoms, subdomain);
     EXPECT_EQ(molecules.numGhostMolecules, 5 * 5 * 5 - 3 * 3 * 3);
     EXPECT_EQ(atoms.numGhostAtoms, (5 * 5 * 5 - 3 * 3 * 3) * 2);

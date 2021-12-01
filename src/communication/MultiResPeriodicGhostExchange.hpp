@@ -110,7 +110,7 @@ public:
     void resetCorrespondingRealAtoms(data::Atoms& atoms);
     void resetCorrespondingRealMolecules(data::Molecules& molecules);
 
-    explicit MultiResPeriodicGhostExchange(const idx_t& initialSize);
+    explicit MultiResPeriodicGhostExchange(const idx_t& initialSize = 0);
 };
 }  // namespace impl
 }  // namespace communication
