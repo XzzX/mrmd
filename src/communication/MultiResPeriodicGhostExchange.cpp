@@ -236,6 +236,9 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtomsXYZ(data::Molecules& mo
                                                              data::Atoms& atoms,
                                                              const data::Subdomain& subdomain)
 {
+    resetCorrespondingRealMolecules(molecules);
+    molecules.numGhostMolecules = 0;
+
     resetCorrespondingRealAtoms(atoms);
     atoms.numGhostAtoms = 0;
 
