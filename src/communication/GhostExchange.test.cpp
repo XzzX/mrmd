@@ -76,13 +76,13 @@ protected:
     data::Atoms atoms = data::Atoms(200);
 };
 
-TEST_F(GhostExchangeTest, SelfExchangeXHigh)
+TEST_F(GhostExchangeTest, SelfExchangeX)
 {
     EXPECT_EQ(atoms.numGhostAtoms, 0);
     auto ghostExchange = GhostExchange();
-    auto correspondingRealAtom = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X_HIGH>(
-        atoms, atoms.numLocalAtoms, subdomain);
-    EXPECT_EQ(atoms.numGhostAtoms, 9);
+    ghostExchange.resetCorrespondingRealAtoms(atoms);
+    auto correspondingRealAtom = ghostExchange.createGhostAtoms(atoms, subdomain, 0);
+    EXPECT_EQ(atoms.numGhostAtoms, 18);
     for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
     {
         if (idx < atoms.numLocalAtoms)
@@ -96,13 +96,13 @@ TEST_F(GhostExchangeTest, SelfExchangeXHigh)
     }
 }
 
-TEST_F(GhostExchangeTest, SelfExchangeXLow)
+TEST_F(GhostExchangeTest, SelfExchangeY)
 {
     EXPECT_EQ(atoms.numGhostAtoms, 0);
     auto ghostExchange = GhostExchange();
-    auto correspondingRealAtom = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_X_LOW>(
-        atoms, atoms.numLocalAtoms, subdomain);
-    EXPECT_EQ(atoms.numGhostAtoms, 9);
+    ghostExchange.resetCorrespondingRealAtoms(atoms);
+    auto correspondingRealAtom = ghostExchange.createGhostAtoms(atoms, subdomain, 1);
+    EXPECT_EQ(atoms.numGhostAtoms, 18);
     for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
     {
         if (idx < atoms.numLocalAtoms)
@@ -116,69 +116,13 @@ TEST_F(GhostExchangeTest, SelfExchangeXLow)
     }
 }
 
-TEST_F(GhostExchangeTest, SelfExchangeYHigh)
+TEST_F(GhostExchangeTest, SelfExchangeZ)
 {
+    EXPECT_EQ(atoms.numGhostAtoms, 0);
     auto ghostExchange = GhostExchange();
-    auto correspondingRealAtom = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y_HIGH>(
-        atoms, atoms.numLocalAtoms, subdomain);
-    EXPECT_EQ(atoms.numGhostAtoms, 9);
-    for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
-    {
-        if (idx < atoms.numLocalAtoms)
-        {
-            EXPECT_EQ(correspondingRealAtom(idx), -1);
-        }
-        else
-        {
-            EXPECT_LT(correspondingRealAtom(idx), atoms.numLocalAtoms);
-        }
-    }
-}
-
-TEST_F(GhostExchangeTest, SelfExchangeYLow)
-{
-    auto ghostExchange = GhostExchange();
-    auto correspondingRealAtom = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Y_LOW>(
-        atoms, atoms.numLocalAtoms, subdomain);
-    EXPECT_EQ(atoms.numGhostAtoms, 9);
-    for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
-    {
-        if (idx < atoms.numLocalAtoms)
-        {
-            EXPECT_EQ(correspondingRealAtom(idx), -1);
-        }
-        else
-        {
-            EXPECT_LT(correspondingRealAtom(idx), atoms.numLocalAtoms);
-        }
-    }
-}
-
-TEST_F(GhostExchangeTest, SelfExchangeZHigh)
-{
-    auto ghostExchange = GhostExchange();
-    auto correspondingRealAtom = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z_HIGH>(
-        atoms, atoms.numLocalAtoms, subdomain);
-    EXPECT_EQ(atoms.numGhostAtoms, 9);
-    for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
-    {
-        if (idx < atoms.numLocalAtoms)
-        {
-            EXPECT_EQ(correspondingRealAtom(idx), -1);
-        }
-        else
-        {
-            EXPECT_LT(correspondingRealAtom(idx), atoms.numLocalAtoms);
-        }
-    }
-}
-
-TEST_F(GhostExchangeTest, SelfExchangeZLow)
-{
-    auto ghostExchange = GhostExchange();
-    auto correspondingRealAtom = ghostExchange.exchangeGhosts<GhostExchange::DIRECTION_Z_LOW>(
-        atoms, atoms.numLocalAtoms, subdomain);
-    EXPECT_EQ(atoms.numGhostAtoms, 9);
+    ghostExchange.resetCorrespondingRealAtoms(atoms);
+    auto correspondingRealAtom = ghostExchange.createGhostAtoms(atoms, subdomain, 2);
+    EXPECT_EQ(atoms.numGhostAtoms, 18);
     for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
     {
         if (idx < atoms.numLocalAtoms)
