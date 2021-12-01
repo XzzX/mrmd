@@ -63,8 +63,8 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
     auto moleculesPos = molecules.getPos();
     auto moleculesNumAtoms = molecules.getNumAtoms();
 
-    auto h_numberOfAtomsToCommunicate =
-        Kokkos::create_mirror_view(Kokkos::HostSpace(), numberOfAtomsToCommunicate_);
+    auto h_numberOfCommunicationItems =
+        Kokkos::create_mirror_view(Kokkos::HostSpace(), numberOfCommunicationItems_);
 
     idx_t newMolecules = 0;
     do
@@ -72,7 +72,7 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
         // reset selected atoms
         util::grow(atomsToCommunicateAll_, newMolecules);
         Kokkos::deep_copy(atomsToCommunicateAll_, -1);
-        Kokkos::deep_copy(numberOfAtomsToCommunicate_, 0);
+        Kokkos::deep_copy(numberOfCommunicationItems_, 0);
 
         auto policy =
             Kokkos::RangePolicy<>(0, molecules.numLocalMolecules + molecules.numGhostMolecules);
@@ -103,36 +103,36 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
 
             if (idx == molecules.numLocalMolecules + molecules.numGhostMolecules - 1)
             {
-                numberOfAtomsToCommunicate_(0) = update.positiveMolecules;
-                numberOfAtomsToCommunicate_(1) = update.positiveAtoms;
-                numberOfAtomsToCommunicate_(2) = update.negativeMolecules;
-                numberOfAtomsToCommunicate_(3) = update.negativeAtoms;
+                numberOfCommunicationItems_(Item::POSITIVE_MOLECULES) = update.positiveMolecules;
+                numberOfCommunicationItems_(Item::POSITIVE_ATOMS) = update.positiveAtoms;
+                numberOfCommunicationItems_(Item::NEGATIVE_MOLECULES) = update.negativeMolecules;
+                numberOfCommunicationItems_(Item::NEGATIVE_ATOMS) = update.negativeAtoms;
             }
         };
         Kokkos::parallel_scan(
             fmt::format("MultiResPeriodicGhostExchange::selectAtoms_{}", dim), policy, kernel);
         Kokkos::fence();
-        Kokkos::deep_copy(h_numberOfAtomsToCommunicate, numberOfAtomsToCommunicate_);
-        newMolecules = std::max(h_numberOfAtomsToCommunicate(POSITIVE_MOLECULES),
-                                h_numberOfAtomsToCommunicate(NEGATIVE_MOLECULES));
+        Kokkos::deep_copy(h_numberOfCommunicationItems, numberOfCommunicationItems_);
+        newMolecules = std::max(h_numberOfCommunicationItems(Item::POSITIVE_MOLECULES),
+                                h_numberOfCommunicationItems(Item::NEGATIVE_MOLECULES));
     } while (newMolecules > idx_c(atomsToCommunicateAll_.extent(0)));
 
-    std::cout << h_numberOfAtomsToCommunicate(POSITIVE_MOLECULES) << std::endl;
-    std::cout << h_numberOfAtomsToCommunicate(NEGATIVE_MOLECULES) << std::endl;
-    std::cout << h_numberOfAtomsToCommunicate(POSITIVE_ATOMS) << std::endl;
-    std::cout << h_numberOfAtomsToCommunicate(NEGATIVE_ATOMS) << std::endl;
+    std::cout << h_numberOfCommunicationItems(Item::POSITIVE_MOLECULES) << std::endl;
+    std::cout << h_numberOfCommunicationItems(Item::NEGATIVE_MOLECULES) << std::endl;
+    std::cout << h_numberOfCommunicationItems(Item::POSITIVE_ATOMS) << std::endl;
+    std::cout << h_numberOfCommunicationItems(Item::NEGATIVE_ATOMS) << std::endl;
 
     molecules.resize(molecules.numLocalMolecules + molecules.numGhostMolecules +
-                     h_numberOfAtomsToCommunicate(POSITIVE_MOLECULES) +
-                     h_numberOfAtomsToCommunicate(NEGATIVE_MOLECULES));
+                     h_numberOfCommunicationItems(Item::POSITIVE_MOLECULES) +
+                     h_numberOfCommunicationItems(Item::NEGATIVE_MOLECULES));
     atoms.resize(atoms.numLocalAtoms + atoms.numGhostAtoms +
-                 h_numberOfAtomsToCommunicate(POSITIVE_ATOMS) +
-                 h_numberOfAtomsToCommunicate(NEGATIVE_ATOMS));
+                 h_numberOfCommunicationItems(Item::POSITIVE_ATOMS) +
+                 h_numberOfCommunicationItems(Item::NEGATIVE_ATOMS));
 
     util::grow(atomsCorrespondingRealAtom_,
                atoms.numLocalAtoms + atoms.numGhostAtoms +
-                   h_numberOfAtomsToCommunicate(POSITIVE_ATOMS) +
-                   h_numberOfAtomsToCommunicate(NEGATIVE_ATOMS));
+                   h_numberOfCommunicationItems(Item::POSITIVE_ATOMS) +
+                   h_numberOfCommunicationItems(Item::NEGATIVE_ATOMS));
 
     {
         auto moleculesPos = molecules.getPos();
@@ -144,7 +144,7 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
         auto policy = Kokkos::RangePolicy<>(0, newMolecules);
         auto kernel = KOKKOS_CLASS_LAMBDA(const idx_t& idx)
         {
-            if (idx < numberOfAtomsToCommunicate_(POSITIVE_MOLECULES))
+            if (idx < numberOfCommunicationItems_(Item::POSITIVE_MOLECULES))
             {
                 auto moleculeIdx = atomsToCommunicateAll_(idx, POSITIVE_MOLECULES);
 
@@ -183,7 +183,7 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
                 }
             }
 
-            if (idx < numberOfAtomsToCommunicate_(NEGATIVE_MOLECULES))
+            if (idx < numberOfCommunicationItems_(Item::NEGATIVE_MOLECULES))
             {
                 auto moleculeIdx = atomsToCommunicateAll_(idx, NEGATIVE_MOLECULES);
 
@@ -193,11 +193,11 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
 
                 auto moleculeNewGhostIdx =
                     molecules.numLocalMolecules + molecules.numGhostMolecules +
-                    numberOfAtomsToCommunicate_(POSITIVE_MOLECULES) + moleculeIdx;
+                    numberOfCommunicationItems_(Item::POSITIVE_MOLECULES) + moleculeIdx;
                 ASSERT_LESS(moleculeNewGhostIdx, molecules.size());
 
                 auto atomNewGhostIdx = atoms.numLocalAtoms + atoms.numGhostAtoms +
-                                       numberOfAtomsToCommunicate_(POSITIVE_ATOMS) +
+                                       numberOfCommunicationItems_(Item::POSITIVE_ATOMS) +
                                        atomsToCommunicateAll_(idx, NEGATIVE_ATOMS);
 
                 molecules.copy(moleculeNewGhostIdx, moleculeIdx);
@@ -227,10 +227,10 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
             fmt::format("MultiResPeriodicGhostExchange::copyAtoms_{}", dim), policy, kernel);
         Kokkos::fence();
     }
-    molecules.numGhostMolecules += h_numberOfAtomsToCommunicate(POSITIVE_MOLECULES) +
-                                   h_numberOfAtomsToCommunicate(NEGATIVE_MOLECULES);
-    atoms.numGhostAtoms +=
-        h_numberOfAtomsToCommunicate(POSITIVE_ATOMS) + h_numberOfAtomsToCommunicate(NEGATIVE_ATOMS);
+    molecules.numGhostMolecules += h_numberOfCommunicationItems(Item::POSITIVE_MOLECULES) +
+                                   h_numberOfCommunicationItems(Item::NEGATIVE_MOLECULES);
+    atoms.numGhostAtoms += h_numberOfCommunicationItems(Item::POSITIVE_ATOMS) +
+                           h_numberOfCommunicationItems(Item::NEGATIVE_ATOMS);
 
     return atomsCorrespondingRealAtom_;
 }
@@ -263,7 +263,7 @@ void MultiResPeriodicGhostExchange::resetCorrespondingRealMolecules(data::Molecu
 
 MultiResPeriodicGhostExchange::MultiResPeriodicGhostExchange(const idx_t& initialSize)
     : atomsToCommunicateAll_("atomsToCommunicateAll", initialSize),
-      numberOfAtomsToCommunicate_("numberOfAtomsToCommunicate"),
+      numberOfCommunicationItems_("numberOfAtomsToCommunicate"),
       atomsCorrespondingRealAtom_("atomsCorrespondingRealAtom", 0),
       moleculesCorrespondingRealMolecule_("moleculesCorrespondingRealMolecule", 0)
 {

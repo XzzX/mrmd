@@ -63,18 +63,20 @@ DoubleCounter operator+(const DoubleCounter& lhs, const DoubleCounter& rhs)
 class MultiResPeriodicGhostExchange
 {
 private:
-    static constexpr idx_t POSITIVE_MOLECULES = 0;
-    static constexpr idx_t POSITIVE_ATOMS = 1;
-    static constexpr idx_t NEGATIVE_MOLECULES = 2;
-    static constexpr idx_t NEGATIVE_ATOMS = 3;
-
     /// Selected indices to be communicated in a certain direction.
     /// first dim: index
     /// second dim: direction
     Kokkos::View<idx_t* [4]> atomsToCommunicateAll_;
 
+    enum class Item : idx_t
+    {
+        POSITIVE_MOLECULES = 0,
+        POSITIVE_ATOMS = 1,
+        NEGATIVE_MOLECULES = 2,
+        NEGATIVE_ATOMS = 3
+    };
     /// number of atoms to communicate in each direction
-    Kokkos::View<idx_t[4]> numberOfAtomsToCommunicate_;
+    Kokkos::View<idx_t[4]> numberOfCommunicationItems_;
 
     /// Stores the corresponding real atom index for every ghost atom.
     IndexView atomsCorrespondingRealAtom_;
