@@ -71,7 +71,7 @@ void spartian(YAML::Node& config,
     Kokkos::fence();
     auto rhoA = real_c(countTypeA) / volume;
     auto rhoB = real_c(atoms.numLocalAtoms - countTypeA) / volume;
-    std::cout << rhoA << " " << rhoB << std::endl;
+    //    std::cout << rhoA << " " << rhoB << std::endl;
     action::ThermodynamicForce thermodynamicForce(
         {rhoA, rhoB},
         subdomain,
@@ -81,10 +81,12 @@ void spartian(YAML::Node& config,
     std::ofstream fThermodynamicForceOut("thermodynamicForce.txt");
     std::ofstream fDriftForceCompensation("driftForce.txt");
 
+    Kokkos::Timer timer;
+
     if (config["enable_output"].as<bool>())
-        util::printTable("step", "T", "p", "V", "mu", "Nlocal", "Nghost");
+        util::printTable("step", "wall time", "T", "p", "V", "mu", "Nlocal", "Nghost");
     if (config["enable_output"].as<bool>())
-        util::printTableSep("step", "T", "p", "V", "mu", "Nlocal", "Nghost");
+        util::printTableSep("step", "wall time", "T", "p", "V", "mu", "Nlocal", "Nghost");
     for (auto step = 0; step < config["time_steps"].as<int64_t>(); ++step)
     {
         assert(atoms.numLocalAtoms == molecules.numLocalMolecules);
@@ -187,6 +189,7 @@ void spartian(YAML::Node& config,
             mu *= thermodynamicForce.getForce().binSize;
 
             util::printTable(step,
+                             timer.seconds(),
                              currentTemperature,
                              currentPressure,
                              volume,
@@ -206,7 +209,7 @@ void spartian(YAML::Node& config,
         }
     }
     if (config["enable_output"].as<bool>())
-        util::printTableSep("step", "T", "p", "V", "mu", "Nlocal", "Nghost");
+        util::printTableSep("step", "wall time", "T", "p", "V", "mu", "Nlocal", "Nghost");
 
     fDensityOut.close();
     fThermodynamicForceOut.close();
