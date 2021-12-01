@@ -70,7 +70,7 @@ public:
         numAtoms = Cabana::slice<NUM_ATOMS>(molecules_);
     }
 
-    KOKKOS_INLINE_FUNCTION auto size() const { return molecules_.size(); }
+    KOKKOS_INLINE_FUNCTION idx_t size() const { return idx_c(molecules_.size()); }
     auto numSoA() const { return molecules_.numSoA(); }
     auto arraySize(size_t s) const { return molecules_.arraySize(s); }
 

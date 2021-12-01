@@ -6,7 +6,7 @@
 
 namespace mrmd::communication::impl
 {
-struct PositiveNegativeCounter
+struct MoleculesAtomsCounter
 {
     idx_t positiveAtoms = 0;
     idx_t positiveMolecules = 0;
@@ -14,12 +14,12 @@ struct PositiveNegativeCounter
     idx_t negativeMolecules = 0;
 
     KOKKOS_INLINE_FUNCTION
-    PositiveNegativeCounter() = default;
+    MoleculesAtomsCounter() = default;
     KOKKOS_INLINE_FUNCTION
-    PositiveNegativeCounter(const PositiveNegativeCounter& rhs) = default;
+    MoleculesAtomsCounter(const MoleculesAtomsCounter& rhs) = default;
 
     KOKKOS_INLINE_FUNCTION
-    PositiveNegativeCounter& operator+=(const PositiveNegativeCounter& src)
+    MoleculesAtomsCounter& operator+=(const MoleculesAtomsCounter& src)
     {
         negativeAtoms += src.negativeAtoms;
         negativeMolecules += src.negativeMolecules;
@@ -28,7 +28,7 @@ struct PositiveNegativeCounter
         return *this;
     }
     KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile PositiveNegativeCounter& src) volatile
+    void operator+=(const volatile MoleculesAtomsCounter& src) volatile
     {
         negativeAtoms += src.negativeAtoms;
         negativeMolecules += src.negativeMolecules;
@@ -41,11 +41,11 @@ struct PositiveNegativeCounter
 namespace Kokkos
 {  // reduction identity must be defined in Kokkos namespace
 template <>
-struct reduction_identity<mrmd::communication::impl::PositiveNegativeCounter>
+struct reduction_identity<mrmd::communication::impl::MoleculesAtomsCounter>
 {
-    KOKKOS_FORCEINLINE_FUNCTION static mrmd::communication::impl::PositiveNegativeCounter sum()
+    KOKKOS_FORCEINLINE_FUNCTION static mrmd::communication::impl::MoleculesAtomsCounter sum()
     {
-        return mrmd::communication::impl::PositiveNegativeCounter();
+        return mrmd::communication::impl::MoleculesAtomsCounter();
     }
 };
 }  // namespace Kokkos
@@ -60,9 +60,6 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
     ASSERT_LESSEQUAL(0, dim);
     ASSERT_LESS(dim, 3);
 
-    auto moleculesPos = molecules.getPos();
-    auto moleculesNumAtoms = molecules.getNumAtoms();
-
     auto h_numberOfCommunicationItems =
         Kokkos::create_mirror_view(Kokkos::HostSpace(), numberOfCommunicationItems_);
 
@@ -70,38 +67,43 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
     do
     {
         // reset selected atoms
-        util::grow(atomsToCommunicateAll_, newMolecules);
-        Kokkos::deep_copy(atomsToCommunicateAll_, -1);
+        util::grow(communicationInfo_, newMolecules);
+        Kokkos::deep_copy(communicationInfo_, -1);
         Kokkos::deep_copy(numberOfCommunicationItems_, 0);
+
+        auto moleculesPos = molecules.getPos();
+        auto moleculesNumAtoms = molecules.getNumAtoms();
 
         auto policy =
             Kokkos::RangePolicy<>(0, molecules.numLocalMolecules + molecules.numGhostMolecules);
         auto kernel =
-            KOKKOS_CLASS_LAMBDA(const idx_t idx, PositiveNegativeCounter& update, const bool final)
+            KOKKOS_CLASS_LAMBDA(const idx_t idx, MoleculesAtomsCounter& update, const bool final)
         {
             if (moleculesPos(idx, dim) < subdomain.minInnerCorner[dim])
             {
-                if (final && (update.positiveMolecules < idx_c(atomsToCommunicateAll_.extent(0))))
+                if (final && (update.negativeMolecules < idx_c(communicationInfo_.extent(0))))
                 {
-                    atomsToCommunicateAll_(update.positiveMolecules, 0) = idx;
-                    atomsToCommunicateAll_(update.positiveMolecules, 1) = update.positiveAtoms;
-                }
-                update.positiveMolecules += 1;
-                update.positiveAtoms += moleculesNumAtoms(idx);
-            }
-
-            if (moleculesPos(idx, dim) >= subdomain.maxInnerCorner[dim])
-            {
-                if (final && (update.negativeMolecules < idx_c(atomsToCommunicateAll_.extent(0))))
-                {
-                    atomsToCommunicateAll_(update.negativeMolecules, 2) = idx;
-                    atomsToCommunicateAll_(update.negativeMolecules, 3) = update.negativeAtoms;
+                    communicationInfo_(update.negativeMolecules, Info::NEGATIVE_MOLECULE_IDX) = idx;
+                    communicationInfo_(update.negativeMolecules, Info::NEGATIVE_NUM_ATOMS) =
+                        update.negativeAtoms;
                 }
                 update.negativeMolecules += 1;
                 update.negativeAtoms += moleculesNumAtoms(idx);
             }
 
-            if (idx == molecules.numLocalMolecules + molecules.numGhostMolecules - 1)
+            if (moleculesPos(idx, dim) >= subdomain.maxInnerCorner[dim])
+            {
+                if (final && (update.positiveMolecules < idx_c(communicationInfo_.extent(0))))
+                {
+                    communicationInfo_(update.positiveMolecules, Info::POSITIVE_MOLECULE_IDX) = idx;
+                    communicationInfo_(update.positiveMolecules, Info::POSITIVE_NUM_ATOMS) =
+                        update.positiveAtoms;
+                }
+                update.positiveMolecules += 1;
+                update.positiveAtoms += moleculesNumAtoms(idx);
+            }
+
+            if (final && (idx == molecules.numLocalMolecules + molecules.numGhostMolecules - 1))
             {
                 numberOfCommunicationItems_(Item::POSITIVE_MOLECULES) = update.positiveMolecules;
                 numberOfCommunicationItems_(Item::POSITIVE_ATOMS) = update.positiveAtoms;
@@ -115,12 +117,7 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
         Kokkos::deep_copy(h_numberOfCommunicationItems, numberOfCommunicationItems_);
         newMolecules = std::max(h_numberOfCommunicationItems(Item::POSITIVE_MOLECULES),
                                 h_numberOfCommunicationItems(Item::NEGATIVE_MOLECULES));
-    } while (newMolecules > idx_c(atomsToCommunicateAll_.extent(0)));
-
-    std::cout << h_numberOfCommunicationItems(Item::POSITIVE_MOLECULES) << std::endl;
-    std::cout << h_numberOfCommunicationItems(Item::NEGATIVE_MOLECULES) << std::endl;
-    std::cout << h_numberOfCommunicationItems(Item::POSITIVE_ATOMS) << std::endl;
-    std::cout << h_numberOfCommunicationItems(Item::NEGATIVE_ATOMS) << std::endl;
+    } while (newMolecules > idx_c(communicationInfo_.extent(0)));
 
     molecules.resize(molecules.numLocalMolecules + molecules.numGhostMolecules +
                      h_numberOfCommunicationItems(Item::POSITIVE_MOLECULES) +
@@ -146,18 +143,58 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
         {
             if (idx < numberOfCommunicationItems_(Item::POSITIVE_MOLECULES))
             {
-                auto moleculeIdx = atomsToCommunicateAll_(idx, POSITIVE_MOLECULES);
+                auto moleculeIdx = communicationInfo_(idx, Info::POSITIVE_MOLECULE_IDX);
 
                 auto atomsStart = moleculesAtomsOffset(moleculeIdx);          /// inclusive
                 auto atomsEnd = atomsStart + moleculesNumAtoms(moleculeIdx);  /// exclusive
                 auto moleculeSize = atomsEnd - atomsStart;
 
                 auto moleculeNewGhostIdx =
-                    molecules.numLocalMolecules + molecules.numGhostMolecules + moleculeIdx;
+                    molecules.numLocalMolecules + molecules.numGhostMolecules + idx;
                 ASSERT_LESS(moleculeNewGhostIdx, molecules.size());
 
                 auto atomNewGhostIdx = atoms.numLocalAtoms + atoms.numGhostAtoms +
-                                       atomsToCommunicateAll_(idx, POSITIVE_ATOMS);
+                                       communicationInfo_(idx, Info::POSITIVE_NUM_ATOMS);
+
+                molecules.copy(moleculeNewGhostIdx, moleculeIdx);
+                moleculesPos(moleculeNewGhostIdx, dim) -= subdomain.diameter[dim];
+                moleculesAtomsOffset(moleculeNewGhostIdx) = atomNewGhostIdx;
+                moleculesNumAtoms(moleculeNewGhostIdx) = moleculeSize;
+                ASSERT_LESSEQUAL(moleculesPos(moleculeNewGhostIdx, dim), subdomain.minCorner[dim]);
+                ASSERT_GREATEREQUAL(moleculesPos(moleculeNewGhostIdx, dim),
+                                    subdomain.minGhostCorner[dim]);
+
+                for (idx_t atomIdx = 0; atomIdx < moleculeSize; ++atomIdx)
+                {
+                    atoms.copy(atomNewGhostIdx + atomIdx, atomsStart + atomIdx);
+                    atomsPos(atomNewGhostIdx + atomIdx, dim) -= subdomain.diameter[dim];
+                    auto realIdx = atomsStart + atomIdx;
+                    while (atomsCorrespondingRealAtom_(realIdx) != -1)
+                    {
+                        realIdx = atomsCorrespondingRealAtom_(realIdx);
+                        ASSERT_LESSEQUAL(0, realIdx);
+                        ASSERT_LESS(realIdx, atoms.numLocalAtoms + atoms.numGhostAtoms);
+                    }
+                    atomsCorrespondingRealAtom_(atomNewGhostIdx + atomIdx) = realIdx;
+                }
+            }
+
+            if (idx < numberOfCommunicationItems_(Item::NEGATIVE_MOLECULES))
+            {
+                auto moleculeIdx = communicationInfo_(idx, Info::NEGATIVE_MOLECULE_IDX);
+
+                auto atomsStart = moleculesAtomsOffset(moleculeIdx);          /// inclusive
+                auto atomsEnd = atomsStart + moleculesNumAtoms(moleculeIdx);  /// exclusive
+                auto moleculeSize = atomsEnd - atomsStart;
+
+                auto moleculeNewGhostIdx =
+                    molecules.numLocalMolecules + molecules.numGhostMolecules +
+                    numberOfCommunicationItems_(Item::POSITIVE_MOLECULES) + idx;
+                ASSERT_LESS(moleculeNewGhostIdx, molecules.size());
+
+                auto atomNewGhostIdx = atoms.numLocalAtoms + atoms.numGhostAtoms +
+                                       numberOfCommunicationItems_(Item::POSITIVE_ATOMS) +
+                                       communicationInfo_(idx, Info::NEGATIVE_NUM_ATOMS);
 
                 molecules.copy(moleculeNewGhostIdx, moleculeIdx);
                 moleculesPos(moleculeNewGhostIdx, dim) += subdomain.diameter[dim];
@@ -172,46 +209,6 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
                 {
                     atoms.copy(atomNewGhostIdx + atomIdx, atomsStart + atomIdx);
                     atomsPos(atomNewGhostIdx + atomIdx, dim) += subdomain.diameter[dim];
-                    auto realIdx = atomsStart + atomIdx;
-                    while (atomsCorrespondingRealAtom_(realIdx) != -1)
-                    {
-                        realIdx = atomsCorrespondingRealAtom_(realIdx);
-                        ASSERT_LESSEQUAL(0, realIdx);
-                        ASSERT_LESS(realIdx, atoms.numLocalAtoms + atoms.numGhostAtoms);
-                    }
-                    atomsCorrespondingRealAtom_(atomNewGhostIdx + atomIdx) = realIdx;
-                }
-            }
-
-            if (idx < numberOfCommunicationItems_(Item::NEGATIVE_MOLECULES))
-            {
-                auto moleculeIdx = atomsToCommunicateAll_(idx, NEGATIVE_MOLECULES);
-
-                auto atomsStart = moleculesAtomsOffset(moleculeIdx);          /// inclusive
-                auto atomsEnd = atomsStart + moleculesNumAtoms(moleculeIdx);  /// exclusive
-                auto moleculeSize = atomsEnd - atomsStart;
-
-                auto moleculeNewGhostIdx =
-                    molecules.numLocalMolecules + molecules.numGhostMolecules +
-                    numberOfCommunicationItems_(Item::POSITIVE_MOLECULES) + moleculeIdx;
-                ASSERT_LESS(moleculeNewGhostIdx, molecules.size());
-
-                auto atomNewGhostIdx = atoms.numLocalAtoms + atoms.numGhostAtoms +
-                                       numberOfCommunicationItems_(Item::POSITIVE_ATOMS) +
-                                       atomsToCommunicateAll_(idx, NEGATIVE_ATOMS);
-
-                molecules.copy(moleculeNewGhostIdx, moleculeIdx);
-                moleculesPos(moleculeNewGhostIdx, dim) -= subdomain.diameter[dim];
-                moleculesAtomsOffset(moleculeNewGhostIdx) = atomNewGhostIdx;
-                moleculesNumAtoms(moleculeNewGhostIdx) = moleculeSize;
-                ASSERT_LESSEQUAL(moleculesPos(moleculeNewGhostIdx, dim), subdomain.minCorner[dim]);
-                ASSERT_GREATEREQUAL(moleculesPos(moleculeNewGhostIdx, dim),
-                                    subdomain.minGhostCorner[dim]);
-
-                for (idx_t atomIdx = 0; atomIdx < moleculeSize; ++atomIdx)
-                {
-                    atoms.copy(atomNewGhostIdx + atomIdx, atomsStart + atomIdx);
-                    atomsPos(atomNewGhostIdx + atomIdx, dim) -= subdomain.diameter[dim];
                     auto realIdx = atomsStart + atomIdx;
                     while (atomsCorrespondingRealAtom_(realIdx) != -1)
                     {
@@ -262,7 +259,7 @@ void MultiResPeriodicGhostExchange::resetCorrespondingRealMolecules(data::Molecu
 }
 
 MultiResPeriodicGhostExchange::MultiResPeriodicGhostExchange(const idx_t& initialSize)
-    : atomsToCommunicateAll_("atomsToCommunicateAll", initialSize),
+    : communicationInfo_("atomsToCommunicateAll", initialSize),
       numberOfCommunicationItems_("numberOfAtomsToCommunicate"),
       atomsCorrespondingRealAtom_("atomsCorrespondingRealAtom", 0),
       moleculesCorrespondingRealMolecule_("moleculesCorrespondingRealMolecule", 0)
