@@ -153,7 +153,8 @@ void spartian(YAML::Node& config,
 
         if (step % config["density_update_interval"].as<idx_t>() == 0)
         {
-            thermodynamicForce.update();
+            thermodynamicForce.update(config["smoothing_sigma"].as<real_t>(),
+                                      config["smoothing_intensity"].as<real_t>());
         }
 
         thermodynamicForce.apply(atoms);

@@ -76,6 +76,8 @@ SPARTIAN:
 
   density_bin_width: 0.5
   thermodynamic_force_modulation: [ 2.0, 2.0 ]
+  smoothing_sigma: 2.0
+  smoothing_intensity: 2.0
 
   density_sampling_interval: 10
   density_update_interval: 10000

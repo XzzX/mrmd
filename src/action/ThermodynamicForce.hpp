@@ -40,30 +40,33 @@ public:
     inline const auto& getNumberOfDensityProfileSamples() const { return densityProfileSamples_; }
 
     void sample(data::Atoms& atoms);
-    void update();
+    void update(const real_t& smoothingSigma, const real_t& smoothingIntensity);
     void apply(const data::Atoms& atoms) const;
 
     ThermodynamicForce(const std::vector<real_t>& targetDensity,
                        const data::Subdomain& subdomain,
-                       const real_t& densityBinWidth,
+                       const real_t& requestedDensityBinWidth,
                        const std::vector<real_t>& thermodynamicForceModulation)
-        : force_("thermodynamic-force",
-                 subdomain.minCorner[0],
-                 subdomain.maxCorner[0],
-                 idx_c((subdomain.maxCorner[0] - subdomain.minCorner[0]) / densityBinWidth + 0.5_r),
-                 idx_c(targetDensity.size())),
+        : force_(
+              "thermodynamic-force",
+              subdomain.minCorner[0],
+              subdomain.maxCorner[0],
+              idx_c((subdomain.maxCorner[0] - subdomain.minCorner[0]) / requestedDensityBinWidth +
+                    0.5_r),
+              idx_c(targetDensity.size())),
           densityProfile_(
               "density-profile",
               subdomain.minCorner[0],
               subdomain.maxCorner[0],
-              idx_c((subdomain.maxCorner[0] - subdomain.minCorner[0]) / densityBinWidth + 0.5_r),
+              idx_c((subdomain.maxCorner[0] - subdomain.minCorner[0]) / requestedDensityBinWidth +
+                    0.5_r),
               idx_c(targetDensity.size())),
           binVolume_(subdomain.diameter[1] * subdomain.diameter[2] * densityProfile_.binSize),
           targetDensity_(targetDensity),
           thermodynamicForceModulation_(thermodynamicForceModulation),
           forceFactor_("force-factor", targetDensity.size())
     {
-        ASSERT_LESS(std::abs(densityBinWidth - force_.binSize) / densityBinWidth,
+        ASSERT_LESS(std::abs(requestedDensityBinWidth - force_.binSize) / requestedDensityBinWidth,
                     1e-2,
                     "requested bin size is not achieved");
 
@@ -81,11 +84,11 @@ public:
 
     ThermodynamicForce(const real_t targetDensity,
                        const data::Subdomain& subdomain,
-                       const real_t& densityBinWidth,
+                       const real_t& requestedDensityBinWidth,
                        const real_t thermodynamicForceModulation)
         : ThermodynamicForce(std::vector<real_t>{targetDensity},
                              subdomain,
-                             densityBinWidth,
+                             requestedDensityBinWidth,
                              {thermodynamicForceModulation})
     {
     }

@@ -73,8 +73,8 @@ struct Config
     idx_t densitySamplingInterval = 200;
     idx_t densityUpdateInterval = 50000;
     real_t densityBinWidth = 0.5_r;
-    real_t convSigma = 2_r;
-    real_t convRange = 2_r;
+    real_t smoothingSigma = 2_r;
+    real_t smoothingIntensity = 2_r;
 };
 
 void LJ(Config& config)
@@ -174,7 +174,7 @@ void LJ(Config& config)
 
         if (step % config.densityUpdateInterval == 0)
         {
-            thermodynamicForce.update();
+            thermodynamicForce.update(config.smoothingSigma, config.smoothingIntensity);
         }
 
         thermodynamicForce.apply(atoms);
