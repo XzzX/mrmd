@@ -75,6 +75,7 @@ void spartian(YAML::Node& config,
     action::ThermodynamicForce thermodynamicForce(
         {rhoA, rhoB},
         subdomain,
+        config["density_bin_width"].as<real_t>(),
         config["thermodynamic_force_modulation"].as<std::vector<real_t>>());
 
     std::ofstream fDensityOut("densityProfile.txt");

@@ -71,7 +71,7 @@ struct Config
 
     idx_t densitySamplingInterval = 200;
     idx_t densityUpdateInterval = 50000;
-    real_t DensityBinSize = 0.5_r;
+    real_t densityBinWidth = 0.5_r;
     real_t convSigma = 2_r;
     real_t convRange = 2_r;
 
@@ -206,7 +206,7 @@ void SPC(Config& config)
     // actions
     action::SPC spc;
     action::ThermodynamicForce thermodynamicForce(
-        config.rho, subdomain, config.thermodynamicForceModulation);
+        config.rho, subdomain, config.densityBinWidth, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     analysis::MeanSquareDisplacement meanSquareDisplacement;
     meanSquareDisplacement.reset(molecules);

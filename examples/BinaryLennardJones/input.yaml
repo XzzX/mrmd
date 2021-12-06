@@ -74,6 +74,7 @@ SPARTIAN:
   hybrid_region_diameter: 10.0
   lambda_exponent: 7
 
+  density_bin_width: 0.5
   thermodynamic_force_modulation: [ 2.0, 2.0 ]
 
   density_sampling_interval: 10

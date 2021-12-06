@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "assert.hpp"
 #include "datatypes.hpp"
 
 namespace mrmd
@@ -23,6 +24,9 @@ struct MultiHistogram
           inverseBinSize(1_r / binSize),
           data(label, numBins, numHistograms)
     {
+        ASSERT_GREATER(maxArg, minArg);
+        ASSERT_GREATEREQUAL(numBinsArg, 0);
+        ASSERT_GREATEREQUAL(numHistogramsArg, 0);
     }
 
     /**

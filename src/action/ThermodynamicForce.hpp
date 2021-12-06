@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assert.hpp"
 #include "data/Atoms.hpp"
 #include "data/MultiHistogram.hpp"
 #include "data/Subdomain.hpp"
@@ -44,25 +45,31 @@ public:
 
     ThermodynamicForce(const std::vector<real_t>& targetDensity,
                        const data::Subdomain& subdomain,
+                       const real_t& densityBinWidth,
                        const std::vector<real_t>& thermodynamicForceModulation)
         : force_("thermodynamic-force",
                  subdomain.minCorner[0],
                  subdomain.maxCorner[0],
-                 100,
+                 idx_c((subdomain.maxCorner[0] - subdomain.minCorner[0]) / densityBinWidth + 0.5_r),
                  idx_c(targetDensity.size())),
-          densityProfile_("density-profile",
-                          subdomain.minCorner[0],
-                          subdomain.maxCorner[0],
-                          100,
-                          idx_c(targetDensity.size())),
+          densityProfile_(
+              "density-profile",
+              subdomain.minCorner[0],
+              subdomain.maxCorner[0],
+              idx_c((subdomain.maxCorner[0] - subdomain.minCorner[0]) / densityBinWidth + 0.5_r),
+              idx_c(targetDensity.size())),
           binVolume_(subdomain.diameter[1] * subdomain.diameter[2] * densityProfile_.binSize),
           targetDensity_(targetDensity),
           thermodynamicForceModulation_(thermodynamicForceModulation),
           forceFactor_("force-factor", targetDensity.size())
     {
-        assert(targetDensity.size() == thermodynamicForceModulation.size());
+        ASSERT_LESS(std::abs(densityBinWidth - force_.binSize) / densityBinWidth,
+                    1e-2,
+                    "requested bin size is not achieved");
+
+        ASSERT_EQUAL(targetDensity.size(), thermodynamicForceModulation.size());
         numTypes_ = idx_c(targetDensity.size());
-        assert(numTypes_ > 0);
+        ASSERT_GREATER(numTypes_, 0);
 
         auto hForceFactor = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), forceFactor_);
         for (auto i = 0; i < numTypes_; ++i)
@@ -74,9 +81,12 @@ public:
 
     ThermodynamicForce(const real_t targetDensity,
                        const data::Subdomain& subdomain,
+                       const real_t& densityBinWidth,
                        const real_t thermodynamicForceModulation)
-        : ThermodynamicForce(
-              std::vector<real_t>{targetDensity}, subdomain, {thermodynamicForceModulation})
+        : ThermodynamicForce(std::vector<real_t>{targetDensity},
+                             subdomain,
+                             densityBinWidth,
+                             {thermodynamicForceModulation})
     {
     }
 };

@@ -72,7 +72,7 @@ struct Config
 
     idx_t densitySamplingInterval = 200;
     idx_t densityUpdateInterval = 50000;
-    real_t DensityBinSize = 0.5_r;
+    real_t densityBinWidth = 0.5_r;
     real_t convSigma = 2_r;
     real_t convRange = 2_r;
 };
@@ -112,7 +112,7 @@ void LJ(Config& config)
     // actions
     action::LJ_IdealGas LJ(0.1_r, config.rc, config.sigma, config.epsilon, true);
     action::ThermodynamicForce thermodynamicForce(
-        config.rho, subdomain, config.thermodynamicForceModulation);
+        config.rho, subdomain, config.densityBinWidth, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     communication::MultiResGhostLayer ghostLayer;
 
