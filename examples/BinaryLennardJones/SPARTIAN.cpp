@@ -85,9 +85,11 @@ void spartian(YAML::Node& config,
     Kokkos::Timer timer;
 
     if (config["enable_output"].as<bool>())
-        util::printTable("step", "wall time", "T", "p", "V", "mu", "Nlocal", "Nghost");
+        util::printTable(
+            "step", "wall time", "T", "p", "V", "mu_left", "mu_right", "Nlocal", "Nghost");
     if (config["enable_output"].as<bool>())
-        util::printTableSep("step", "wall time", "T", "p", "V", "mu", "Nlocal", "Nghost");
+        util::printTableSep(
+            "step", "wall time", "T", "p", "V", "mu_left", "mu_right", "Nlocal", "Nghost");
     for (auto step = 0; step < config["time_steps"].as<int64_t>(); ++step)
     {
         assert(atoms.numLocalAtoms == molecules.numLocalMolecules);
@@ -183,19 +185,27 @@ void spartian(YAML::Node& config,
             // calc chemical potential
             auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
                                                            thermodynamicForce.getForce(1));
-            auto mu = 0_r;
+            auto muLeft = 0_r;
             for (auto i = 0; i < Fth.extent(0) / 2; ++i)
             {
-                mu += Fth(i);
+                muLeft += Fth(i);
             }
-            mu *= thermodynamicForce.getForce().binSize;
+            muLeft *= thermodynamicForce.getForce().binSize;
+
+            auto muRight = 0_r;
+            for (auto i = Fth.extent(0) / 2; i < Fth.extent(0); ++i)
+            {
+                muRight += Fth(i);
+            }
+            muRight *= thermodynamicForce.getForce().binSize;
 
             util::printTable(step,
                              timer.seconds(),
                              currentTemperature,
                              currentPressure,
                              volume,
-                             mu,
+                             muLeft,
+                             muRight,
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
@@ -211,7 +221,8 @@ void spartian(YAML::Node& config,
         }
     }
     if (config["enable_output"].as<bool>())
-        util::printTableSep("step", "wall time", "T", "p", "V", "mu", "Nlocal", "Nghost");
+        util::printTableSep(
+            "step", "wall time", "T", "p", "V", "mu_left", "mu_right", "Nlocal", "Nghost");
 
     fDensityOut.close();
     fThermodynamicForceOut.close();

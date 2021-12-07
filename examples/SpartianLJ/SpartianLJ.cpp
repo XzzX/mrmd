@@ -116,8 +116,10 @@ void LJ(Config& config)
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     communication::MultiResGhostLayer ghostLayer;
 
-    util::printTable("step", "time", "T", "Ek", "E0", "E", "mu", "Nlocal", "Nghost");
-    util::printTableSep("step", "time", "T", "Ek", "E0", "E", "mu", "Nlocal", "Nghost");
+    util::printTable(
+        "step", "time", "T", "Ek", "E0", "E", "mu_left", "mu_right", "Nlocal", "Nghost");
+    util::printTableSep(
+        "step", "time", "T", "Ek", "E0", "E", "mu_left", "mu_right", "Nlocal", "Nghost");
     for (auto step = 0; step < config.nsteps; ++step)
     {
         assert(atoms.numLocalAtoms == molecules.numLocalMolecules);
@@ -198,12 +200,19 @@ void LJ(Config& config)
             // calc chemical potential
             auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
                                                            thermodynamicForce.getForce(0));
-            auto mu = 0_r;
+            auto muLeft = 0_r;
             for (auto i = 0; i < Fth.extent(0) / 2; ++i)
             {
-                mu += Fth(i);
+                muLeft += Fth(i);
             }
-            mu *= thermodynamicForce.getForce().binSize;
+            muLeft *= thermodynamicForce.getForce().binSize;
+
+            auto muRight = 0_r;
+            for (auto i = Fth.extent(0) / 2; i < Fth.extent(0); ++i)
+            {
+                muRight += Fth(i);
+            }
+            muRight *= thermodynamicForce.getForce().binSize;
 
             util::printTable(step,
                              timer.seconds(),
@@ -211,7 +220,8 @@ void LJ(Config& config)
                              Ek,
                              E0,
                              E0 + Ek,
-                             mu,
+                             muLeft,
+                             muRight,
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
