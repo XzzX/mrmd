@@ -15,6 +15,7 @@
 #include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
+#include "analysis/AxialDensityProfile.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/SystemMomentum.hpp"
 #include "communication/MultiResGhostLayer.hpp"
@@ -234,6 +235,21 @@ void LJ(Config& config)
             fThermodynamicForceOut << std::endl;
 
             fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
+
+            auto densityProfile = analysis::getAxialDensityProfile(atoms.numLocalAtoms,
+                                                                   atoms.getPos(),
+                                                                   atoms.getType(),
+                                                                   1,
+                                                                   subdomain.minCorner[0],
+                                                                   subdomain.maxCorner[0],
+                                                                   100);
+            auto h_densityProfile =
+                Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), densityProfile.data);
+            for (auto i = 0; i < h_densityProfile.extent(0); ++i)
+            {
+                fDensityOut << h_densityProfile(i, 0) << " ";
+            }
+            fDensityOut << std::endl;
         }
     }
     auto time = timer.seconds();
