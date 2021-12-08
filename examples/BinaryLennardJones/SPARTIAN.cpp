@@ -11,6 +11,7 @@
 #include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
+#include "analysis/AxialDensityProfile.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "communication/MultiResGhostLayer.hpp"
 #include "io/DumpCSV.hpp"
@@ -78,7 +79,8 @@ void spartian(YAML::Node& config,
         config["density_bin_width"].as<real_t>(),
         config["thermodynamic_force_modulation"].as<std::vector<real_t>>());
 
-    std::ofstream fDensityOut("densityProfile.txt");
+    std::ofstream fDensityOut1("densityProfile1.txt");
+    std::ofstream fDensityOut2("densityProfile2.txt");
     std::ofstream fThermodynamicForceOut("thermodynamicForce.txt");
     std::ofstream fDriftForceCompensation("driftForce.txt");
 
@@ -217,14 +219,32 @@ void spartian(YAML::Node& config,
 
             fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
 
-            io::dumpCSV(fmt::format("spartian_{:0>6}.csv", step), atoms, false);
+            //            io::dumpCSV(fmt::format("spartian_{:0>6}.csv", step), atoms, false);
+
+            auto densityProfile = analysis::getAxialDensityProfile(atoms.numLocalAtoms,
+                                                                   atoms.getPos(),
+                                                                   atoms.getType(),
+                                                                   2,
+                                                                   subdomain.minCorner[0],
+                                                                   subdomain.maxCorner[0],
+                                                                   100);
+            auto h_densityProfile =
+                Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), densityProfile.data);
+            for (auto i = 0; i < h_densityProfile.extent(0); ++i)
+            {
+                fDensityOut1 << h_densityProfile(i, 0) << " ";
+                fDensityOut2 << h_densityProfile(i, 1) << " ";
+            }
+            fDensityOut1 << std::endl;
+            fDensityOut2 << std::endl;
         }
     }
     if (config["enable_output"].as<bool>())
         util::printTableSep(
             "step", "wall time", "T", "p", "V", "mu_left", "mu_right", "Nlocal", "Nghost");
 
-    fDensityOut.close();
+    fDensityOut1.close();
+    fDensityOut2.close();
     fThermodynamicForceOut.close();
     fDriftForceCompensation.close();
 }
