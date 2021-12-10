@@ -9,7 +9,7 @@ namespace action
 {
 void ThermodynamicForce::sample(data::Atoms& atoms)
 {
-    densityProfile_ += analysis::getAxialDensityProfile(atoms.numLocalAtoms,
+    densityProfile_ += analysis::getAxialDensityProfile(atoms.numLocalAtoms + atoms.numGhostAtoms,
                                                         atoms.getPos(),
                                                         atoms.getType(),
                                                         numTypes_,

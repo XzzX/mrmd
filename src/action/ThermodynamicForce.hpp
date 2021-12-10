@@ -47,20 +47,20 @@ public:
                        const data::Subdomain& subdomain,
                        const real_t& requestedDensityBinWidth,
                        const std::vector<real_t>& thermodynamicForceModulation)
-        : force_(
-              "thermodynamic-force",
-              subdomain.minCorner[0],
-              subdomain.maxCorner[0],
-              idx_c((subdomain.maxCorner[0] - subdomain.minCorner[0]) / requestedDensityBinWidth +
-                    0.5_r),
-              idx_c(targetDensity.size())),
-          densityProfile_(
-              "density-profile",
-              subdomain.minCorner[0],
-              subdomain.maxCorner[0],
-              idx_c((subdomain.maxCorner[0] - subdomain.minCorner[0]) / requestedDensityBinWidth +
-                    0.5_r),
-              idx_c(targetDensity.size())),
+        : force_("thermodynamic-force",
+                 subdomain.minGhostCorner[0],
+                 subdomain.maxGhostCorner[0],
+                 idx_c((subdomain.maxGhostCorner[0] - subdomain.minGhostCorner[0]) /
+                           requestedDensityBinWidth +
+                       0.5_r),
+                 idx_c(targetDensity.size())),
+          densityProfile_("density-profile",
+                          subdomain.minGhostCorner[0],
+                          subdomain.maxGhostCorner[0],
+                          idx_c((subdomain.maxGhostCorner[0] - subdomain.minGhostCorner[0]) /
+                                    requestedDensityBinWidth +
+                                0.5_r),
+                          idx_c(targetDensity.size())),
           binVolume_(subdomain.diameter[1] * subdomain.diameter[2] * densityProfile_.binSize),
           targetDensity_(targetDensity),
           thermodynamicForceModulation_(thermodynamicForceModulation),
