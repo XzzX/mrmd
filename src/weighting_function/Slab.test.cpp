@@ -6,6 +6,26 @@ namespace mrmd
 {
 namespace weighting_function
 {
+TEST(Slab, testRegion)
+{
+    std::array<real_t, 3> center = {2_r, 3_r, 4_r};
+    real_t atomisticRegionDiameter = 2_r;
+    real_t hybridRegionDiameter = 2_r;
+    auto weight = Slab(center, atomisticRegionDiameter, hybridRegionDiameter, 2);
+
+    EXPECT_TRUE(weight.isInATRegion(2_r, 10_r, 10_r));
+    EXPECT_FALSE(weight.isInHYRegion(2_r, 10_r, 10_r));
+    EXPECT_FALSE(weight.isInCGRegion(2_r, 10_r, 10_r));
+
+    EXPECT_FALSE(weight.isInATRegion(3.1_r, 10_r, 10_r));
+    EXPECT_TRUE(weight.isInHYRegion(3.1_r, 10_r, 10_r));
+    EXPECT_FALSE(weight.isInCGRegion(3.1_r, 10_r, 10_r));
+
+    EXPECT_FALSE(weight.isInATRegion(5.2_r, 10_r, 10_r));
+    EXPECT_FALSE(weight.isInHYRegion(5.2_r, 10_r, 10_r));
+    EXPECT_TRUE(weight.isInCGRegion(5.2_r, 10_r, 10_r));
+}
+
 TEST(Slab, monotonous)
 {
     std::array<real_t, 3> center = {2_r, 3_r, 4_r};

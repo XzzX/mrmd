@@ -19,6 +19,35 @@ private:
 
 public:
     KOKKOS_INLINE_FUNCTION
+    bool isInATRegion(const real_t& x, const real_t& /*y*/, const real_t& /*z*/)
+    {
+        auto dx = x - center_[0];
+        auto absDx = std::abs(dx);
+
+        return (absDx < atomisticRegionHalfDiameter_);
+    }
+    KOKKOS_INLINE_FUNCTION
+    bool isInHYRegion(const real_t& x, const real_t& /*y*/, const real_t& /*z*/)
+    {
+        auto dx = x - center_[0];
+        auto absDx = std::abs(dx);
+
+        if (absDx < atomisticRegionHalfDiameter_)
+        {
+            return false;
+        }
+        return (absDx < atomisticRegionHalfDiameter_ + hybridRegionDiameter_);
+    }
+    KOKKOS_INLINE_FUNCTION
+    bool isInCGRegion(const real_t& x, const real_t& /*y*/, const real_t& /*z*/)
+    {
+        auto dx = x - center_[0];
+        auto absDx = std::abs(dx);
+
+        return !(absDx < atomisticRegionHalfDiameter_ + hybridRegionDiameter_);
+    }
+
+    KOKKOS_INLINE_FUNCTION
     void operator()(const real_t x,
                     const real_t y,
                     const real_t z,
