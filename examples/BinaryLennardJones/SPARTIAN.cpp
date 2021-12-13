@@ -78,8 +78,10 @@ void spartian(YAML::Node& config,
         config["density_bin_width"].as<real_t>(),
         config["thermodynamic_force_modulation"].as<std::vector<real_t>>());
 
-    std::ofstream fDensityOut("densityProfile.txt");
-    std::ofstream fThermodynamicForceOut("thermodynamicForce.txt");
+    std::ofstream fDensityOut1("densityProfile1.txt");
+    std::ofstream fDensityOut2("densityProfile2.txt");
+    std::ofstream fThermodynamicForceOut1("thermodynamicForce1.txt");
+    std::ofstream fThermodynamicForceOut2("thermodynamicForce2.txt");
     std::ofstream fDriftForceCompensation("driftForce.txt");
 
     Kokkos::Timer timer;
@@ -183,19 +185,21 @@ void spartian(YAML::Node& config,
             (step % config["output_interval"].as<int64_t>() == 0))
         {
             // calc chemical potential
-            auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+            auto Fth1 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+                                                           thermodynamicForce.getForce(0));
+            auto Fth2 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
                                                            thermodynamicForce.getForce(1));
             auto muLeft = 0_r;
-            for (auto i = 0; i < Fth.extent(0) / 2; ++i)
+            for (auto i = 0; i < Fth2.extent(0) / 2; ++i)
             {
-                muLeft += Fth(i);
+                muLeft += Fth2(i);
             }
             muLeft *= thermodynamicForce.getForce().binSize;
 
             auto muRight = 0_r;
-            for (auto i = Fth.extent(0) / 2; i < Fth.extent(0); ++i)
+            for (auto i = Fth2.extent(0) / 2; i < Fth2.extent(0); ++i)
             {
-                muRight += Fth(i);
+                muRight += Fth2(i);
             }
             muRight *= thermodynamicForce.getForce().binSize;
 
@@ -209,23 +213,31 @@ void spartian(YAML::Node& config,
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
-            for (auto i = 0; i < Fth.extent(0); ++i)
+            for (auto i = 0; i < Fth1.extent(0); ++i)
             {
-                fThermodynamicForceOut << Fth(i) << " ";
+                fThermodynamicForceOut1 << Fth1(i) << " ";
             }
-            fThermodynamicForceOut << std::endl;
+            fThermodynamicForceOut1 << std::endl;
+
+            for (auto i = 0; i < Fth2.extent(0); ++i)
+            {
+                fThermodynamicForceOut2 << Fth2(i) << " ";
+            }
+            fThermodynamicForceOut2 << std::endl;
 
             fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
 
-            io::dumpCSV(fmt::format("spartian_{:0>6}.csv", step), atoms, false);
+            //io::dumpCSV(fmt::format("spartian_{:0>6}.csv", step), atoms, false);
         }
     }
     if (config["enable_output"].as<bool>())
         util::printTableSep(
             "step", "wall time", "T", "p", "V", "mu_left", "mu_right", "Nlocal", "Nghost");
 
-    fDensityOut.close();
-    fThermodynamicForceOut.close();
+    fDensityOut1.close();
+    fDensityOut2.close();
+    fThermodynamicForceOut1.close();
+    fThermodynamicForceOut2.close();
     fDriftForceCompensation.close();
 }
 }  // namespace mrmd
