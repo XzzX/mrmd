@@ -11,6 +11,7 @@
 #include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
+#include "analysis/AxialDensityProfile.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "communication/MultiResGhostLayer.hpp"
 #include "io/DumpCSV.hpp"
@@ -186,9 +187,9 @@ void spartian(YAML::Node& config,
         {
             // calc chemical potential
             auto Fth1 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
-                                                           thermodynamicForce.getForce(0));
+                                                            thermodynamicForce.getForce(0));
             auto Fth2 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
-                                                           thermodynamicForce.getForce(1));
+                                                            thermodynamicForce.getForce(1));
             auto muLeft = 0_r;
             for (auto i = 0; i < Fth2.extent(0) / 2; ++i)
             {
@@ -213,6 +214,23 @@ void spartian(YAML::Node& config,
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
+            auto densityProfile = analysis::getAxialDensityProfile(atoms.numLocalAtoms,
+                                                                   atoms.getPos(),
+                                                                   atoms.getType(),
+                                                                   2,
+                                                                   subdomain.minCorner[0],
+                                                                   subdomain.maxCorner[0],
+                                                                   100);
+            auto h_densityProfile =
+                Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), densityProfile.data);
+            for (auto i = 0; i < h_densityProfile.extent(0); ++i)
+            {
+                fDensityOut1 << h_densityProfile(i, 0) << " ";
+                fDensityOut2 << h_densityProfile(i, 1) << " ";
+            }
+            fDensityOut1 << std::endl;
+            fDensityOut2 << std::endl;
+
             for (auto i = 0; i < Fth1.extent(0); ++i)
             {
                 fThermodynamicForceOut1 << Fth1(i) << " ";
@@ -227,7 +245,7 @@ void spartian(YAML::Node& config,
 
             fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
 
-            //io::dumpCSV(fmt::format("spartian_{:0>6}.csv", step), atoms, false);
+            // io::dumpCSV(fmt::format("spartian_{:0>6}.csv", step), atoms, false);
         }
     }
     if (config["enable_output"].as<bool>())
