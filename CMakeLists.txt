@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(mrmd LANGUAGES C CXX)
+project(mrmd
+        VERSION 0.2.0
+        DESCRIPTION "Multi Resolution Molecular Dynamics"
+        HOMEPAGE_URL https://github.com/XzzX/mrmd
+        LANGUAGES C CXX)
 
 # set C++ standard
 set(CMAKE_CXX_STANDARD 17)
