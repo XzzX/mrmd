@@ -22,5 +22,22 @@ TEST(SmoothenDensityProfile, symmetric)
                         smoothedDensityProfile.data(5 + idx, 1));
     }
 }
+
+TEST(SmoothenDensityProfile, constant)
+{
+    constexpr auto CONST_VAL = 2_r;
+    data::MultiHistogram histogram("histogram", 0_r, 10_r, 11, 1);
+    for (auto idx = 0; idx < 11; ++idx)
+    {
+        histogram.data(idx, 0) = CONST_VAL;
+    }
+
+    auto smoothedDensityProfile = smoothenDensityProfile(histogram, 1_r, 3_r);
+
+    for (auto idx = 0; idx < 11; ++idx)
+    {
+        EXPECT_FLOAT_EQ(smoothedDensityProfile.data(idx, 0), CONST_VAL);
+    }
+}
 }  // namespace analysis
 }  // namespace mrmd
