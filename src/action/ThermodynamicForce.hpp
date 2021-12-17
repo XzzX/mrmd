@@ -50,25 +50,16 @@ public:
         : force_("thermodynamic-force",
                  subdomain.minGhostCorner[0],
                  subdomain.maxGhostCorner[0],
-                 idx_c((subdomain.maxGhostCorner[0] - subdomain.minGhostCorner[0]) /
-                           requestedDensityBinWidth +
-                       0.5_r),
+                 idx_c(std::ceil((subdomain.maxGhostCorner[0] - subdomain.minGhostCorner[0]) /
+                                 requestedDensityBinWidth)),
                  idx_c(targetDensity.size())),
-          densityProfile_("density-profile",
-                          subdomain.minGhostCorner[0],
-                          subdomain.maxGhostCorner[0],
-                          idx_c((subdomain.maxGhostCorner[0] - subdomain.minGhostCorner[0]) /
-                                    requestedDensityBinWidth +
-                                0.5_r),
-                          idx_c(targetDensity.size())),
+          densityProfile_("density-profile", force_),
           binVolume_(subdomain.diameter[1] * subdomain.diameter[2] * densityProfile_.binSize),
           targetDensity_(targetDensity),
           thermodynamicForceModulation_(thermodynamicForceModulation),
           forceFactor_("force-factor", targetDensity.size())
     {
-        ASSERT_LESS(std::abs(requestedDensityBinWidth - force_.binSize) / requestedDensityBinWidth,
-                    1e-2,
-                    "requested bin size is not achieved");
+        ASSERT_LESS(force_.binSize, requestedDensityBinWidth, "requested bin size is not achieved");
 
         ASSERT_EQUAL(targetDensity.size(), thermodynamicForceModulation.size());
         numTypes_ = idx_c(targetDensity.size());

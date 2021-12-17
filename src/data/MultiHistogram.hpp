@@ -29,6 +29,13 @@ struct MultiHistogram
         ASSERT_GREATEREQUAL(numHistogramsArg, 0);
     }
 
+    MultiHistogram(const std::string& label, const MultiHistogram& histogram)
+        : MultiHistogram(
+              label, histogram.min, histogram.max, histogram.numBins, histogram.numHistograms)
+    {
+        Kokkos::deep_copy(data, histogram.data);
+    }
+
     /**
      * @param val input value
      * @return corresponding bin or -1 if outside of range
