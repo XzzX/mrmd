@@ -39,7 +39,7 @@ struct Config
     bool bOutput = true;
     idx_t outputInterval = -1;
 
-    idx_t nsteps = 4000001;
+    idx_t nsteps = 6000001;
     static constexpr idx_t numAtoms = 10 * 10 * 10;
 
     static constexpr real_t sigma = 0.34_r;        ///< units: nm
@@ -63,13 +63,14 @@ struct Config
     idx_t estimatedMaxNeighbors = 60;
 
     idx_t densityStart = 2000001;
+    idx_t densityDeadTime = 10001;
     idx_t densitySamplingInterval = 10;
-    idx_t densityUpdateInterval = 200;
+    idx_t densityUpdateInterval = 2000;
     real_t densityBinWidth = 0.5_r;
     real_t smoothingSigma = 2_r;
     real_t smoothingIntensity = 2_r;
     // thermodynamic force parameters
-    real_t thermodynamicForceModulation = 0.2_r;
+    real_t thermodynamicForceModulation = 2.0_r;
 };
 
 data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
@@ -182,20 +183,21 @@ void LJ(Config& config)
         auto force = atoms.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        if ((step > config.densityStart) && (step % config.densitySamplingInterval == 0))
-        {
-            thermodynamicForce.sample(atoms);
-        }
-
-        if ((step > config.densityStart) && (step % config.densityUpdateInterval == 0))
-        {
-            thermodynamicForce.update(config.smoothingSigma, config.smoothingIntensity);
-        }
-
         if (step > config.densityStart)
         {
-            thermodynamicForce.apply(atoms);
+            if (step % config.densitySamplingInterval == 0)
+            {
+                thermodynamicForce.sample(atoms);
+            }
+
+            if (step % config.densityUpdateInterval == 0)
+            {
+                thermodynamicForce.update(config.smoothingSigma, config.smoothingIntensity);
+                config.densityStart = step + config.densityDeadTime;
+            }
         }
+
+        thermodynamicForce.apply(atoms);
 
         {
             auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
@@ -263,7 +265,7 @@ void LJ(Config& config)
             }
             fDensityProfile << std::endl;
 
-            io::dumpCSV(fmt::format("atoms_{:0>6}.csv", step), atoms, false);
+            //            io::dumpCSV(fmt::format("atoms_{:0>6}.csv", step), atoms, false);
         }
 
         if (step % 1000 == 0)
