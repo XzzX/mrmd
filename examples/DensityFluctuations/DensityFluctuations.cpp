@@ -230,7 +230,7 @@ void LJ(Config& config)
                                                                    subdomain.minCorner[0],
                                                                    subdomain.maxCorner[0],
                                                                    10);
-            densityProfile.scale(1_r / (densityProfile.binSize * config.Ly * config.Lz));
+            densityProfile.scale(1_r / (densityProfile.binSize * config.Ly * config.Lz * 4));
             auto fluctuation = analysis::getFluctuation(densityProfile, rho, 0);
 
             util::printTable(step,
