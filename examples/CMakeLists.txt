@@ -1,6 +1,7 @@
 add_subdirectory(Argon)
 add_subdirectory(BinaryLennardJones)
 add_subdirectory(ComplexAtomics)
+add_subdirectory(DensityFluctuations)
 add_subdirectory(IdealGas)
 add_subdirectory(LennardJones)
 add_subdirectory(SPC)
