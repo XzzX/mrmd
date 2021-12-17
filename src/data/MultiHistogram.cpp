@@ -38,7 +38,7 @@ void MultiHistogram::scale(const real_t& scalingFactor)
 
 void MultiHistogram::scale(const ScalarView& scalingFactor)
 {
-    CHECK_GREATEREQUAL(scalingFactor.extent(0), numHistograms);
+    CHECK_GREATEREQUAL(idx_c(scalingFactor.extent(0)), numHistograms);
 
     auto hist = data;  // avoid capturing this pointer
     auto policy =
