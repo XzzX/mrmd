@@ -50,6 +50,8 @@ struct MultiHistogram
     MultiView data;
 
     MultiHistogram& operator+=(const MultiHistogram& rhs);
+    void scale(const real_t& scalingFactor);
+    void scale(const ScalarView& scalingFactor);
 };
 
 data::MultiHistogram gradient(const data::MultiHistogram& input);

@@ -23,6 +23,34 @@ MultiHistogram& MultiHistogram::operator+=(const MultiHistogram& rhs)
     return *this;
 }
 
+void MultiHistogram::scale(const real_t& scalingFactor)
+{
+    auto hist = data;  // avoid capturing this pointer
+    auto policy =
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({idx_t(0), idx_t(0)}, {numBins, numHistograms});
+    auto normalizeSampleKernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
+    {
+        hist(idx, jdx) *= scalingFactor;
+    };
+    Kokkos::parallel_for(policy, normalizeSampleKernel, "MultiHistogram::scale");
+    Kokkos::fence();
+}
+
+void MultiHistogram::scale(const ScalarView& scalingFactor)
+{
+    CHECK_GREATEREQUAL(scalingFactor.extent(0), numHistograms);
+
+    auto hist = data;  // avoid capturing this pointer
+    auto policy =
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({idx_t(0), idx_t(0)}, {numBins, numHistograms});
+    auto normalizeSampleKernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
+    {
+        hist(idx, jdx) *= scalingFactor(jdx);
+    };
+    Kokkos::parallel_for(policy, normalizeSampleKernel, "MultiHistogram::scale");
+    Kokkos::fence();
+}
+
 data::MultiHistogram gradient(const data::MultiHistogram& input)
 {
     const auto inverseSpacing = input.inverseBinSize;

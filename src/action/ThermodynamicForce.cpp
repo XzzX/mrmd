@@ -23,27 +23,13 @@ void ThermodynamicForce::sample(data::Atoms& atoms)
 void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoothingIntensity)
 {
     assert(densityProfileSamples_ > 0);
-    auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
 
-    auto hist = densityProfile_.data;  // avoid capturing this pointer
-    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>(
-        {idx_t(0), idx_t(0)}, {densityProfile_.numBins, densityProfile_.numHistograms});
-    auto normalizeSampleKernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
-    {
-        hist(idx, jdx) *= normalizationFactor;
-    };
-    Kokkos::parallel_for(policy, normalizeSampleKernel, "ThermodynamicForce::normalize_sample");
-    Kokkos::fence();
+    auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
+    densityProfile_.scale(normalizationFactor);
 
     auto smoothedDensityGradient = data::gradient(
         analysis::smoothenDensityProfile(densityProfile_, smoothingSigma, smoothingIntensity));
-    auto forceFactor = forceFactor_;  ///< avoid capturing this pointer
-    auto calcForceKernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histogramIdx)
-    {
-        smoothedDensityGradient.data(binIdx, histogramIdx) *= forceFactor(histogramIdx);
-    };
-    Kokkos::parallel_for(policy, calcForceKernel, "ThermodynamicForce::calc_force");
-    Kokkos::fence();
+    smoothedDensityGradient.scale(forceFactor_);
 
     force_ += smoothedDensityGradient;
 
