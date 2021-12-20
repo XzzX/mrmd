@@ -2,6 +2,7 @@
 
 #include "analysis/AxialDensityProfile.hpp"
 #include "analysis/SmoothenDensityProfile.hpp"
+#include "util/math.hpp"
 
 namespace mrmd
 {
@@ -38,7 +39,7 @@ void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoo
     densityProfileSamples_ = 0;
 }
 
-void ThermodynamicForce::apply(const data::Atoms& atoms) const
+void ThermodynamicForce::apply(const data::Atoms& atoms, const weighting_function::Slab& slab) const
 {
     auto atomsPos = atoms.getPos();
     auto atomsForce = atoms.getForce();
@@ -50,6 +51,7 @@ void ThermodynamicForce::apply(const data::Atoms& atoms) const
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
         auto xPos = atomsPos(idx, 0);
+        if (!slab.isInHYRegion(atomsPos(idx, 0), atomsPos(idx, 1), atomsPos(idx, 2))) return;
         auto bin = forceHistogram.getBin(xPos);
         if (bin != -1)
         {
