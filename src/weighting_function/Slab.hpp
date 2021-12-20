@@ -19,7 +19,7 @@ private:
 
 public:
     KOKKOS_INLINE_FUNCTION
-    bool isInATRegion(const real_t& x, const real_t& /*y*/, const real_t& /*z*/)
+    bool isInATRegion(const real_t& x, const real_t& /*y*/, const real_t& /*z*/) const
     {
         auto dx = x - center_[0];
         auto absDx = std::abs(dx);
@@ -27,7 +27,7 @@ public:
         return (absDx < atomisticRegionHalfDiameter_);
     }
     KOKKOS_INLINE_FUNCTION
-    bool isInHYRegion(const real_t& x, const real_t& /*y*/, const real_t& /*z*/)
+    bool isInHYRegion(const real_t& x, const real_t& /*y*/, const real_t& /*z*/) const
     {
         auto dx = x - center_[0];
         auto absDx = std::abs(dx);
@@ -39,7 +39,7 @@ public:
         return (absDx < atomisticRegionHalfDiameter_ + hybridRegionDiameter_);
     }
     KOKKOS_INLINE_FUNCTION
-    bool isInCGRegion(const real_t& x, const real_t& /*y*/, const real_t& /*z*/)
+    bool isInCGRegion(const real_t& x, const real_t& /*y*/, const real_t& /*z*/) const
     {
         auto dx = x - center_[0];
         auto absDx = std::abs(dx);
@@ -49,8 +49,8 @@ public:
 
     KOKKOS_INLINE_FUNCTION
     void operator()(const real_t x,
-                    const real_t y,
-                    const real_t z,
+                    const real_t /*y*/,
+                    const real_t /*z*/,
                     real_t& lambda,
                     real_t& modulatedLambda,
                     real_t& gradLambdaX,
