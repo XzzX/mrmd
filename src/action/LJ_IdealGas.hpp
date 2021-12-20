@@ -3,8 +3,8 @@
 #include "LennardJones.hpp"
 #include "assert.hpp"
 #include "data/Atoms.hpp"
-#include "data/Histogram.hpp"
 #include "data/Molecules.hpp"
+#include "data/MultiHistogram.hpp"
 #include "datatypes.hpp"
 #include "weighting_function/CheckRegion.hpp"
 
@@ -12,30 +12,32 @@ namespace mrmd
 {
 namespace action
 {
-inline void updateMeanCompensationEnergy(data::Histogram& compensationEnergy,
-                                         data::Histogram& compensationEnergyCounter,
-                                         data::Histogram& meanCompensationEnergy,
+inline void updateMeanCompensationEnergy(data::MultiHistogram& compensationEnergy,
+                                         data::MultiHistogram& compensationEnergyCounter,
+                                         data::MultiHistogram& meanCompensationEnergy,
                                          const real_t runningAverageFactor = 10_r)
 {
     assert(compensationEnergy.numBins == compensationEnergyCounter.numBins);
     assert(compensationEnergy.numBins == meanCompensationEnergy.numBins);
 
-    auto policy = Kokkos::RangePolicy<>(0, compensationEnergy.numBins);
-    auto kernel = KOKKOS_LAMBDA(const idx_t binIdx)
+    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>(
+        {idx_t(0), idx_t(0)}, {compensationEnergy.numBins, compensationEnergy.numHistograms});
+    auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histogramIdx)
     {
         // check if there is at least one entry in this bin
-        if (compensationEnergyCounter.data(binIdx) < 0.5_r) return;
-        assert(compensationEnergyCounter.data(binIdx) > 0);
-        auto energy = compensationEnergy.data(binIdx) / compensationEnergyCounter.data(binIdx);
+        if (compensationEnergyCounter.data(binIdx, histogramIdx) < 0.5_r) return;
+        assert(compensationEnergyCounter.data(binIdx, histogramIdx) > 0);
+        auto energy = compensationEnergy.data(binIdx, histogramIdx) /
+                      compensationEnergyCounter.data(binIdx, histogramIdx);
 
         // use running average to calculate new mean compensation energy
-        meanCompensationEnergy.data(binIdx) =
-            (runningAverageFactor * meanCompensationEnergy.data(binIdx) + energy) /
+        meanCompensationEnergy.data(binIdx, histogramIdx) =
+            (runningAverageFactor * meanCompensationEnergy.data(binIdx, histogramIdx) + energy) /
             (runningAverageFactor + 1_r);
 
         // reset accumulation histograms
-        compensationEnergy.data(binIdx) = 0_r;
-        compensationEnergyCounter.data(binIdx) = 0_r;
+        compensationEnergy.data(binIdx, histogramIdx) = 0_r;
+        compensationEnergyCounter.data(binIdx, histogramIdx) = 0_r;
     };
     Kokkos::parallel_for("updateMeanCompensationEnergy", policy, kernel);
     Kokkos::fence();
@@ -61,15 +63,12 @@ private:
 
     static constexpr idx_t COMPENSATION_ENERGY_BINS = 200;
 
-    data::Histogram compensationEnergy_ =
-        data::Histogram("compensationEnergy", 0_r, 1_r, COMPENSATION_ENERGY_BINS);
-    ScalarScatterView compensationEnergyScatter_;
+    data::MultiHistogram compensationEnergy_;
+    MultiScatterView compensationEnergyScatter_;
 
-    data::Histogram compensationEnergyCounter_ =
-        data::Histogram("compensationEnergyCounter", 0_r, 1_r, COMPENSATION_ENERGY_BINS);
+    data::MultiHistogram compensationEnergyCounter_;
 
-    data::Histogram meanCompensationEnergy_ =
-        data::Histogram("meanCompensationEnergy", 0_r, 1_r, COMPENSATION_ENERGY_BINS);
+    data::MultiHistogram meanCompensationEnergy_;
 
     bool isDriftCompensationSamplingRun_ = false;
 
@@ -115,6 +114,15 @@ public:
                                            moleculesGradLambda_(alpha, 1),
                                            moleculesGradLambda_(alpha, 2)};
 
+        /// inclusive start index of atoms belonging to alpha
+        const auto startAtomsAlpha = moleculesAtomsOffset_(alpha);
+        /// exclusive end index of atoms belonging to alpha
+        const auto endAtomsAlpha = startAtomsAlpha + moleculesNumAtoms_(alpha);
+        assert(0 <= startAtomsAlpha);
+        assert(startAtomsAlpha < endAtomsAlpha);
+        //            assert(endAtomsAlpha <= atoms_.numLocalAtoms +
+        //            atoms_.numGhostAtoms);
+
         const auto numNeighbors = idx_c(NeighborList::numNeighbor(verletList_, alpha));
         for (idx_t n = 0; n < numNeighbors; ++n)
         {
@@ -144,15 +152,6 @@ public:
                 // CG region -> ideal gas -> no interaction
                 continue;
             }
-
-            /// inclusive start index of atoms belonging to alpha
-            const auto startAtomsAlpha = moleculesAtomsOffset_(alpha);
-            /// exclusive end index of atoms belonging to alpha
-            const auto endAtomsAlpha = startAtomsAlpha + moleculesNumAtoms_(alpha);
-            assert(0 <= startAtomsAlpha);
-            assert(startAtomsAlpha < endAtomsAlpha);
-            //            assert(endAtomsAlpha <= atoms_.numLocalAtoms +
-            //            atoms_.numGhostAtoms);
 
             /// inclusive start index of atoms belonging to beta
             const auto startAtomsBeta = moleculesAtomsOffset_(beta);
@@ -228,10 +227,10 @@ public:
                                 auto access = compensationEnergyScatter_.access();
                                 if (weighting_function::isInHYRegion(modulatedLambdaAlpha) &&
                                     (binAlpha != -1))
-                                    access(binAlpha) += Vij;
+                                    access(binAlpha, atomsType_(idx)) += Vij;
                                 if (weighting_function::isInHYRegion(modulatedLambdaBeta) &&
                                     (binBeta != -1))
-                                    access(binBeta) += Vij;
+                                    access(binBeta, atomsType_(jdx)) += Vij;
                             }
                         }
                     }
@@ -249,16 +248,25 @@ public:
 
         if (isDriftCompensationSamplingRun_)
         {
-            if (weighting_function::isInHYRegion(modulatedLambdaAlpha) && (binAlpha != -1))
-                compensationEnergyCounter_.data(binAlpha) += 1_r;
+            for (idx_t atomIdx = startAtomsAlpha; atomIdx < endAtomsAlpha; ++atomIdx)
+            {
+                if (weighting_function::isInHYRegion(modulatedLambdaAlpha) && (binAlpha != -1))
+                    compensationEnergyCounter_.data(binAlpha, atomsType_(atomIdx)) += 1_r;
+            }
         }
 
         // drift force compensation
         if (weighting_function::isInHYRegion(modulatedLambdaAlpha) && (binAlpha != -1))
         {
-            forceTmpAlpha[0] += meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[0];
-            forceTmpAlpha[1] += meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[1];
-            forceTmpAlpha[2] += meanCompensationEnergy_.data(binAlpha) * gradLambdaAlpha[2];
+            forceTmpAlpha[0] +=
+                meanCompensationEnergy_.data(binAlpha, atomsType_(startAtomsAlpha)) *
+                gradLambdaAlpha[0];
+            forceTmpAlpha[1] +=
+                meanCompensationEnergy_.data(binAlpha, atomsType_(startAtomsAlpha)) *
+                gradLambdaAlpha[1];
+            forceTmpAlpha[2] +=
+                meanCompensationEnergy_.data(binAlpha, atomsType_(startAtomsAlpha)) *
+                gradLambdaAlpha[2];
         }
 
         moleculesForce_(alpha, 0) += forceTmpAlpha[0];
@@ -282,7 +290,7 @@ public:
 
         isDriftCompensationSamplingRun_ = runCounter_ % compensationEnergySamplingInterval == 0;
 
-        compensationEnergyScatter_ = ScalarScatterView(compensationEnergy_.data);
+        compensationEnergyScatter_ = MultiScatterView(compensationEnergy_.data);
 
         real_t energy = 0_r;
         auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
@@ -316,7 +324,13 @@ public:
                 const std::vector<real_t>& epsilon,
                 const idx_t numTypes,
                 const bool doShift)
-        : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, doShift), numTypes_(numTypes)
+        : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, doShift),
+          numTypes_(numTypes),
+          compensationEnergy_("compensationEnergy", 0_r, 1_r, COMPENSATION_ENERGY_BINS, numTypes),
+          compensationEnergyCounter_(
+              "compensationEnergyCounter", 0_r, 1_r, COMPENSATION_ENERGY_BINS, numTypes),
+          meanCompensationEnergy_(
+              "meanCompensationEnergy", 0_r, 1_r, COMPENSATION_ENERGY_BINS, numTypes)
     {
         assert(cappingDistance.size() == numTypes * numTypes);
         assert(rc.size() == numTypes * numTypes);
