@@ -80,6 +80,11 @@ void spartian(YAML::Node& config,
         config["density_bin_width"].as<real_t>(),
         config["thermodynamic_force_modulation"].as<std::vector<real_t>>());
 
+    std::cout << "min: " << thermodynamicForce.getDensityProfile().min << std::endl;
+    std::cout << "max: " << thermodynamicForce.getDensityProfile().max << std::endl;
+    std::cout << "numBins: " << thermodynamicForce.getDensityProfile().numBins << std::endl;
+    std::cout << "binSize: " << thermodynamicForce.getDensityProfile().binSize << std::endl;
+
     std::ofstream fDensityOut1("densityProfile1.txt");
     std::ofstream fDensityOut2("densityProfile2.txt");
     std::ofstream fThermodynamicForceOut1("thermodynamicForce1.txt");
@@ -182,13 +187,14 @@ void spartian(YAML::Node& config,
         if ((step > config["density_start"].as<idx_t>()) &&
             (step % config["density_update_interval"].as<idx_t>() == 0))
         {
-            auto densityProfile = analysis::getAxialDensityProfile(atoms.numLocalAtoms,
-                                                                   atoms.getPos(),
-                                                                   atoms.getType(),
-                                                                   2,
-                                                                   subdomain.minCorner[0],
-                                                                   subdomain.maxCorner[0],
-                                                                   100);
+            auto densityProfile =
+                analysis::getAxialDensityProfile(atoms.numLocalAtoms + atoms.numGhostAtoms,
+                                                 atoms.getPos(),
+                                                 atoms.getType(),
+                                                 2,
+                                                 thermodynamicForce.getDensityProfile().min,
+                                                 thermodynamicForce.getDensityProfile().max,
+                                                 thermodynamicForce.getDensityProfile().numBins);
             densityProfile.scale(
                 1_r / (densityProfile.binSize * subdomain.diameter[1] * subdomain.diameter[2]));
             Xrho1 = analysis::getFluctuation(densityProfile, rhoA, 0);
