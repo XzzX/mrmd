@@ -179,7 +179,7 @@ void LJ(Config& config)
             thermodynamicForce.update(config.smoothingSigma, config.smoothingIntensity);
         }
 
-        thermodynamicForce.apply(atoms);
+        thermodynamicForce.apply(atoms, weightingFunction);
         auto E0 = LJ.run(molecules, moleculesVerletList, atoms);
         action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
         if (config.temperature >= 0)
@@ -233,7 +233,13 @@ void LJ(Config& config)
             }
             fThermodynamicForceOut << std::endl;
 
-            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
+            auto h_meanCompensationEnergy = Kokkos::create_mirror_view_and_copy(
+                Kokkos::HostSpace(), LJ.getMeanCompensationEnergy().data);
+            for (auto i = 0; i < h_meanCompensationEnergy.extent(0); ++i)
+            {
+                fDriftForceCompensation << h_meanCompensationEnergy(i, 0) << " ";
+            }
+            fDriftForceCompensation << std::endl;
         }
     }
     auto time = timer.seconds();

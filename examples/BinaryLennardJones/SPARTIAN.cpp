@@ -12,6 +12,7 @@
 #include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/AxialDensityProfile.hpp"
+#include "analysis/Fluctuation.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "communication/MultiResGhostLayer.hpp"
 #include "io/DumpCSV.hpp"
@@ -83,16 +84,37 @@ void spartian(YAML::Node& config,
     std::ofstream fDensityOut2("densityProfile2.txt");
     std::ofstream fThermodynamicForceOut1("thermodynamicForce1.txt");
     std::ofstream fThermodynamicForceOut2("thermodynamicForce2.txt");
-    std::ofstream fDriftForceCompensation("driftForce.txt");
+    std::ofstream fDriftForceCompensation1("driftForce1.txt");
+    std::ofstream fDriftForceCompensation2("driftForce2.txt");
 
     Kokkos::Timer timer;
 
     if (config["enable_output"].as<bool>())
-        util::printTable(
-            "step", "wall time", "T", "p", "V", "mu_left", "mu_right", "Nlocal", "Nghost");
+        util::printTable("step",
+                         "wall time",
+                         "T",
+                         "p",
+                         "V",
+                         "mu_left",
+                         "mu_right",
+                         "XrhoA",
+                         "XrhoB",
+                         "Nlocal",
+                         "Nghost");
     if (config["enable_output"].as<bool>())
-        util::printTableSep(
-            "step", "wall time", "T", "p", "V", "mu_left", "mu_right", "Nlocal", "Nghost");
+        util::printTableSep("step",
+                            "wall time",
+                            "T",
+                            "p",
+                            "V",
+                            "mu_left",
+                            "mu_right",
+                            "XrhoA",
+                            "XrhoB",
+                            "Nlocal",
+                            "Nghost");
+    auto Xrho1 = 0_r;
+    auto Xrho2 = 0_r;
     for (auto step = 0; step < config["time_steps"].as<int64_t>(); ++step)
     {
         assert(atoms.numLocalAtoms == molecules.numLocalMolecules);
@@ -151,18 +173,44 @@ void spartian(YAML::Node& config,
         auto moleculesForce = molecules.getForce();
         Cabana::deep_copy(moleculesForce, 0_r);
 
-        if (step % config["density_sampling_interval"].as<idx_t>() == 0)
+        if ((step > config["density_start"].as<idx_t>()) &&
+            (step % config["density_sampling_interval"].as<idx_t>() == 0))
         {
             thermodynamicForce.sample(atoms);
         }
 
-        if (step % config["density_update_interval"].as<idx_t>() == 0)
+        if ((step > config["density_start"].as<idx_t>()) &&
+            (step % config["density_update_interval"].as<idx_t>() == 0))
         {
+            auto densityProfile = analysis::getAxialDensityProfile(atoms.numLocalAtoms,
+                                                                   atoms.getPos(),
+                                                                   atoms.getType(),
+                                                                   2,
+                                                                   subdomain.minCorner[0],
+                                                                   subdomain.maxCorner[0],
+                                                                   100);
+            densityProfile.scale(densityProfile.binSize * subdomain.diameter[1] *
+                                 subdomain.diameter[2]);
+            Xrho1 = analysis::getFluctuation(densityProfile, rhoA, 0);
+            Xrho2 = analysis::getFluctuation(densityProfile, rhoA, 1);
+            auto h_densityProfile =
+                Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), densityProfile.data);
+            for (auto i = 0; i < h_densityProfile.extent(0); ++i)
+            {
+                fDensityOut1 << h_densityProfile(i, 0) << " ";
+                fDensityOut2 << h_densityProfile(i, 1) << " ";
+            }
+            fDensityOut1 << std::endl;
+            fDensityOut2 << std::endl;
+
             thermodynamicForce.update(config["smoothing_sigma"].as<real_t>(),
                                       config["smoothing_intensity"].as<real_t>());
         }
 
-        thermodynamicForce.apply(atoms);
+        if (step > config["density_start"].as<idx_t>())
+        {
+            thermodynamicForce.apply(atoms, weightingFunction);
+        }
 
         LJ.run(molecules, verletList, atoms);
         action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
@@ -211,25 +259,10 @@ void spartian(YAML::Node& config,
                              volume,
                              muLeft,
                              muRight,
+                             Xrho1,
+                             Xrho2,
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
-
-            auto densityProfile = analysis::getAxialDensityProfile(atoms.numLocalAtoms,
-                                                                   atoms.getPos(),
-                                                                   atoms.getType(),
-                                                                   2,
-                                                                   subdomain.minCorner[0],
-                                                                   subdomain.maxCorner[0],
-                                                                   100);
-            auto h_densityProfile =
-                Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), densityProfile.data);
-            for (auto i = 0; i < h_densityProfile.extent(0); ++i)
-            {
-                fDensityOut1 << h_densityProfile(i, 0) << " ";
-                fDensityOut2 << h_densityProfile(i, 1) << " ";
-            }
-            fDensityOut1 << std::endl;
-            fDensityOut2 << std::endl;
 
             for (auto i = 0; i < Fth1.extent(0); ++i)
             {
@@ -243,19 +276,37 @@ void spartian(YAML::Node& config,
             }
             fThermodynamicForceOut2 << std::endl;
 
-            fDriftForceCompensation << LJ.getMeanCompensationEnergy() << std::endl;
+            auto h_meanCompensationEnergy = Kokkos::create_mirror_view_and_copy(
+                Kokkos::HostSpace(), LJ.getMeanCompensationEnergy().data);
+            for (auto i = 0; i < h_meanCompensationEnergy.extent(0); ++i)
+            {
+                fDriftForceCompensation1 << h_meanCompensationEnergy(i, 0) << " ";
+                fDriftForceCompensation2 << h_meanCompensationEnergy(i, 1) << " ";
+            }
+            fDriftForceCompensation1 << std::endl;
+            fDriftForceCompensation2 << std::endl;
 
             // io::dumpCSV(fmt::format("spartian_{:0>6}.csv", step), atoms, false);
         }
     }
     if (config["enable_output"].as<bool>())
-        util::printTableSep(
-            "step", "wall time", "T", "p", "V", "mu_left", "mu_right", "Nlocal", "Nghost");
+        util::printTableSep("step",
+                            "wall time",
+                            "T",
+                            "p",
+                            "V",
+                            "mu_left",
+                            "mu_right",
+                            "XrhoA",
+                            "XrhoB",
+                            "Nlocal",
+                            "Nghost");
 
     fDensityOut1.close();
     fDensityOut2.close();
     fThermodynamicForceOut1.close();
     fThermodynamicForceOut2.close();
-    fDriftForceCompensation.close();
+    fDriftForceCompensation1.close();
+    fDriftForceCompensation2.close();
 }
 }  // namespace mrmd

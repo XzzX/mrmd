@@ -39,6 +39,30 @@ void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoo
     densityProfileSamples_ = 0;
 }
 
+void ThermodynamicForce::apply(const data::Atoms& atoms) const
+{
+    auto atomsPos = atoms.getPos();
+    auto atomsForce = atoms.getForce();
+    auto atomsType = atoms.getType();
+
+    auto forceHistogram = force_;  // avoid capturing this pointer
+
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
+    {
+        auto xPos = atomsPos(idx, 0);
+        auto bin = forceHistogram.getBin(xPos);
+        if (bin != -1)
+        {
+            assert(atomsType(idx) < forceHistogram.numHistograms);
+            assert(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
+            atomsForce(idx, 0) -= forceHistogram.data(bin, atomsType(idx));
+        }
+    };
+    Kokkos::parallel_for(policy, kernel, "ThermodynamicForce::apply");
+    Kokkos::fence();
+}
+
 void ThermodynamicForce::apply(const data::Atoms& atoms, const weighting_function::Slab& slab) const
 {
     auto atomsPos = atoms.getPos();

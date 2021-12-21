@@ -32,6 +32,8 @@ public:
         assert(typeId >= 0);
         return Kokkos::subview(force_.data, Kokkos::ALL(), typeId);
     }
+
+    inline auto getDensityProfile() const { return densityProfile_; }
     inline auto getDensityProfile(const idx_t& typeId) const
     {
         assert(typeId < numTypes_);
@@ -42,6 +44,7 @@ public:
 
     void sample(data::Atoms& atoms);
     void update(const real_t& smoothingSigma, const real_t& smoothingIntensity);
+    void apply(const data::Atoms& atoms) const;
     void apply(const data::Atoms& atoms, const weighting_function::Slab& slab) const;
 
     ThermodynamicForce(const std::vector<real_t>& targetDensity,

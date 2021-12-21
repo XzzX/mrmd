@@ -53,7 +53,7 @@ NVT:
 
 SPARTIAN:
   dt: 0.001
-  time_steps: 1000001
+  time_steps: 2000001
 
   LJ:
     cutoff: [ 2.5, 2.5, 2.5, 2.5 ]
@@ -79,6 +79,7 @@ SPARTIAN:
   smoothing_sigma: 2.0
   smoothing_intensity: 2.0
 
+  density_start: 500000
   density_sampling_interval: 10
   density_update_interval: 10000
 
