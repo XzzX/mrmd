@@ -9,6 +9,15 @@ namespace mrmd
 {
 namespace data
 {
+/**
+ * |X|O|OOOOOOOOOO
+ * |X|O|OOOOOOOOOO
+ * |X|O+----------  <-- minInnerCorner
+ * |X|OOOOOOOOOOOO
+ * |X+------------  <-- minCorner
+ * |XXXXXXXXXXXXXX
+ * +--------------  <-- minGhostCorner
+ */
 struct Subdomain
 {
     Subdomain() = default;
