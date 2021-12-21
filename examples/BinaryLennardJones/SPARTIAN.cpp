@@ -189,10 +189,11 @@ void spartian(YAML::Node& config,
                                                                    subdomain.minCorner[0],
                                                                    subdomain.maxCorner[0],
                                                                    100);
-            densityProfile.scale(densityProfile.binSize * subdomain.diameter[1] *
-                                 subdomain.diameter[2]);
+            densityProfile.scale(
+                1_r / (densityProfile.binSize * subdomain.diameter[1] * subdomain.diameter[2]));
             Xrho1 = analysis::getFluctuation(densityProfile, rhoA, 0);
-            Xrho2 = analysis::getFluctuation(densityProfile, rhoA, 1);
+            Xrho2 = analysis::getFluctuation(densityProfile, rhoB, 1);
+
             auto h_densityProfile =
                 Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), densityProfile.data);
             for (auto i = 0; i < h_densityProfile.extent(0); ++i)
