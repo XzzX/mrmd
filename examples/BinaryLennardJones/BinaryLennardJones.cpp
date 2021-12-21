@@ -46,7 +46,12 @@ int main(int argc, char* argv[])  // NOLINT
 
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
 
-    auto cfg = YAML::LoadFile("input.yaml");
+    std::string configFilename = "input.yaml";
+    CLI::App app{"HAdResS: Binary Lennard Jones"};
+    app.add_option("-c,--config", configFilename, "config file");
+    CLI11_PARSE(app, argc, argv);
+
+    auto cfg = YAML::LoadFile(configFilename);
     LJ(cfg);
 
     return EXIT_SUCCESS;
