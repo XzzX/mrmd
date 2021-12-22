@@ -29,7 +29,8 @@ struct Subdomain
           maxCorner(maxCornerArg),
           ghostLayerThickness(ghostLayerThicknessArg)
     {
-        CHECK_GREATER(ghostLayerThicknessArg, 0_r);
+        CHECK_GREATEREQUAL(ghostLayerThicknessArg, 0_r);
+        
         for (auto dim = 0; dim < 3; ++dim)
         {
             minGhostCorner[dim] = minCorner[dim] - ghostLayerThickness;
