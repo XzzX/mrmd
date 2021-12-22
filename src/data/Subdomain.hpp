@@ -3,6 +3,7 @@
 #include <array>
 #include <cassert>
 
+#include "assert.hpp"
 #include "datatypes.hpp"
 
 namespace mrmd
@@ -28,6 +29,7 @@ struct Subdomain
           maxCorner(maxCornerArg),
           ghostLayerThickness(ghostLayerThicknessArg)
     {
+        CHECK_GREATER(ghostLayerThicknessArg, 0_r);
         for (auto dim = 0; dim < 3; ++dim)
         {
             minGhostCorner[dim] = minCorner[dim] - ghostLayerThickness;
@@ -37,6 +39,8 @@ struct Subdomain
             maxInnerCorner[dim] = maxCorner[dim] - ghostLayerThickness;
 
             diameter[dim] = maxCorner[dim] - minCorner[dim];
+            diameterWithGhostLayer[dim] =
+                maxCorner[dim] - minCorner[dim] + 2_r * ghostLayerThickness;
         }
     }
 
@@ -70,6 +74,10 @@ struct Subdomain
     std::array<real_t, 3> diameter = {std::numeric_limits<real_t>::signaling_NaN(),
                                       std::numeric_limits<real_t>::signaling_NaN(),
                                       std::numeric_limits<real_t>::signaling_NaN()};
+
+    std::array<real_t, 3> diameterWithGhostLayer = {std::numeric_limits<real_t>::signaling_NaN(),
+                                                    std::numeric_limits<real_t>::signaling_NaN(),
+                                                    std::numeric_limits<real_t>::signaling_NaN()};
 };
 
 void checkInvariants(const Subdomain& subdomain);

@@ -24,6 +24,10 @@ TEST(Subdomain, Constructor)
     EXPECT_FLOAT_EQ(subdomain.diameter[1], 4_r);
     EXPECT_FLOAT_EQ(subdomain.diameter[2], 6_r);
 
+    EXPECT_FLOAT_EQ(subdomain.diameterWithGhostLayer[0], 3_r);
+    EXPECT_FLOAT_EQ(subdomain.diameterWithGhostLayer[1], 5_r);
+    EXPECT_FLOAT_EQ(subdomain.diameterWithGhostLayer[2], 7_r);
+
     EXPECT_FLOAT_EQ(subdomain.minInnerCorner[0], 1.5_r);
     EXPECT_FLOAT_EQ(subdomain.minInnerCorner[1], 2.5_r);
     EXPECT_FLOAT_EQ(subdomain.minInnerCorner[2], 3.5_r);
@@ -60,6 +64,10 @@ TEST(Subdomain, scale)
     EXPECT_FLOAT_EQ(subdomain.diameter[0], 2_r * scalingFactor);
     EXPECT_FLOAT_EQ(subdomain.diameter[1], 4_r * scalingFactor);
     EXPECT_FLOAT_EQ(subdomain.diameter[2], 6_r * scalingFactor);
+
+    EXPECT_FLOAT_EQ(subdomain.diameterWithGhostLayer[0], 2_r * scalingFactor + 0.4_r);
+    EXPECT_FLOAT_EQ(subdomain.diameterWithGhostLayer[1], 4_r * scalingFactor + 0.4_r);
+    EXPECT_FLOAT_EQ(subdomain.diameterWithGhostLayer[2], 6_r * scalingFactor + 0.4_r);
 
     EXPECT_FLOAT_EQ(subdomain.minInnerCorner[0], 0.7_r);
     EXPECT_FLOAT_EQ(subdomain.minInnerCorner[1], 1.2_r);
