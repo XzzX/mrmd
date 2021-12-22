@@ -1,0 +1,138 @@
+#include "RestoreH5MDParallel.hpp"
+
+#include "iterator/CellListIterator.hpp"
+#include "storage/Storage.hpp"
+
+namespace espressopp
+{
+namespace io
+{
+
+template <typename T>
+void RestoreH5MDParallel::readParallel(hid_t fileId,
+                                       const std::string& dataset,
+                                       std::vector<T>& data)
+{
+    auto dset = CHECK_HDF5(H5Dopen(fileId, dataset.c_str(), H5P_DEFAULT));
+    auto dspace = CHECK_HDF5(H5Dget_space(dset));
+
+    // get global dimensions
+    std::vector<hsize_t> globalDims;
+    auto ndims = CHECK_HDF5(H5Sget_simple_extent_ndims(dspace));
+    CHECK_GREATER(ndims, 0);
+    globalDims.resize(ndims);
+    CHECK_HDF5(H5Sget_simple_extent_dims(dspace, globalDims.data(), nullptr));
+
+    // get local dimensions and offset
+    std::vector<hsize_t> localDims = globalDims;
+    hsize_t localOffset = 0;
+    for (auto rk = 0; rk < rank; ++rk)
+    {
+        localOffset += globalDims[1] / uint_c(numProcesses) +
+                       (globalDims[1] % uint_c(numProcesses) > uint_c(rk) ? 1ul : 0ul);
+    }
+    auto localSize = globalDims[1] / uint_c(numProcesses) +
+                     (globalDims[1] % uint_c(numProcesses) > uint_c(rank) ? 1ul : 0ul);
+    localDims[0] = 1;  // only read one timeframe
+    localDims[1] = localSize;
+
+    // set up local part of the input file
+    std::vector<hsize_t> offset(globalDims.size(), 0);
+    offset[1] = localOffset;
+    std::vector<hsize_t> stride(globalDims.size(), 1);
+    std::vector<hsize_t> count(globalDims.size(), 1);
+    // check if in bounds
+    for (auto i = 0; i < int_c(globalDims.size()); ++i)
+    {
+        CHECK_LESS_EQUAL(localDims[i] + offset[i], globalDims[i], "i = " << i);
+    }
+    auto fileSpace = CHECK_HDF5(H5Dget_space(dset));
+    CHECK_HDF5(H5Sselect_hyperslab(fileSpace, H5S_SELECT_SET, offset.data(), stride.data(),
+                                   count.data(), localDims.data()));
+
+    // set up memory data layout
+    hid_t memSpace =
+        CHECK_HDF5(H5Screate_simple(int_c(localDims.size()), localDims.data(), nullptr));
+    auto linLocalSize =
+        std::accumulate(localDims.begin(), localDims.end(), hsize_t(1), std::multiplies<>());
+    data.resize(linLocalSize);
+
+    // read
+    auto dataread = CHECK_HDF5(H5Pcreate(H5P_DATASET_XFER));
+    CHECK_HDF5(H5Pset_dxpl_mpio(dataread, H5FD_MPIO_COLLECTIVE));
+    CHECK_HDF5(H5Dread(dset, typeToHDF5<T>(), memSpace, fileSpace, dataread, data.data()));
+
+    // close
+    CHECK_HDF5(H5Sclose(fileSpace));
+    CHECK_HDF5(H5Sclose(memSpace));
+    CHECK_HDF5(H5Pclose(dataread));
+    CHECK_HDF5(H5Sclose(dspace));
+    CHECK_HDF5(H5Dclose(dset));
+}
+
+void RestoreH5MDParallel::updateCache()
+{
+    boost::mpi::communicator world;
+    comm = world;
+    numProcesses = world.size();
+    rank = world.rank();
+}
+
+void RestoreH5MDParallel::restore()
+{
+    updateCache();
+
+    auto info = MPI_INFO_NULL;
+
+    auto plist = CHECK_HDF5(H5Pcreate(H5P_FILE_ACCESS));
+    CHECK_HDF5(H5Pset_fapl_mpio(plist, comm, info));
+
+    auto fileId = CHECK_HDF5(H5Fopen(filename_.c_str(), H5F_ACC_RDONLY, plist));
+
+    {%- for prop in particle %}
+    std::vector<{{prop.type}}> {{prop.name}};
+    if (restore{{prop.name | cap_first}})
+    {
+        readParallel(fileId, "/particles/" + particleGroupName + "/" + {{prop.name}}Dataset + "/value", {{prop.name}});
+        CHECK_EQUAL(id.size() * {{prop.dim}}, {{prop.name}}.size());
+    }
+    {%- endfor %}
+
+    for (auto i = 0; i < int_c(id.size()); ++i)
+    {
+        auto pos = Real3D(position[i * 3 + 0], position[i * 3 + 1], position[i * 3 + 2]);
+        auto particle = system_->storage->addParticle(int_c(id[i]), pos, false);
+        CHECK_NOT_NULLPTR(particle, "particle creation was rejected!");
+        {%- for prop in particle %}
+        {%- if prop.dim == 1 %}
+        if (restore{{prop.name | cap_first}}) particle->{{prop.name}}() = {{prop.name}}[i];
+        {%- else %}
+        if (restore{{prop.name | cap_first}})
+        {
+            {%- for i in range(prop.dim) %}
+            particle->{{prop.name}}()[{{i}}] = {{prop.name}}[i * {{prop.dim}} + {{i}}];
+            {%- endfor %}
+        }
+        {%- endif %}
+        {%- endfor %}
+    }
+
+    CHECK_HDF5(H5Fclose(fileId));
+}
+
+void RestoreH5MDParallel::registerPython()
+{
+    using namespace espressopp::python;
+
+    class_<RestoreH5MDParallel>("io_RestoreH5MDParallel", init<shared_ptr<System>, std::string>())
+        .def_readwrite("particleGroupName", &RestoreH5MDParallel::particleGroupName)
+        {%- for prop in particle %}
+        .def_readwrite("restore{{prop.name | cap_first}}", &RestoreH5MDParallel::restore{{prop.name | cap_first}})
+        {%- endfor %}
+        {%- for prop in particle %}
+        .def_readwrite("{{prop.name}}Dataset", &RestoreH5MDParallel::{{prop.name}}Dataset)
+        {%- endfor %}
+        .def("restore", &RestoreH5MDParallel::restore);
+}
+}  // namespace io
+}  // namespace espressopp

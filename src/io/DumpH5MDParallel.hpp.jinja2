@@ -1,0 +1,64 @@
+#pragma once
+
+#include <mpi.h>
+
+#include <memory>
+#include <string>
+
+#include "data/Atoms.hpp"
+#include "data/MPIInfo.hpp"
+#include "data/Subdomain.hpp"
+#include "hdf5.hpp"
+
+namespace mrmd::io
+{
+class DumpH5MDParallel
+{
+public:
+    DumpH5MDParallel(const std::shared_ptr<data::MPIInfo>& mpiInfo,
+                     const std::string& author,
+                     const std::string& particleGroupName = "atoms")
+        : mpiInfo_(mpiInfo),
+          author_(author),
+          particleGroupName_(particleGroupName)
+    {
+    }
+
+    void dump(const std::string& filename, const data::Subdomain& subdomain, const data::Atoms& atoms);
+
+    {% for prop in particle %}
+    bool dump{{prop.name | cap_first}} = {{prop.default}};   
+    {%- endfor %}
+
+    {% for prop in particle %}
+    std::string {{prop.name}}Dataset = "{{prop.dataset}}";
+    {%- endfor %}
+
+private:
+    void updateCache(const data::HostAtoms& atoms);
+
+    void writeHeader(hid_t fileId) const;
+    void writeBox(hid_t fileId, const data::Subdomain& subdomain);
+    {%- for prop in particle %}
+    void write{{prop.name | cap_first}}(hid_t fileId, const data::HostAtoms& atoms);
+    {%- endfor %}
+
+    template <typename T>
+    void writeParallel(hid_t fileId,
+                       const std::string& name,
+                       const std::vector<hsize_t>& globalDims,
+                       const std::vector<hsize_t>& localDims,
+                       const std::vector<T>& data);
+
+    std::shared_ptr<data::MPIInfo> mpiInfo_;
+
+    std::string author_ = "xxx";
+    std::string particleGroupName_ = "atoms";
+
+    int64_t numLocalParticles = -1;
+    int64_t numTotalParticles = -1;
+    /// Offset of the local particle chunk in the global particle array.
+    int64_t particleOffset = -1;
+};
+
+}  // namespace mrmd::io

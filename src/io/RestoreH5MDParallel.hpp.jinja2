@@ -1,0 +1,55 @@
+#pragma once
+
+#include <functional>
+
+#include "System.hpp"
+#include "checks.hpp"
+#include "hdf5.hpp"
+#include "types.hpp"
+
+namespace espressopp
+{
+namespace io
+{
+
+class RestoreH5MDParallel
+{
+public:
+    RestoreH5MDParallel(const shared_ptr<System>& system, const std::string& filename)
+        : system_(system), filename_(filename)
+    {
+    }
+
+    void restore();
+
+    std::string author = "xxx";
+    std::string particleGroupName = "atoms";
+
+    {% for prop in particle %}
+    bool restore{{prop.name | cap_first}} = {{prop.default}};
+    {%- endfor %}
+
+    {% for prop in particle %}
+    std::string {{prop.name}}Dataset = "{{prop.dataset}}";
+    {%- endfor %}
+
+    static void registerPython();
+
+private:
+    void updateCache();
+
+    template <typename T>
+    void readParallel(hid_t fileId,
+                      const std::string& name,
+                      std::vector<T>& data);
+
+    shared_ptr<System> system_ = nullptr;
+    std::string filename_ = "";  ///<  output filename
+
+    MPI_Comm comm = MPI_COMM_NULL;
+    int rank = -1;
+    int numProcesses = -1;
+};
+
+}  // namespace io
+}  // namespace espressopp
