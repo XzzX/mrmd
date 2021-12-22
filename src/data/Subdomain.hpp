@@ -30,7 +30,7 @@ struct Subdomain
           ghostLayerThickness(ghostLayerThicknessArg)
     {
         CHECK_GREATEREQUAL(ghostLayerThicknessArg, 0_r);
-        
+
         for (auto dim = 0; dim < 3; ++dim)
         {
             minGhostCorner[dim] = minCorner[dim] - ghostLayerThickness;
