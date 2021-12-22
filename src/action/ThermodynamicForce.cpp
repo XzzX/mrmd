@@ -15,11 +15,11 @@ ThermodynamicForce::ThermodynamicForce(const std::vector<real_t>& targetDensity,
     : force_("thermodynamic-force",
              subdomain.minGhostCorner[0],
              subdomain.maxGhostCorner[0],
-             idx_c(std::ceil((subdomain.maxGhostCorner[0] - subdomain.minGhostCorner[0]) /
-                             requestedDensityBinWidth)),
+             idx_c(std::ceil(subdomain.diameterWithGhostLayer[0] / requestedDensityBinWidth)),
              idx_c(targetDensity.size())),
       densityProfile_("density-profile", force_),
-      binVolume_(subdomain.diameter[1] * subdomain.diameter[2] * densityProfile_.binSize),
+      binVolume_(subdomain.diameterWithGhostLayer[1] * subdomain.diameterWithGhostLayer[2] *
+                 densityProfile_.binSize),
       targetDensity_(targetDensity),
       thermodynamicForceModulation_(thermodynamicForceModulation),
       forceFactor_("force-factor", targetDensity.size())
