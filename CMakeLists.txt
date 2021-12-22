@@ -26,8 +26,25 @@ mark_as_advanced(
         CMAKE_MODULE_LINKER_FLAGS_DEBUGOPTIMIZED
 )
 
+########################################################################
+# FIND MPI
+########################################################################
+find_package(MPI REQUIRED)
 
+########################################################################
+# FIND Kokkos
+########################################################################
 find_package(Kokkos REQUIRED)
+
+########################################################################
+# FIND HDF5
+########################################################################
+set(HDF5_PREFER_PARALLEL ON)
+#set(HDF5_FIND_DEBUG ON)
+find_package(HDF5 REQUIRED COMPONENTS C HL)
+if (NOT HDF5_IS_PARALLEL)
+    message(FATAL_ERROR "HDF5 with MPI support is required! Serial version detected.")
+endif ()
 
 include(FetchContent)
 
