@@ -1,7 +1,6 @@
 #include "ThermodynamicForce.hpp"
 
 #include "analysis/AxialDensityProfile.hpp"
-#include "analysis/SmoothenDensityProfile.hpp"
 #include "util/math.hpp"
 
 namespace mrmd
@@ -69,8 +68,8 @@ void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoo
     auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
     densityProfile_.scale(normalizationFactor);
 
-    auto smoothedDensityGradient = data::gradient(
-        analysis::smoothenDensityProfile(densityProfile_, smoothingSigma, smoothingIntensity));
+    auto smoothedDensityGradient =
+        data::gradient(data::smoothen(densityProfile_, smoothingSigma, smoothingIntensity));
     smoothedDensityGradient.scale(forceFactor_);
 
     force_ += smoothedDensityGradient;

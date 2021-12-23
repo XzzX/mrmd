@@ -62,7 +62,38 @@ struct MultiHistogram
     void scale(const ScalarView& scalingFactor);
 };
 
+/**
+ * Add new item to the comulative moving average.
+ *
+ * @param average averaged histogram (output)
+ * @param current current value
+ * @param movingAverageFactor new value = (n * average + current) / (n + 1)
+ */
+void cumulativeMovingAverage(data::MultiHistogram& average,
+                             const data::MultiHistogram& current,
+                             const real_t movingAverageFactor = 10_r);
+
+/**
+ * Calculates the gradient of the histogram.
+ * Uses central difference for all inner values and one-sided difference for
+ * boundary values.
+ *
+ * @param input input histogram
+ * @return gradient of the histogram
+ */
 data::MultiHistogram gradient(const data::MultiHistogram& input);
+
+/**
+ * Smoothen a histogram using gaussian convolution.
+ *
+ * @param input input histogram
+ * @param sigma sigma of the gaussian convolution
+ * @param range calculation range in multiples of sigma
+ * @return smoothened histogram
+ */
+data::MultiHistogram smoothen(data::MultiHistogram& input,
+                              const real_t& sigma,
+                              const real_t& range);
 
 }  // namespace data
 }  // namespace mrmd

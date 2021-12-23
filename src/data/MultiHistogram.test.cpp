@@ -1,18 +1,18 @@
-#include "SmoothenDensityProfile.hpp"
+#include "MultiHistogram.hpp"
 
 #include <gtest/gtest.h>
 
 namespace mrmd
 {
-namespace analysis
+namespace data
 {
-TEST(SmoothenDensityProfile, symmetric)
+TEST(MultiHistogram, smoothen_symmetric)
 {
-    data::MultiHistogram histogram("histogram", 0_r, 10_r, 11, 2);
+    MultiHistogram histogram("histogram", 0_r, 10_r, 11, 2);
     histogram.data(5, 0) = 10_r;
     histogram.data(5, 1) = 5_r;
 
-    auto smoothedDensityProfile = smoothenDensityProfile(histogram, 1_r, 3_r);
+    auto smoothedDensityProfile = smoothen(histogram, 1_r, 3_r);
 
     for (auto idx = 1; idx < 6; ++idx)
     {
@@ -23,21 +23,21 @@ TEST(SmoothenDensityProfile, symmetric)
     }
 }
 
-TEST(SmoothenDensityProfile, constant)
+TEST(MultiHistogram, smoothen_constant)
 {
     constexpr auto CONST_VAL = 2_r;
-    data::MultiHistogram histogram("histogram", 0_r, 10_r, 11, 1);
+    MultiHistogram histogram("histogram", 0_r, 10_r, 11, 1);
     for (auto idx = 0; idx < 11; ++idx)
     {
         histogram.data(idx, 0) = CONST_VAL;
     }
 
-    auto smoothedDensityProfile = smoothenDensityProfile(histogram, 1_r, 3_r);
+    auto smoothedDensityProfile = smoothen(histogram, 1_r, 3_r);
 
     for (auto idx = 0; idx < 11; ++idx)
     {
         EXPECT_FLOAT_EQ(smoothedDensityProfile.data(idx, 0), CONST_VAL);
     }
 }
-}  // namespace analysis
+}  // namespace data
 }  // namespace mrmd

@@ -2,6 +2,8 @@
 
 #include <cassert>
 
+#include "util/math.hpp"
+
 namespace mrmd
 {
 namespace data
@@ -68,6 +70,27 @@ void MultiHistogram::scale(const ScalarView& scalingFactor)
     Kokkos::fence();
 }
 
+void cumulativeMovingAverage(data::MultiHistogram& average,
+                             const data::MultiHistogram& current,
+                             const real_t movingAverageFactor)
+{
+    CHECK_EQUAL(average.numBins, current.numBins);
+    CHECK_EQUAL(average.numHistograms, current.numHistograms);
+
+    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({idx_t(0), idx_t(0)},
+                                                         {average.numBins, average.numHistograms});
+    auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histogramIdx)
+    {
+        // use running average to calculate new mean compensation energy
+        average.data(binIdx, histogramIdx) =
+            (movingAverageFactor * average.data(binIdx, histogramIdx) +
+             current.data(binIdx, histogramIdx)) /
+            (movingAverageFactor + 1_r);
+    };
+    Kokkos::parallel_for("MultiHistogram::cumulativeMovingAverage", policy, kernel);
+    Kokkos::fence();
+}
+
 data::MultiHistogram gradient(const data::MultiHistogram& input)
 {
     const auto inverseSpacing = input.inverseBinSize;
@@ -99,6 +122,42 @@ data::MultiHistogram gradient(const data::MultiHistogram& input)
     Kokkos::fence();
 
     return grad;
+}
+
+data::MultiHistogram smoothen(data::MultiHistogram& input, const real_t& sigma, const real_t& range)
+{
+    const auto inverseSigma = 1_r / sigma;
+    /// how many neighboring bins are affected
+    const idx_t delta = int_c(range * sigma * input.inverseBinSize);
+
+    data::MultiHistogram smoothenedDensityProfile(
+        "smooth-input", input.min, input.max, input.numBins, input.numHistograms);
+
+    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({idx_t(0), idx_t(0)},
+                                                         {input.numBins, input.numHistograms});
+    auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histogramIdx)
+    {
+        auto normalization = 0_r;
+
+        const idx_t jdxMin = std::max(idx_t(0), binIdx - delta);
+        const idx_t jdxMax = std::min(input.numBins - 1, binIdx + delta);
+        assert(jdxMin <= jdxMax);
+
+        for (auto jdx = jdxMin; jdx <= jdxMax; ++jdx)
+        {
+            const auto eFunc =
+                std::exp(-util::sqr(real_c(binIdx - jdx) * input.binSize * inverseSigma));
+            normalization += eFunc;
+            smoothenedDensityProfile.data(binIdx, histogramIdx) +=
+                input.data(jdx, histogramIdx) * eFunc;
+        }
+
+        smoothenedDensityProfile.data(binIdx, histogramIdx) /= normalization;
+    };
+    Kokkos::parallel_for("MultiHistogram::smoothen", policy, kernel);
+    Kokkos::fence();
+
+    return smoothenedDensityProfile;
 }
 
 }  // namespace data
