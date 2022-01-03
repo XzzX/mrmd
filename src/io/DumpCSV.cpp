@@ -10,12 +10,9 @@ namespace io
 {
 void dumpCSV(const std::string& filename, data::Atoms& atoms, bool dumpGhosts)
 {
-    // very ugly, will also copy the whole atom data which is unnecessary, custom slicing
-    // required
-    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto pos = Cabana::slice<data::Atoms::POS>(hAoSoA);
-    auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
-    auto type = Cabana::slice<data::Atoms::TYPE>(hAoSoA);
+    auto pos = atoms.getPos();
+    auto vel = atoms.getVel();
+    auto type = atoms.getType();
 
     std::ofstream fout(filename);
     if (!fout.is_open())
