@@ -1,0 +1,13 @@
+#pragma once
+
+#include <string>
+
+namespace mrmd
+{
+constexpr static std::string PROJECT_NAME = "@PROJECT_NAME@";
+constexpr static std::string MRMD_VERSION = "@PROJECT_VERSION@";
+constexpr static int MRMD_MAJOR = @PROJECT_VERSION_MAJOR@;
+constexpr static int MRMD_MINOR = @PROJECT_VERSION_MINOR@;
+constexpr static int MRMD_PATCH = @PROJECT_VERSION_PATCH@;
+constexpr static std::string MRMD_URL = "@PROJECT_HOMEPAGE_URL@";
+}  // namespace mrmd

@@ -5,6 +5,7 @@ list(REMOVE_ITEM MRMD_SOURCES ${MRMD_TESTS})
 
 set(MRMD_VECTOR_LENGTH 1 CACHE STRING "vector length of AoSoA data structure")
 configure_file(cmake.hpp.in cmake.hpp @ONLY)
+configure_file(version.hpp.in version.hpp @ONLY)
 
 add_library(mrmd ${MRMD_SOURCES})
 target_link_libraries(mrmd PUBLIC Kokkos::kokkos Cabana::cabanacore PRIVATE fmt::fmt)
