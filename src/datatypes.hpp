@@ -122,6 +122,8 @@ using MultiScatterView = Kokkos::Experimental::ScatterView<real_t **>;
 using VectorView = Kokkos::View<real_t *[3]>;
 using VectorScatterView = Kokkos::Experimental::ScatterView<real_t *[3]>;
 
+using HostType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace,
+                                Kokkos::DefaultHostExecutionSpace::memory_space>;
 using DeviceType =
     Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::DefaultExecutionSpace::memory_space>;
 using LinkedCellList = Cabana::LinkedCellList<DeviceType>;
