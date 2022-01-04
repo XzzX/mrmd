@@ -100,7 +100,7 @@ public:
 
     explicit GeneralAtoms(const idx_t numAtoms) : atoms_("atoms", numAtoms) { sliceAll(); }
     template <class T>
-    GeneralAtoms(const GeneralAtoms<T>& atoms) : atoms_("atoms", atoms.size())
+    explicit GeneralAtoms(const GeneralAtoms<T>& atoms) : atoms_("atoms", atoms.size())
     {
         deep_copy(*this, atoms);
     }
