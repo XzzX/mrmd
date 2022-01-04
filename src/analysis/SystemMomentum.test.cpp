@@ -8,16 +8,17 @@ namespace mrmd
 {
 TEST(SystemMomentum, Simple)
 {
-    data::Atoms atoms(2);
-    auto vel = atoms.getVel();
+    data::HostAtoms h_atoms(2);
+    auto vel = h_atoms.getVel();
     vel(0, 0) = +2_r;
     vel(0, 1) = +3_r;
     vel(0, 2) = +4_r;
     vel(1, 0) = -4_r;
     vel(1, 1) = -8_r;
     vel(1, 2) = -16_r;
-    atoms.numLocalAtoms = 2;
-    atoms.numGhostAtoms = 0;
+    h_atoms.numLocalAtoms = 2;
+    h_atoms.numGhostAtoms = 0;
+    data::Atoms atoms(h_atoms);
 
     auto systemMomentum = analysis::getSystemMomentum(atoms);
 

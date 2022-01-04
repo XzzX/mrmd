@@ -9,17 +9,19 @@ namespace analysis
 TEST(Fluctuation, normalization)
 {
     auto histogram0 = data::MultiHistogram("hist", 0_r, 1_r, 10, 1);
-    for (auto i = 0; i < 10; ++i)
-    {
-        histogram0.data(i, 0) = 3;
-    }
+    Kokkos::parallel_for(
+        "init_hist", Kokkos::RangePolicy<>(0, 10), KOKKOS_LAMBDA(const idx_t idx) {
+            histogram0.data(idx, 0) = 3;
+        });
+    Kokkos::fence();
     auto fluctuation0 = analysis::getFluctuation(histogram0, 2_r, 0);
 
     auto histogram1 = data::MultiHistogram("hist", 0_r, 2_r, 10, 1);
-    for (auto i = 0; i < 10; ++i)
-    {
-        histogram1.data(i, 0) = 3;
-    }
+    Kokkos::parallel_for(
+        "init_hist", Kokkos::RangePolicy<>(0, 10), KOKKOS_LAMBDA(const idx_t idx) {
+            histogram1.data(idx, 0) = 3;
+        });
+    Kokkos::fence();
     auto fluctuation1 = analysis::getFluctuation(histogram1, 2_r, 0);
 
     EXPECT_FLOAT_EQ(fluctuation0, fluctuation1);
@@ -28,11 +30,15 @@ TEST(Fluctuation, normalization)
 TEST(Fluctuation, check)
 {
     auto histogram = data::MultiHistogram("hist", 0_r, 2_r, 10, 2);
-    for (auto i = 0; i < 10; ++i)
-    {
-        histogram.data(i, 0) = 3;
-        histogram.data(i, 1) = 4;
-    }
+    Kokkos::parallel_for(
+        "init_hist",
+        Kokkos::RangePolicy<>(0, 10),
+        KOKKOS_LAMBDA(const idx_t idx)
+        {
+            histogram.data(idx, 0) = 3;
+            histogram.data(idx, 1) = 4;
+        });
+    Kokkos::fence();
 
     auto fluctuation0 = analysis::getFluctuation(histogram, 2_r, 0);
     auto fluctuation1 = analysis::getFluctuation(histogram, 2_r, 1);
@@ -44,11 +50,15 @@ TEST(Fluctuation, check)
 TEST(Fluctuation, relation)
 {
     auto histogram = data::MultiHistogram("hist", 0_r, 1_r, 10, 2);
-    for (auto i = 0; i < 10; ++i)
-    {
-        histogram.data(i, 0) = i + 1;
-        histogram.data(i, 1) = i;
-    }
+    Kokkos::parallel_for(
+        "init_hist",
+        Kokkos::RangePolicy<>(0, 10),
+        KOKKOS_LAMBDA(const idx_t idx)
+        {
+            histogram.data(idx, 0) = idx + 1;
+            histogram.data(idx, 1) = idx;
+        });
+    Kokkos::fence();
 
     auto fluctuation0 = analysis::getFluctuation(histogram, 0.5_r, 0);
     auto fluctuation1 = analysis::getFluctuation(histogram, 0.5_r, 1);

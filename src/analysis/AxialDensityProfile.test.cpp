@@ -41,17 +41,18 @@ data::Atoms initAtoms()
 
     return atoms;
 }
-TEST(LinearDensityProfile, histogram)
+TEST(AxialDensityProfile, histogram)
 {
     auto atoms = initAtoms();
 
     auto histogram = getAxialDensityProfile(
         atoms.numLocalAtoms, atoms.getPos(), atoms.getType(), 2, 0_r, 10_r, 10);
+    auto h_data = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogram.data);
 
     for (auto i = 0; i < 10; ++i)
     {
-        EXPECT_FLOAT_EQ(histogram.data(i, 0), real_c(i + 1));
-        EXPECT_FLOAT_EQ(histogram.data(i, 1), real_c(11 - (i + 1)));
+        EXPECT_FLOAT_EQ(h_data(i, 0), real_c(i + 1));
+        EXPECT_FLOAT_EQ(h_data(i, 1), real_c(11 - (i + 1)));
     }
 }
 }  // namespace analysis
