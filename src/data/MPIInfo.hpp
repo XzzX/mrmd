@@ -2,7 +2,7 @@
 
 #include <mpi.h>
 
-namespace mrmd
+namespace mrmd::data
 {
 struct MPIInfo
 {
@@ -10,4 +10,4 @@ struct MPIInfo
     int rank = -1;
     int size = -1;
 };
-}  // namespace mrmd
+}  // namespace mrmd::data
