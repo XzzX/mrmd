@@ -47,7 +47,7 @@ protected:
     // void TearDown() override {}
 
     data::Subdomain subdomain = data::Subdomain({0_r, 0_r, 0_r}, {1_r, 1_r, 1_r}, 0.1_r);
-    data::Atoms h_atoms = data::HostAtoms(2);
+    data::HostAtoms h_atoms = data::HostAtoms(2);
     data::Atoms atoms = data::Atoms(2);
     IndexView correspondingRealAtom = IndexView("correspondingRealAtom", 2);
 };
