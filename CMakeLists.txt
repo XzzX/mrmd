@@ -61,7 +61,7 @@ set_target_properties(CLI11 PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${T
 FetchContent_Declare(
         FMT
         GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-        GIT_TAG 2742611cad4aee6b1a5638bd1ebf132908f4a3d9
+        GIT_TAG 8.1.0
 )
 FetchContent_MakeAvailable(FMT)
 
