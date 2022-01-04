@@ -63,6 +63,7 @@ TEST_P(UpdateGhostAtomsTest, Check)
     UpdateGhostAtoms::updateOnlyPos(atoms, correspondingRealAtom, subdomain);
 
     data::deep_copy(h_atoms, atoms);
+    pos = h_atoms.getPos();
 
     EXPECT_FLOAT_EQ(pos(1, 0), 0.5_r + GetParam().finalDelta[0]);
     EXPECT_FLOAT_EQ(pos(1, 1), 0.5_r + GetParam().finalDelta[1]);
