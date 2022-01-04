@@ -15,7 +15,7 @@ class SPC_Test : public ::testing::Test
 protected:
     static auto getMolecules()
     {
-        data::Molecules molecules(2);
+        data::HostMolecules molecules(2);
 
         auto pos = molecules.getPos();
         pos(0, 0) = 0_r;
@@ -35,7 +35,7 @@ protected:
 
     static auto getAtoms()
     {
-        data::Atoms atoms(6);
+        data::HostAtoms atoms(6);
 
         auto pos = atoms.getPos();
         auto vel = atoms.getVel();
@@ -122,7 +122,8 @@ TEST_F(SPC_Test, CHECK_CONSTRAINTS)
     SPC spc;
     spc.enforcePositionalConstraints(molecules, atoms, dt);
 
-    auto force = atoms.getForce();
+    data::HostAtoms h_atoms(atoms);
+    auto force = h_atoms.getForce();
     EXPECT_FLOAT_EQ(force(0, 0) + 1_r, 1_r);
     EXPECT_FLOAT_EQ(force(0, 1) + 1_r, 1_r);
     EXPECT_FLOAT_EQ(force(0, 2) + 1_r, 1_r);

@@ -19,17 +19,19 @@ TEST(AccumulateForceTest, ghostToReal)
     atoms.resize(101);
 
     IndexView correspondingRealAtom("correspondingRealAtom", 101);
-    Kokkos::deep_copy(correspondingRealAtom, 0);
-    correspondingRealAtom(0) = -1;
+    auto h_correspondingRealAtoms = Kokkos::create_mirror_view(correspondingRealAtom);
+    h_correspondingRealAtoms(0) = -1;
+    Kokkos::deep_copy(correspondingRealAtom, h_correspondingRealAtoms);
 
     auto force = atoms.getForce();
     Cabana::deep_copy(force, 1_r);
 
     AccumulateForce::ghostToReal(atoms, correspondingRealAtom);
 
-    EXPECT_FLOAT_EQ(force(0, 0), 101_r);
-    EXPECT_FLOAT_EQ(force(0, 1), 101_r);
-    EXPECT_FLOAT_EQ(force(0, 2), 101_r);
+    data::HostAtoms h_atoms(atoms);
+    EXPECT_FLOAT_EQ(h_atoms.getForce()(0, 0), 101_r);
+    EXPECT_FLOAT_EQ(h_atoms.getForce()(0, 1), 101_r);
+    EXPECT_FLOAT_EQ(h_atoms.getForce()(0, 2), 101_r);
 }
 
 }  // namespace impl
