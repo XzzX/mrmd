@@ -30,33 +30,39 @@ class UpdateGhostAtomsTest : public testing::TestWithParam<UpdateGhostAtomsTestD
 protected:
     void SetUp() override
     {
-        auto pos = atoms.getPos();
+        auto pos = h_atoms.getPos();
         pos(0, 0) = 0.5_r;
         pos(0, 1) = 0.5_r;
         pos(0, 2) = 0.5_r;
-        atoms.numLocalAtoms = 1;
-        atoms.numGhostAtoms = 1;
+        h_atoms.numLocalAtoms = 1;
+        h_atoms.numGhostAtoms = 1;
+        data::deep_copy(atoms, h_atoms);
 
-        correspondingRealAtom = IndexView("correspondingRealAtom", 2);
-        correspondingRealAtom(0) = -1;
-        correspondingRealAtom(1) = 0;
+        IndexView::host_mirror_type h_correspondingRealAtom("correspondingRealAtom", 2);
+        h_correspondingRealAtom(0) = -1;
+        h_correspondingRealAtom(1) = 0;
+        Kokkos::deep_copy(correspondingRealAtom, h_correspondingRealAtom);
     }
 
     // void TearDown() override {}
 
     data::Subdomain subdomain = data::Subdomain({0_r, 0_r, 0_r}, {1_r, 1_r, 1_r}, 0.1_r);
+    data::Atoms h_atoms = data::HostAtoms(2);
     data::Atoms atoms = data::Atoms(2);
-    IndexView correspondingRealAtom;
+    IndexView correspondingRealAtom = IndexView("correspondingRealAtom", 2);
 };
 
 TEST_P(UpdateGhostAtomsTest, Check)
 {
-    auto pos = atoms.getPos();
+    auto pos = h_atoms.getPos();
     pos(1, 0) = 0.5_r + GetParam().initialDelta[0];
     pos(1, 1) = 0.5_r + GetParam().initialDelta[1];
     pos(1, 2) = 0.5_r + GetParam().initialDelta[2];
+    data::deep_copy(atoms, h_atoms);
 
     UpdateGhostAtoms::updateOnlyPos(atoms, correspondingRealAtom, subdomain);
+
+    data::deep_copy(h_atoms, atoms);
 
     EXPECT_FLOAT_EQ(pos(1, 0), 0.5_r + GetParam().finalDelta[0]);
     EXPECT_FLOAT_EQ(pos(1, 1), 0.5_r + GetParam().finalDelta[1]);

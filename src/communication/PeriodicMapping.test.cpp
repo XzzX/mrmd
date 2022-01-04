@@ -32,13 +32,16 @@ class PeriodicMappingTest : public testing::TestWithParam<TestData>
 TEST_P(PeriodicMappingTest, Check)
 {
     data::Subdomain subdomain = data::Subdomain({0_r, 0_r, 0_r}, {1_r, 1_r, 1_r}, 0_r);
-    data::Atoms atoms(1);
-    auto pos = atoms.getPos();
-    atoms.numLocalAtoms = 1;
+    data::HostAtoms h_atoms(1);
+    auto pos = h_atoms.getPos();
+    h_atoms.numLocalAtoms = 1;
     pos(0, 0) = GetParam().initialPos[0];
     pos(0, 1) = GetParam().initialPos[1];
     pos(0, 2) = GetParam().initialPos[2];
+    data::Atoms atoms(h_atoms);
     PeriodicMapping::mapIntoDomain(atoms, subdomain);
+    data::deep_copy(h_atoms, atoms);
+    pos = h_atoms.getPos();
     EXPECT_FLOAT_EQ(pos(0, 0), GetParam().mappedPos[0]);
     EXPECT_FLOAT_EQ(pos(0, 1), GetParam().mappedPos[1]);
     EXPECT_FLOAT_EQ(pos(0, 2), GetParam().mappedPos[2]);
