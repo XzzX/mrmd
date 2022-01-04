@@ -128,6 +128,7 @@ void deep_copy(data::GeneralAtoms<A>& dst, const data::GeneralAtoms<B>& src)
 }
 
 using HostAtoms = GeneralAtoms<HostType>;
-using Atoms = GeneralAtoms<DeviceType>;
+using DeviceAtoms = GeneralAtoms<DeviceType>;
+using Atoms = DeviceAtoms;
 }  // namespace data
 }  // namespace mrmd
