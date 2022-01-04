@@ -6,7 +6,7 @@ namespace mrmd
 {
 namespace analysis
 {
-TEST(Fluctuation, normalization)
+void fluctuationNormalization()
 {
     auto histogram0 = data::MultiHistogram("hist", 0_r, 1_r, 10, 1);
     Kokkos::parallel_for(
@@ -26,8 +26,9 @@ TEST(Fluctuation, normalization)
 
     EXPECT_FLOAT_EQ(fluctuation0, fluctuation1);
 }
+TEST(Fluctuation, normalization) { fluctuationNormalization(); }
 
-TEST(Fluctuation, check)
+void fluctuationCheck()
 {
     auto histogram = data::MultiHistogram("hist", 0_r, 2_r, 10, 2);
     Kokkos::parallel_for(
@@ -46,8 +47,9 @@ TEST(Fluctuation, check)
     EXPECT_FLOAT_EQ(fluctuation0, 0.25_r);
     EXPECT_FLOAT_EQ(fluctuation1, 1_r);
 }
+TEST(Fluctuation, check) { fluctuationCheck(); }
 
-TEST(Fluctuation, relation)
+void fluctuationRelation()
 {
     auto histogram = data::MultiHistogram("hist", 0_r, 1_r, 10, 2);
     Kokkos::parallel_for(
@@ -65,5 +67,6 @@ TEST(Fluctuation, relation)
 
     EXPECT_GT(fluctuation0, fluctuation1);
 }
+TEST(Fluctuation, relation) { fluctuationRelation(); }
 }  // namespace analysis
 }  // namespace mrmd
