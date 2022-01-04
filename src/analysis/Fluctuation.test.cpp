@@ -11,7 +11,7 @@ void fluctuationNormalization()
     auto histogram0 = data::MultiHistogram("hist", 0_r, 1_r, 10, 1);
     Kokkos::parallel_for(
         "init_hist", Kokkos::RangePolicy<>(0, 10), KOKKOS_LAMBDA(const idx_t idx) {
-            histogram0.data(idx, 0) = 3;
+            histogram0.data(idx, 0) = 3_r;
         });
     Kokkos::fence();
     auto fluctuation0 = analysis::getFluctuation(histogram0, 2_r, 0);
@@ -19,7 +19,7 @@ void fluctuationNormalization()
     auto histogram1 = data::MultiHistogram("hist", 0_r, 2_r, 10, 1);
     Kokkos::parallel_for(
         "init_hist", Kokkos::RangePolicy<>(0, 10), KOKKOS_LAMBDA(const idx_t idx) {
-            histogram1.data(idx, 0) = 3;
+            histogram1.data(idx, 0) = 3_r;
         });
     Kokkos::fence();
     auto fluctuation1 = analysis::getFluctuation(histogram1, 2_r, 0);
@@ -33,8 +33,8 @@ void fluctuationCheck()
     auto histogram = data::MultiHistogram("hist", 0_r, 2_r, 10, 2);
     Kokkos::parallel_for(
         "init_hist", Kokkos::RangePolicy<>(0, 10), KOKKOS_LAMBDA(const idx_t idx) {
-            histogram.data(idx, 0) = 3;
-            histogram.data(idx, 1) = 4;
+            histogram.data(idx, 0) = 3_r;
+            histogram.data(idx, 1) = 4_r;
         });
     Kokkos::fence();
 
@@ -51,8 +51,8 @@ void fluctuationRelation()
     auto histogram = data::MultiHistogram("hist", 0_r, 1_r, 10, 2);
     Kokkos::parallel_for(
         "init_hist", Kokkos::RangePolicy<>(0, 10), KOKKOS_LAMBDA(const idx_t idx) {
-            histogram.data(idx, 0) = idx + 1;
-            histogram.data(idx, 1) = idx;
+            histogram.data(idx, 0) = real_c(idx + 1);
+            histogram.data(idx, 1) = real_c(idx);
         });
     Kokkos::fence();
 
