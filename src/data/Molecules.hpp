@@ -10,7 +10,8 @@ namespace mrmd
 {
 namespace data
 {
-class Molecules
+template <class DEVICE_TYPE = DeviceType>
+class GeneralMolecules
 {
 public:
     enum Props
@@ -30,7 +31,7 @@ public:
                                           real_t[DIMENSIONS],
                                           idx_t,
                                           idx_t>;
-    using MoleculesT = Cabana::AoSoA<DataTypes, DeviceType, VECTOR_LENGTH>;
+    using MoleculesT = Cabana::AoSoA<DataTypes, DEVICE_TYPE, VECTOR_LENGTH>;
 
     using pos_t = typename MoleculesT::template member_slice_type<POS>;
     using force_t = typename MoleculesT::template member_slice_type<FORCE>;
@@ -39,14 +40,6 @@ public:
     using grad_lambda_t = typename MoleculesT::template member_slice_type<GRAD_LAMBDA>;
     using atoms_offset_t = typename MoleculesT::template member_slice_type<ATOMS_OFFSET>;
     using num_atoms_t = typename MoleculesT::template member_slice_type<NUM_ATOMS>;
-
-    pos_t pos;
-    force_t force;
-    lambda_t lambda;
-    modulated_lambda_t modulatedLambda;
-    grad_lambda_t gradLambda;
-    atoms_offset_t atomsOffset;
-    num_atoms_t numAtoms;
 
     KOKKOS_FORCEINLINE_FUNCTION pos_t getPos() const { return pos; }
     KOKKOS_FORCEINLINE_FUNCTION force_t getForce() const { return force; }
@@ -71,8 +64,8 @@ public:
     }
 
     KOKKOS_INLINE_FUNCTION idx_t size() const { return idx_c(molecules_.size()); }
-    auto numSoA() const { return molecules_.numSoA(); }
-    auto arraySize(size_t s) const { return molecules_.arraySize(s); }
+    KOKKOS_INLINE_FUNCTION auto numSoA() const { return molecules_.numSoA(); }
+    KOKKOS_INLINE_FUNCTION auto arraySize(size_t s) const { return molecules_.arraySize(s); }
 
     void resize(size_t size)
     {
@@ -107,18 +100,48 @@ public:
         resize(numLocalMolecules + numGhostMolecules);
     }
 
-    auto& getAoSoA() { return molecules_; }
+    auto& getAoSoA() const { return molecules_; }
 
     idx_t numLocalMolecules = 0;
     idx_t numGhostMolecules = 0;
 
-    explicit Molecules(const idx_t numMolecules) : molecules_("molecules", numMolecules)
+    explicit GeneralMolecules(const idx_t numMolecules) : molecules_("molecules", numMolecules)
     {
         sliceAll();
     }
 
+    template <class T>
+    GeneralMolecules(const GeneralMolecules<T>& molecules)
+        : molecules_("molecules", molecules.size())
+    {
+        deep_copy(*this, molecules);
+    }
+
 private:
     MoleculesT molecules_;
+
+    pos_t pos;
+    force_t force;
+    lambda_t lambda;
+    modulated_lambda_t modulatedLambda;
+    grad_lambda_t gradLambda;
+    atoms_offset_t atomsOffset;
+    num_atoms_t numAtoms;
 };
+
+template <class A, class B>
+void deep_copy(data::GeneralMolecules<A>& dst, const data::GeneralMolecules<B>& src)
+{
+    dst.numLocalMolecules = src.numLocalMolecules;
+    dst.numGhostMolecules = src.numGhostMolecules;
+    dst.resize(src.size());
+    Cabana::deep_copy(dst.getAoSoA(), src.getAoSoA());
+    dst.sliceAll();
+}
+
+using HostMolecules = GeneralMolecules<HostType>;
+using DeviceMolecules = GeneralMolecules<DeviceType>;
+using Molecules = DeviceMolecules;
+
 }  // namespace data
 }  // namespace mrmd
