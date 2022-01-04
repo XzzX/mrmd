@@ -31,17 +31,18 @@ TEST_F(UpdateMoleculesTest, update)
     Weight weight;
     action::UpdateMolecules::update(molecules, atoms, weight);
 
-    EXPECT_FLOAT_EQ(molecules.getPos()(0, 0), 0.25_r);
-    EXPECT_FLOAT_EQ(molecules.getPos()(0, 1), 0.75_r);
-    EXPECT_FLOAT_EQ(molecules.getPos()(0, 2), 0_r);
+    data::HostMolecules h_molecules(molecules);
+    EXPECT_FLOAT_EQ(h_molecules.getPos()(0, 0), 0.25_r);
+    EXPECT_FLOAT_EQ(h_molecules.getPos()(0, 1), 0.75_r);
+    EXPECT_FLOAT_EQ(h_molecules.getPos()(0, 2), 0_r);
 
-    EXPECT_FLOAT_EQ(molecules.getModulatedLambda()(0), 0.7_r);
+    EXPECT_FLOAT_EQ(h_molecules.getModulatedLambda()(0), 0.7_r);
 
-    EXPECT_FLOAT_EQ(molecules.getPos()(1, 0), -0.25_r);
-    EXPECT_FLOAT_EQ(molecules.getPos()(1, 1), -0.75_r);
-    EXPECT_FLOAT_EQ(molecules.getPos()(1, 2), 0_r);
+    EXPECT_FLOAT_EQ(h_molecules.getPos()(1, 0), -0.25_r);
+    EXPECT_FLOAT_EQ(h_molecules.getPos()(1, 1), -0.75_r);
+    EXPECT_FLOAT_EQ(h_molecules.getPos()(1, 2), 0_r);
 
-    EXPECT_FLOAT_EQ(molecules.getModulatedLambda()(1), -0.7_r);
+    EXPECT_FLOAT_EQ(h_molecules.getModulatedLambda()(1), -0.7_r);
 }
 
 }  // namespace action

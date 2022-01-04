@@ -12,12 +12,15 @@ class GridFixture : public ::testing::Test
 protected:
     void init(const idx_t atomsPerMolecule)
     {
-        molecules.resize(27 * 10);
-        atoms.resize(27 * atomsPerMolecule * 10);
+        auto h_molecules = data::HostMolecules(200);
+        auto h_atoms = data::HostAtoms(200);
 
-        auto moleculesPos = molecules.getPos();
-        auto moleculesAtomsOffset = molecules.getAtomsOffset();
-        auto moleculesNumAtoms = molecules.getNumAtoms();
+        h_molecules.resize(27 * 10);
+        h_atoms.resize(27 * atomsPerMolecule * 10);
+
+        auto moleculesPos = h_molecules.getPos();
+        auto moleculesAtomsOffset = h_molecules.getAtomsOffset();
+        auto moleculesNumAtoms = h_molecules.getNumAtoms();
         int64_t idx = 0;
         for (real_t x = subdomain.minCorner[0] + 0.5_r; x < subdomain.maxCorner[0]; x += 1_r)
             for (real_t y = subdomain.minCorner[1] + 0.5_r; y < subdomain.maxCorner[1]; y += 1_r)
@@ -32,11 +35,11 @@ protected:
                     ++idx;
                 }
         EXPECT_EQ(idx, 27);
-        molecules.numLocalMolecules = 27;
-        molecules.numGhostMolecules = 0;
-        molecules.resize(molecules.numLocalMolecules + molecules.numGhostMolecules);
+        h_molecules.numLocalMolecules = 27;
+        h_molecules.numGhostMolecules = 0;
+        h_molecules.resize(h_molecules.numLocalMolecules + h_molecules.numGhostMolecules);
 
-        auto atomsPos = atoms.getPos();
+        auto atomsPos = h_atoms.getPos();
         idx = 0;
         for (real_t x = subdomain.minCorner[0] + 0.5_r; x < subdomain.maxCorner[0]; x += 1_r)
             for (real_t y = subdomain.minCorner[1] + 0.5_r; y < subdomain.maxCorner[1]; y += 1_r)
@@ -52,9 +55,12 @@ protected:
                     }
                 }
         EXPECT_EQ(idx, 27 * atomsPerMolecule);
-        atoms.numLocalAtoms = 27 * atomsPerMolecule;
-        atoms.numGhostAtoms = 0;
-        atoms.resize(atoms.numLocalAtoms + atoms.numGhostAtoms);
+        h_atoms.numLocalAtoms = 27 * atomsPerMolecule;
+        h_atoms.numGhostAtoms = 0;
+        h_atoms.resize(h_atoms.numLocalAtoms + h_atoms.numGhostAtoms);
+
+        data::deep_copy(molecules, h_molecules);
+        data::deep_copy(atoms, h_atoms);
     }
 
     void SetUp() override { init(2); }

@@ -22,7 +22,7 @@ class LJ_IdealGas_Test : public ::testing::Test
 protected:
     static auto getMolecules()
     {
-        data::Molecules molecules(2);
+        data::HostMolecules molecules(2);
 
         auto hMolecules =
             Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), molecules.getAoSoA());
@@ -51,7 +51,7 @@ protected:
 
     static auto getAtoms()
     {
-        data::Atoms atoms(4);
+        data::HostAtoms atoms(4);
 
         auto hAtoms = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
         auto pos = Cabana::slice<data::Atoms::POS>(hAtoms);
@@ -106,7 +106,7 @@ protected:
                                   expectedNumNeighbors);
 
         atoms = getAtoms();
-        atomsForce = atoms.getForce();
+        auto atomsForce = atoms.getForce();
         Cabana::deep_copy(atomsForce, 0_r);
     }
 
@@ -121,11 +121,11 @@ protected:
     data::Molecules molecules = data::Molecules(1);
     VerletList moleculesVerletList;
     data::Atoms atoms = data::Atoms(1);
-    data::Atoms::force_t atomsForce;
 };
 
 TEST_F(LJ_IdealGas_Test, CG)
 {
+    auto atomsForce = atoms.getForce();
     Cabana::deep_copy(atomsForce, 2_r);
 
     auto moleculesLambda = molecules.getModulatedLambda();
@@ -133,11 +133,12 @@ TEST_F(LJ_IdealGas_Test, CG)
     action::LJ_IdealGas LJ(cappingDistance, rc, sigma, epsilon, true);
     LJ.run(molecules, moleculesVerletList, atoms);
 
+    data::HostAtoms h_atoms(atoms);
     for (idx_t idx = 0; idx < 4; ++idx)
     {
         for (auto dim = 0; dim < 3; ++dim)
         {
-            EXPECT_FLOAT_EQ(atomsForce(idx, dim), 2_r);
+            EXPECT_FLOAT_EQ(h_atoms.getForce()(idx, dim), 2_r);
         }
     }
 }
@@ -153,8 +154,8 @@ TEST_F(LJ_IdealGas_Test, HY)
     constexpr auto xForce = 0.22156665_r * 0.5_r;
     constexpr auto yForce = 1.3825009_r * 0.5_r;
 
-    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
+    data::HostAtoms h_atoms(atoms);
+    auto force = h_atoms.getForce();
 
     EXPECT_FLOAT_EQ(force(0, 0), -xForce);
     EXPECT_FLOAT_EQ(force(0, 1), +yForce);
@@ -184,8 +185,8 @@ TEST_F(LJ_IdealGas_Test, AT)
     constexpr auto xForce = 0.22156665_r;
     constexpr auto yForce = 1.3825009_r;
 
-    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
+    data::HostAtoms h_atoms(atoms);
+    auto force = h_atoms.getForce();
 
     EXPECT_FLOAT_EQ(force(0, 0), -xForce);
     EXPECT_FLOAT_EQ(force(0, 1), +yForce);

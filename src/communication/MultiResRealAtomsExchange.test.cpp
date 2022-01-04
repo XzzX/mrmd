@@ -17,8 +17,10 @@ TEST_F(MultiResRealAtomsExchangeTest, SingleAtomTest)
     data::Subdomain domain({1_r, 1_r, 1_r}, {2_r, 2_r, 2_r}, 0.1_r);
     realAtomsExchange(domain, molecules, atoms);
 
-    auto moleculesPos = molecules.getPos();
-    for (auto idx = 0; idx < molecules.numLocalMolecules; ++idx)
+    data::HostMolecules h_molecules(molecules);
+    auto moleculesPos = h_molecules.getPos();
+    EXPECT_GT(h_molecules.numLocalMolecules, 0);
+    for (auto idx = 0; idx < h_molecules.numLocalMolecules; ++idx)
     {
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
@@ -27,8 +29,10 @@ TEST_F(MultiResRealAtomsExchangeTest, SingleAtomTest)
         }
     }
 
-    auto atomsPos = atoms.getPos();
-    for (auto idx = 0; idx < atoms.numLocalAtoms; ++idx)
+    data::HostAtoms h_atoms(atoms);
+    auto atomsPos = h_atoms.getPos();
+    EXPECT_GT(h_atoms.numLocalAtoms, 0);
+    for (auto idx = 0; idx < h_atoms.numLocalAtoms; ++idx)
     {
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
@@ -44,8 +48,10 @@ TEST_F(MultiResRealAtomsExchangeTest, MultiAtomTest)
     data::Subdomain domain({1_r, 1_r, 1_r}, {2_r, 2_r, 2_r}, 0.1_r);
     realAtomsExchange(domain, molecules, atoms);
 
-    auto moleculesPos = molecules.getPos();
-    for (auto idx = 0; idx < molecules.numLocalMolecules; ++idx)
+    data::HostMolecules h_molecules(molecules);
+    auto moleculesPos = h_molecules.getPos();
+    EXPECT_GT(h_molecules.numLocalMolecules, 0);
+    for (auto idx = 0; idx < h_molecules.numLocalMolecules; ++idx)
     {
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
@@ -54,8 +60,10 @@ TEST_F(MultiResRealAtomsExchangeTest, MultiAtomTest)
         }
     }
 
-    auto atomsPos = atoms.getPos();
-    for (auto idx = 0; idx < atoms.numLocalAtoms; ++idx)
+    data::HostAtoms h_atoms(atoms);
+    auto atomsPos = h_atoms.getPos();
+    EXPECT_GT(h_atoms.numLocalAtoms, 0);
+    for (auto idx = 0; idx < h_atoms.numLocalAtoms; ++idx)
     {
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
