@@ -89,7 +89,7 @@ protected:
 
     void SetUp() override
     {
-        molecules = data::Molecules(getMolecules());
+        data::deep_copy(molecules, getMolecules());
 
         auto cutoff = 2_r;
         auto cellRatio = 1_r;
@@ -105,7 +105,7 @@ protected:
                                   maxGrid,
                                   expectedNumNeighbors);
 
-        atoms = data::Atoms(getAtoms());
+        data::deep_copy(atoms, getAtoms());
         auto atomsForce = atoms.getForce();
         Cabana::deep_copy(atomsForce, 0_r);
     }

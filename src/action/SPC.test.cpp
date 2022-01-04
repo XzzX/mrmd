@@ -90,8 +90,8 @@ protected:
 
     void SetUp() override
     {
-        molecules = getMolecules();
-        atoms = getAtoms();
+        data::deep_copy(molecules, getMolecules());
+        data::deep_copy(atoms, getAtoms());
 
         auto cutoff = 2_r;
         auto cellRatio = 1_r;
