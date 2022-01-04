@@ -6,7 +6,7 @@ namespace mrmd
 {
 namespace util
 {
-TEST(Random, Range)
+void randomRange()
 {
     Random rng;
     auto data = ScalarView("random-numbers", 100);
@@ -21,5 +21,6 @@ TEST(Random, Range)
         EXPECT_LT(h_data(i), 1_r);
     }
 }
+TEST(Random, Range) { randomRange(); }
 }  // namespace util
 }  // namespace mrmd
