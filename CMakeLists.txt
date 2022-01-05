@@ -45,6 +45,8 @@ find_package(HDF5 REQUIRED COMPONENTS C HL)
 if (NOT HDF5_IS_PARALLEL)
     message(FATAL_ERROR "HDF5 with MPI support is required! Serial version detected.")
 endif ()
+#need to avoid _FORTIFY_SOURCE=2 which causes trouble in debug builds
+set_target_properties(hdf5::hdf5 PROPERTIES INTERFACE_COMPILE_DEFINITIONS "")
 
 include(FetchContent)
 
