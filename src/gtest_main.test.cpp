@@ -8,8 +8,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleTest(&argc, argv);
     Kokkos::ScopeGuard scope_guard(argc, argv);
-    auto status = RUN_ALL_TESTS();
-    if (status != EXIT_SUCCESS) return status;
+    auto result = RUN_ALL_TESTS();
     MPI_Finalize();
-    return EXIT_SUCCESS;
+    return result;
 }
