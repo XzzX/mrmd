@@ -28,10 +28,10 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
     for (auto rk = 0; rk < mpiInfo_->rank; ++rk)
     {
         localOffset += globalDims[1] / uint_c(mpiInfo_->size) +
-                       (globalDims[1] % uint_c(mpiInfo_->size) > uint_c(rk) ? 1ul : 0ul);
+                       (globalDims[1] % uint_c(mpiInfo_->size) > uint_c(rk) ? 1UL : 0UL);
     }
     auto localSize = globalDims[1] / uint_c(mpiInfo_->size) +
-                     (globalDims[1] % uint_c(mpiInfo_->size) > uint_c(mpiInfo_->rank) ? 1ul : 0ul);
+                     (globalDims[1] % uint_c(mpiInfo_->size) > uint_c(mpiInfo_->rank) ? 1UL : 0UL);
     localDims[0] = 1;  // only read one timeframe
     localDims[1] = localSize;
 
@@ -71,7 +71,7 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
 
 void RestoreH5MDParallel::restore(const std::string& filename, data::Atoms& atoms)
 {
-    auto info = MPI_INFO_NULL;
+    MPI_Info info = MPI_INFO_NULL;
 
     auto plist = CHECK_HDF5(H5Pcreate(H5P_FILE_ACCESS));
     CHECK_HDF5(H5Pset_fapl_mpio(plist, mpiInfo_->comm, info));

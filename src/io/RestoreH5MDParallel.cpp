@@ -28,10 +28,10 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
     for (auto rk = 0; rk < mpiInfo_->rank; ++rk)
     {
         localOffset += globalDims[1] / uint_c(mpiInfo_->size) +
-                       (globalDims[1] % uint_c(mpiInfo_->size) > uint_c(rk) ? 1ul : 0ul);
+                       (globalDims[1] % uint_c(mpiInfo_->size) > uint_c(rk) ? 1UL : 0UL);
     }
     auto localSize = globalDims[1] / uint_c(mpiInfo_->size) +
-                     (globalDims[1] % uint_c(mpiInfo_->size) > uint_c(mpiInfo_->rank) ? 1ul : 0ul);
+                     (globalDims[1] % uint_c(mpiInfo_->size) > uint_c(mpiInfo_->rank) ? 1UL : 0UL);
     localDims[0] = 1;  // only read one timeframe
     localDims[1] = localSize;
 
@@ -46,8 +46,8 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
         CHECK_LESSEQUAL(localDims[i] + offset[i], globalDims[i], fmt::format("i = {}", i));
     }
     auto fileSpace = CHECK_HDF5(H5Dget_space(dset));
-    CHECK_HDF5(H5Sselect_hyperslab(fileSpace, H5S_SELECT_SET, offset.data(), stride.data(),
-                                   count.data(), localDims.data()));
+    CHECK_HDF5(H5Sselect_hyperslab(
+        fileSpace, H5S_SELECT_SET, offset.data(), stride.data(), count.data(), localDims.data()));
 
     // set up memory data layout
     hid_t memSpace =
@@ -71,7 +71,7 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
 
 void RestoreH5MDParallel::restore(const std::string& filename, data::Atoms& atoms)
 {
-    auto info = MPI_INFO_NULL;
+    MPI_Info info = MPI_INFO_NULL;
 
     auto plist = CHECK_HDF5(H5Pcreate(H5P_FILE_ACCESS));
     CHECK_HDF5(H5Pset_fapl_mpio(plist, mpiInfo_->comm, info));
@@ -92,31 +92,37 @@ void RestoreH5MDParallel::restore(const std::string& filename, data::Atoms& atom
     std::vector<real_t> force;
     if (restoreForce)
     {
-        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + forceDataset + "/value", force);
+        readParallel(
+            fileId, "/particles/" + particleGroupName_ + "/" + forceDataset + "/value", force);
         CHECK_EQUAL(pos.size() / 3 * 3, force.size());
     }
     std::vector<idx_t> type;
     if (restoreType)
     {
-        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + typeDataset + "/value", type);
+        readParallel(
+            fileId, "/particles/" + particleGroupName_ + "/" + typeDataset + "/value", type);
         CHECK_EQUAL(pos.size() / 3 * 1, type.size());
     }
     std::vector<real_t> mass;
     if (restoreMass)
     {
-        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + massDataset + "/value", mass);
+        readParallel(
+            fileId, "/particles/" + particleGroupName_ + "/" + massDataset + "/value", mass);
         CHECK_EQUAL(pos.size() / 3 * 1, mass.size());
     }
     std::vector<real_t> charge;
     if (restoreCharge)
     {
-        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + chargeDataset + "/value", charge);
+        readParallel(
+            fileId, "/particles/" + particleGroupName_ + "/" + chargeDataset + "/value", charge);
         CHECK_EQUAL(pos.size() / 3 * 1, charge.size());
     }
     std::vector<real_t> relativeMass;
     if (restoreRelativeMass)
     {
-        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + relativeMassDataset + "/value", relativeMass);
+        readParallel(fileId,
+                     "/particles/" + particleGroupName_ + "/" + relativeMassDataset + "/value",
+                     relativeMass);
         CHECK_EQUAL(pos.size() / 3 * 1, relativeMass.size());
     }
 

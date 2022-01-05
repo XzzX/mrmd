@@ -38,9 +38,9 @@ auto getAtoms(const std::shared_ptr<data::MPIInfo>& mpiInfo)
         force(idx, 2) = real_c(idx * mpiInfo->rank + 2) + 0.2_r;
 
         type(idx) = idx + 3;
-        charge(idx) = real_c(idx + 4.1);
-        mass(idx) = real_c(idx + 5.2);
-        relativeMass(idx) = real_c(idx + 6.3);
+        charge(idx) = real_c(idx) + 4.1_r;
+        mass(idx) = real_c(idx) + 5.2_r;
+        relativeMass(idx) = real_c(idx) + 6.3_r;
     };
     Kokkos::parallel_for("init-atoms", policy, kernel);
     Kokkos::fence();
