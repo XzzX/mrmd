@@ -3,7 +3,7 @@ gpu:
     - cobra
   script:
     - module purge
-    - module load cmake/3.18 doxygen git
+    - module load cmake/3.22 doxygen git
     - module load gcc/10 cuda/11.2 openmpi/4 hdf5-mpi/1.12.0
     - git --version
     - cmake --version
@@ -28,7 +28,7 @@ benchmark:
 
   script:
     - module purge
-    - module load cmake/3.18 doxygen git
+    - module load cmake/3.22 doxygen git
     - module load gcc/10 cuda/11.2 openmpi/4 hdf5-mpi/1.12.0
     - module load anaconda/3
     - git --version
