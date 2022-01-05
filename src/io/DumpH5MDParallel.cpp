@@ -369,11 +369,11 @@ void DumpH5MDParallel::dump(const std::string& filename,
                             const data::Subdomain& subdomain,
                             const data::Atoms& atoms)
 {
-    data::HostAtoms h_atoms(atoms);
+    data::HostAtoms h_atoms(atoms);  // NOLINT
 
     updateCache(h_atoms);
 
-    auto info = MPI_INFO_NULL;
+    auto* info = MPI_INFO_NULL;
 
     auto plist = CHECK_HDF5(H5Pcreate(H5P_FILE_ACCESS));
     CHECK_HDF5(H5Pset_fapl_mpio(plist, mpiInfo_->comm, info));

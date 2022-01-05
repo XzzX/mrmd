@@ -77,15 +77,48 @@ void RestoreH5MDParallel::restore(const std::string& filename, data::Atoms& atom
     CHECK_HDF5(H5Pset_fapl_mpio(plist, mpiInfo_->comm, info));
 
     auto fileId = CHECK_HDF5(H5Fopen(filename.c_str(), H5F_ACC_RDONLY, plist));
-
-    {%- for prop in particle %}
-    std::vector<{{prop.type}}> {{prop.name}};
-    if (restore{{prop.name | cap_first}})
+    std::vector<real_t> pos;
+    if (restorePos)
     {
-        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + {{prop.name}}Dataset + "/value", {{prop.name}});
-        CHECK_EQUAL(pos.size() / 3 * {{prop.dim}}, {{prop.name}}.size());
+        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + posDataset + "/value", pos);
+        CHECK_EQUAL(pos.size() / 3 * 3, pos.size());
     }
-    {%- endfor %}
+    std::vector<real_t> vel;
+    if (restoreVel)
+    {
+        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + velDataset + "/value", vel);
+        CHECK_EQUAL(pos.size() / 3 * 3, vel.size());
+    }
+    std::vector<real_t> force;
+    if (restoreForce)
+    {
+        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + forceDataset + "/value", force);
+        CHECK_EQUAL(pos.size() / 3 * 3, force.size());
+    }
+    std::vector<idx_t> type;
+    if (restoreType)
+    {
+        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + typeDataset + "/value", type);
+        CHECK_EQUAL(pos.size() / 3 * 1, type.size());
+    }
+    std::vector<real_t> mass;
+    if (restoreMass)
+    {
+        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + massDataset + "/value", mass);
+        CHECK_EQUAL(pos.size() / 3 * 1, mass.size());
+    }
+    std::vector<real_t> charge;
+    if (restoreCharge)
+    {
+        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + chargeDataset + "/value", charge);
+        CHECK_EQUAL(pos.size() / 3 * 1, charge.size());
+    }
+    std::vector<real_t> relativeMass;
+    if (restoreRelativeMass)
+    {
+        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + relativeMassDataset + "/value", relativeMass);
+        CHECK_EQUAL(pos.size() / 3 * 1, relativeMass.size());
+    }
 
     idx_t numLocalAtoms = idx_c(pos.size() / 3);
     atoms.resize(numLocalAtoms);
@@ -93,18 +126,28 @@ void RestoreH5MDParallel::restore(const std::string& filename, data::Atoms& atom
     atoms.numGhostAtoms = 0;
     for (idx_t idx = 0; idx < numLocalAtoms; ++idx)
     {
-        {%- for prop in particle %}
-        {%- if prop.dim == 1 %}
-        if (restore{{prop.name | cap_first}}) atoms.get{{prop.name | cap_first}}()(idx) = {{prop.name}}[idx];
-        {%- else %}
-        if (restore{{prop.name | cap_first}})
+        if (restorePos)
         {
-            {%- for i in range(prop.dim) %}
-            atoms.get{{prop.name | cap_first}}()(idx, {{i}}) = {{prop.name}}[idx * {{prop.dim}} + {{i}}];
-            {%- endfor %}
+            atoms.getPos()(idx, 0) = pos[idx * 3 + 0];
+            atoms.getPos()(idx, 1) = pos[idx * 3 + 1];
+            atoms.getPos()(idx, 2) = pos[idx * 3 + 2];
         }
-        {%- endif %}
-        {%- endfor %}
+        if (restoreVel)
+        {
+            atoms.getVel()(idx, 0) = vel[idx * 3 + 0];
+            atoms.getVel()(idx, 1) = vel[idx * 3 + 1];
+            atoms.getVel()(idx, 2) = vel[idx * 3 + 2];
+        }
+        if (restoreForce)
+        {
+            atoms.getForce()(idx, 0) = force[idx * 3 + 0];
+            atoms.getForce()(idx, 1) = force[idx * 3 + 1];
+            atoms.getForce()(idx, 2) = force[idx * 3 + 2];
+        }
+        if (restoreType) atoms.getType()(idx) = type[idx];
+        if (restoreMass) atoms.getMass()(idx) = mass[idx];
+        if (restoreCharge) atoms.getCharge()(idx) = charge[idx];
+        if (restoreRelativeMass) atoms.getRelativeMass()(idx) = relativeMass[idx];
     }
 
     CHECK_HDF5(H5Fclose(fileId));

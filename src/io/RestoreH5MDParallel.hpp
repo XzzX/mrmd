@@ -25,13 +25,23 @@ public:
 
     void restore(const std::string& filename, data::Atoms& atoms);
 
-    {% for prop in particle %}
-    bool restore{{prop.name | cap_first}} = {{prop.default}};
-    {%- endfor %}
+    
+    bool restorePos = true;
+    bool restoreVel = true;
+    bool restoreForce = true;
+    bool restoreType = true;
+    bool restoreMass = true;
+    bool restoreCharge = true;
+    bool restoreRelativeMass = true;
 
-    {% for prop in particle %}
-    std::string {{prop.name}}Dataset = "{{prop.dataset}}";
-    {%- endfor %}
+    
+    std::string posDataset = "pos";
+    std::string velDataset = "vel";
+    std::string forceDataset = "force";
+    std::string typeDataset = "type";
+    std::string massDataset = "mass";
+    std::string chargeDataset = "charge";
+    std::string relativeMassDataset = "relativeMass";
 
 private:
     template <typename T>

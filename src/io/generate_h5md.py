@@ -36,6 +36,6 @@ pprint(context)
 generate_file('.', 'DumpH5MDParallel.cpp.jinja2', context)
 generate_file('.', 'DumpH5MDParallel.hpp.jinja2', context)
 
-#generate_file('.', 'RestoreH5MDParallel.cpp.jinja2', context)
-#generate_file('.', 'RestoreH5MDParallel.hpp.jinja2', context)
+generate_file('.', 'RestoreH5MDParallel.cpp.jinja2', context)
+generate_file('.', 'RestoreH5MDParallel.hpp.jinja2', context)
 
