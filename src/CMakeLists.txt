@@ -12,7 +12,7 @@ target_link_libraries(mrmd PUBLIC Kokkos::kokkos)
 target_link_libraries(mrmd PUBLIC Cabana::cabanacore)
 target_link_libraries(mrmd PRIVATE MPI::MPI_CXX)
 target_link_libraries(mrmd PRIVATE fmt::fmt)
-target_link_libraries(mrmd PRIVATE hdf5::hdf5 hdf5::hdf5_hl)
+target_link_libraries(mrmd PUBLIC hdf5::hdf5 hdf5::hdf5_hl)
 target_include_directories(mrmd
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 target_include_directories(mrmd PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
