@@ -98,7 +98,17 @@ public:
     idx_t numLocalAtoms = 0;
     idx_t numGhostAtoms = 0;
 
-    explicit GeneralAtoms(const idx_t numAtoms) : atoms_("atoms", numAtoms) { sliceAll(); }
+    explicit GeneralAtoms(const idx_t numAtoms) : atoms_("atoms", numAtoms)
+    {
+        sliceAll();
+        Cabana::deep_copy(pos, 0_r);
+        Cabana::deep_copy(vel, 0_r);
+        Cabana::deep_copy(force, 0_r);
+        Cabana::deep_copy(type, 0);
+        Cabana::deep_copy(mass, 0_r);
+        Cabana::deep_copy(charge, 0_r);
+        Cabana::deep_copy(relativeMass, 0_r);
+    }
     template <class T>
     explicit GeneralAtoms(const GeneralAtoms<T>& atoms) : atoms_("atoms", atoms.size())
     {
