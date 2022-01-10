@@ -49,9 +49,9 @@ TEST_F(ShakeTest, Attraction)
     enforceSingleConstraint(atoms, dt, 1_r);
     integratePosition(atoms, dt);
 
-    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto newPos = Cabana::slice<data::Atoms::POS>(hAoSoA);
-    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
+    data::HostAtoms h_atoms(atoms);
+    auto newPos = h_atoms.getPos();
+    auto force = h_atoms.getForce();
 
     EXPECT_FLOAT_EQ(force(0, 0), -force(1, 0));
     EXPECT_FLOAT_EQ(force(0, 1), -force(1, 1));
@@ -77,9 +77,9 @@ TEST_F(ShakeTest, Repulsion)
     enforceSingleConstraint(atoms, dt, 2_r);
     integratePosition(atoms, dt);
 
-    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto newPos = Cabana::slice<data::Atoms::POS>(hAoSoA);
-    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
+    data::HostAtoms h_atoms(atoms);
+    auto newPos = h_atoms.getPos();
+    auto force = h_atoms.getForce();
 
     EXPECT_FLOAT_EQ(force(0, 0), -force(1, 0));
     EXPECT_FLOAT_EQ(force(0, 1), -force(1, 1));
@@ -120,32 +120,33 @@ TEST_F(ShakeTest, Shrink)
     Cabana::deep_copy(force, 0_r);
     auto dt = 0.1_r;
 
-    data::BondView::host_mirror_type bonds("bonds", 4);
-    bonds(0).idx = 0;
-    bonds(0).jdx = 1;
-    bonds(0).eqDistance = 1_r;
+    data::BondView::host_mirror_type h_bonds("bonds", 4);
+    h_bonds(0).idx = 0;
+    h_bonds(0).jdx = 1;
+    h_bonds(0).eqDistance = 1_r;
 
-    bonds(1).idx = 1;
-    bonds(1).jdx = 2;
-    bonds(1).eqDistance = 1_r;
+    h_bonds(1).idx = 1;
+    h_bonds(1).jdx = 2;
+    h_bonds(1).eqDistance = 1_r;
 
-    bonds(2).idx = 2;
-    bonds(2).jdx = 3;
-    bonds(2).eqDistance = 1_r;
+    h_bonds(2).idx = 2;
+    h_bonds(2).jdx = 3;
+    h_bonds(2).eqDistance = 1_r;
 
-    bonds(3).idx = 3;
-    bonds(3).jdx = 0;
-    bonds(3).eqDistance = 1_r;
+    h_bonds(3).idx = 3;
+    h_bonds(3).jdx = 0;
+    h_bonds(3).eqDistance = 1_r;
+
+    auto bonds = Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), h_bonds);
 
     for (int iteration = 0; iteration < 10; ++iteration)
     {
-        enforceConstraints(
-            atoms, dt, Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), bonds));
+        enforceConstraints(atoms, dt, bonds);
     }
     integratePosition(atoms, dt);
 
-    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto newPos = Cabana::slice<data::Atoms::POS>(hAoSoA);
+    data::HostAtoms h_atoms(atoms);
+    auto newPos = h_atoms.getPos();
     auto calcDist = [=](idx_t idx, idx_t jdx)
     {
         auto dx = newPos(idx, 0) - newPos(jdx, 0);
@@ -161,35 +162,35 @@ TEST_F(ShakeTest, Shrink)
 
 TEST_F(ShakeTest, Grow)
 {
-    auto force = atoms.getForce();
     auto dt = 0.1_r;
 
-    data::BondView::host_mirror_type bonds("bonds", 4);
-    bonds(0).idx = 0;
-    bonds(0).jdx = 1;
-    bonds(0).eqDistance = 2_r;
+    data::BondView::host_mirror_type h_bonds("bonds", 4);
+    h_bonds(0).idx = 0;
+    h_bonds(0).jdx = 1;
+    h_bonds(0).eqDistance = 2_r;
 
-    bonds(1).idx = 1;
-    bonds(1).jdx = 2;
-    bonds(1).eqDistance = 2_r;
+    h_bonds(1).idx = 1;
+    h_bonds(1).jdx = 2;
+    h_bonds(1).eqDistance = 2_r;
 
-    bonds(2).idx = 2;
-    bonds(2).jdx = 3;
-    bonds(2).eqDistance = 2_r;
+    h_bonds(2).idx = 2;
+    h_bonds(2).jdx = 3;
+    h_bonds(2).eqDistance = 2_r;
 
-    bonds(3).idx = 3;
-    bonds(3).jdx = 0;
-    bonds(3).eqDistance = 2_r;
+    h_bonds(3).idx = 3;
+    h_bonds(3).jdx = 0;
+    h_bonds(3).eqDistance = 2_r;
+
+    auto bonds = Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), h_bonds);
 
     for (int iteration = 0; iteration < 10; ++iteration)
     {
-        enforceConstraints(
-            atoms, dt, Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), bonds));
+        enforceConstraints(atoms, dt, bonds);
     }
     integratePosition(atoms, dt);
 
-    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto newPos = Cabana::slice<data::Atoms::POS>(hAoSoA);
+    data::HostAtoms h_atoms(atoms);
+    auto newPos = h_atoms.getPos();
     auto calcDist = [=](idx_t idx, idx_t jdx)
     {
         auto dx = newPos(idx, 0) - newPos(jdx, 0);
@@ -215,8 +216,8 @@ TEST_F(ShakeTest, Molecules)
     mc.setConstraints(bonds);
     mc.enforcePositionalConstraints(molecules, atoms, dt);
 
-    auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
-    auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
+    data::HostAtoms h_atoms(atoms);
+    auto force = h_atoms.getForce();
 
     EXPECT_FLOAT_EQ(force(0, 0), -force(1, 0));
     EXPECT_FLOAT_EQ(force(0, 1), -force(1, 1));
