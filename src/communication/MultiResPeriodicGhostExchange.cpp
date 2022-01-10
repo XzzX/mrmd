@@ -17,6 +17,8 @@ struct MoleculesAtomsCounter
     MoleculesAtomsCounter() = default;
     KOKKOS_INLINE_FUNCTION
     MoleculesAtomsCounter(const MoleculesAtomsCounter& rhs) = default;
+    KOKKOS_INLINE_FUNCTION
+    MoleculesAtomsCounter& operator=(const MoleculesAtomsCounter& rhs) = default;
 
     KOKKOS_INLINE_FUNCTION
     MoleculesAtomsCounter& operator+=(const MoleculesAtomsCounter& src)

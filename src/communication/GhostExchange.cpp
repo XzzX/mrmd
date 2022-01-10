@@ -15,6 +15,8 @@ struct PositiveNegativeCounter
     PositiveNegativeCounter() = default;
     KOKKOS_INLINE_FUNCTION
     PositiveNegativeCounter(const PositiveNegativeCounter& rhs) = default;
+    KOKKOS_INLINE_FUNCTION
+    PositiveNegativeCounter& operator=(const PositiveNegativeCounter& rhs) = default;
 
     KOKKOS_INLINE_FUNCTION
     PositiveNegativeCounter& operator+=(const PositiveNegativeCounter& src)
