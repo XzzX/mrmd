@@ -10,7 +10,7 @@ configure_file(version.hpp.in version.hpp @ONLY)
 add_library(mrmd ${MRMD_SOURCES})
 target_link_libraries(mrmd PUBLIC Kokkos::kokkos)
 target_link_libraries(mrmd PUBLIC Cabana::cabanacore)
-target_link_libraries(mrmd PRIVATE MPI::MPI_CXX)
+target_link_libraries(mrmd PUBLIC MPI::MPI_C MPI::MPI_CXX)
 target_link_libraries(mrmd PRIVATE fmt::fmt)
 target_link_libraries(mrmd PUBLIC hdf5::hdf5 hdf5::hdf5_hl)
 target_include_directories(mrmd
