@@ -22,20 +22,22 @@ data::Atoms getAtoms(const std::shared_ptr<data::MPIInfo>& mpiInfo)
     auto mass = atoms.getMass();
     auto relativeMass = atoms.getRelativeMass();
 
+    auto rank = mpiInfo->rank;
+
     auto policy = Kokkos::RangePolicy<>(0, 10);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
-        pos(idx, 0) = real_c(idx * mpiInfo->rank);
-        pos(idx, 1) = real_c(idx * mpiInfo->rank) + 0.1_r;
-        pos(idx, 2) = real_c(idx * mpiInfo->rank) + 0.2_r;
+        pos(idx, 0) = real_c(idx * rank);
+        pos(idx, 1) = real_c(idx * rank) + 0.1_r;
+        pos(idx, 2) = real_c(idx * rank) + 0.2_r;
 
-        vel(idx, 0) = real_c(idx * mpiInfo->rank + 1);
-        vel(idx, 1) = real_c(idx * mpiInfo->rank + 1) + 0.1_r;
-        vel(idx, 2) = real_c(idx * mpiInfo->rank + 1) + 0.2_r;
+        vel(idx, 0) = real_c(idx * rank + 1);
+        vel(idx, 1) = real_c(idx * rank + 1) + 0.1_r;
+        vel(idx, 2) = real_c(idx * rank + 1) + 0.2_r;
 
-        force(idx, 0) = real_c(idx * mpiInfo->rank + 2);
-        force(idx, 1) = real_c(idx * mpiInfo->rank + 2) + 0.1_r;
-        force(idx, 2) = real_c(idx * mpiInfo->rank + 2) + 0.2_r;
+        force(idx, 0) = real_c(idx * rank + 2);
+        force(idx, 1) = real_c(idx * rank + 2) + 0.1_r;
+        force(idx, 2) = real_c(idx * rank + 2) + 0.2_r;
 
         type(idx) = idx + 3;
         charge(idx) = real_c(idx) + 4.1_r;
