@@ -183,7 +183,7 @@ TEST_P(NVT, pressure)
     EXPECT_NEAR(T, targetTemperature, 0.1_r);
 }
 
-INSTANTIATE_TEST_CASE_P(Pressure, NVT, ::testing::Values(0.8_r, 1.0_r, 1.2_r, 1.4_r, 1.6_r));
+INSTANTIATE_TEST_SUITE_P(Pressure, NVT, ::testing::Values(0.8_r, 1.0_r, 1.2_r, 1.4_r, 1.6_r));
 
 int main(int argc, char* argv[])
 {

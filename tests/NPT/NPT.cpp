@@ -205,11 +205,11 @@ TEST_P(NPT, pressure)
     EXPECT_NEAR(p, targetPressure, 0.2_r);
 }
 
-INSTANTIATE_TEST_CASE_P(Pressure,
-                        NPT,
-                        ::testing::Values(Input{2.8_r, 9.1_r},
-                                          Input{2.5_r, 8.5_r},
-                                          Input{2.0_r, 8.0_r}));
+INSTANTIATE_TEST_SUITE_P(Pressure,
+                         NPT,
+                         ::testing::Values(Input{2.8_r, 9.1_r},
+                                           Input{2.5_r, 8.5_r},
+                                           Input{2.0_r, 8.0_r}));
 
 int main(int argc, char *argv[])
 {
