@@ -34,6 +34,8 @@ if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
     endif ()
 endif ()
 if (CMAKE_CXX_COMPILER_ID MATCHES Intel)
+    #https://www.intel.com/content/www/us/en/develop/documentation/cpp-compiler-developer-guide-and-reference/top/compiler-reference/floating-point-operations/understanding-floating-point-operations/floating-point-optimizations.html
+    target_compile_options(mrmd PRIVATE -fp-model=consistent)
     if (MRMD_LOCAL_ARCHITECTURE)
         target_compile_options(mrmd PRIVATE "-xHost")
     endif ()
