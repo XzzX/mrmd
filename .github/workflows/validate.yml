@@ -53,7 +53,10 @@ jobs:
       - name: Configure
         run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Debug -DMRMD_VERBOSE_ASSERTS=ON
 
-      - name: Build
+      - name: build dependencies
+        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox -j 2
+
+      - name: build
         run: cmake --build mrmd-build --target all -j 2
 
       - name: Test
@@ -106,7 +109,10 @@ jobs:
       - name: Configure
         run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Release -DMRMD_VERBOSE_ASSERTS=ON
 
-      - name: Build
+      - name: build dependencies
+        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox -j 2
+
+      - name: build
         run: cmake --build mrmd-build --target all -j 2
 
       - name: Test
@@ -227,5 +233,8 @@ jobs:
       - name: Configure
         run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Debug -DMRMD_CLANG_TIDY=ON -DMRMD_VERBOSE_ASSERTS=ON
 
-      - name: Build
+      - name: build dependencies
+        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox -j 2
+
+      - name: build
         run: cmake --build mrmd-build --target all -j 2
