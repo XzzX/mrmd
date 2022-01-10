@@ -11,7 +11,7 @@ namespace mrmd
 {
 namespace io
 {
-auto getAtoms(const std::shared_ptr<data::MPIInfo>& mpiInfo)
+data::Atoms getAtoms(const std::shared_ptr<data::MPIInfo>& mpiInfo)
 {
     auto atoms = data::Atoms(10);
     auto pos = atoms.getPos();
