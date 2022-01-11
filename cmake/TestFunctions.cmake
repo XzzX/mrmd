@@ -25,7 +25,7 @@ function(mrmd_add_test)
         target_link_libraries(${ARG_NAME}
                 PRIVATE mrmd_test_main
                 )
-        add_test(NAME ${ARG_NAME} COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${num_processes} --oversubscribe ${MPIEXEC_PREFLAGS} ./${ARG_NAME})
+        add_test(NAME ${ARG_NAME} COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${num_processes} --oversubscribe --allow-run-as-root ${MPIEXEC_PREFLAGS} ./${ARG_NAME})
 
         set_tests_properties(${ARG_NAME} PROPERTIES ENVIRONMENT "OMP_PROC_BIND=spread;OMP_PLACES=threads")
         if (NOT ARG_LABELS)
