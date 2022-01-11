@@ -8,14 +8,15 @@ configure_file(cmake.hpp.in cmake.hpp @ONLY)
 configure_file(version.hpp.in version.hpp @ONLY)
 
 add_library(mrmd ${MRMD_SOURCES})
-target_link_libraries(mrmd PUBLIC Kokkos::kokkos)
-target_link_libraries(mrmd PUBLIC Cabana::cabanacore)
-target_link_libraries(mrmd PUBLIC MPI::MPI_C MPI::MPI_CXX)
-target_link_libraries(mrmd PRIVATE fmt::fmt)
-target_link_libraries(mrmd PUBLIC hdf5::hdf5 hdf5::hdf5_hl)
+target_link_libraries(mrmd
+        PUBLIC Kokkos::kokkos
+        PUBLIC Cabana::cabanacore
+        PUBLIC MPI::MPI_C MPI::MPI_CXX
+        PRIVATE fmt::fmt
+        PUBLIC hdf5::hdf5 hdf5::hdf5_hl)
 target_include_directories(mrmd
-        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
-target_include_directories(mrmd PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+        PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 if (MRMD_WERROR)
     target_compile_options(mrmd PRIVATE "-Werror")
