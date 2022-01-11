@@ -88,24 +88,25 @@ void RestoreH5MDParallel::restore(const std::string& filename, data::Atoms& atom
     {%- endfor %}
 
     idx_t numLocalAtoms = idx_c(pos.size() / 3);
-    atoms.resize(numLocalAtoms);
-    atoms.numLocalAtoms = numLocalAtoms;
-    atoms.numGhostAtoms = 0;
+    data::HostAtoms h_atoms(numLocalAtoms);
+    h_atoms.numLocalAtoms = numLocalAtoms;
+    h_atoms.numGhostAtoms = 0;
     for (idx_t idx = 0; idx < numLocalAtoms; ++idx)
     {
         {%- for prop in particle %}
         {%- if prop.dim == 1 %}
-        if (restore{{prop.name | cap_first}}) atoms.get{{prop.name | cap_first}}()(idx) = {{prop.name}}[idx];
+        if (restore{{prop.name | cap_first}}) h_atoms.get{{prop.name | cap_first}}()(idx) = {{prop.name}}[idx];
         {%- else %}
         if (restore{{prop.name | cap_first}})
         {
             {%- for i in range(prop.dim) %}
-            atoms.get{{prop.name | cap_first}}()(idx, {{i}}) = {{prop.name}}[idx * {{prop.dim}} + {{i}}];
+            h_atoms.get{{prop.name | cap_first}}()(idx, {{i}}) = {{prop.name}}[idx * {{prop.dim}} + {{i}}];
             {%- endfor %}
         }
         {%- endif %}
         {%- endfor %}
     }
+    data::deep_copy(atoms, h_atoms);
 
     CHECK_HDF5(H5Fclose(fileId));
 }
