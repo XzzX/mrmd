@@ -55,13 +55,10 @@ if (BUILD_TESTING AND MRMD_ENABLE_TESTING)
             PUBLIC gtest)
 endif ()
 
-add_executable(mrmd_tests
-        ${MRMD_TESTS}
-        )
-target_link_libraries(mrmd_tests
-        PRIVATE mrmd gtest
-        )
-add_test(NAME libMRMD COMMAND ./mrmd_tests)
-
+add_subdirectory(action)
+add_subdirectory(analysis)
+add_subdirectory(communication)
 add_subdirectory(data)
+add_subdirectory(io)
+add_subdirectory(util)
 add_subdirectory(weighting_function)
