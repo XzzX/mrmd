@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "assert.hpp"
+#include "assert/assert.hpp"
 #include "datatypes.hpp"
 
 namespace mrmd
@@ -24,9 +24,9 @@ struct MultiHistogram
           inverseBinSize(1_r / binSize),
           data(label, numBins, numHistograms)
     {
-        ASSERT_GREATER(maxArg, minArg);
-        ASSERT_GREATEREQUAL(numBinsArg, 0);
-        ASSERT_GREATEREQUAL(numHistogramsArg, 0);
+        MRMD_HOST_CHECK_GREATER(maxArg, minArg);
+        MRMD_HOST_CHECK_GREATEREQUAL(numBinsArg, 0);
+        MRMD_HOST_CHECK_GREATEREQUAL(numHistogramsArg, 0);
     }
 
     MultiHistogram(const std::string& label, const MultiHistogram& histogram)

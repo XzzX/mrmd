@@ -23,11 +23,12 @@ ThermodynamicForce::ThermodynamicForce(const std::vector<real_t>& targetDensity,
       thermodynamicForceModulation_(thermodynamicForceModulation),
       forceFactor_("force-factor", targetDensity.size())
 {
-    ASSERT_LESS(force_.binSize, requestedDensityBinWidth, "requested bin size is not achieved");
+    MRMD_HOST_CHECK_LESS(
+        force_.binSize, requestedDensityBinWidth, "requested bin size is not achieved");
 
-    ASSERT_EQUAL(targetDensity.size(), thermodynamicForceModulation.size());
+    MRMD_HOST_CHECK_EQUAL(targetDensity.size(), thermodynamicForceModulation.size());
     numTypes_ = idx_c(targetDensity.size());
-    ASSERT_GREATER(numTypes_, 0);
+    MRMD_HOST_CHECK_GREATER(numTypes_, 0);
 
     auto hForceFactor = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), forceFactor_);
     for (auto i = 0; i < numTypes_; ++i)
@@ -63,7 +64,7 @@ void ThermodynamicForce::sample(data::Atoms& atoms)
 
 void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoothingIntensity)
 {
-    assert(densityProfileSamples_ > 0);
+    MRMD_HOST_CHECK_GREATER(densityProfileSamples_, 0);
 
     auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
     densityProfile_.scale(normalizationFactor);
@@ -94,8 +95,8 @@ void ThermodynamicForce::apply(const data::Atoms& atoms) const
         auto bin = forceHistogram.getBin(xPos);
         if (bin != -1)
         {
-            assert(atomsType(idx) < forceHistogram.numHistograms);
-            assert(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
+            MRMD_DEVICE_ASSERT_LESS(atomsType(idx), forceHistogram.numHistograms);
+            MRMD_DEVICE_ASSERT(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
             atomsForce(idx, 0) -= forceHistogram.data(bin, atomsType(idx));
         }
     };
@@ -119,8 +120,8 @@ void ThermodynamicForce::apply(const data::Atoms& atoms, const weighting_functio
         auto bin = forceHistogram.getBin(xPos);
         if (bin != -1)
         {
-            assert(atomsType(idx) < forceHistogram.numHistograms);
-            assert(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
+            MRMD_DEVICE_ASSERT_LESS(atomsType(idx), forceHistogram.numHistograms);
+            MRMD_DEVICE_ASSERT(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
             atomsForce(idx, 0) -= forceHistogram.data(bin, atomsType(idx));
         }
     };

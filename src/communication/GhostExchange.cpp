@@ -2,7 +2,7 @@
 
 #include <fmt/format.h>
 
-#include <assert.hpp>
+#include "assert/assert.hpp"
 
 namespace mrmd::communication::impl
 {
@@ -52,8 +52,8 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
                                           const data::Subdomain& subdomain,
                                           const idx_t& dim)
 {
-    ASSERT_LESSEQUAL(0, dim);
-    ASSERT_LESS(dim, 3);
+    MRMD_HOST_CHECK_LESSEQUAL(0, dim);
+    MRMD_HOST_CHECK_LESS(dim, 3);
 
     auto pos = atoms.getPos();
 
@@ -119,14 +119,14 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
                 auto newGhostIdx = atoms.numLocalAtoms + atoms.numGhostAtoms + idx;
                 atoms.copy(newGhostIdx, atomsToCommunicateAll_(idx, 0));
                 pos(newGhostIdx, dim) += subdomain.diameter[dim];
-                ASSERT_GREATEREQUAL(pos(newGhostIdx, dim), subdomain.maxCorner[dim]);
-                ASSERT_LESSEQUAL(pos(newGhostIdx, dim), subdomain.maxGhostCorner[dim]);
+                MRMD_DEVICE_ASSERT_GREATEREQUAL(pos(newGhostIdx, dim), subdomain.maxCorner[dim]);
+                MRMD_DEVICE_ASSERT_LESSEQUAL(pos(newGhostIdx, dim), subdomain.maxGhostCorner[dim]);
                 auto realIdx = atomsToCommunicateAll_(idx, 0);
                 while (correspondingRealAtom_(realIdx) != -1)
                 {
                     realIdx = correspondingRealAtom_(realIdx);
-                    ASSERT_LESSEQUAL(0, realIdx);
-                    ASSERT_LESS(realIdx, atoms.numLocalAtoms + atoms.numGhostAtoms);
+                    MRMD_DEVICE_ASSERT_LESSEQUAL(0, realIdx);
+                    MRMD_DEVICE_ASSERT_LESS(realIdx, atoms.numLocalAtoms + atoms.numGhostAtoms);
                 }
                 correspondingRealAtom_(newGhostIdx) = realIdx;
             }
@@ -137,14 +137,15 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
                                    numberOfAtomsToCommunicate_(0) + idx;
                 atoms.copy(newGhostIdx, atomsToCommunicateAll_(idx, 1));
                 pos(newGhostIdx, dim) -= subdomain.diameter[dim];
-                ASSERT_LESSEQUAL(pos(newGhostIdx, dim), subdomain.minCorner[dim]);
-                ASSERT_GREATEREQUAL(pos(newGhostIdx, dim), subdomain.minGhostCorner[dim]);
+                MRMD_DEVICE_ASSERT_LESSEQUAL(pos(newGhostIdx, dim), subdomain.minCorner[dim]);
+                MRMD_DEVICE_ASSERT_GREATEREQUAL(pos(newGhostIdx, dim),
+                                                subdomain.minGhostCorner[dim]);
                 auto realIdx = atomsToCommunicateAll_(idx, 1);
                 while (correspondingRealAtom_(realIdx) != -1)
                 {
                     realIdx = correspondingRealAtom_(realIdx);
-                    ASSERT_LESSEQUAL(0, realIdx);
-                    ASSERT_LESS(realIdx, atoms.numLocalAtoms + atoms.numGhostAtoms);
+                    MRMD_DEVICE_ASSERT_LESSEQUAL(0, realIdx);
+                    MRMD_DEVICE_ASSERT_LESS(realIdx, atoms.numLocalAtoms + atoms.numGhostAtoms);
                 }
                 correspondingRealAtom_(newGhostIdx) = realIdx;
             }

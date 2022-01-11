@@ -2,7 +2,7 @@
 
 #include <fmt/format.h>
 
-#include "assert.hpp"
+#include "assert/assert.hpp"
 
 namespace mrmd::io
 {
@@ -18,7 +18,7 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
     // get global dimensions
     std::vector<hsize_t> globalDims;
     auto ndims = CHECK_HDF5(H5Sget_simple_extent_ndims(dspace));
-    CHECK_GREATER(ndims, 0);
+    MRMD_HOST_CHECK_GREATER(ndims, 0);
     globalDims.resize(ndims);
     CHECK_HDF5(H5Sget_simple_extent_dims(dspace, globalDims.data(), nullptr));
 
@@ -43,7 +43,7 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
     // check if in bounds
     for (auto i = 0; i < int_c(globalDims.size()); ++i)
     {
-        CHECK_LESSEQUAL(localDims[i] + offset[i], globalDims[i], fmt::format("i = {}", i));
+        MRMD_HOST_CHECK_LESSEQUAL(localDims[i] + offset[i], globalDims[i], fmt::format("i = {}", i));
     }
     auto fileSpace = CHECK_HDF5(H5Dget_space(dset));
     CHECK_HDF5(H5Sselect_hyperslab(fileSpace, H5S_SELECT_SET, offset.data(), stride.data(),
@@ -83,7 +83,7 @@ void RestoreH5MDParallel::restore(const std::string& filename, data::Atoms& atom
     if (restore{{prop.name | cap_first}})
     {
         readParallel(fileId, "/particles/" + particleGroupName_ + "/" + {{prop.name}}Dataset + "/value", {{prop.name}});
-        CHECK_EQUAL(pos.size() / 3 * {{prop.dim}}, {{prop.name}}.size());
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * {{prop.dim}}, {{prop.name}}.size());
     }
     {%- endfor %}
 

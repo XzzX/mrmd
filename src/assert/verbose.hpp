@@ -99,7 +99,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
 #define MACRO_OVERLOAD(name, ...) \
     GLUE(OVERLOAD_MACRO(name, COUNT_ARGS_MAX10(__VA_ARGS__)), (__VA_ARGS__))
 
-#define CHECK_1(X)                                               \
+#define MRMD_VERBOSE_CHECK_1(X)                                  \
     {                                                            \
         do                                                       \
         {                                                        \
@@ -111,7 +111,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
             }                                                    \
         } while (0);                                             \
     }
-#define CHECK_2(X, MSG)                                            \
+#define MRMD_VERBOSE_CHECK_2(X, MSG)                               \
     {                                                              \
         do                                                         \
         {                                                          \
@@ -126,7 +126,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
         } while (0);                                               \
     }
 
-#define CHECK_NULLPTR_1(X)                                              \
+#define MRMD_VERBOSE_CHECK_NULLPTR_1(X)                                 \
     {                                                                   \
         do                                                              \
         {                                                               \
@@ -138,7 +138,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
             }                                                           \
         } while (0);                                                    \
     }
-#define CHECK_NULLPTR_2(X, MSG)                                           \
+#define MRMD_VERBOSE_CHECK_NULLPTR_2(X, MSG)                              \
     {                                                                     \
         do                                                                \
         {                                                                 \
@@ -153,7 +153,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
         } while (0);                                                      \
     }
 
-#define CHECK_NOT_NULLPTR_1(X)                                           \
+#define MRMD_VERBOSE_CHECK_NOT_NULLPTR_1(X)                              \
     {                                                                    \
         do                                                               \
         {                                                                \
@@ -165,7 +165,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
             }                                                            \
         } while (0);                                                     \
     }
-#define CHECK_NOT_NULLPTR_2(X, MSG)                                        \
+#define MRMD_VERBOSE_CHECK_NOT_NULLPTR_2(X, MSG)                           \
     {                                                                      \
         do                                                                 \
         {                                                                  \
@@ -180,7 +180,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
         } while (0);                                                       \
     }
 
-#define CHECK_EQUAL_2(X, Y)                                                   \
+#define MRMD_VERBOSE_CHECK_EQUAL_2(X, Y)                                      \
     {                                                                         \
         do                                                                    \
         {                                                                     \
@@ -192,7 +192,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
             }                                                                 \
         } while (0);                                                          \
     }
-#define CHECK_EQUAL_3(X, Y, MSG)                                                \
+#define MRMD_VERBOSE_CHECK_EQUAL_3(X, Y, MSG)                                   \
     {                                                                           \
         do                                                                      \
         {                                                                       \
@@ -207,7 +207,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
         } while (0);                                                            \
     }
 
-#define CHECK_FLOAT_EQUAL_2(X, Y)                                             \
+#define MRMD_VERBOSE_CHECK_FLOAT_EQUAL_2(X, Y)                                \
     {                                                                         \
         do                                                                    \
         {                                                                     \
@@ -219,7 +219,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
             }                                                                 \
         } while (0);                                                          \
     }
-#define CHECK_FLOAT_EQUAL_3(X, Y, MSG)                                          \
+#define MRMD_VERBOSE_CHECK_FLOAT_EQUAL_3(X, Y, MSG)                             \
     {                                                                           \
         do                                                                      \
         {                                                                       \
@@ -234,7 +234,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
         } while (0);                                                            \
     }
 
-#define CHECK_NOT_EQUAL_2(X, Y)                                               \
+#define MRMD_VERBOSE_CHECK_NOT_EQUAL_2(X, Y)                                  \
     {                                                                         \
         do                                                                    \
         {                                                                     \
@@ -246,7 +246,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
             }                                                                 \
         } while (0);                                                          \
     }
-#define CHECK_NOT_EQUAL_3(X, Y, MSG)                                            \
+#define MRMD_VERBOSE_CHECK_NOT_EQUAL_3(X, Y, MSG)                               \
     {                                                                           \
         do                                                                      \
         {                                                                       \
@@ -261,7 +261,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
         } while (0);                                                            \
     }
 
-#define CHECK_GREATER_2(X, Y)                                                \
+#define MRMD_VERBOSE_CHECK_GREATER_2(X, Y)                                   \
     {                                                                        \
         do                                                                   \
         {                                                                    \
@@ -273,7 +273,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
             }                                                                \
         } while (0);                                                         \
     }
-#define CHECK_GREATER_3(X, Y, MSG)                                             \
+#define MRMD_VERBOSE_CHECK_GREATER_3(X, Y, MSG)                                \
     {                                                                          \
         do                                                                     \
         {                                                                      \
@@ -288,7 +288,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
         } while (0);                                                           \
     }
 
-#define CHECK_LESS_2(X, Y)                                                   \
+#define MRMD_VERBOSE_CHECK_LESS_2(X, Y)                                      \
     {                                                                        \
         do                                                                   \
         {                                                                    \
@@ -300,7 +300,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
             }                                                                \
         } while (0);                                                         \
     }
-#define CHECK_LESS_3(X, Y, MSG)                                                \
+#define MRMD_VERBOSE_CHECK_LESS_3(X, Y, MSG)                                   \
     {                                                                          \
         do                                                                     \
         {                                                                      \
@@ -315,7 +315,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
         } while (0);                                                           \
     }
 
-#define CHECK_GREATEREQUAL_2(X, Y)                                            \
+#define MRMD_VERBOSE_CHECK_GREATEREQUAL_2(X, Y)                               \
     {                                                                         \
         do                                                                    \
         {                                                                     \
@@ -327,7 +327,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
             }                                                                 \
         } while (0);                                                          \
     }
-#define CHECK_GREATEREQUAL_3(X, Y, MSG)                                         \
+#define MRMD_VERBOSE_CHECK_GREATEREQUAL_3(X, Y, MSG)                            \
     {                                                                           \
         do                                                                      \
         {                                                                       \
@@ -342,7 +342,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
         } while (0);                                                            \
     }
 
-#define CHECK_LESSEQUAL_2(X, Y)                                               \
+#define MRMD_VERBOSE_CHECK_LESSEQUAL_2(X, Y)                                  \
     {                                                                         \
         do                                                                    \
         {                                                                     \
@@ -354,7 +354,7 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
             }                                                                 \
         } while (0);                                                          \
     }
-#define CHECK_LESSEQUAL_3(X, Y, MSG)                                            \
+#define MRMD_VERBOSE_CHECK_LESSEQUAL_3(X, Y, MSG)                               \
     {                                                                           \
         do                                                                      \
         {                                                                       \
@@ -369,184 +369,17 @@ bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
         } while (0);                                                            \
     }
 
-#define CHECK(...) MACRO_OVERLOAD(CHECK_, __VA_ARGS__)
-#define CHECK_NULLPTR(...) MACRO_OVERLOAD(CHECK_EQUAL_, __VA_ARGS__)
-#define CHECK_NOT_NULLPTR(...) MACRO_OVERLOAD(CHECK_NOT_NULLPTR_, __VA_ARGS__)
-#define CHECK_EQUAL(...) MACRO_OVERLOAD(CHECK_EQUAL_, __VA_ARGS__)
-#define CHECK_FLOAT_EQUAL(...) MACRO_OVERLOAD(CHECK_EQUAL_, __VA_ARGS__)
-#define CHECK_NOT_EQUAL(...) MACRO_OVERLOAD(CHECK_NOT_EQUAL_, __VA_ARGS__)
-#define CHECK_GREATER(...) MACRO_OVERLOAD(CHECK_GREATER_, __VA_ARGS__)
-#define CHECK_LESS(...) MACRO_OVERLOAD(CHECK_LESS_, __VA_ARGS__)
-#define CHECK_GREATEREQUAL(...) MACRO_OVERLOAD(CHECK_GREATEREQUAL_, __VA_ARGS__)
-#define CHECK_LESSEQUAL(...) MACRO_OVERLOAD(CHECK_LESSEQUAL_, __VA_ARGS__)
-
-#ifndef NDEBUG
-
-#define ASSERT_1(X) \
-    {               \
-        CHECK_1(X)  \
-    }
-#define ASSERT_2(X, MSG) \
-    {                    \
-        CHECK_2(X, MSG)  \
-    }
-
-#define ASSERT_NULLPTR_1(X) \
-    {                       \
-        CHECK_NULLPTR_1(X)  \
-    }
-#define ASSERT_NULLPTR_2(X, MSG) \
-    {                            \
-        CHECK_NULLPTR_2(X, MSG)  \
-    }
-
-#define ASSERT_NOT_NULLPTR_1(X) \
-    {                           \
-        CHECK_NOT_NULLPTR_1(X)  \
-    }
-#define ASSERT_NOT_NULLPTR_2(X, MSG) \
-    {                                \
-        CHECK_NOT_NULLPTR_2(X, MSG)  \
-    }
-
-#define ASSERT_EQUAL_2(X, Y) \
-    {                        \
-        CHECK_EQUAL_2(X, Y)  \
-    }
-#define ASSERT_EQUAL_3(X, Y, MSG) \
-    {                             \
-        CHECK_EQUAL_3(X, Y, MSG)  \
-    }
-
-#define ASSERT_FLOAT_EQUAL_2(X, Y) \
-    {                              \
-        CHECK_EQUAL_2(X, Y)        \
-    }
-#define ASSERT_FLOAT_EQUAL_3(X, Y, MSG) \
-    {                                   \
-        CHECK_EQUAL_3(X, Y, MSG)        \
-    }
-
-#define ASSERT_NOT_EQUAL_2(X, Y) \
-    {                            \
-        CHECK_NOT_EQUAL_2(X, Y)  \
-    }
-#define ASSERT_NOT_EQUAL_3(X, Y, MSG) \
-    {                                 \
-        CHECK_NOT_EQUAL_3(X, Y, MSG)  \
-    }
-
-#define ASSERT_GREATER_2(X, Y) \
-    {                          \
-        CHECK_GREATER_2(X, Y)  \
-    }
-#define ASSERT_GREATER_3(X, Y, MSG) \
-    {                               \
-        CHECK_GREATER_3(X, Y, MSG)  \
-    }
-
-#define ASSERT_LESS_2(X, Y) \
-    {                       \
-        CHECK_LESS_2(X, Y)  \
-    }
-#define ASSERT_LESS_3(X, Y, MSG) \
-    {                            \
-        CHECK_LESS_3(X, Y, MSG)  \
-    }
-
-#define ASSERT_GREATEREQUAL_2(X, Y) \
-    {                               \
-        CHECK_GREATEREQUAL_2(X, Y)  \
-    }
-#define ASSERT_GREATEREQUAL_3(X, Y, MSG) \
-    {                                    \
-        CHECK_GREATEREQUAL_3(X, Y, MSG)  \
-    }
-
-#define ASSERT_LESSEQUAL_2(X, Y) \
-    {                            \
-        CHECK_LESSEQUAL_2(X, Y)  \
-    }
-#define ASSERT_LESSEQUAL_3(X, Y, MSG) \
-    {                                 \
-        CHECK_LESSEQUAL_3(X, Y, MSG)  \
-    }
-
-#else
-
-#define ASSERT_1(X) \
-    {               \
-    }
-#define ASSERT_2(X, MSG) \
-    {                    \
-    }
-
-#define ASSERT_NULLPTR_1(X) \
-    {                       \
-    }
-#define ASSERT_NULLPTR_2(X, MSG) \
-    {                            \
-    }
-
-#define ASSERT_NOT_NULLPTR_1(X) \
-    {                           \
-    }
-#define ASSERT_NOT_NULLPTR_2(X, MSG) \
-    {                                \
-    }
-
-#define ASSERT_EQUAL_2(X, Y) \
-    {                        \
-    }
-#define ASSERT_EQUAL_3(X, Y, MSG) \
-    {                             \
-    }
-
-#define ASSERT_NOT_EQUAL_2(X, Y) \
-    {                            \
-    }
-#define ASSERT_NOT_EQUAL_3(X, Y, MSG) \
-    {                                 \
-    }
-
-#define ASSERT_GREATER_2(X, Y) \
-    {                          \
-    }
-#define ASSERT_GREATER_3(X, Y, MSG) \
-    {                               \
-    }
-
-#define ASSERT_LESS_2(X, Y) \
-    {                       \
-    }
-#define ASSERT_LESS_3(X, Y, MSG) \
-    {                            \
-    }
-
-#define ASSERT_GREATEREQUAL_2(X, Y) \
-    {                               \
-    }
-#define ASSERT_GREATEREQUAL_3(X, Y, MSG) \
-    {                                    \
-    }
-
-#define ASSERT_LESSEQUAL_2(X, Y) \
-    {                            \
-    }
-#define ASSERT_LESSEQUAL_3(X, Y, MSG) \
-    {                                 \
-    }
-
-#endif
-
-#define ASSERT(...) MACRO_OVERLOAD(ASSERT_, __VA_ARGS__)
-#define ASSERT_NULLPTR(...) MACRO_OVERLOAD(ASSERT_EQUAL_, __VA_ARGS__)
-#define ASSERT_NOT_NULLPTR(...) MACRO_OVERLOAD(ASSERT_NOT_NULLPTR_, __VA_ARGS__)
-#define ASSERT_EQUAL(...) MACRO_OVERLOAD(ASSERT_EQUAL_, __VA_ARGS__)
-#define ASSERT_NOT_EQUAL(...) MACRO_OVERLOAD(ASSERT_NOT_EQUAL_, __VA_ARGS__)
-#define ASSERT_GREATER(...) MACRO_OVERLOAD(ASSERT_GREATER_, __VA_ARGS__)
-#define ASSERT_LESS(...) MACRO_OVERLOAD(ASSERT_LESS_, __VA_ARGS__)
-#define ASSERT_GREATEREQUAL(...) MACRO_OVERLOAD(ASSERT_GREATEREQUAL_, __VA_ARGS__)
-#define ASSERT_LESSEQUAL(...) MACRO_OVERLOAD(ASSERT_LESSEQUAL_, __VA_ARGS__)
+#define MRMD_VERBOSE_CHECK(...) MACRO_OVERLOAD(MRMD_VERBOSE_CHECK_, __VA_ARGS__)
+#define MRMD_VERBOSE_CHECK_NULLPTR(...) MACRO_OVERLOAD(MRMD_VERBOSE_CHECK_EQUAL_, __VA_ARGS__)
+#define MRMD_VERBOSE_CHECK_NOT_NULLPTR(...) \
+    MACRO_OVERLOAD(MRMD_VERBOSE_CHECK_NOT_NULLPTR_, __VA_ARGS__)
+#define MRMD_VERBOSE_CHECK_EQUAL(...) MACRO_OVERLOAD(MRMD_VERBOSE_CHECK_EQUAL_, __VA_ARGS__)
+#define MRMD_VERBOSE_CHECK_FLOAT_EQUAL(...) MACRO_OVERLOAD(MRMD_VERBOSE_CHECK_EQUAL_, __VA_ARGS__)
+#define MRMD_VERBOSE_CHECK_NOT_EQUAL(...) MACRO_OVERLOAD(MRMD_VERBOSE_CHECK_NOT_EQUAL_, __VA_ARGS__)
+#define MRMD_VERBOSE_CHECK_GREATER(...) MACRO_OVERLOAD(MRMD_VERBOSE_CHECK_GREATER_, __VA_ARGS__)
+#define MRMD_VERBOSE_CHECK_LESS(...) MACRO_OVERLOAD(MRMD_VERBOSE_CHECK_LESS_, __VA_ARGS__)
+#define MRMD_VERBOSE_CHECK_GREATEREQUAL(...) \
+    MACRO_OVERLOAD(MRMD_VERBOSE_CHECK_GREATEREQUAL_, __VA_ARGS__)
+#define MRMD_VERBOSE_CHECK_LESSEQUAL(...) MACRO_OVERLOAD(MRMD_VERBOSE_CHECK_LESSEQUAL_, __VA_ARGS__)
 
 }  // namespace assumption

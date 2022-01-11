@@ -2,7 +2,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#include "assert.hpp"
+#include "assert/assert.hpp"
 
 namespace mrmd
 {
@@ -20,7 +20,7 @@ void apply(data::Atoms& atoms,
         return;
     }
 
-    ASSERT(targetTemperature > 0_r);
+    MRMD_HOST_CHECK_GREATER(targetTemperature, 0_r);
 
     auto beta = std::sqrt(1_r + gamma * (targetTemperature / currentTemperature - 1_r));
 

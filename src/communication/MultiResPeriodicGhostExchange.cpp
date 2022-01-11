@@ -2,7 +2,7 @@
 
 #include <fmt/format.h>
 
-#include "assert.hpp"
+#include "assert/assert.hpp"
 
 namespace mrmd::communication::impl
 {
@@ -59,8 +59,8 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
                                                           const data::Subdomain& subdomain,
                                                           const idx_t& dim)
 {
-    ASSERT_LESSEQUAL(0, dim);
-    ASSERT_LESS(dim, 3);
+    MRMD_HOST_CHECK_LESSEQUAL(0, dim);
+    MRMD_HOST_CHECK_LESS(dim, 3);
 
     auto h_numberOfCommunicationItems =
         Kokkos::create_mirror_view(Kokkos::HostSpace(), numberOfCommunicationItems_);
@@ -153,7 +153,7 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
 
                 auto moleculeNewGhostIdx =
                     molecules.numLocalMolecules + molecules.numGhostMolecules + idx;
-                ASSERT_LESS(moleculeNewGhostIdx, molecules.size());
+                MRMD_DEVICE_ASSERT_LESS(moleculeNewGhostIdx, molecules.size());
 
                 auto atomNewGhostIdx = atoms.numLocalAtoms + atoms.numGhostAtoms +
                                        communicationInfo_(idx, Info::POSITIVE_NUM_ATOMS);
@@ -162,9 +162,10 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
                 moleculesPos(moleculeNewGhostIdx, dim) -= subdomain.diameter[dim];
                 moleculesAtomsOffset(moleculeNewGhostIdx) = atomNewGhostIdx;
                 moleculesNumAtoms(moleculeNewGhostIdx) = moleculeSize;
-                ASSERT_LESSEQUAL(moleculesPos(moleculeNewGhostIdx, dim), subdomain.minCorner[dim]);
-                ASSERT_GREATEREQUAL(moleculesPos(moleculeNewGhostIdx, dim),
-                                    subdomain.minGhostCorner[dim]);
+                MRMD_DEVICE_ASSERT_LESSEQUAL(moleculesPos(moleculeNewGhostIdx, dim),
+                                             subdomain.minCorner[dim]);
+                MRMD_DEVICE_ASSERT_GREATEREQUAL(moleculesPos(moleculeNewGhostIdx, dim),
+                                                subdomain.minGhostCorner[dim]);
 
                 for (idx_t atomIdx = 0; atomIdx < moleculeSize; ++atomIdx)
                 {
@@ -174,8 +175,8 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
                     while (atomsCorrespondingRealAtom_(realIdx) != -1)
                     {
                         realIdx = atomsCorrespondingRealAtom_(realIdx);
-                        ASSERT_LESSEQUAL(0, realIdx);
-                        ASSERT_LESS(realIdx, atoms.numLocalAtoms + atoms.numGhostAtoms);
+                        MRMD_DEVICE_ASSERT_LESSEQUAL(0, realIdx);
+                        MRMD_DEVICE_ASSERT_LESS(realIdx, atoms.numLocalAtoms + atoms.numGhostAtoms);
                     }
                     atomsCorrespondingRealAtom_(atomNewGhostIdx + atomIdx) = realIdx;
                 }
@@ -192,7 +193,7 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
                 auto moleculeNewGhostIdx =
                     molecules.numLocalMolecules + molecules.numGhostMolecules +
                     numberOfCommunicationItems_(Item::POSITIVE_MOLECULES) + idx;
-                ASSERT_LESS(moleculeNewGhostIdx, molecules.size());
+                MRMD_DEVICE_ASSERT_LESS(moleculeNewGhostIdx, molecules.size());
 
                 auto atomNewGhostIdx = atoms.numLocalAtoms + atoms.numGhostAtoms +
                                        numberOfCommunicationItems_(Item::POSITIVE_ATOMS) +
@@ -202,10 +203,10 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
                 moleculesPos(moleculeNewGhostIdx, dim) += subdomain.diameter[dim];
                 moleculesAtomsOffset(moleculeNewGhostIdx) = atomNewGhostIdx;
                 moleculesNumAtoms(moleculeNewGhostIdx) = moleculeSize;
-                ASSERT_GREATEREQUAL(moleculesPos(moleculeNewGhostIdx, dim),
-                                    subdomain.maxCorner[dim]);
-                ASSERT_LESSEQUAL(moleculesPos(moleculeNewGhostIdx, dim),
-                                 subdomain.maxGhostCorner[dim]);
+                MRMD_DEVICE_ASSERT_GREATEREQUAL(moleculesPos(moleculeNewGhostIdx, dim),
+                                                subdomain.maxCorner[dim]);
+                MRMD_DEVICE_ASSERT_LESSEQUAL(moleculesPos(moleculeNewGhostIdx, dim),
+                                             subdomain.maxGhostCorner[dim]);
 
                 for (idx_t atomIdx = 0; atomIdx < moleculeSize; ++atomIdx)
                 {
@@ -215,8 +216,8 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
                     while (atomsCorrespondingRealAtom_(realIdx) != -1)
                     {
                         realIdx = atomsCorrespondingRealAtom_(realIdx);
-                        ASSERT_LESSEQUAL(0, realIdx);
-                        ASSERT_LESS(realIdx, atoms.numLocalAtoms + atoms.numGhostAtoms);
+                        MRMD_DEVICE_ASSERT_LESSEQUAL(0, realIdx);
+                        MRMD_DEVICE_ASSERT_LESS(realIdx, atoms.numLocalAtoms + atoms.numGhostAtoms);
                     }
                     atomsCorrespondingRealAtom_(atomNewGhostIdx + atomIdx) = realIdx;
                 }

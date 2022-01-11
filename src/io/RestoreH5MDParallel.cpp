@@ -2,7 +2,7 @@
 
 #include <fmt/format.h>
 
-#include "assert.hpp"
+#include "assert/assert.hpp"
 
 namespace mrmd::io
 {
@@ -18,7 +18,7 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
     // get global dimensions
     std::vector<hsize_t> globalDims;
     auto ndims = CHECK_HDF5(H5Sget_simple_extent_ndims(dspace));
-    CHECK_GREATER(ndims, 0);
+    MRMD_HOST_CHECK_GREATER(ndims, 0);
     globalDims.resize(ndims);
     CHECK_HDF5(H5Sget_simple_extent_dims(dspace, globalDims.data(), nullptr));
 
@@ -43,7 +43,8 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
     // check if in bounds
     for (auto i = 0; i < int_c(globalDims.size()); ++i)
     {
-        CHECK_LESSEQUAL(localDims[i] + offset[i], globalDims[i], fmt::format("i = {}", i));
+        MRMD_HOST_CHECK_LESSEQUAL(
+            localDims[i] + offset[i], globalDims[i], fmt::format("i = {}", i));
     }
     auto fileSpace = CHECK_HDF5(H5Dget_space(dset));
     CHECK_HDF5(H5Sselect_hyperslab(
@@ -81,41 +82,41 @@ void RestoreH5MDParallel::restore(const std::string& filename, data::Atoms& atom
     if (restorePos)
     {
         readParallel(fileId, "/particles/" + particleGroupName_ + "/" + posDataset + "/value", pos);
-        CHECK_EQUAL(pos.size() / 3 * 3, pos.size());
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, pos.size());
     }
     std::vector<real_t> vel;
     if (restoreVel)
     {
         readParallel(fileId, "/particles/" + particleGroupName_ + "/" + velDataset + "/value", vel);
-        CHECK_EQUAL(pos.size() / 3 * 3, vel.size());
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, vel.size());
     }
     std::vector<real_t> force;
     if (restoreForce)
     {
         readParallel(
             fileId, "/particles/" + particleGroupName_ + "/" + forceDataset + "/value", force);
-        CHECK_EQUAL(pos.size() / 3 * 3, force.size());
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, force.size());
     }
     std::vector<idx_t> type;
     if (restoreType)
     {
         readParallel(
             fileId, "/particles/" + particleGroupName_ + "/" + typeDataset + "/value", type);
-        CHECK_EQUAL(pos.size() / 3 * 1, type.size());
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, type.size());
     }
     std::vector<real_t> mass;
     if (restoreMass)
     {
         readParallel(
             fileId, "/particles/" + particleGroupName_ + "/" + massDataset + "/value", mass);
-        CHECK_EQUAL(pos.size() / 3 * 1, mass.size());
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, mass.size());
     }
     std::vector<real_t> charge;
     if (restoreCharge)
     {
         readParallel(
             fileId, "/particles/" + particleGroupName_ + "/" + chargeDataset + "/value", charge);
-        CHECK_EQUAL(pos.size() / 3 * 1, charge.size());
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, charge.size());
     }
     std::vector<real_t> relativeMass;
     if (restoreRelativeMass)
@@ -123,7 +124,7 @@ void RestoreH5MDParallel::restore(const std::string& filename, data::Atoms& atom
         readParallel(fileId,
                      "/particles/" + particleGroupName_ + "/" + relativeMassDataset + "/value",
                      relativeMass);
-        CHECK_EQUAL(pos.size() / 3 * 1, relativeMass.size());
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, relativeMass.size());
     }
 
     idx_t numLocalAtoms = idx_c(pos.size() / 3);

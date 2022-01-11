@@ -57,7 +57,7 @@ void MultiHistogram::scale(const real_t& scalingFactor)
 
 void MultiHistogram::scale(const ScalarView& scalingFactor)
 {
-    CHECK_GREATEREQUAL(idx_c(scalingFactor.extent(0)), numHistograms);
+    MRMD_HOST_CHECK_GREATEREQUAL(idx_c(scalingFactor.extent(0)), numHistograms);
 
     auto hist = data;  // avoid capturing this pointer
     auto policy =
@@ -74,8 +74,8 @@ void cumulativeMovingAverage(data::MultiHistogram& average,
                              const data::MultiHistogram& current,
                              const real_t movingAverageFactor)
 {
-    CHECK_EQUAL(average.numBins, current.numBins);
-    CHECK_EQUAL(average.numHistograms, current.numHistograms);
+    MRMD_HOST_CHECK_EQUAL(average.numBins, current.numBins);
+    MRMD_HOST_CHECK_EQUAL(average.numHistograms, current.numHistograms);
 
     auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({idx_t(0), idx_t(0)},
                                                          {average.numBins, average.numHistograms});

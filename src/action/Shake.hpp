@@ -1,6 +1,6 @@
 #pragma once
 
-#include "assert.hpp"
+#include "assert/assert.hpp"
 #include "data/Atoms.hpp"
 #include "data/Bond.hpp"
 #include "data/Molecules.hpp"
@@ -102,7 +102,7 @@ public:
         real_t c = updatedDistSq - util::sqr(eqDistance);
 
         real_t determinant = b * b - 4_r * a * c;
-        ASSERT_GREATER(determinant, 1e-8);
+        MRMD_DEVICE_ASSERT_GREATER(determinant, 1e-8);
         determinant = std::max(0_r, determinant);  // ensure positive determinant
 
         // solve for lambda
@@ -177,10 +177,12 @@ public:
                 auto numAtoms = moleculesNumAtoms(moleculeIdx);
                 for (idx_t bondIdx = 0; bondIdx < bonds.extent(0); ++bondIdx)
                 {
-                    assert(bonds(bondIdx).idx < numAtoms &&
-                           "not enough atoms in molecule to satisfy bond");
-                    assert(bonds(bondIdx).jdx < numAtoms &&
-                           "not enough atoms in molecule to satisfy bond");
+                    MRMD_DEVICE_ASSERT_LESS(bonds(bondIdx).idx,
+                                            numAtoms,
+                                            "not enough atoms in molecule to satisfy bond");
+                    MRMD_DEVICE_ASSERT_LESS(bonds(bondIdx).jdx,
+                                            numAtoms,
+                                            "not enough atoms in molecule to satisfy bond");
                     shake.enforcePositionalConstraint(atomsStart + bonds(bondIdx).idx,
                                                       atomsStart + bonds(bondIdx).jdx,
                                                       bonds(bondIdx).eqDistance);
@@ -207,10 +209,10 @@ public:
             auto numAtoms = moleculesNumAtoms(moleculeIdx);
             for (idx_t bondIdx = 0; bondIdx < bonds.extent(0); ++bondIdx)
             {
-                assert(bonds(bondIdx).idx < numAtoms &&
-                       "not enough atoms in molecule to satisfy bond");
-                assert(bonds(bondIdx).jdx < numAtoms &&
-                       "not enough atoms in molecule to satisfy bond");
+                MRMD_DEVICE_ASSERT_LESS(
+                    bonds(bondIdx).idx, numAtoms, "not enough atoms in molecule to satisfy bond");
+                MRMD_DEVICE_ASSERT_LESS(
+                    bonds(bondIdx).jdx, numAtoms, "not enough atoms in molecule to satisfy bond");
                 shake.enforceVelocityConstraint(atomsStart + bonds(bondIdx).idx,
                                                 atomsStart + bonds(bondIdx).jdx,
                                                 bonds(bondIdx).eqDistance);

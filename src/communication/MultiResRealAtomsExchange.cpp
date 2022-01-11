@@ -1,6 +1,6 @@
 #include "MultiResRealAtomsExchange.hpp"
 
-#include "assert.hpp"
+#include "assert/assert.hpp"
 
 namespace mrmd
 {
@@ -46,8 +46,8 @@ void realAtomsExchange(const data::Subdomain& subdomain,
                     atomX += subdomain.diameter[dim];
                 }
             }
-            ASSERT_LESS(moleculeX, subdomain.maxCorner[dim]);
-            ASSERT_LESSEQUAL(subdomain.minCorner[dim], moleculeX);
+            MRMD_DEVICE_ASSERT_LESS(moleculeX, subdomain.maxCorner[dim]);
+            MRMD_DEVICE_ASSERT_LESSEQUAL(subdomain.minCorner[dim], moleculeX);
         }
     };
     Kokkos::parallel_for(policy, kernel, "realAtomsExchange::periodicMapping");

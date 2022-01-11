@@ -3,7 +3,7 @@
 #include <array>
 #include <cassert>
 
-#include "assert.hpp"
+#include "assert/assert.hpp"
 #include "datatypes.hpp"
 
 namespace mrmd
@@ -29,7 +29,7 @@ struct Subdomain
           maxCorner(maxCornerArg),
           ghostLayerThickness(ghostLayerThicknessArg)
     {
-        CHECK_GREATEREQUAL(ghostLayerThicknessArg, 0_r);
+        MRMD_HOST_CHECK_GREATEREQUAL(ghostLayerThicknessArg, 0_r);
 
         for (auto dim = 0; dim < 3; ++dim)
         {

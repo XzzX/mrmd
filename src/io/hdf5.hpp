@@ -3,7 +3,7 @@
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
-#include "assert.hpp"
+#include "assert/assert.hpp"
 
 namespace mrmd
 {
@@ -12,7 +12,7 @@ namespace io
 template <typename T>
 hid_t typeToHDF5()
 {
-    CHECK(false, "This type is not supported!");
+    MRMD_HOST_CHECK(false, "This type is not supported!");
     exit(EXIT_FAILURE);
 }
 template <>
@@ -47,7 +47,7 @@ auto CHECK_HDF5(const T& status)
     if (status < 0)
     {
         H5Eprint(H5E_DEFAULT, stderr);
-        CHECK_GREATEREQUAL(status, 0);
+        MRMD_HOST_CHECK_GREATEREQUAL(status, 0);
     }
     return status;
 }

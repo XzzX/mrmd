@@ -1,6 +1,6 @@
 #pragma once
 
-#include "assert.hpp"
+#include "assert/assert.hpp"
 #include "data/Atoms.hpp"
 #include "data/MultiHistogram.hpp"
 #include "data/Subdomain.hpp"

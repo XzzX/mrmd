@@ -2,9 +2,9 @@
 
 #include <mpi.h>
 
-#include "assert.hpp"
+#include "assert/assert.hpp"
 
 namespace mrmd
 {
-inline void CHECK_MPI(const int& status) { CHECK_EQUAL(status, MPI_SUCCESS); }
+inline void CHECK_MPI(const int& status) { MRMD_HOST_CHECK_EQUAL(status, MPI_SUCCESS); }
 }  // namespace mrmd

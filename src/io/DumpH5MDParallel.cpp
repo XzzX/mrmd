@@ -4,7 +4,7 @@
 
 #include <numeric>
 
-#include "assert.hpp"
+#include "assert/assert.hpp"
 #include "version.hpp"
 
 namespace mrmd::io
@@ -16,8 +16,8 @@ void DumpH5MDParallel::writeParallel(hid_t fileId,
                                      const std::vector<hsize_t>& localDims,
                                      const std::vector<T>& data)
 {
-    CHECK_EQUAL(globalDims.size(), localDims.size());
-    CHECK_EQUAL(
+    MRMD_HOST_CHECK_EQUAL(globalDims.size(), localDims.size());
+    MRMD_HOST_CHECK_EQUAL(
         data.size(),
         std::accumulate(localDims.begin(), localDims.end(), hsize_t(1), std::multiplies<>()));
 
@@ -32,7 +32,8 @@ void DumpH5MDParallel::writeParallel(hid_t fileId,
     std::vector<hsize_t> count(globalDims.size(), 1);
     for (auto i = 0; i < int_c(globalDims.size()); ++i)
     {
-        CHECK_LESSEQUAL(localDims[i] + offset[i], globalDims[i], fmt::format("i = {}", i));
+        MRMD_HOST_CHECK_LESSEQUAL(
+            localDims[i] + offset[i], globalDims[i], fmt::format("i = {}", i));
     }
     auto dstSpace = CHECK_HDF5(H5Dget_space(dataset));
     CHECK_HDF5(H5Sselect_hyperslab(
@@ -123,7 +124,7 @@ void DumpH5MDParallel::writePos(hid_t fileId, const data::HostAtoms& atoms)
         data.emplace_back(atoms.getPos()(idx, 1));
         data.emplace_back(atoms.getPos()(idx, 2));
     }
-    CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
+    MRMD_HOST_CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
 
     std::vector<hsize_t> localDims = {1, uint64_c(numLocalParticles), dimensions};
     std::vector<hsize_t> globalDims = {1, uint64_c(numTotalParticles), dimensions};
@@ -159,7 +160,7 @@ void DumpH5MDParallel::writeVel(hid_t fileId, const data::HostAtoms& atoms)
         data.emplace_back(atoms.getVel()(idx, 1));
         data.emplace_back(atoms.getVel()(idx, 2));
     }
-    CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
+    MRMD_HOST_CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
 
     std::vector<hsize_t> localDims = {1, uint64_c(numLocalParticles), dimensions};
     std::vector<hsize_t> globalDims = {1, uint64_c(numTotalParticles), dimensions};
@@ -195,7 +196,7 @@ void DumpH5MDParallel::writeForce(hid_t fileId, const data::HostAtoms& atoms)
         data.emplace_back(atoms.getForce()(idx, 1));
         data.emplace_back(atoms.getForce()(idx, 2));
     }
-    CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
+    MRMD_HOST_CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
 
     std::vector<hsize_t> localDims = {1, uint64_c(numLocalParticles), dimensions};
     std::vector<hsize_t> globalDims = {1, uint64_c(numTotalParticles), dimensions};
@@ -229,7 +230,7 @@ void DumpH5MDParallel::writeType(hid_t fileId, const data::HostAtoms& atoms)
     {
         data.emplace_back(atoms.getType()(idx));
     }
-    CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
+    MRMD_HOST_CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
 
     std::vector<hsize_t> localDims = {1, uint64_c(numLocalParticles), dimensions};
     std::vector<hsize_t> globalDims = {1, uint64_c(numTotalParticles), dimensions};
@@ -263,7 +264,7 @@ void DumpH5MDParallel::writeMass(hid_t fileId, const data::HostAtoms& atoms)
     {
         data.emplace_back(atoms.getMass()(idx));
     }
-    CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
+    MRMD_HOST_CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
 
     std::vector<hsize_t> localDims = {1, uint64_c(numLocalParticles), dimensions};
     std::vector<hsize_t> globalDims = {1, uint64_c(numTotalParticles), dimensions};
@@ -297,7 +298,7 @@ void DumpH5MDParallel::writeCharge(hid_t fileId, const data::HostAtoms& atoms)
     {
         data.emplace_back(atoms.getCharge()(idx));
     }
-    CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
+    MRMD_HOST_CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
 
     std::vector<hsize_t> localDims = {1, uint64_c(numLocalParticles), dimensions};
     std::vector<hsize_t> globalDims = {1, uint64_c(numTotalParticles), dimensions};
@@ -331,7 +332,7 @@ void DumpH5MDParallel::writeRelativeMass(hid_t fileId, const data::HostAtoms& at
     {
         data.emplace_back(atoms.getRelativeMass()(idx));
     }
-    CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
+    MRMD_HOST_CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
 
     std::vector<hsize_t> localDims = {1, uint64_c(numLocalParticles), dimensions};
     std::vector<hsize_t> globalDims = {1, uint64_c(numTotalParticles), dimensions};

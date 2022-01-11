@@ -1,7 +1,7 @@
 #pragma once
 
 #include "LennardJones.hpp"
-#include "assert.hpp"
+#include "assert/assert.hpp"
 #include "data/Atoms.hpp"
 #include "data/Molecules.hpp"
 #include "data/MultiHistogram.hpp"
@@ -184,12 +184,12 @@ public:
                     if (distSqr > rcSqr_) continue;
 
                     auto typeIdx = atomsType_(idx) * numTypes_ + atomsType_(jdx);
-                    ASSERT_GREATEREQUAL(typeIdx, 0);
-                    ASSERT_LESS(typeIdx, numTypes_ * numTypes_);
-                    assert(!std::isnan(distSqr));
+                    MRMD_DEVICE_ASSERT_GREATEREQUAL(typeIdx, 0);
+                    MRMD_DEVICE_ASSERT_LESS(typeIdx, numTypes_ * numTypes_);
+                    MRMD_DEVICE_ASSERT(!std::isnan(distSqr));
                     auto forceAndEnergy = LJ_.computeForceAndEnergy(distSqr, typeIdx);
                     auto ffactor = forceAndEnergy.forceFactor * weighting;
-                    assert(!std::isnan(ffactor));
+                    MRMD_DEVICE_ASSERT(!std::isnan(ffactor));
 
                     forceTmpIdx[0] += dx * ffactor;
                     forceTmpIdx[1] += dy * ffactor;
@@ -199,7 +199,7 @@ public:
                     atomsForce_(jdx, 1) -= dy * ffactor;
                     atomsForce_(jdx, 2) -= dz * ffactor;
 
-                    assert(!std::isnan(forceAndEnergy.energy));
+                    MRMD_DEVICE_ASSERT(!std::isnan(forceAndEnergy.energy));
                     sumEnergy += forceAndEnergy.energy * weighting;
                     auto Vij = 0.5_r * forceAndEnergy.energy;
 
@@ -332,10 +332,10 @@ public:
           meanCompensationEnergy_(
               "meanCompensationEnergy", 0_r, 1_r, COMPENSATION_ENERGY_BINS, numTypes)
     {
-        assert(cappingDistance.size() == numTypes * numTypes);
-        assert(rc.size() == numTypes * numTypes);
-        assert(sigma.size() == numTypes * numTypes);
-        assert(epsilon.size() == numTypes * numTypes);
+        MRMD_HOST_ASSERT_EQUAL(cappingDistance.size(), numTypes * numTypes);
+        MRMD_HOST_ASSERT_EQUAL(rc.size(), numTypes * numTypes);
+        MRMD_HOST_ASSERT_EQUAL(sigma.size(), numTypes * numTypes);
+        MRMD_HOST_ASSERT_EQUAL(epsilon.size(), numTypes * numTypes);
 
         auto maxRC = *std::max_element(rc.begin(), rc.end());
         rcSqr_ = maxRC * maxRC;
