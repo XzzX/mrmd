@@ -62,4 +62,5 @@ target_link_libraries(mrmd_tests
         )
 add_test(NAME libMRMD COMMAND ./mrmd_tests)
 
+add_subdirectory(data)
 add_subdirectory(weighting_function)
