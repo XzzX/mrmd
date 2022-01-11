@@ -15,7 +15,7 @@ gpu:
       -DMRMD_WERROR=ON
     - cmake --build mrmd-build --target all -j 32
     - cd mrmd-build
-    - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 ctest --output-on-failure -j 2
+    - srun --nodes=1 --ntasks=10 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 ctest --output-on-failure -j 2
   variables:
     OMP_PROC_BIND: "spread"
     OMP_PLACES: "threads"
