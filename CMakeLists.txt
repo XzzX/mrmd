@@ -112,6 +112,7 @@ set_target_properties(gmock_main PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
 enable_testing()
 
 option(MRMD_CLANG_TIDY "Run clang-tidy checks during compilation." OFF)
+option(MRMD_ENABLE_COVERAGE "Enable code coverage. (clang)" OFF)
 option(MRMD_ENABLE_TESTING "Build tests and add them to ctest." ON)
 option(MRMD_LOCAL_ARCHITECTURE "Use instruction set of the local architecture." OFF)
 option(MRMD_VEC_REPORT "Enable reporting of loop vectorization." OFF)
