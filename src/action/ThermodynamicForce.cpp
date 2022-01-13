@@ -10,7 +10,8 @@ namespace action
 ThermodynamicForce::ThermodynamicForce(const std::vector<real_t>& targetDensity,
                                        const data::Subdomain& subdomain,
                                        const real_t& requestedDensityBinWidth,
-                                       const std::vector<real_t>& thermodynamicForceModulation)
+                                       const std::vector<real_t>& thermodynamicForceModulation,
+                                       const bool enforceSymmetry)
     : force_("thermodynamic-force",
              subdomain.minGhostCorner[0],
              subdomain.maxGhostCorner[0],
@@ -21,7 +22,8 @@ ThermodynamicForce::ThermodynamicForce(const std::vector<real_t>& targetDensity,
                  densityProfile_.binSize),
       targetDensity_(targetDensity),
       thermodynamicForceModulation_(thermodynamicForceModulation),
-      forceFactor_("force-factor", targetDensity.size())
+      forceFactor_("force-factor", targetDensity.size()),
+      enforceSymmetry_(enforceSymmetry)
 {
     MRMD_HOST_CHECK_LESS(
         force_.binSize, requestedDensityBinWidth, "requested bin size is not achieved");
@@ -41,11 +43,13 @@ ThermodynamicForce::ThermodynamicForce(const std::vector<real_t>& targetDensity,
 ThermodynamicForce::ThermodynamicForce(const real_t targetDensity,
                                        const data::Subdomain& subdomain,
                                        const real_t& requestedDensityBinWidth,
-                                       const real_t thermodynamicForceModulation)
+                                       const real_t thermodynamicForceModulation,
+                                       const bool enforceSymmetry)
     : ThermodynamicForce(std::vector<real_t>{targetDensity},
                          subdomain,
                          requestedDensityBinWidth,
-                         {thermodynamicForceModulation})
+                         {thermodynamicForceModulation},
+                         enforceSymmetry)
 {
 }
 
@@ -66,6 +70,11 @@ void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoo
 {
     MRMD_HOST_CHECK_GREATER(densityProfileSamples_, 0);
 
+    if (enforceSymmetry_)
+    {
+        densityProfile_.makeSymmetric();
+    }
+    
     auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
     densityProfile_.scale(normalizationFactor);
 
