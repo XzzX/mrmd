@@ -70,6 +70,22 @@ void MultiHistogram::scale(const ScalarView& scalingFactor)
     Kokkos::fence();
 }
 
+void MultiHistogram::makeSymmetric()
+{
+    auto maxIdx = numBins - 1;
+    auto hist = data;  // avoid capturing this pointer
+    auto policy =
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({idx_t(0), idx_t(0)}, {numBins / 2, numHistograms});
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
+    {
+        auto val = 0.5_r * (hist(idx, jdx) + hist(maxIdx - idx, jdx));
+        hist(idx, jdx) = val;
+        hist(maxIdx - idx, jdx) = val;
+    };
+    Kokkos::parallel_for("MultiHistogram::makeSymmetric", policy, kernel);
+    Kokkos::fence();
+}
+
 void cumulativeMovingAverage(data::MultiHistogram& average,
                              const data::MultiHistogram& current,
                              const real_t movingAverageFactor)

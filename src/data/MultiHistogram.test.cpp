@@ -6,6 +6,49 @@ namespace mrmd
 {
 namespace data
 {
+
+TEST(MultiHistogram, scale)
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 11, 2);
+    auto h_data = Kokkos::create_mirror_view(histogram.data);
+    h_data(5, 0) = 10_r;
+    h_data(5, 1) = 5_r;
+    Kokkos::deep_copy(histogram.data, h_data);
+
+    histogram.scale(3_r);
+
+    Kokkos::deep_copy(h_data, histogram.data);
+
+    for (auto idx = 0; idx < 10; ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_data(idx, 0), idx == 5 ? 30_r : 0_r);
+        EXPECT_FLOAT_EQ(h_data(idx, 1), idx == 5 ? 15_r : 0_r);
+    }
+}
+
+TEST(MultiHistogram, make_symmetric)
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 10, 2);
+    auto h_data = Kokkos::create_mirror_view(histogram.data);
+    for (auto idx = 0; idx < 10; ++idx)
+    {
+        h_data(idx, 0) = real_c(idx);
+        h_data(idx, 1) = 10_r - real_c(idx);
+    }
+
+    Kokkos::deep_copy(histogram.data, h_data);
+
+    histogram.makeSymmetric();
+
+    Kokkos::deep_copy(h_data, histogram.data);
+
+    for (auto idx = 0; idx < 10; ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_data(idx, 0), 4.5_r);
+        EXPECT_FLOAT_EQ(h_data(idx, 1), 5.5_r);
+    }
+}
+
 TEST(MultiHistogram, op_plusequal)
 {
     MultiHistogram histogram("histogram", 0_r, 10_r, 11, 2);
