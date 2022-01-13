@@ -74,7 +74,7 @@ void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoo
     {
         densityProfile_.makeSymmetric();
     }
-    
+
     auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
     densityProfile_.scale(normalizationFactor);
 
