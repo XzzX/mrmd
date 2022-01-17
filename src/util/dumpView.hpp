@@ -27,7 +27,7 @@ void dumpView(const std::string& filename, const MultiView& view)
     {
         for (auto j = 0; j < data.extent(1); ++j)
         {
-            fout << data(i, j) << " " << std::endl;
+            fout << data(i, j) << " ";
         }
         fout << std::endl;
     }
