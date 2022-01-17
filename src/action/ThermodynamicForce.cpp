@@ -64,7 +64,8 @@ void ThermodynamicForce::sample(data::Atoms& atoms)
                                                         numTypes_,
                                                         densityProfile_.min,
                                                         densityProfile_.max,
-                                                        densityProfile_.numBins);
+                                                        densityProfile_.numBins,
+                                                        COORD_X);
 
     ++densityProfileSamples_;
 }
