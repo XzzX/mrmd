@@ -91,11 +91,13 @@ data::MultiHistogram gradient(const data::MultiHistogram& input, bool periodic =
  * @param input input histogram
  * @param sigma sigma of the gaussian convolution
  * @param range calculation range in multiples of sigma
+ * @param periodic treat boundaries as periodic
  * @return smoothened histogram
  */
 data::MultiHistogram smoothen(data::MultiHistogram& input,
                               const real_t& sigma,
-                              const real_t& range);
+                              const real_t& range,
+                              bool periodic = false);
 
 }  // namespace data
 }  // namespace mrmd

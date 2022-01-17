@@ -157,7 +157,10 @@ data::MultiHistogram gradient(const data::MultiHistogram& input, bool periodic)
     return grad;
 }
 
-data::MultiHistogram smoothen(data::MultiHistogram& input, const real_t& sigma, const real_t& range)
+data::MultiHistogram smoothen(data::MultiHistogram& input,
+                              const real_t& sigma,
+                              const real_t& range,
+                              const bool periodic)
 {
     const auto inverseSigma = 1_r / sigma;
     /// how many neighboring bins are affected
@@ -172,17 +175,29 @@ data::MultiHistogram smoothen(data::MultiHistogram& input, const real_t& sigma, 
     {
         auto normalization = 0_r;
 
-        const idx_t jdxMin = std::max(idx_t(0), binIdx - delta);
-        const idx_t jdxMax = std::min(input.numBins - 1, binIdx + delta);
+        idx_t jdxMin = binIdx - delta;
+        idx_t jdxMax = binIdx + delta;
+
+        if (!periodic)
+        {
+            jdxMin = std::max(idx_t(0), jdxMin);
+            jdxMax = std::min(input.numBins - 1, jdxMax);
+        }
         assert(jdxMin <= jdxMax);
 
         for (auto jdx = jdxMin; jdx <= jdxMax; ++jdx)
         {
+            auto possiblyMappedIdx = jdx;
+            if (!periodic)
+            {
+                if (possiblyMappedIdx < 0) possiblyMappedIdx += input.numBins;
+                if (possiblyMappedIdx >= input.numBins) possiblyMappedIdx -= input.numBins;
+            }
             const auto eFunc =
                 std::exp(-util::sqr(real_c(binIdx - jdx) * input.binSize * inverseSigma));
             normalization += eFunc;
             smoothenedDensityProfile.data(binIdx, histogramIdx) +=
-                input.data(jdx, histogramIdx) * eFunc;
+                input.data(possiblyMappedIdx, histogramIdx) * eFunc;
         }
 
         smoothenedDensityProfile.data(binIdx, histogramIdx) /= normalization;
