@@ -107,7 +107,7 @@ void cumulativeMovingAverage(data::MultiHistogram& average,
     Kokkos::fence();
 }
 
-data::MultiHistogram gradient(const data::MultiHistogram& input, bool periodic)
+data::MultiHistogram gradient(const data::MultiHistogram& input, const bool periodic)
 {
     const auto inverseSpacing = input.inverseBinSize;
     const auto inverseDoubleSpacing = 0.5_r * input.inverseBinSize;

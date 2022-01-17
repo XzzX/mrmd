@@ -83,7 +83,7 @@ void cumulativeMovingAverage(data::MultiHistogram& average,
  * @param periodic treat boundaries as periodic
  * @return gradient of the histogram
  */
-data::MultiHistogram gradient(const data::MultiHistogram& input, bool periodic = false);
+data::MultiHistogram gradient(const data::MultiHistogram& input, const bool periodic = false);
 
 /**
  * Smoothen a histogram using gaussian convolution.
@@ -97,7 +97,7 @@ data::MultiHistogram gradient(const data::MultiHistogram& input, bool periodic =
 data::MultiHistogram smoothen(data::MultiHistogram& input,
                               const real_t& sigma,
                               const real_t& range,
-                              bool periodic = false);
+                              const bool periodic = false);
 
 }  // namespace data
 }  // namespace mrmd
