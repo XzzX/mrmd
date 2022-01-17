@@ -65,7 +65,7 @@ SPARTIAN:
   pressure_averaging_coefficient: 0.02
 
   target_temperature: 2.0
-  temperature_relaxation_coefficient: 1.0
+  temperature_relaxation_coefficient: 1000
   temperature_averaging_coefficient: 0.2
   thermostat_interval: 1
 
@@ -76,6 +76,8 @@ SPARTIAN:
 
   density_bin_width: 0.5
   thermodynamic_force_modulation: [ 2.0, 2.0 ]
+  thermodynamic_force_use_symmetry: true
+  thermodynamic_force_use_periodicity: true
   smoothing_sigma: 2.0
   smoothing_intensity: 2.0
 
