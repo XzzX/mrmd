@@ -76,13 +76,14 @@ void cumulativeMovingAverage(data::MultiHistogram& average,
 
 /**
  * Calculates the gradient of the histogram.
- * Uses central difference for all inner values and one-sided difference for
- * boundary values.
+ * Uses central difference for all inner values and one-sided/central difference for
+ * boundary values depending on periodicity.
  *
  * @param input input histogram
+ * @param periodic treat boundaries as periodic
  * @return gradient of the histogram
  */
-data::MultiHistogram gradient(const data::MultiHistogram& input);
+data::MultiHistogram gradient(const data::MultiHistogram& input, bool periodic = false);
 
 /**
  * Smoothen a histogram using gaussian convolution.

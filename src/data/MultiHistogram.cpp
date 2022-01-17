@@ -107,7 +107,7 @@ void cumulativeMovingAverage(data::MultiHistogram& average,
     Kokkos::fence();
 }
 
-data::MultiHistogram gradient(const data::MultiHistogram& input)
+data::MultiHistogram gradient(const data::MultiHistogram& input, bool periodic)
 {
     const auto inverseSpacing = input.inverseBinSize;
     const auto inverseDoubleSpacing = 0.5_r * input.inverseBinSize;
@@ -119,15 +119,32 @@ data::MultiHistogram gradient(const data::MultiHistogram& input)
     {
         if (idx == 0)
         {
-            grad.data(idx, jdx) =
-                (input.data(idx + 1, jdx) - input.data(idx, jdx)) * inverseSpacing;
+            if (periodic)
+            {
+                grad.data(idx, jdx) =
+                    (input.data(idx + 1, jdx) - input.data(input.numBins - 1, jdx)) *
+                    inverseDoubleSpacing;
+            }
+            else
+            {
+                grad.data(idx, jdx) =
+                    (input.data(idx + 1, jdx) - input.data(idx, jdx)) * inverseSpacing;
+            }
             return;
         }
 
         if (idx == input.numBins - 1)
         {
-            grad.data(idx, jdx) =
-                (input.data(idx, jdx) - input.data(idx - 1, jdx)) * inverseSpacing;
+            if (periodic)
+            {
+                grad.data(idx, jdx) =
+                    (input.data(0, jdx) - input.data(idx - 1, jdx)) * inverseDoubleSpacing;
+            }
+            else
+            {
+                grad.data(idx, jdx) =
+                    (input.data(idx, jdx) - input.data(idx - 1, jdx)) * inverseSpacing;
+            }
             return;
         }
 
