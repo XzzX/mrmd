@@ -3,6 +3,9 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
 
+#include "data/MPIInfo.hpp"
+#include "io/RestoreH5MDParallel.hpp"
+
 namespace mrmd
 {
 data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
@@ -51,11 +54,26 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
 
 void init(const YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
 {
+    if (config["restore_file"].IsDefined())
+    {
+        subdomain = data::Subdomain({0_r, 0_r, 0_r},
+                                    {config["box"][0].as<real_t>(),
+                                     config["box"][1].as<real_t>(),
+                                     config["box"][2].as<real_t>()},
+                                    config["ghost_layer_thickness"].as<real_t>());
+
+        auto mpiInfo = std::make_shared<data::MPIInfo>(MPI_COMM_WORLD);
+        auto io = io::RestoreH5MDParallel(mpiInfo);
+        io.restore(config["restore_file"].as<std::string>(), atoms);
+        return;
+    }
+    
     subdomain = data::Subdomain({0_r, 0_r, 0_r},
                                 {config["box"][0].as<real_t>(),
                                  config["box"][1].as<real_t>(),
                                  config["box"][2].as<real_t>()},
                                 config["ghost_layer_thickness"].as<real_t>());
+
     atoms = fillDomainWithAtomsSC(subdomain,
                                   config["num_atoms"].as<int64_t>(),
                                   config["fraction_type_A"].as<real_t>(),
