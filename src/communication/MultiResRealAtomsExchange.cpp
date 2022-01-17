@@ -33,6 +33,8 @@ void realAtomsExchange(const data::Subdomain& subdomain,
                     auto& atomX = atomsPos(atomIdx, dim);
                     atomX -= subdomain.diameter[dim];
                 }
+                MRMD_DEVICE_ASSERT_LESS(moleculeX, subdomain.maxCorner[dim]);
+                MRMD_DEVICE_ASSERT_LESSEQUAL(subdomain.minCorner[dim], moleculeX);
             }
             if (moleculeX < subdomain.minCorner[dim])
             {
@@ -45,6 +47,8 @@ void realAtomsExchange(const data::Subdomain& subdomain,
                     auto& atomX = atomsPos(atomIdx, dim);
                     atomX += subdomain.diameter[dim];
                 }
+                MRMD_DEVICE_ASSERT_LESS(moleculeX, subdomain.maxCorner[dim]);
+                MRMD_DEVICE_ASSERT_LESSEQUAL(subdomain.minCorner[dim], moleculeX);
             }
             MRMD_DEVICE_ASSERT_LESS(moleculeX, subdomain.maxCorner[dim]);
             MRMD_DEVICE_ASSERT_LESSEQUAL(subdomain.minCorner[dim], moleculeX);
