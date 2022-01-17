@@ -23,7 +23,8 @@ private:
     idx_t numTypes_;
 
     ScalarView forceFactor_;  ///< precalculated prefactor for force calculation
-    bool enforceSymmetry_;
+    bool enforceSymmetry_ = false;
+    bool usePeriodicity_ = false;
 
 public:
     inline auto getForce() const { return force_; }
@@ -52,13 +53,15 @@ public:
                        const data::Subdomain& subdomain,
                        const real_t& requestedDensityBinWidth,
                        const std::vector<real_t>& thermodynamicForceModulation,
-                       const bool enforceSymmetry = false);
+                       const bool enforceSymmetry = false,
+                       const bool usePeriodicity = false);
 
     ThermodynamicForce(const real_t targetDensity,
                        const data::Subdomain& subdomain,
                        const real_t& requestedDensityBinWidth,
                        const real_t thermodynamicForceModulation,
-                       const bool enforceSymmetry = false);
+                       const bool enforceSymmetry = false,
+                       const bool usePeriodicity = false);
 };
 }  // namespace action
 }  // namespace mrmd

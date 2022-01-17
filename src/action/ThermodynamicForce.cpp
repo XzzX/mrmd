@@ -11,7 +11,8 @@ ThermodynamicForce::ThermodynamicForce(const std::vector<real_t>& targetDensity,
                                        const data::Subdomain& subdomain,
                                        const real_t& requestedDensityBinWidth,
                                        const std::vector<real_t>& thermodynamicForceModulation,
-                                       const bool enforceSymmetry)
+                                       const bool enforceSymmetry,
+                                       const bool usePeriodicity)
     : force_("thermodynamic-force",
              subdomain.minGhostCorner[0],
              subdomain.maxGhostCorner[0],
@@ -23,7 +24,8 @@ ThermodynamicForce::ThermodynamicForce(const std::vector<real_t>& targetDensity,
       targetDensity_(targetDensity),
       thermodynamicForceModulation_(thermodynamicForceModulation),
       forceFactor_("force-factor", targetDensity.size()),
-      enforceSymmetry_(enforceSymmetry)
+      enforceSymmetry_(enforceSymmetry),
+      usePeriodicity_(usePeriodicity)
 {
     MRMD_HOST_CHECK_LESS(
         force_.binSize, requestedDensityBinWidth, "requested bin size is not achieved");
@@ -44,12 +46,14 @@ ThermodynamicForce::ThermodynamicForce(const real_t targetDensity,
                                        const data::Subdomain& subdomain,
                                        const real_t& requestedDensityBinWidth,
                                        const real_t thermodynamicForceModulation,
-                                       const bool enforceSymmetry)
+                                       const bool enforceSymmetry,
+                                       const bool usePeriodicity)
     : ThermodynamicForce(std::vector<real_t>{targetDensity},
                          subdomain,
                          requestedDensityBinWidth,
                          {thermodynamicForceModulation},
-                         enforceSymmetry)
+                         enforceSymmetry,
+                         usePeriodicity)
 {
 }
 
@@ -78,8 +82,9 @@ void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoo
     auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
     densityProfile_.scale(normalizationFactor);
 
-    auto smoothedDensityGradient =
-        data::gradient(data::smoothen(densityProfile_, smoothingSigma, smoothingIntensity));
+    auto smoothedDensityProfile =
+        data::smoothen(densityProfile_, smoothingSigma, smoothingIntensity, usePeriodicity_);
+    auto smoothedDensityGradient = data::gradient(smoothedDensityProfile, usePeriodicity_);
     smoothedDensityGradient.scale(forceFactor_);
 
     force_ += smoothedDensityGradient;
