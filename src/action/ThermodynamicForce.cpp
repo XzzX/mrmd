@@ -14,13 +14,12 @@ ThermodynamicForce::ThermodynamicForce(const std::vector<real_t>& targetDensity,
                                        const bool enforceSymmetry,
                                        const bool usePeriodicity)
     : force_("thermodynamic-force",
-             subdomain.minGhostCorner[0],
-             subdomain.maxGhostCorner[0],
-             idx_c(std::ceil(subdomain.diameterWithGhostLayer[0] / requestedDensityBinWidth)),
+             subdomain.minCorner[0],
+             subdomain.maxCorner[0],
+             idx_c(std::ceil(subdomain.diameter[0] / requestedDensityBinWidth)),
              idx_c(targetDensity.size())),
       densityProfile_("density-profile", force_),
-      binVolume_(subdomain.diameterWithGhostLayer[1] * subdomain.diameterWithGhostLayer[2] *
-                 densityProfile_.binSize),
+      binVolume_(subdomain.diameter[1] * subdomain.diameter[2] * densityProfile_.binSize),
       targetDensity_(targetDensity),
       thermodynamicForceModulation_(thermodynamicForceModulation),
       forceFactor_("force-factor", targetDensity.size()),
@@ -59,7 +58,7 @@ ThermodynamicForce::ThermodynamicForce(const real_t targetDensity,
 
 void ThermodynamicForce::sample(data::Atoms& atoms)
 {
-    densityProfile_ += analysis::getAxialDensityProfile(atoms.numLocalAtoms + atoms.numGhostAtoms,
+    densityProfile_ += analysis::getAxialDensityProfile(atoms.numLocalAtoms,
                                                         atoms.getPos(),
                                                         atoms.getType(),
                                                         numTypes_,

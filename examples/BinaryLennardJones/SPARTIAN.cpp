@@ -188,16 +188,15 @@ void spartian(YAML::Node& config,
             (step % config["density_update_interval"].as<idx_t>() == 0))
         {
             auto densityProfile =
-                analysis::getAxialDensityProfile(atoms.numLocalAtoms + atoms.numGhostAtoms,
+                analysis::getAxialDensityProfile(atoms.numLocalAtoms,
                                                  atoms.getPos(),
                                                  atoms.getType(),
                                                  2,
                                                  thermodynamicForce.getDensityProfile().min,
                                                  thermodynamicForce.getDensityProfile().max,
                                                  thermodynamicForce.getDensityProfile().numBins);
-            densityProfile.scale(1_r /
-                                 (densityProfile.binSize * subdomain.diameterWithGhostLayer[1] *
-                                  subdomain.diameterWithGhostLayer[2]));
+            densityProfile.scale(
+                1_r / (densityProfile.binSize * subdomain.diameter[1] * subdomain.diameter[2]));
             Xrho1 = analysis::getFluctuation(densityProfile, rhoA, 0);
             Xrho2 = analysis::getFluctuation(densityProfile, rhoB, 1);
 
