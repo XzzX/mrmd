@@ -42,6 +42,7 @@ void LJ(YAML::Node& config)
 
 int main(int argc, char* argv[])  // NOLINT
 {
+    MPI_Init(&argc, &argv);
     Kokkos::ScopeGuard scope_guard(argc, argv);
 
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
@@ -52,7 +53,13 @@ int main(int argc, char* argv[])  // NOLINT
     CLI11_PARSE(app, argc, argv);
 
     auto cfg = YAML::LoadFile(configFilename);
+    std::cout << "===== CONFIG =====" << std::endl;
+    std::cout << cfg << std::endl;
+    std::cout << "==================" << std::endl;
+
     LJ(cfg);
+    
+    MPI_Finalize();
 
     return EXIT_SUCCESS;
 }
