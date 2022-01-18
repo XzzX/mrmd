@@ -188,7 +188,7 @@ data::MultiHistogram smoothen(data::MultiHistogram& input,
         for (auto jdx = jdxMin; jdx <= jdxMax; ++jdx)
         {
             auto possiblyMappedIdx = jdx;
-            if (!periodic)
+            if (periodic)
             {
                 if (possiblyMappedIdx < 0) possiblyMappedIdx += input.numBins;
                 if (possiblyMappedIdx >= input.numBins) possiblyMappedIdx -= input.numBins;
