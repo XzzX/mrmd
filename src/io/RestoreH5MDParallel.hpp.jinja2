@@ -23,7 +23,7 @@ public:
     {
     }
 
-    void restore(const std::string& filename, data::Atoms& atoms);
+    void restore(const std::string& filename, data::Subdomain& subdomain, data::Atoms& atoms);
 
     {% for prop in particle %}
     bool restore{{prop.name | cap_first}} = {{prop.default}};

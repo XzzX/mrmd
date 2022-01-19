@@ -22,7 +22,7 @@ public:
     {
     }
 
-    void restore(const std::string& filename, data::Atoms& atoms);
+    void restore(const std::string& filename, data::Subdomain& subdomain, data::Atoms& atoms);
 
     bool restorePos = true;
     bool restoreVel = true;

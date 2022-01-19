@@ -56,15 +56,26 @@ TEST(H5MD, dump)
 {
     auto mpiInfo = std::make_shared<data::MPIInfo>(MPI_COMM_WORLD);
 
-    auto subdomain = data::Subdomain();
+    auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
     auto atoms1 = getAtoms(mpiInfo);
 
     auto dump = DumpH5MDParallel(mpiInfo, "XzzX");
-    dump.dump("dummy.h5md", subdomain, atoms1);
+    dump.dump("dummy.h5md", subdomain1, atoms1);
 
+    auto subdomain2 = data::Subdomain();
     auto atoms2 = data::Atoms(0);
     auto restore = RestoreH5MDParallel(mpiInfo);
-    restore.restore("dummy.h5md", atoms2);
+    restore.restore("dummy.h5md", subdomain2, atoms2);
+
+    EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness, subdomain2.ghostLayerThickness);
+
+    EXPECT_FLOAT_EQ(subdomain1.minCorner[0], subdomain2.minCorner[0]);
+    EXPECT_FLOAT_EQ(subdomain1.minCorner[1], subdomain2.minCorner[1]);
+    EXPECT_FLOAT_EQ(subdomain1.minCorner[2], subdomain2.minCorner[2]);
+
+    EXPECT_FLOAT_EQ(subdomain1.maxCorner[0], subdomain2.maxCorner[0]);
+    EXPECT_FLOAT_EQ(subdomain1.maxCorner[1], subdomain2.maxCorner[1]);
+    EXPECT_FLOAT_EQ(subdomain1.maxCorner[2], subdomain2.maxCorner[2]);
 
     auto h_atoms1 = data::HostAtoms(atoms1);  // NOLINT
     auto h_atoms2 = data::HostAtoms(atoms2);  // NOLINT

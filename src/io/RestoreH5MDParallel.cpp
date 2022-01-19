@@ -70,7 +70,9 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
     CHECK_HDF5(H5Dclose(dset));
 }
 
-void RestoreH5MDParallel::restore(const std::string& filename, data::Atoms& atoms)
+void RestoreH5MDParallel::restore(const std::string& filename,
+                                  data::Subdomain& subdomain,
+                                  data::Atoms& atoms)
 {
     MPI_Info info = MPI_INFO_NULL;
 
@@ -78,6 +80,16 @@ void RestoreH5MDParallel::restore(const std::string& filename, data::Atoms& atom
     CHECK_HDF5(H5Pset_fapl_mpio(plist, mpiInfo_->comm, info));
 
     auto fileId = CHECK_HDF5(H5Fopen(filename.c_str(), H5F_ACC_RDONLY, plist));
+
+    std::string groupName = "/particles/" + particleGroupName_ + "/box";
+    CHECK_HDF5(H5LTget_attribute_double(
+        fileId, groupName.c_str(), "minCorner", subdomain.minCorner.data()));
+    CHECK_HDF5(H5LTget_attribute_double(
+        fileId, groupName.c_str(), "maxCorner", subdomain.maxCorner.data()));
+    CHECK_HDF5(H5LTget_attribute_double(
+        fileId, groupName.c_str(), "ghostLayerThickness", &subdomain.ghostLayerThickness));
+    subdomain =
+        data::Subdomain(subdomain.minCorner, subdomain.maxCorner, subdomain.ghostLayerThickness);
     std::vector<real_t> pos;
     if (restorePos)
     {

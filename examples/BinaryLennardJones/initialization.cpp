@@ -64,10 +64,10 @@ void init(const YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdoma
 
         auto mpiInfo = std::make_shared<data::MPIInfo>(MPI_COMM_WORLD);
         auto io = io::RestoreH5MDParallel(mpiInfo);
-        io.restore(config["restore_file"].as<std::string>(), atoms);
+        io.restore(config["restore_file"].as<std::string>(), subdomain, atoms);
         return;
     }
-    
+
     subdomain = data::Subdomain({0_r, 0_r, 0_r},
                                 {config["box"][0].as<real_t>(),
                                  config["box"][1].as<real_t>(),
