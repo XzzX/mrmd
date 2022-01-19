@@ -94,9 +94,14 @@ void DumpH5MDParallel::writeBox(hid_t fileId, const data::Subdomain& subdomain)
     CHECK_HDF5(H5Sclose(space));
     CHECK_HDF5(H5Tclose(boundaryType));
 
-    std::vector<double> edges = {subdomain.diameter[0], subdomain.diameter[1], subdomain.diameter[2]};
     CHECK_HDF5(
-        H5LTset_attribute_double(fileId, groupName.c_str(), "edges", edges.data(), edges.size()));
+        H5LTset_attribute_double(fileId, groupName.c_str(), "edges", subdomain.diameter.data(), subdomain.diameter.size()));
+    CHECK_HDF5(
+        H5LTset_attribute_double(fileId, groupName.c_str(), "minCorner", subdomain.minCorner.data(), subdomain.minCorner.size()));
+    CHECK_HDF5(
+        H5LTset_attribute_double(fileId, groupName.c_str(), "maxCorner", subdomain.maxCorner.data(), subdomain.maxCorner.size()));
+    CHECK_HDF5(
+        H5LTset_attribute_double(fileId, groupName.c_str(), "ghostLayerThickness", &subdomain.ghostLayerThickness, 1));
 
     CHECK_HDF5(H5Gclose(group));
 }
