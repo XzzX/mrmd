@@ -130,6 +130,18 @@ if (MRMD_CLANG_TIDY)
     endif ()
 endif ()
 
+######################################
+# Automatic CCache detection         #
+######################################
+option(MRMD_USE_CCACHE "Automatically search for and use ccache." OFF)
+if (MRMD_USE_CCACHE)
+    find_program(CCACHE_PROGRAM ccache)
+    if (CCACHE_PROGRAM)
+        message(STATUS "Using ccache: ${CCACHE_PROGRAM}")
+        set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    endif ()
+endif ()
+
 add_subdirectory(src)
 
 add_subdirectory(examples)
