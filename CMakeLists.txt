@@ -142,7 +142,7 @@ if (MRMD_USE_CCACHE)
     endif ()
 endif ()
 
-add_subdirectory(src)
+add_subdirectory(libmrmd)
 
 add_subdirectory(examples)
 add_subdirectory(tests)
