@@ -10,7 +10,7 @@ struct MPIInfo
     int rank = -1;
     int size = -1;
 
-    explicit MPIInfo(MPI_Comm communicator)
+    explicit MPIInfo(MPI_Comm communicator = MPI_COMM_WORLD)
     {
         comm = communicator;
         CHECK_MPI(MPI_Comm_rank(communicator, &rank));
