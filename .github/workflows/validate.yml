@@ -42,6 +42,7 @@ jobs:
             -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -D${{ matrix.BACKEND }}=ON
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
@@ -98,6 +99,7 @@ jobs:
             -DKokkos_CXX_STANDARD=17 \
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -D${{ matrix.BACKEND }}=ON
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
@@ -136,6 +138,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DKokkos_CXX_STANDARD=17 \
             -DKokkos_ENABLE_HWLOC=ON \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON
           cmake --build kokkos-build --target all -j 2
@@ -222,7 +225,7 @@ jobs:
 
       - name: kokkos
         run: |
-          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=Debug -DKokkos_CXX_STANDARD=17
+          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=Debug -DKokkos_CXX_STANDARD=17 -DCMAKE_POSITION_INDEPENDENT_CODE=ON
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
