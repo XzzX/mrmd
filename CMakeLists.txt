@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 project(mrmd
         VERSION 0.2.0
         DESCRIPTION "Multi Resolution Molecular Dynamics"
@@ -143,6 +145,7 @@ if (MRMD_USE_CCACHE)
 endif ()
 
 add_subdirectory(libmrmd)
+add_subdirectory(pyMRMD)
 
 add_subdirectory(examples)
 add_subdirectory(tests)
