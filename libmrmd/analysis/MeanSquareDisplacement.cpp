@@ -45,7 +45,7 @@ void MeanSquareDisplacement::reset(data::Molecules &molecules)
 
 real_t MeanSquareDisplacement::calc(data::Atoms &atoms, const data::Subdomain &subdomain)
 {
-    assert(numItems_ == atoms.numLocalAtoms);
+    MRMD_HOST_CHECK_EQUAL(numItems_, atoms.numLocalAtoms);
 
     auto initialPos = initialPosition_;
     auto pos = atoms.getPos();
@@ -72,7 +72,7 @@ real_t MeanSquareDisplacement::calc(data::Atoms &atoms, const data::Subdomain &s
 
 real_t MeanSquareDisplacement::calc(data::Molecules &molecules, const data::Subdomain &subdomain)
 {
-    assert(numItems_ == molecules.numLocalMolecules);
+    MRMD_HOST_CHECK_EQUAL(numItems_, molecules.numLocalMolecules);
 
     auto initialPos = initialPosition_;
     auto pos = molecules.getPos();
