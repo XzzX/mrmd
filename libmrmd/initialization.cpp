@@ -15,9 +15,12 @@ void initialize(int argc, char** argv)
 void initialize()
 {
     int argc = 0;
-    char* argv = "";
+    char const* argv = "";
+    // get around warning:
+    // ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+    char* argvv = const_cast<char*>(argv);
 
-    initialize(argc, &argv);
+    initialize(argc, &argvv);
 }
 
 void finalize()
