@@ -52,7 +52,7 @@ jobs:
           path: 'mrmd'
 
       - name: Configure
-        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Debug -DMRMD_VERBOSE_ASSERTS=ON
+        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Debug -DMRMD_VERBOSE_ASSERTS=ON -DMRMD_WERROR=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox -j 2
@@ -109,7 +109,7 @@ jobs:
           path: 'mrmd'
 
       - name: Configure
-        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Release -DMRMD_VERBOSE_ASSERTS=ON
+        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Release -DMRMD_VERBOSE_ASSERTS=ON -DMRMD_WERROR=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox -j 2
