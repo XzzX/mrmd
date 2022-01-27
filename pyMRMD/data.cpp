@@ -9,6 +9,36 @@
 
 namespace py = pybind11;
 
+template <class SLICE_T>
+auto getNPArray(const SLICE_T slice)
+{
+    if constexpr (slice.rank() == 2)
+    {
+        py::str
+            dummyDataOwner;  // https://github.com/pybind/pybind11/issues/323#issuecomment-575717041
+        return py::array_t<typename SLICE_T::value_type>(
+            {slice.extent(1), slice.extent(0)},
+            {sizeof(typename SLICE_T::value_type) * slice.stride(1),
+             sizeof(typename SLICE_T::value_type) * slice.stride(0)},
+            slice.data(),
+            dummyDataOwner);
+    }
+    else if constexpr (slice.rank() == 3)
+    {
+        py::str
+            dummyDataOwner;  // https://github.com/pybind/pybind11/issues/323#issuecomment-575717041
+        return py::array_t<typename SLICE_T::value_type>(
+            {slice.extent(2), slice.extent(1), slice.extent(0)},
+            {sizeof(typename SLICE_T::value_type) * slice.stride(2),
+             sizeof(typename SLICE_T::value_type) * slice.stride(1),
+             sizeof(typename SLICE_T::value_type) * slice.stride(0)},
+            slice.data(),
+            dummyDataOwner);
+    }
+    else
+        exit(EXIT_FAILURE);
+}
+
 template <class ATOMS_T>
 void init_atoms(py::module_ &m, const char *className)
 {
@@ -23,14 +53,14 @@ void init_atoms(py::module_ &m, const char *className)
         .def("get_mass", &ATOMS_T::getMass)
         .def("get_charge", &ATOMS_T::getCharge)
         .def("get_relative_mass", &ATOMS_T::getRelativeMass)
-        //        .def("get_position",
-        //             [](const ATOMS_T &atoms)
-        //             {
-        //                 const auto &pos = atoms.getPos();
-        //                 return py::array_t<double>({pos.extent(2), pos.extent(1), pos.extent(0)},
-        //                                            {pos.stride(2), pos.stride(1), pos.stride(0)},
-        //                                            pos.data());
-        //             })
+        .def("get_pos_np", [](const ATOMS_T &atoms) { return getNPArray(atoms.getPos()); })
+        .def("get_vel_np", [](const ATOMS_T &atoms) { return getNPArray(atoms.getVel()); })
+        .def("get_force_np", [](const ATOMS_T &atoms) { return getNPArray(atoms.getForce()); })
+        .def("get_type_np", [](const ATOMS_T &atoms) { return getNPArray(atoms.getType()); })
+        .def("get_mass_np", [](const ATOMS_T &atoms) { return getNPArray(atoms.getMass()); })
+        .def("get_charge_np", [](const ATOMS_T &atoms) { return getNPArray(atoms.getCharge()); })
+        .def("get_relative_mass_np",
+             [](const ATOMS_T &atoms) { return getNPArray(atoms.getRelativeMass()); })
         .def_readwrite("num_local_atoms", &ATOMS_T::numLocalAtoms)
         .def_readwrite("num_ghost_atoms", &ATOMS_T::numGhostAtoms);
 }
