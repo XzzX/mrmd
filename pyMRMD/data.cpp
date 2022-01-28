@@ -3,6 +3,7 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
+#include <assert/assert.hpp>
 #include <data/Atoms.hpp>
 #include <data/MPIInfo.hpp>
 #include <data/Subdomain.hpp>
@@ -10,12 +11,11 @@
 namespace py = pybind11;
 
 template <class SLICE_T>
-auto getNPArray(const SLICE_T slice)
+py::array_t<typename SLICE_T::value_type> getNPArray(const SLICE_T slice)
 {
-    if constexpr (slice.rank() == 2)
+    py::str dummyDataOwner;  // https://github.com/pybind/pybind11/issues/323#issuecomment-575717041
+    if (slice.rank() == 2)
     {
-        py::str
-            dummyDataOwner;  // https://github.com/pybind/pybind11/issues/323#issuecomment-575717041
         return py::array_t<typename SLICE_T::value_type>(
             {slice.extent(1), slice.extent(0)},
             {sizeof(typename SLICE_T::value_type) * slice.stride(1),
@@ -23,20 +23,15 @@ auto getNPArray(const SLICE_T slice)
             slice.data(),
             dummyDataOwner);
     }
-    else if constexpr (slice.rank() == 3)
-    {
-        py::str
-            dummyDataOwner;  // https://github.com/pybind/pybind11/issues/323#issuecomment-575717041
-        return py::array_t<typename SLICE_T::value_type>(
-            {slice.extent(2), slice.extent(1), slice.extent(0)},
-            {sizeof(typename SLICE_T::value_type) * slice.stride(2),
-             sizeof(typename SLICE_T::value_type) * slice.stride(1),
-             sizeof(typename SLICE_T::value_type) * slice.stride(0)},
-            slice.data(),
-            dummyDataOwner);
-    }
-    else
-        exit(EXIT_FAILURE);
+
+    MRMD_HOST_CHECK_EQUAL(slice.rank(), 3);
+    return py::array_t<typename SLICE_T::value_type>(
+        {slice.extent(2), slice.extent(1), slice.extent(0)},
+        {sizeof(typename SLICE_T::value_type) * slice.stride(2),
+         sizeof(typename SLICE_T::value_type) * slice.stride(1),
+         sizeof(typename SLICE_T::value_type) * slice.stride(0)},
+        slice.data(),
+        dummyDataOwner);
 }
 
 template <class ATOMS_T>
