@@ -55,10 +55,7 @@ public:
     KOKKOS_FORCEINLINE_FUNCTION charge_t getCharge() const { return charge; }
     KOKKOS_FORCEINLINE_FUNCTION relative_mass_t getRelativeMass() const { return relativeMass; }
 
-    KOKKOS_FORCEINLINE_FUNCTION void setForce(const real_t& val) const
-    {
-        Cabana::deep_copy(force, val);
-    }
+    void setForce(const real_t& val) const { Cabana::deep_copy(force, val); }
 
     void sliceAll()
     {
