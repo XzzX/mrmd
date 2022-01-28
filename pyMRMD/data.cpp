@@ -46,6 +46,8 @@ void init_atoms(py::module_ &m, const char *className)
 
     py::class_<ATOMS_T>(m, className)
         .def(py::init<const idx_t>())
+        .def(py::init<const data::DeviceAtoms &>())
+        .def(py::init<const data::HostAtoms &>())
         .def("get_pos", &ATOMS_T::getPos)
         .def("get_vel", &ATOMS_T::getVel)
         .def("get_force", &ATOMS_T::getForce)
@@ -61,6 +63,7 @@ void init_atoms(py::module_ &m, const char *className)
         .def("get_charge_np", [](const ATOMS_T &atoms) { return getNPArray(atoms.getCharge()); })
         .def("get_relative_mass_np",
              [](const ATOMS_T &atoms) { return getNPArray(atoms.getRelativeMass()); })
+        .def("set_force", &ATOMS_T::setForce)
         .def_readwrite("num_local_atoms", &ATOMS_T::numLocalAtoms)
         .def_readwrite("num_ghost_atoms", &ATOMS_T::numGhostAtoms);
 }
@@ -70,7 +73,7 @@ void init_data(py::module_ &m)
     using namespace mrmd;
 
     init_atoms<data::DeviceAtoms>(m, "DeviceAtoms");
-    //    init_atoms<data::HostAtoms>(m, "HostAtoms");
+    init_atoms<data::HostAtoms>(m, "HostAtoms");
 
     py::class_<data::MPIInfo>(m, "MPIInfo")
         .def(py::init<>())

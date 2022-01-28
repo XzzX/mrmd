@@ -6,11 +6,17 @@
 #include "constants.hpp"
 #include "datatypes.hpp"
 
-namespace mrmd
+namespace mrmd::data
 {
-namespace data
+namespace impl
 {
-template <class DEVICE_TYPE = DeviceType>
+/**
+ * Data structure for storing information about atoms on the host and the device.
+ * @tparam DEVICE_TYPE memory location, \a HostType or \a DeviceType
+ * @tparam DEVICE artificial parameter to distinguish classes if HostType==DeviceType
+ * for CPU backends
+ */
+template <class DEVICE_TYPE = DeviceType, bool DEVICE = true>
 class GeneralAtoms
 {
 public:
@@ -48,6 +54,11 @@ public:
     KOKKOS_FORCEINLINE_FUNCTION charge_t getMass() const { return mass; }
     KOKKOS_FORCEINLINE_FUNCTION charge_t getCharge() const { return charge; }
     KOKKOS_FORCEINLINE_FUNCTION relative_mass_t getRelativeMass() const { return relativeMass; }
+
+    KOKKOS_FORCEINLINE_FUNCTION void setForce(const real_t& val) const
+    {
+        Cabana::deep_copy(force, val);
+    }
 
     void sliceAll()
     {
@@ -109,11 +120,8 @@ public:
         Cabana::deep_copy(charge, 0_r);
         Cabana::deep_copy(relativeMass, 0_r);
     }
-    template <class T>
-    explicit GeneralAtoms(const GeneralAtoms<T>& atoms) : atoms_("atoms", atoms.size())
-    {
-        deep_copy(*this, atoms);
-    }
+    template <class DEVICE_TYPE_SRC, bool DEVICE_SRC>
+    explicit GeneralAtoms(const GeneralAtoms<DEVICE_TYPE_SRC, DEVICE_SRC>& atoms);
 
 private:
     AtomsT atoms_;
@@ -126,9 +134,11 @@ private:
     charge_t charge;
     relative_mass_t relativeMass;
 };
+}  // namespace impl
 
-template <class A, class B>
-void deep_copy(data::GeneralAtoms<A>& dst, const data::GeneralAtoms<B>& src)
+template <class DEVICE_TYPE_A, bool DEVICE_A, class DEVICE_TYPE_B, bool DEVICE_B>
+void deep_copy(impl::GeneralAtoms<DEVICE_TYPE_A, DEVICE_A>& dst,
+               const impl::GeneralAtoms<DEVICE_TYPE_B, DEVICE_B>& src)
 {
     dst.numLocalAtoms = src.numLocalAtoms;
     dst.numGhostAtoms = src.numGhostAtoms;
@@ -137,8 +147,21 @@ void deep_copy(data::GeneralAtoms<A>& dst, const data::GeneralAtoms<B>& src)
     dst.sliceAll();
 }
 
-using HostAtoms = GeneralAtoms<HostType>;
-using DeviceAtoms = GeneralAtoms<DeviceType>;
+namespace impl
+{
+template <class DEVICE_TYPE, bool DEVICE>
+template <class DEVICE_TYPE_SRC, bool DEVICE_SRC>
+GeneralAtoms<DEVICE_TYPE, DEVICE>::GeneralAtoms(
+    const GeneralAtoms<DEVICE_TYPE_SRC, DEVICE_SRC>& atoms)
+    : atoms_("atoms", atoms.size())
+{
+    deep_copy(*this, atoms);
+}
+}  // namespace impl
+
+/// atoms with memory allocated on host
+using HostAtoms = impl::GeneralAtoms<HostType, false>;
+/// atoms with memory allocated on device
+using DeviceAtoms = impl::GeneralAtoms<DeviceType, true>;
 using Atoms = DeviceAtoms;
-}  // namespace data
-}  // namespace mrmd
+}  // namespace mrmd::data
