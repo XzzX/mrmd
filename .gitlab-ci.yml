@@ -5,6 +5,7 @@ gpu:
     - module purge
     - module load cmake/3.22 doxygen git
     - module load gcc/10 cuda/11.2 openmpi/4 hdf5-mpi/1.12.0
+    - module load anaconda/3/2021.11
     - git --version
     - cmake --version
     - |
@@ -30,7 +31,7 @@ benchmark:
     - module purge
     - module load cmake/3.22 doxygen git
     - module load gcc/10 cuda/11.2 openmpi/4 hdf5-mpi/1.12.0
-    - module load anaconda/3
+    - module load anaconda/3/2021.11
     - git --version
     - cmake --version
 
