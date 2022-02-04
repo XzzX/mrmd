@@ -10,7 +10,7 @@ include(CMakePrintHelpers)
 find_package(Python3 COMPONENTS Interpreter Development)
 cmake_print_variables(Python3_SITEARCH)
 
-pybind11_add_module(pyMRMD
+add_library(pyMRMD MODULE
         pyMRMD.cpp
         action.cpp
         analysis.cpp
@@ -20,3 +20,10 @@ pybind11_add_module(pyMRMD
         io.cpp
         util.cpp)
 target_link_libraries(pyMRMD PRIVATE mrmd)
+target_link_libraries(pyMRMD PRIVATE pybind11::module pybind11::lto pybind11::windows_extras)
+
+pybind11_extension(pyMRMD)
+pybind11_strip(pyMRMD)
+
+set_target_properties(pyMRMD PROPERTIES CXX_VISIBILITY_PRESET "hidden"
+        CUDA_VISIBILITY_PRESET "hidden")
