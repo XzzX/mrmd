@@ -1,14 +1,13 @@
-set(PYBIND11_FINDPYTHON ON)
+include(CMakePrintHelpers)
+find_package(Python3 COMPONENTS Interpreter Development)
+cmake_print_variables(Python3_SITEARCH)
+
 FetchContent_Declare(
         pybind11
         GIT_REPOSITORY https://github.com/pybind/pybind11.git
         GIT_TAG v2.9.0
 )
 FetchContent_MakeAvailable(pybind11)
-
-include(CMakePrintHelpers)
-find_package(Python3 COMPONENTS Interpreter Development)
-cmake_print_variables(Python3_SITEARCH)
 
 add_library(pyMRMD MODULE
         pyMRMD.cpp
