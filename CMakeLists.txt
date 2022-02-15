@@ -144,7 +144,7 @@ if (MRMD_USE_CCACHE)
     endif ()
 endif ()
 
-add_subdirectory(libmrmd)
+add_subdirectory(mrmd)
 add_subdirectory(pyMRMD)
 
 add_subdirectory(examples)
