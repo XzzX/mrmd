@@ -4,60 +4,55 @@
 #include "data/Molecules.hpp"
 #include "datatypes.hpp"
 
-namespace mrmd
+namespace mrmd::action::UpdateMolecules
 {
-namespace action
+
+template <typename WEIGHTING_FUNCTION>
+static void update(const data::Molecules& molecules,
+                   const data::Atoms& atoms,
+                   const WEIGHTING_FUNCTION& weight)
 {
-class UpdateMolecules
-{
-public:
-    template <typename WEIGHTING_FUNCTION>
-    static void update(const data::Molecules& molecules,
-                       const data::Atoms& atoms,
-                       const WEIGHTING_FUNCTION& weight)
+    auto moleculesPos = molecules.getPos();
+    auto moleculesLambda = molecules.getLambda();
+    auto moleculesModulatedLambda = molecules.getModulatedLambda();
+    auto moleculesGradLambda = molecules.getGradLambda();
+    auto moleculesAtomsOffset = molecules.getAtomsOffset();
+    auto moleculesNumAtoms = molecules.getNumAtoms();
+
+    auto atomsPos = atoms.getPos();
+    auto atomsRelativeMass = atoms.getRelativeMass();
+
+    auto policy =
+        Kokkos::RangePolicy<>(0, molecules.numLocalMolecules + molecules.numGhostMolecules);
+    auto kernel = KOKKOS_LAMBDA(const idx_t& moleculeIdx)
     {
-        auto moleculesPos = molecules.getPos();
-        auto moleculesLambda = molecules.getLambda();
-        auto moleculesModulatedLambda = molecules.getModulatedLambda();
-        auto moleculesGradLambda = molecules.getGradLambda();
-        auto moleculesAtomsOffset = molecules.getAtomsOffset();
-        auto moleculesNumAtoms = molecules.getNumAtoms();
+        auto atomsStart = moleculesAtomsOffset(moleculeIdx);
+        auto atomsEnd = atomsStart + moleculesNumAtoms(moleculeIdx);
 
-        auto atomsPos = atoms.getPos();
-        auto atomsRelativeMass = atoms.getRelativeMass();
+        moleculesPos(moleculeIdx, 0) = 0_r;
+        moleculesPos(moleculeIdx, 1) = 0_r;
+        moleculesPos(moleculeIdx, 2) = 0_r;
 
-        auto policy =
-            Kokkos::RangePolicy<>(0, molecules.numLocalMolecules + molecules.numGhostMolecules);
-        auto kernel = KOKKOS_LAMBDA(const idx_t& moleculeIdx)
+        for (auto atomIdx = atomsStart; atomIdx < atomsEnd; ++atomIdx)
         {
-            auto atomsStart = moleculesAtomsOffset(moleculeIdx);
-            auto atomsEnd = atomsStart + moleculesNumAtoms(moleculeIdx);
+            assert(atomsRelativeMass(atomIdx) > 1e-8 &&
+                   "Contribution almost zero. Did you forget to set relative mass?");
+            moleculesPos(moleculeIdx, 0) += atomsPos(atomIdx, 0) * atomsRelativeMass(atomIdx);
+            moleculesPos(moleculeIdx, 1) += atomsPos(atomIdx, 1) * atomsRelativeMass(atomIdx);
+            moleculesPos(moleculeIdx, 2) += atomsPos(atomIdx, 2) * atomsRelativeMass(atomIdx);
+        }
 
-            moleculesPos(moleculeIdx, 0) = 0_r;
-            moleculesPos(moleculeIdx, 1) = 0_r;
-            moleculesPos(moleculeIdx, 2) = 0_r;
+        weight(moleculesPos(moleculeIdx, 0),
+               moleculesPos(moleculeIdx, 1),
+               moleculesPos(moleculeIdx, 2),
+               moleculesLambda(moleculeIdx),
+               moleculesModulatedLambda(moleculeIdx),
+               moleculesGradLambda(moleculeIdx, 0),
+               moleculesGradLambda(moleculeIdx, 1),
+               moleculesGradLambda(moleculeIdx, 2));
+    };
+    Kokkos::parallel_for(policy, kernel, "UpdateMolecules::update");
+    Kokkos::fence();
+}
 
-            for (auto atomIdx = atomsStart; atomIdx < atomsEnd; ++atomIdx)
-            {
-                assert(atomsRelativeMass(atomIdx) > 1e-8 &&
-                       "Contribution almost zero. Did you forget to set relative mass?");
-                moleculesPos(moleculeIdx, 0) += atomsPos(atomIdx, 0) * atomsRelativeMass(atomIdx);
-                moleculesPos(moleculeIdx, 1) += atomsPos(atomIdx, 1) * atomsRelativeMass(atomIdx);
-                moleculesPos(moleculeIdx, 2) += atomsPos(atomIdx, 2) * atomsRelativeMass(atomIdx);
-            }
-
-            weight(moleculesPos(moleculeIdx, 0),
-                   moleculesPos(moleculeIdx, 1),
-                   moleculesPos(moleculeIdx, 2),
-                   moleculesLambda(moleculeIdx),
-                   moleculesModulatedLambda(moleculeIdx),
-                   moleculesGradLambda(moleculeIdx, 0),
-                   moleculesGradLambda(moleculeIdx, 1),
-                   moleculesGradLambda(moleculeIdx, 2));
-        };
-        Kokkos::parallel_for(policy, kernel, "UpdateMolecules::update");
-        Kokkos::fence();
-    }
-};
-}  // namespace action
-}  // namespace mrmd
+}  // namespace mrmd::action::UpdateMolecules
