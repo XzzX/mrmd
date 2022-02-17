@@ -6,11 +6,11 @@
 #include "constants.hpp"
 #include "datatypes.hpp"
 
-namespace mrmd
+namespace mrmd::data
 {
-namespace data
+namespace impl
 {
-template <class DEVICE_TYPE = DeviceType>
+template <class DEVICE_TYPE = DeviceType, bool DEVICE = true>
 class GeneralMolecules
 {
 public:
@@ -118,12 +118,8 @@ public:
         Cabana::deep_copy(numAtoms, 0);
     }
 
-    template <class T>
-    GeneralMolecules(const GeneralMolecules<T>& molecules)
-        : molecules_("molecules", molecules.size())
-    {
-        deep_copy(*this, molecules);
-    }
+    template <class DEVICE_TYPE_SRC, bool DEVICE_SRC>
+    GeneralMolecules(const GeneralMolecules<DEVICE_TYPE_SRC, DEVICE_SRC>& molecules);
 
 private:
     MoleculesT molecules_;
@@ -136,9 +132,11 @@ private:
     atoms_offset_t atomsOffset;
     num_atoms_t numAtoms;
 };
+}  // namespace impl
 
-template <class A, class B>
-void deep_copy(data::GeneralMolecules<A>& dst, const data::GeneralMolecules<B>& src)
+template <class DEVICE_TYPE_A, bool DEVICE_A, class DEVICE_TYPE_B, bool DEVICE_B>
+void deep_copy(impl::GeneralMolecules<DEVICE_TYPE_A, DEVICE_A>& dst,
+               const impl::GeneralMolecules<DEVICE_TYPE_B, DEVICE_B>& src)
 {
     dst.numLocalMolecules = src.numLocalMolecules;
     dst.numGhostMolecules = src.numGhostMolecules;
@@ -147,9 +145,20 @@ void deep_copy(data::GeneralMolecules<A>& dst, const data::GeneralMolecules<B>& 
     dst.sliceAll();
 }
 
-using HostMolecules = GeneralMolecules<HostType>;
-using DeviceMolecules = GeneralMolecules<DeviceType>;
+namespace impl
+{
+template <class DEVICE_TYPE, bool DEVICE>
+template <class DEVICE_TYPE_SRC, bool DEVICE_SRC>
+GeneralMolecules<DEVICE_TYPE, DEVICE>::GeneralMolecules(
+    const GeneralMolecules<DEVICE_TYPE_SRC, DEVICE_SRC>& molecules)
+    : molecules_("molecules", molecules.size())
+{
+    deep_copy(*this, molecules);
+}
+}  // namespace impl
+
+using HostMolecules = impl::GeneralMolecules<HostType, false>;
+using DeviceMolecules = impl::GeneralMolecules<DeviceType, true>;
 using Molecules = DeviceMolecules;
 
-}  // namespace data
-}  // namespace mrmd
+}  // namespace mrmd::data
