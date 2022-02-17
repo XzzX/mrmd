@@ -43,6 +43,7 @@ public:
 
     KOKKOS_FORCEINLINE_FUNCTION pos_t getPos() const { return pos; }
     KOKKOS_FORCEINLINE_FUNCTION force_t getForce() const { return force; }
+    void setForce(const real_t& val) const { Cabana::deep_copy(force, val); }
     KOKKOS_FORCEINLINE_FUNCTION lambda_t getLambda() const { return lambda; }
     KOKKOS_FORCEINLINE_FUNCTION modulated_lambda_t getModulatedLambda() const
     {
