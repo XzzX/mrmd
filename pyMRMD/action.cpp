@@ -2,9 +2,13 @@
 
 #include <pybind11/stl.h>
 
+#include <action/ContributeMoleculeForceToAtoms.hpp>
 #include <action/LangevinThermostat.hpp>
 #include <action/LennardJones.hpp>
+#include <action/UpdateMolecules.hpp>
 #include <action/VelocityVerlet.hpp>
+#include <weighting_function/Slab.hpp>
+#include <weighting_function/Spherical.hpp>
 
 namespace py = pybind11;
 
@@ -30,6 +34,13 @@ void init_action(py::module_& m)
         .def("get_energy", &action::LennardJones::getEnergy)
         .def("get_virial", &action::LennardJones::getVirial)
         .def("apply", &action::LennardJones::apply);
+
+    auto contrib = m.def_submodule("contribute_molecule_force_to_atoms", "");
+    contrib.def("update", &action::ContributeMoleculeForceToAtoms::update);
+
+    auto um = m.def_submodule("update_molecules", "");
+    um.def("update", &action::UpdateMolecules::update<weighting_function::Slab>);
+    //    um.def("update", &action::UpdateMolecules::update<weighting_function::Spherical>);
 
     auto vv = m.def_submodule("velocity_verlet", "");
     vv.def("pre_force_integrate", &action::VelocityVerlet::preForceIntegrate);

@@ -9,6 +9,7 @@
 #include "data.hpp"
 #include "io.hpp"
 #include "util.hpp"
+#include "weighting_function.hpp"
 
 namespace py = pybind11;
 PYBIND11_MODULE(pyMRMD, m)
@@ -38,4 +39,7 @@ PYBIND11_MODULE(pyMRMD, m)
 
     auto util = m.def_submodule("util", "");
     init_util(util);
+
+    auto weighting_function = m.def_submodule("weighting_function", "");
+    init_weighting_function(weighting_function);
 }

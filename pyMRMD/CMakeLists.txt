@@ -17,7 +17,8 @@ add_library(pyMRMD MODULE
         communication.cpp
         data.cpp
         io.cpp
-        util.cpp)
+        util.cpp
+        weighting_function.cpp)
 target_link_libraries(pyMRMD PRIVATE mrmd)
 target_link_libraries(pyMRMD PRIVATE pybind11::module pybind11::lto pybind11::windows_extras)
 

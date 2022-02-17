@@ -6,6 +6,8 @@
 #include <assert/assert.hpp>
 #include <data/Atoms.hpp>
 #include <data/MPIInfo.hpp>
+#include <data/Molecules.hpp>
+#include <data/MoleculesFromAtoms.hpp>
 #include <data/Subdomain.hpp>
 
 namespace py = pybind11;
@@ -63,12 +65,35 @@ void init_atoms(py::module_ &m, const char *className)
         .def_readwrite("num_ghost_atoms", &ATOMS_T::numGhostAtoms);
 }
 
+template <class MOLECULES_T>
+void init_molecules(py::module_ &m, const char *className)
+{
+    using namespace mrmd;
+
+    py::class_<MOLECULES_T>(m, className)
+        .def(py::init<const idx_t>())
+        .def(py::init<const data::DeviceMolecules &>())
+        .def(py::init<const data::HostMolecules &>())
+        .def("get_pos", &MOLECULES_T::getPos)
+        .def("get_force", &MOLECULES_T::getForce)
+        .def("get_pos_np",
+             [](const MOLECULES_T &molecules) { return getNPArray(molecules.getPos()); })
+        .def("get_force_np",
+             [](const MOLECULES_T &molecules) { return getNPArray(molecules.getForce()); })
+        .def("set_force", &MOLECULES_T::setForce)
+        .def_readwrite("num_local_atoms", &MOLECULES_T::numLocalMolecules)
+        .def_readwrite("num_ghost_atoms", &MOLECULES_T::numGhostMolecules);
+}
+
 void init_data(py::module_ &m)
 {
     using namespace mrmd;
 
     init_atoms<data::DeviceAtoms>(m, "DeviceAtoms");
     init_atoms<data::HostAtoms>(m, "HostAtoms");
+
+    init_molecules<data::DeviceMolecules>(m, "DeviceMolecules");
+    init_molecules<data::HostMolecules>(m, "HostMolecules");
 
     py::class_<data::MPIInfo>(m, "MPIInfo")
         .def(py::init<>())
@@ -86,4 +111,6 @@ void init_data(py::module_ &m)
         .def_readonly("max_inner_corner", &data::Subdomain::maxInnerCorner)
         .def_readonly("diameter", &data::Subdomain::diameter)
         .def_readonly("diameter_with_ghost_layer", &data::Subdomain::diameterWithGhostLayer);
+
+    m.def("create_molecule_for_each_atom", &data::createMoleculeForEachAtom);
 }
