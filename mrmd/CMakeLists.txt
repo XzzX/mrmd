@@ -15,8 +15,8 @@ target_link_libraries(mrmd
         PRIVATE fmt::fmt
         PUBLIC hdf5::hdf5 hdf5::hdf5_hl)
 target_include_directories(mrmd
-        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-        PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 if (MRMD_WERROR)
     target_compile_options(mrmd PRIVATE "-Werror")
@@ -51,6 +51,20 @@ if (CMAKE_CXX_COMPILER_ID MATCHES Intel)
         #target_compile_options(mrmd PRIVATE -Rpass=loop-vectorize -Rpass-missed=loop-vectorize -Rpass-analysis=loop-vectorize)
     endif ()
 endif ()
+
+install(TARGETS mrmd
+        EXPORT mrmd-export
+        )
+install(EXPORT mrmd-export
+        NAMESPACE mrmd::
+        DESTINATION lib/cmake/mrmd
+        FILE mrmdTargets.cmake
+        )
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        TYPE INCLUDE
+        FILES_MATCHING PATTERN "*.hpp")
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/mrmdConfig.cmake
+        DESTINATION lib/cmake/mrmd)
 
 if (BUILD_TESTING AND MRMD_ENABLE_TESTING)
     add_library(mrmd_test_main gtest_main.test.cpp)

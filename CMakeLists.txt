@@ -65,6 +65,7 @@ FetchContent_MakeAvailable(CLI11)
 get_target_property(TMP CLI11 INTERFACE_INCLUDE_DIRECTORIES)
 set_target_properties(CLI11 PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
 
+option(FMT_INSTALL "Enable install for fmt project" ON)
 FetchContent_Declare(
         FMT
         GIT_REPOSITORY https://github.com/fmtlib/fmt.git
