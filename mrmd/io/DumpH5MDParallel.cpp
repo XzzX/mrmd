@@ -5,10 +5,75 @@
 #include <numeric>
 
 #include "assert/assert.hpp"
+#include "hdf5.hpp"
 #include "version.hpp"
 
 namespace mrmd::io
 {
+
+namespace impl
+{
+class DumpH5MDParallel
+{
+public:
+    DumpH5MDParallel(const std::shared_ptr<data::MPIInfo>& mpiInfo,
+                     const std::string& author,
+                     const std::string& particleGroupName = "atoms")
+        : mpiInfo_(mpiInfo), author_(author), particleGroupName_(particleGroupName)
+    {
+    }
+
+    void dump(const std::string& filename,
+              const data::Subdomain& subdomain,
+              const data::Atoms& atoms);
+
+    bool dumpPos = true;
+    bool dumpVel = true;
+    bool dumpForce = true;
+    bool dumpType = true;
+    bool dumpMass = true;
+    bool dumpCharge = true;
+    bool dumpRelativeMass = true;
+
+    std::string posDataset = "pos";
+    std::string velDataset = "vel";
+    std::string forceDataset = "force";
+    std::string typeDataset = "type";
+    std::string massDataset = "mass";
+    std::string chargeDataset = "charge";
+    std::string relativeMassDataset = "relativeMass";
+
+private:
+    void updateCache(const data::HostAtoms& atoms);
+
+    void writeHeader(hid_t fileId) const;
+    void writeBox(hid_t fileId, const data::Subdomain& subdomain);
+    void writePos(hid_t fileId, const data::HostAtoms& atoms);
+    void writeVel(hid_t fileId, const data::HostAtoms& atoms);
+    void writeForce(hid_t fileId, const data::HostAtoms& atoms);
+    void writeType(hid_t fileId, const data::HostAtoms& atoms);
+    void writeMass(hid_t fileId, const data::HostAtoms& atoms);
+    void writeCharge(hid_t fileId, const data::HostAtoms& atoms);
+    void writeRelativeMass(hid_t fileId, const data::HostAtoms& atoms);
+
+    template <typename T>
+    void writeParallel(hid_t fileId,
+                       const std::string& name,
+                       const std::vector<hsize_t>& globalDims,
+                       const std::vector<hsize_t>& localDims,
+                       const std::vector<T>& data);
+
+    std::shared_ptr<data::MPIInfo> mpiInfo_;
+
+    std::string author_ = "xxx";
+    std::string particleGroupName_ = "atoms";
+
+    int64_t numLocalParticles = -1;
+    int64_t numTotalParticles = -1;
+    /// Offset of the local particle chunk in the global particle array.
+    int64_t particleOffset = -1;
+};
+
 template <typename T>
 void DumpH5MDParallel::writeParallel(hid_t fileId,
                                      const std::string& name,
@@ -411,6 +476,16 @@ void DumpH5MDParallel::dump(const std::string& filename,
     CHECK_HDF5(H5Gclose(group2));
 
     CHECK_HDF5(H5Fclose(file_id));
+}
+
+}  // namespace impl
+
+void DumpH5MDParallel::dump(const std::string& filename,
+                            const data::Subdomain& subdomain,
+                            const data::Atoms& atoms)
+{
+    impl::DumpH5MDParallel helper(mpiInfo_, author_, particleGroupName_);
+    helper.dump(filename, subdomain, atoms);
 }
 
 }  // namespace mrmd::io
