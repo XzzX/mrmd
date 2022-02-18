@@ -14,10 +14,10 @@ namespace mrmd::io
 class DumpH5MDParallel
 {
 public:
-    DumpH5MDParallel(const std::shared_ptr<data::MPIInfo>& mpiInfo,
-                     const std::string& author,
-                     const std::string& particleGroupName = "atoms")
-        : mpiInfo_(mpiInfo), author_(author), particleGroupName_(particleGroupName)
+    DumpH5MDParallel(const std::shared_ptr<data::MPIInfo>& mpiInfoArg,
+                     const std::string& authorArg,
+                     const std::string& particleGroupNameArg = "atoms")
+        : mpiInfo(mpiInfoArg), author(authorArg), particleGroupName(particleGroupNameArg)
     {
     }
 
@@ -41,11 +41,10 @@ public:
     std::string chargeDataset = "charge";
     std::string relativeMassDataset = "relativeMass";
 
-private:
-    std::shared_ptr<data::MPIInfo> mpiInfo_;
+    std::shared_ptr<data::MPIInfo> mpiInfo;
 
-    std::string author_ = "xxx";
-    std::string particleGroupName_ = "atoms";
+    std::string author = "xxx";
+    std::string particleGroupName = "atoms";
 };
 
 }  // namespace mrmd::io
