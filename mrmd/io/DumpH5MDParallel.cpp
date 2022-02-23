@@ -42,7 +42,7 @@ private:
     void updateCache(const data::HostAtoms& atoms);
 
     void writeHeader(hid_t fileId) const;
-    void writeBox(hid_t fileId, const data::Subdomain& subdomain);
+    void writeBox(hid_t fileId, const data::Subdomain& subdomain) const;
     void writePos(hid_t fileId, const data::HostAtoms& atoms);
     void writeVel(hid_t fileId, const data::HostAtoms& atoms);
     void writeForce(hid_t fileId, const data::HostAtoms& atoms);
@@ -137,7 +137,7 @@ void DumpH5MDParallelImpl::writeHeader(hid_t fileId) const
     CHECK_HDF5(H5LTset_attribute_string(fileId, "/h5md/creator", "version", MRMD_VERSION.c_str()));
 }
 
-void DumpH5MDParallelImpl::writeBox(hid_t fileId, const data::Subdomain& subdomain)
+void DumpH5MDParallelImpl::writeBox(hid_t fileId, const data::Subdomain& subdomain) const
 {
     std::string groupName = "/particles/" + config_.particleGroupName + "/box";
     auto group =
