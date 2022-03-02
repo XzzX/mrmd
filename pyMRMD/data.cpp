@@ -1,6 +1,7 @@
 #include "data.hpp"
 
 #include <pybind11/numpy.h>
+#include <pybind11/operators.h>
 #include <pybind11/stl.h>
 
 #include <assert/assert.hpp>
@@ -8,6 +9,7 @@
 #include <data/MPIInfo.hpp>
 #include <data/Molecules.hpp>
 #include <data/MoleculesFromAtoms.hpp>
+#include <data/MultiHistogram.hpp>
 #include <data/Subdomain.hpp>
 
 namespace py = pybind11;
@@ -99,6 +101,16 @@ void init_data(py::module_ &m)
         .def(py::init<>())
         .def_readonly("rank", &data::MPIInfo::rank)
         .def_readonly("size", &data::MPIInfo::size);
+
+    py::class_<data::MultiHistogram>(m, "MultiHistogram")
+        .def(py::init<const std::string &, const real_t, const real_t, idx_t, idx_t>())
+        .def(py::self += py::self)
+        .def(py::self /= py::self)
+        .def("scale", py::overload_cast<const real_t &>(&data::MultiHistogram::scale))
+        .def("makeSymmetric", &data::MultiHistogram::makeSymmetric);
+    m.def("cumulativeMovingAverage", &data::cumulativeMovingAverage);
+    m.def("gradient", &data::gradient);
+    m.def("smoothen", &data::smoothen);
 
     py::class_<data::Subdomain>(m, "Subdomain")
         .def(py::init<const std::array<real_t, 3> &, const std::array<real_t, 3> &, real_t>())
