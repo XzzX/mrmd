@@ -55,12 +55,14 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
 
         if ((step > 200) && (step % config["barostat_interval"].as<int64_t>() == 0))
         {
-            action::BerendsenBarostat::apply<false, true, false>(
-                atoms,
-                currentPressure,
-                config["target_pressure"].as<real_t>(),
-                config["pressure_relaxation_coefficient"].as<real_t>(),
-                subdomain);
+            action::BerendsenBarostat::apply(atoms,
+                                             currentPressure,
+                                             config["target_pressure"].as<real_t>(),
+                                             config["pressure_relaxation_coefficient"].as<real_t>(),
+                                             subdomain,
+                                             false,
+                                             true,
+                                             false);
             volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
             maxAtomDisplacement = std::numeric_limits<real_t>::max();
         }

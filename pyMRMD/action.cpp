@@ -2,6 +2,7 @@
 
 #include <pybind11/stl.h>
 
+#include <action/BerendsenBarostat.hpp>
 #include <action/BerendsenThermostat.hpp>
 #include <action/ContributeMoleculeForceToAtoms.hpp>
 #include <action/LangevinThermostat.hpp>
@@ -62,6 +63,9 @@ void init_action(py::module_& m)
 
     auto berendsen_thermostat = m.def_submodule("BerendsenThermostat", "");
     berendsen_thermostat.def("apply", &action::BerendsenThermostat::apply);
+
+    auto berendsen_barostat = m.def_submodule("BerendsenBarostat", "");
+    berendsen_barostat.def("apply", &action::BerendsenBarostat::apply);
 
     auto contrib = m.def_submodule("contribute_molecule_force_to_atoms", "");
     contrib.def("update", &action::ContributeMoleculeForceToAtoms::update);
