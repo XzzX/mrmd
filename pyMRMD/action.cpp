@@ -5,6 +5,7 @@
 #include <action/ContributeMoleculeForceToAtoms.hpp>
 #include <action/LangevinThermostat.hpp>
 #include <action/LennardJones.hpp>
+#include <action/ThermodynamicForce.hpp>
 #include <action/UpdateMolecules.hpp>
 #include <action/VelocityVerlet.hpp>
 #include <weighting_function/Slab.hpp>
@@ -34,6 +35,29 @@ void init_action(py::module_& m)
         .def("get_energy", &action::LennardJones::getEnergy)
         .def("get_virial", &action::LennardJones::getVirial)
         .def("apply", &action::LennardJones::apply);
+
+    py::class_<action::ThermodynamicForce>(m, "ThermodynamicForce")
+        .def(py::init<const std::vector<real_t>&,
+                      const data::Subdomain&,
+                      const real_t&,
+                      const std::vector<real_t>&,
+                      const bool,
+                      const bool>())
+        .def(py::init<const real_t,
+                      const data::Subdomain&,
+                      const real_t&,
+                      const real_t,
+                      const bool,
+                      const bool>())
+        .def("sample", &action::ThermodynamicForce::sample)
+        .def("update", &action::ThermodynamicForce::update)
+        .def("apply",
+             static_cast<void (action::ThermodynamicForce::*)(const data::Atoms&) const>(
+                 &action::ThermodynamicForce::apply))
+        .def("apply",
+             static_cast<void (action::ThermodynamicForce::*)(
+                 const data::Atoms&, const weighting_function::Slab&) const>(
+                 &action::ThermodynamicForce::apply));
 
     auto contrib = m.def_submodule("contribute_molecule_force_to_atoms", "");
     contrib.def("update", &action::ContributeMoleculeForceToAtoms::update);
