@@ -2,6 +2,7 @@
 
 #include <pybind11/stl.h>
 
+#include <action/BerendsenThermostat.hpp>
 #include <action/ContributeMoleculeForceToAtoms.hpp>
 #include <action/LangevinThermostat.hpp>
 #include <action/LennardJones.hpp>
@@ -58,6 +59,9 @@ void init_action(py::module_& m)
              static_cast<void (action::ThermodynamicForce::*)(
                  const data::Atoms&, const weighting_function::Slab&) const>(
                  &action::ThermodynamicForce::apply));
+
+    auto berendsen_thermostat = m.def_submodule("BerendsenThermostat", "");
+    berendsen_thermostat.def("apply", &action::BerendsenThermostat::apply);
 
     auto contrib = m.def_submodule("contribute_molecule_force_to_atoms", "");
     contrib.def("update", &action::ContributeMoleculeForceToAtoms::update);
