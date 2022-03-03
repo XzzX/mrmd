@@ -5,6 +5,7 @@
 #include <action/BerendsenBarostat.hpp>
 #include <action/BerendsenThermostat.hpp>
 #include <action/ContributeMoleculeForceToAtoms.hpp>
+#include <action/LJ_IdealGas.hpp>
 #include <action/LangevinThermostat.hpp>
 #include <action/LennardJones.hpp>
 #include <action/ThermodynamicForce.hpp>
@@ -37,6 +38,21 @@ void init_action(py::module_& m)
         .def("get_energy", &action::LennardJones::getEnergy)
         .def("get_virial", &action::LennardJones::getVirial)
         .def("apply", &action::LennardJones::apply);
+
+    py::class_<action::LJ_IdealGas>(m, "LJ_IdealGas")
+        .def("setCompensationEnergySamplingInterval",
+             &action::LJ_IdealGas::setCompensationEnergySamplingInterval)
+        .def("setCompensationEnergyUpdateInterval",
+             &action::LJ_IdealGas::setCompensationEnergyUpdateInterval)
+        .def("getMeanCompensationEnergy", &action::LJ_IdealGas::getMeanCompensationEnergy)
+        .def("run", &action::LJ_IdealGas::run)
+        .def(py::init<const real_t&, const real_t&, const real_t&, const real_t&, const bool>())
+        .def(py::init<const std::vector<real_t>&,
+                      const std::vector<real_t>&,
+                      const std::vector<real_t>&,
+                      const std::vector<real_t>&,
+                      const idx_t,
+                      const bool>());
 
     py::class_<action::ThermodynamicForce>(m, "ThermodynamicForce")
         .def(py::init<const std::vector<real_t>&,
