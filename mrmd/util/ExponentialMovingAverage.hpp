@@ -21,7 +21,8 @@ public:
     {
     }
 
-    operator real_t() const { return val_; }
+    inline operator real_t() const { return toReal(); }
+    inline real_t toReal() const { return val_; }
 
     void append(const real_t& val)
     {
