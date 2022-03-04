@@ -77,10 +77,10 @@ void init_action(py::module_& m)
                  const data::Atoms&, const weighting_function::Slab&) const>(
                  &action::ThermodynamicForce::apply));
 
-    auto berendsen_thermostat = m.def_submodule("BerendsenThermostat", "");
+    auto berendsen_thermostat = m.def_submodule("berendsen_thermostat", "");
     berendsen_thermostat.def("apply", &action::BerendsenThermostat::apply);
 
-    auto berendsen_barostat = m.def_submodule("BerendsenBarostat", "");
+    auto berendsen_barostat = m.def_submodule("berendsen_barostat", "");
     berendsen_barostat.def("apply", &action::BerendsenBarostat::apply);
 
     auto contrib = m.def_submodule("contribute_molecule_force_to_atoms", "");

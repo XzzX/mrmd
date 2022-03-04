@@ -12,7 +12,7 @@ void init_util(py::module_ &m)
     py::class_<util::ExponentialMovingAverage>(m, "ExponentialMovingAverage")
         .def(py::init<const real_t &>())
         .def("append", &util::ExponentialMovingAverage::append)
-        .def("toReal", &util::ExponentialMovingAverage::toReal);
+        .def("to_real", &util::ExponentialMovingAverage::toReal);
 
     py::class_<Kokkos::Timer>(m, "Timer")
         .def(py::init<>())
