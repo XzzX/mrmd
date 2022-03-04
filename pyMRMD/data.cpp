@@ -97,7 +97,7 @@ void init_data(py::module_ &m)
     init_molecules<data::DeviceMolecules>(m, "DeviceMolecules");
     init_molecules<data::HostMolecules>(m, "HostMolecules");
 
-    py::class_<data::MPIInfo>(m, "MPIInfo")
+    py::class_<data::MPIInfo, std::shared_ptr<data::MPIInfo>>(m, "MPIInfo")
         .def(py::init<>())
         .def_readonly("rank", &data::MPIInfo::rank)
         .def_readonly("size", &data::MPIInfo::size);
