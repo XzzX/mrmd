@@ -113,6 +113,7 @@ void init_data(py::module_ &m)
     m.def("smoothen", &data::smoothen);
 
     py::class_<data::Subdomain>(m, "Subdomain")
+        .def(py::init<>())
         .def(py::init<const std::array<real_t, 3> &, const std::array<real_t, 3> &, real_t>())
         .def_readonly("min_corner", &data::Subdomain::minCorner)
         .def_readonly("max_corner", &data::Subdomain::maxCorner)
