@@ -49,6 +49,9 @@ public:
     void apply(const data::Atoms& atoms) const;
     void apply(const data::Atoms& atoms, const weighting_function::Slab& slab) const;
 
+    std::vector<real_t> getMuLeft() const;
+    std::vector<real_t> getMuRight() const;
+
     ThermodynamicForce(const std::vector<real_t>& targetDensity,
                        const data::Subdomain& subdomain,
                        const real_t& requestedDensityBinWidth,

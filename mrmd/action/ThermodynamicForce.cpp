@@ -143,5 +143,39 @@ void ThermodynamicForce::apply(const data::Atoms& atoms, const weighting_functio
     Kokkos::fence();
 }
 
+std::vector<real_t> ThermodynamicForce::getMuLeft() const
+{
+    auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), getForce().data);
+
+    std::vector<real_t> muLeft(numTypes_, 0_r);
+    for (auto typeId = 0; typeId < numTypes_; ++typeId)
+    {
+        for (size_t i = 0; i < Fth.extent(0) / 2; ++i)
+        {
+            muLeft[typeId] += Fth(i, typeId);
+        }
+        muLeft[typeId] *= getForce().binSize;
+    }
+
+    return muLeft;
+}
+
+std::vector<real_t> ThermodynamicForce::getMuRight() const
+{
+    auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), getForce().data);
+
+    std::vector<real_t> muLeft(numTypes_, 0_r);
+    for (auto typeId = 0; typeId < numTypes_; ++typeId)
+    {
+        for (size_t i = Fth.extent(0) / 2; i < Fth.extent(0); ++i)
+        {
+            muLeft[typeId] += Fth(i, typeId);
+        }
+        muLeft[typeId] *= getForce().binSize;
+    }
+
+    return muLeft;
+}
+
 }  // namespace action
 }  // namespace mrmd
