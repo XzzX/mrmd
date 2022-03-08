@@ -1,6 +1,7 @@
+#include "NVT.hpp"
+
 #include <fmt/format.h>
 
-#include "NPT.hpp"
 #include "action/BerendsenThermostat.hpp"
 #include "action/LennardJones.hpp"
 #include "action/VelocityVerlet.hpp"
