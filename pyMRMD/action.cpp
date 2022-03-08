@@ -40,11 +40,11 @@ void init_action(py::module_& m)
         .def("apply", &action::LennardJones::apply);
 
     py::class_<action::LJ_IdealGas>(m, "LJ_IdealGas")
-        .def("setCompensationEnergySamplingInterval",
+        .def("set_compensation_energy_sampling_interval",
              &action::LJ_IdealGas::setCompensationEnergySamplingInterval)
-        .def("setCompensationEnergyUpdateInterval",
+        .def("set_compensation_energy_update_interval",
              &action::LJ_IdealGas::setCompensationEnergyUpdateInterval)
-        .def("getMeanCompensationEnergy", &action::LJ_IdealGas::getMeanCompensationEnergy)
+        .def("get_mean_compensation_energy", &action::LJ_IdealGas::getMeanCompensationEnergy)
         .def("run", &action::LJ_IdealGas::run)
         .def(py::init<const real_t&, const real_t&, const real_t&, const real_t&, const bool>())
         .def(py::init<const std::vector<real_t>&,
@@ -67,6 +67,9 @@ void init_action(py::module_& m)
                       const real_t,
                       const bool,
                       const bool>())
+        .def("get_density_profile",
+             static_cast<data::MultiHistogram (action::ThermodynamicForce::*)() const>(
+                 &action::ThermodynamicForce::getDensityProfile))
         .def("sample", &action::ThermodynamicForce::sample)
         .def("update", &action::ThermodynamicForce::update)
         .def("apply",
@@ -75,7 +78,9 @@ void init_action(py::module_& m)
         .def("apply",
              static_cast<void (action::ThermodynamicForce::*)(
                  const data::Atoms&, const weighting_function::Slab&) const>(
-                 &action::ThermodynamicForce::apply));
+                 &action::ThermodynamicForce::apply))
+        .def("get_mu_left", &action::ThermodynamicForce::getMuLeft)
+        .def("get_mu_right", &action::ThermodynamicForce::getMuRight);
 
     auto berendsen_thermostat = m.def_submodule("berendsen_thermostat", "");
     berendsen_thermostat.def("apply", &action::BerendsenThermostat::apply);

@@ -1,5 +1,6 @@
 #include <pybind11/pybind11.h>
 
+#include <datatypes.hpp>
 #include <initialization.hpp>
 
 #include "action.hpp"
@@ -14,10 +15,16 @@
 namespace py = pybind11;
 PYBIND11_MODULE(pyMRMD, m)
 {
+    using namespace mrmd;
+
     m.doc() = "MRMD Python Wrapper";
 
     m.def("initialize", py::overload_cast<>(&mrmd::initialize), "");
     m.def("finalize", &mrmd::finalize, "");
+
+    m.attr("COORD_X") = COORD_X;
+    m.attr("COORD_Y") = COORD_Y;
+    m.attr("COORD_Z") = COORD_Z;
 
     auto action = m.def_submodule("action", "");
     init_action(action);
