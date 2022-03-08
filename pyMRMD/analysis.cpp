@@ -16,7 +16,7 @@ void init_analysis(py::module_ &m)
     m.def("get_kinetic_energy", &analysis::getKineticEnergy);
     m.def("get_mean_kinetic_energy", &analysis::getMeanKineticEnergy);
     m.def("get_pressure", &analysis::getPressure);
-    m.def("",
+    m.def("get_axial_density_profile",
           [](const idx_t numAtoms,
              const data::Atoms &atoms,
              const int64_t numTypes,
