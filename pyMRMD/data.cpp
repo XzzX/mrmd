@@ -107,7 +107,14 @@ void init_data(py::module_ &m)
         .def(py::self += py::self)
         .def(py::self /= py::self)
         .def("scale", py::overload_cast<const real_t &>(&data::MultiHistogram::scale))
-        .def("makeSymmetric", &data::MultiHistogram::makeSymmetric);
+        .def("makeSymmetric", &data::MultiHistogram::makeSymmetric)
+        .def_readonly("min", &data::MultiHistogram::min)
+        .def_readonly("max", &data::MultiHistogram::max)
+        .def_readonly("numBins", &data::MultiHistogram::numBins)
+        .def_readonly("numHistograms", &data::MultiHistogram::numHistograms)
+        .def_readonly("binSize", &data::MultiHistogram::binSize)
+        .def_readonly("inverseBinSize", &data::MultiHistogram::inverseBinSize);
+    
     m.def("cumulativeMovingAverage", &data::cumulativeMovingAverage);
     m.def("gradient", &data::gradient);
     m.def("smoothen", &data::smoothen);
