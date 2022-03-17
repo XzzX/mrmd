@@ -20,7 +20,7 @@ add_library(pyMRMD MODULE
         util.cpp
         weighting_function.cpp)
 target_link_libraries(pyMRMD PRIVATE mrmd)
-target_link_libraries(pyMRMD PRIVATE pybind11::module pybind11::lto pybind11::windows_extras)
+target_link_libraries(pyMRMD PRIVATE pybind11::module pybind11::windows_extras)
 
 pybind11_extension(pyMRMD)
 pybind11_strip(pyMRMD)
