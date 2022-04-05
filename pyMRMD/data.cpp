@@ -104,8 +104,6 @@ void init_data(py::module_ &m)
 
     py::class_<data::MultiHistogram>(m, "MultiHistogram")
         .def(py::init<const std::string &, const real_t, const real_t, idx_t, idx_t>())
-        .def(py::self += py::self)
-        .def(py::self /= py::self)
         .def("scale", py::overload_cast<const real_t &>(&data::MultiHistogram::scale))
         .def("makeSymmetric", &data::MultiHistogram::makeSymmetric)
         .def_readonly("min", &data::MultiHistogram::min)
