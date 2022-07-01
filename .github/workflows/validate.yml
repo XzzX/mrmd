@@ -22,7 +22,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: 'kokkos/kokkos'
           ref: 'master'
@@ -47,7 +47,7 @@ jobs:
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: 'mrmd'
 
@@ -82,7 +82,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: 'kokkos/kokkos'
           ref: 'master'
@@ -104,7 +104,7 @@ jobs:
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: 'mrmd'
 
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     container: xzzx/devel:clang
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: 'kokkos/kokkos'
           path: 'kokkos'
@@ -144,7 +144,7 @@ jobs:
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: 'kokkos/kokkos-tools'
           path: 'kokkos-tools'
@@ -157,7 +157,7 @@ jobs:
         working-directory: kokkos-tools/profiling/simple-kernel-timer-json
         run: make
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: 'mrmd'
 
@@ -181,7 +181,7 @@ jobs:
           OMP_NUM_THREADS: 2
         run: ./LennardJones
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v3
         with:
           name: performance-data
           path: |
@@ -193,7 +193,7 @@ jobs:
     runs-on: ubuntu-latest
     container: xzzx/devel:clang
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: 'kokkos/kokkos'
           ref: 'master'
@@ -205,7 +205,7 @@ jobs:
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: run formatter
         run: ./format.sh
@@ -217,7 +217,7 @@ jobs:
     runs-on: ubuntu-latest
     container: xzzx/devel:clang
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: 'kokkos/kokkos'
           ref: 'master'
@@ -229,7 +229,7 @@ jobs:
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: 'mrmd'
 
