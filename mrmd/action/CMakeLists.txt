@@ -28,6 +28,9 @@ mrmd_add_test(NAME test.action.LJ_IdealGas
 mrmd_add_test(NAME test.action.Shake
         FILES Shake.test.cpp)
 
+mrmd_add_test(NAME test.action.SPC
+        FILES SPC.test.cpp)
+
 mrmd_add_test(NAME test.action.UpdateMolecules
         FILES UpdateMolecules.test.cpp)
 
