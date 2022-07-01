@@ -34,8 +34,7 @@ idx_t countWithinCutoff(data::Atoms& atoms,
     idx_t count = 0;
     Kokkos::parallel_reduce(
         Kokkos::RangePolicy<>(0, atoms.numLocalAtoms),
-        KOKKOS_LAMBDA(const idx_t idx, idx_t& sum)
-        {
+        KOKKOS_LAMBDA(const idx_t idx, idx_t& sum) {
             for (auto jdx = idx + 1; jdx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++jdx)
             {
                 auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
@@ -56,7 +55,7 @@ idx_t countWithinCutoff(data::Atoms& atoms,
     return count;
 }
 
-size_t countPairs(VerletList& vl)
+size_t countPairs(HalfVerletList& vl)
 {
     size_t vlAtomPairs = 0;
     Kokkos::parallel_reduce(
@@ -96,13 +95,13 @@ TEST(LennardJones, ESPPComparison)
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
     double cell_ratio = 1.0_r;
-    VerletList verlet_list(atoms.getPos(),
-                           0,
-                           atoms.numLocalAtoms,
-                           rc + skin,
-                           cell_ratio,
-                           subdomain.minGhostCorner.data(),
-                           subdomain.maxGhostCorner.data());
+    HalfVerletList verlet_list(atoms.getPos(),
+                               0,
+                               atoms.numLocalAtoms,
+                               rc + skin,
+                               cell_ratio,
+                               subdomain.minGhostCorner.data(),
+                               subdomain.maxGhostCorner.data());
 
     size_t vlAtomPairs = countPairs(verlet_list);
     EXPECT_EQ(vlAtomPairs, ESPP_NEIGHBORS);

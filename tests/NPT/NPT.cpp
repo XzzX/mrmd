@@ -110,7 +110,7 @@ protected:
     communication::GhostLayer ghostLayer;
     action::LennardJones LJ = action::LennardJones(0_r, 0_r, 0_r, 0_r);
 
-    VerletList verletList;
+    HalfVerletList verletList;
 
 public:
     NPT()

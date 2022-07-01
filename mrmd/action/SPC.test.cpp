@@ -112,7 +112,7 @@ protected:
 
     data::Molecules molecules = data::Molecules(1);
     data::Atoms atoms = data::Atoms(1);
-    VerletList moleculesVerletList;
+    HalfVerletList moleculesVerletList;
 };
 
 TEST_F(SPC_Test, CHECK_CONSTRAINTS)

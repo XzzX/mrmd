@@ -82,7 +82,7 @@ private:
 
     bool isDriftCompensationSamplingRun_ = false;
 
-    VerletList verletList_;
+    HalfVerletList verletList_;
 
     idx_t runCounter_ = 0;
 
@@ -136,11 +136,11 @@ public:
                                            const idx_t& alpha,
                                            impl::Energy& sumEnergy) const
     {
-        const auto numNeighbors = idx_c(NeighborList::numNeighbor(verletList_, alpha));
+        const auto numNeighbors = idx_c(HalfNeighborList::numNeighbor(verletList_, alpha));
         for (idx_t n = 0; n < numNeighbors; ++n)
         {
             /// second molecule index
-            const idx_t beta = idx_c(NeighborList::getNeighbor(verletList_, alpha, n));
+            const idx_t beta = idx_c(HalfNeighborList::getNeighbor(verletList_, alpha, n));
             assert(0 <= beta);
 
             /// inclusive start index of atoms belonging to alpha
@@ -243,7 +243,7 @@ public:
         moleculeConstraints.enforceVelocityConstraints(molecules, atoms, dt);
     }
 
-    void applyForces(data::Molecules& molecules, VerletList& verletList, data::Atoms& atoms)
+    void applyForces(data::Molecules& molecules, HalfVerletList& verletList, data::Atoms& atoms)
     {
         moleculesPos_ = molecules.getPos();
         moleculesForce_ = molecules.getForce();

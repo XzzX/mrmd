@@ -31,7 +31,7 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
                                    config["LJ"]["epsilon"].as<std::vector<real_t>>(),
                                    2,
                                    true);
-    VerletList verletList;
+    HalfVerletList verletList;
 
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     util::ExponentialMovingAverage currentPressure(

@@ -72,7 +72,7 @@ private:
 
     bool isDriftCompensationSamplingRun_ = false;
 
-    VerletList verletList_;
+    HalfVerletList verletList_;
 
     idx_t runCounter_ = 0;
     idx_t numTypes_;
@@ -123,11 +123,11 @@ public:
         //            assert(endAtomsAlpha <= atoms_.numLocalAtoms +
         //            atoms_.numGhostAtoms);
 
-        const auto numNeighbors = idx_c(NeighborList::numNeighbor(verletList_, alpha));
+        const auto numNeighbors = idx_c(HalfNeighborList::numNeighbor(verletList_, alpha));
         for (idx_t n = 0; n < numNeighbors; ++n)
         {
             /// second molecule index
-            const idx_t beta = idx_c(NeighborList::getNeighbor(verletList_, alpha, n));
+            const idx_t beta = idx_c(HalfNeighborList::getNeighbor(verletList_, alpha, n));
             assert(0 <= beta);
 
             // avoid atomic force contributions to idx in innermost loop
@@ -274,7 +274,7 @@ public:
         moleculesForce_(alpha, 2) += forceTmpAlpha[2];
     }
 
-    real_t run(data::Molecules& molecules, VerletList& verletList, data::Atoms& atoms)
+    real_t run(data::Molecules& molecules, HalfVerletList& verletList, data::Atoms& atoms)
     {
         moleculesPos_ = molecules.getPos();
         moleculesForce_ = molecules.getForce();

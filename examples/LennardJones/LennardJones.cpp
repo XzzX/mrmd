@@ -105,7 +105,7 @@ void LJ(Config& config)
     communication::GhostLayer ghostLayer;
     action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
-    VerletList verletList;
+    HalfVerletList verletList;
     Kokkos::Timer timer;
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;

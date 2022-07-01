@@ -95,7 +95,7 @@ protected:
     communication::GhostLayer ghostLayer;
     action::LennardJones LJ;
 
-    VerletList verletList;
+    HalfVerletList verletList;
 
 public:
     NVT()

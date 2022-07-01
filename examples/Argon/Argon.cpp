@@ -113,7 +113,7 @@ void LJ(Config& config)
     analysis::MeanSquareDisplacement meanSquareDisplacement;
     meanSquareDisplacement.reset(atoms);
     auto msd = 0_r;
-    VerletList verletList;
+    HalfVerletList verletList;
     Kokkos::Timer timer;
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;

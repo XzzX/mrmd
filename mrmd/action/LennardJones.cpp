@@ -2,7 +2,7 @@
 
 namespace mrmd::action
 {
-void LennardJones::apply(data::Atoms& atoms, VerletList& verletList)
+void LennardJones::apply(data::Atoms& atoms, HalfVerletList& verletList)
 {
     energyAndVirial_ = data::EnergyAndVirialReducer();
 

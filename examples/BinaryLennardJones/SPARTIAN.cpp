@@ -45,7 +45,7 @@ void spartian(YAML::Node& config,
         config["compensation_energy_sampling_interval"].as<idx_t>());
     LJ.setCompensationEnergyUpdateInterval(
         config["compensation_energy_update_interval"].as<idx_t>());
-    VerletList verletList;
+    HalfVerletList verletList;
     action::LangevinThermostat thermostat(config["temperature_relaxation_coefficient"].as<real_t>(),
                                           config["target_temperature"].as<real_t>(),
                                           config["dt"].as<real_t>());

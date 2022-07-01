@@ -119,7 +119,7 @@ protected:
     static constexpr real_t eps = 0.001_r;
 
     data::Molecules molecules = data::Molecules(1);
-    VerletList moleculesVerletList;
+    HalfVerletList moleculesVerletList;
     data::Atoms atoms = data::Atoms(1);
 };
 

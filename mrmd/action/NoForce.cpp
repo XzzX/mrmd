@@ -2,7 +2,7 @@
 
 namespace mrmd::action
 {
-void NoForce::apply(data::Atoms& atoms, VerletList& verletList)
+void NoForce::apply(data::Atoms& atoms, HalfVerletList& verletList)
 {
     pos_ = atoms.getPos();
     force_ = atoms.getForce();

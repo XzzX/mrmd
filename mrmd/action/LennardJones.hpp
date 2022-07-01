@@ -137,7 +137,7 @@ private:
     data::Atoms::force_t::atomic_access_slice force_;
     data::Atoms::type_t type_;
 
-    VerletList verletList_;
+    HalfVerletList verletList_;
 
     const idx_t numTypes_;
 
@@ -154,10 +154,10 @@ public:
 
         real_t forceTmp[3] = {0_r, 0_r, 0_r};
 
-        const auto numNeighbors = idx_c(NeighborList::numNeighbor(verletList_, idx));
+        const auto numNeighbors = idx_c(HalfNeighborList::numNeighbor(verletList_, idx));
         for (idx_t n = 0; n < numNeighbors; ++n)
         {
-            idx_t jdx = idx_c(NeighborList::getNeighbor(verletList_, idx, n));
+            idx_t jdx = idx_c(HalfNeighborList::getNeighbor(verletList_, idx, n));
             assert(0 <= jdx);
 
             auto dx = posTmp[0] - pos_(jdx, 0);
@@ -191,7 +191,7 @@ public:
     real_t getEnergy() const { return energyAndVirial_.energy; }
     real_t getVirial() const { return energyAndVirial_.virial; }
 
-    void apply(data::Atoms& atoms, VerletList& verletList);
+    void apply(data::Atoms& atoms, HalfVerletList& verletList);
 
     LennardJones(const real_t rc,
                  const real_t& sigma,

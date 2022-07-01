@@ -77,13 +77,34 @@ void init_cabana(py::module_ &m)
             [](const idx1_t &cls, size_type idx) { return cls(idx); },
             py::return_value_policy::reference);
 
-    py::class_<mrmd::VerletList>(m, "VerletList")
+    py::class_<mrmd::HalfVerletList>(m, "HalfVerletList")
         .def(py::init<>())
-        .def("build", &mrmd::VerletList::build<mrmd::data::Atoms::pos_t>);
+        .def("build", &mrmd::HalfVerletList::build<mrmd::data::Atoms::pos_t>);
+
+    py::class_<mrmd::FullVerletList>(m, "FullVerletList")
+        .def(py::init<>())
+        .def("build", &mrmd::FullVerletList::build<mrmd::data::Atoms::pos_t>);
 
     using namespace mrmd;
     m.def("build_verlet_list",
-          [](VerletList &verletList,
+          [](HalfVerletList &verletList,
+             const data::Atoms &atoms,
+             const data::Subdomain &subdomain,
+             real_t neighborCutoff,
+             real_t cellRatio,
+             idx_t estimatedMaxNeighbors)
+          {
+              verletList.build(atoms.getPos(),
+                               0,
+                               atoms.numLocalAtoms,
+                               neighborCutoff,
+                               cellRatio,
+                               subdomain.minGhostCorner.data(),
+                               subdomain.maxGhostCorner.data(),
+                               estimatedMaxNeighbors);
+          });
+    m.def("build_verlet_list",
+          [](FullVerletList &verletList,
              const data::Atoms &atoms,
              const data::Subdomain &subdomain,
              real_t neighborCutoff,

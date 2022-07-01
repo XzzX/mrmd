@@ -12,7 +12,7 @@ private:
     data::Atoms::force_t::atomic_access_slice force_;
     data::Atoms::type_t type_;
 
-    VerletList verletList_;
+    HalfVerletList verletList_;
 
 public:
     KOKKOS_INLINE_FUNCTION
@@ -32,10 +32,10 @@ public:
 
         real_t forceTmp[3] = {0_r, 0_r, 0_r};
 
-        const auto numNeighbors = idx_c(NeighborList::numNeighbor(verletList_, idx));
+        const auto numNeighbors = idx_c(HalfNeighborList::numNeighbor(verletList_, idx));
         for (idx_t n = 0; n < numNeighbors; ++n)
         {
-            idx_t jdx = idx_c(NeighborList::getNeighbor(verletList_, idx, n));
+            idx_t jdx = idx_c(HalfNeighborList::getNeighbor(verletList_, idx, n));
             assert(0 <= jdx);
 
             auto dx = posTmp[0] - pos_(jdx, 0);
@@ -60,7 +60,7 @@ public:
         force_(idx, 2) += forceTmp[2];
     }
 
-    void apply(data::Atoms& atoms, VerletList& verletList);
+    void apply(data::Atoms& atoms, HalfVerletList& verletList);
 
     NoForce() = default;
 };

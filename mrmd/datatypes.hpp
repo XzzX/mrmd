@@ -130,10 +130,20 @@ using HostType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace,
 using DeviceType =
     Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::DefaultExecutionSpace::memory_space>;
 using LinkedCellList = Cabana::LinkedCellList<DeviceType>;
-using VerletList = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
-                                      Cabana::HalfNeighborTag,
-                                      Cabana::VerletLayout2D,
-                                      Cabana::TeamOpTag>;
-using NeighborList = Cabana::NeighborList<VerletList>;
+using VerletList [[deprecated]] = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
+                                                     Cabana::HalfNeighborTag,
+                                                     Cabana::VerletLayout2D,
+                                                     Cabana::TeamOpTag>;
+using HalfVerletList = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
+                                          Cabana::HalfNeighborTag,
+                                          Cabana::VerletLayout2D,
+                                          Cabana::TeamOpTag>;
+using FullVerletList = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
+                                          Cabana::FullNeighborTag,
+                                          Cabana::VerletLayout2D,
+                                          Cabana::TeamOpTag>;
+using NeighborList [[deprecated]] = Cabana::NeighborList<HalfVerletList>;
+using HalfNeighborList = Cabana::NeighborList<HalfVerletList>;
+using FullNeighborList = Cabana::NeighborList<FullVerletList>;
 
 }  // namespace mrmd

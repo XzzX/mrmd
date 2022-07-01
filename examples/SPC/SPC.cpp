@@ -190,7 +190,7 @@ void SPC(Config& config)
     std::cout << "global molecule density: " << rho << std::endl;
 
     // data allocations
-    VerletList moleculesVerletList;
+    HalfVerletList moleculesVerletList;
     idx_t verletlistRebuildCounter = 0;
 
     Kokkos::Timer timer;
