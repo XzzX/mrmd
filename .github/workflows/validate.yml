@@ -208,10 +208,17 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: run formatter
-        run: ./format.sh
+        run: |
+          pwd
+          ls -alh
+          git config --global --add safe.directory /__w/mrmd/mrmd
+          ./format.sh
 
       - name: check formatting
-        run: git diff --exit-code
+        run: |
+          pwd
+          ls -alh
+          git diff --exit-code
 
   clang-tidy:
     runs-on: ubuntu-latest
