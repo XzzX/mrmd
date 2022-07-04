@@ -209,16 +209,11 @@ jobs:
 
       - name: run formatter
         run: |
-          pwd
-          ls -alh
           git config --global --add safe.directory /__w/mrmd/mrmd
           ./format.sh
 
       - name: check formatting
-        run: |
-          pwd
-          ls -alh
-          git diff --exit-code
+        run: git diff --exit-code
 
   clang-tidy:
     runs-on: ubuntu-latest
