@@ -34,15 +34,15 @@ struct Config
     static constexpr real_t rc = 2.5;
     static constexpr real_t skin = 0.3;
     static constexpr real_t neighborCutoff = rc + skin;
-    static constexpr real_t sigma = 1_r;
-    static constexpr real_t epsilon = 1_r;
+    static constexpr real_t sigma = real_t(1);
+    static constexpr real_t epsilon = real_t(1);
     static constexpr real_t dt = 0.005;
-    static constexpr real_t gamma = 1_r;
+    static constexpr real_t gamma = real_t(1);
 
-    static constexpr real_t Lx = 16.92926877476863_r;
-    static constexpr real_t rho = 0.8442_r;
+    static constexpr real_t Lx = real_t(16.92926877476863);
+    static constexpr real_t rho = real_t(0.8442);
 
-    static constexpr real_t cell_ratio = 1.0_r;
+    static constexpr real_t cell_ratio = real_t(1.0);
 
     static constexpr idx_t estimatedMaxNeighbors = 60;
 };
@@ -67,12 +67,12 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
         pos(idx, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
         pos(idx, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
 
-        vel(idx, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(idx, 0) = (randGen.drand() - real_t(0.5)) * maxVelocity;
+        vel(idx, 1) = (randGen.drand() - real_t(0.5)) * maxVelocity;
+        vel(idx, 2) = (randGen.drand() - real_t(0.5)) * maxVelocity;
         RNG.free_state(randGen);
 
-        mass(idx) = 1_r;
+        mass(idx) = real_t(1);
     };
     Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
 
@@ -99,11 +99,13 @@ protected:
 
 public:
     NVT()
-        : subdomain({0_r, 0_r, 0_r}, {Config::Lx, Config::Lx, Config::Lx}, Config::neighborCutoff),
+        : subdomain({real_t(0), real_t(0), real_t(0)},
+                    {Config::Lx, Config::Lx, Config::Lx},
+                    Config::neighborCutoff),
           volume(subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]),
-          atoms(fillDomainWithAtomsSC(subdomain, idx_c(Config::rho * volume), 1_r)),
+          atoms(fillDomainWithAtomsSC(subdomain, idx_c(Config::rho * volume), real_t(1))),
           rho(real_c(atoms.numLocalAtoms) / volume),
-          LJ(Config::rc, Config::sigma, Config::epsilon, 0.7_r * Config::sigma)
+          LJ(Config::rc, Config::sigma, Config::epsilon, real_t(0.7) * Config::sigma)
     {
     }
 };
@@ -113,16 +115,16 @@ TEST_P(NVT, pressure)
     auto targetTemperature = GetParam();
 
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
-    util::ExponentialMovingAverage p(0.01_r);
-    util::ExponentialMovingAverage T(0.01_r);
+    util::ExponentialMovingAverage p(real_t(0.01));
+    util::ExponentialMovingAverage T(real_t(0.01));
     for (auto step = 0; step < Config::nsteps; ++step)
     {
         maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, Config::dt);
 
-        if (maxAtomDisplacement >= Config::skin * 0.5_r)
+        if (maxAtomDisplacement >= Config::skin * real_t(0.5))
         {
             // reset displacement
-            maxAtomDisplacement = 0_r;
+            maxAtomDisplacement = real_t(0);
 
             ghostLayer.exchangeRealAtoms(atoms, subdomain);
 
@@ -152,7 +154,7 @@ TEST_P(NVT, pressure)
         }
 
         auto force = atoms.getForce();
-        Cabana::deep_copy(force, 0_r);
+        Cabana::deep_copy(force, real_t(0));
 
         LJ.apply(atoms, verletList);
 
@@ -160,14 +162,14 @@ TEST_P(NVT, pressure)
         {
             if (step < 201)
             {
-                p = util::ExponentialMovingAverage(0.1_r);
-                T = util::ExponentialMovingAverage(0.1_r);
+                p = util::ExponentialMovingAverage(real_t(0.1));
+                T = util::ExponentialMovingAverage(real_t(0.1));
             }
             auto E0 = LJ.getEnergy() / real_c(atoms.numLocalAtoms);
             auto Ek = analysis::getKineticEnergy(atoms);
-            p << 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
+            p << real_t(2) * (Ek - LJ.getVirial()) / (real_t(3) * volume);
             Ek /= real_c(atoms.numLocalAtoms);
-            T << (2_r / 3_r) * Ek;
+            T << (real_t(2) / real_t(3)) * Ek;
         }
 
         action::BerendsenThermostat::apply(atoms, T, targetTemperature, Config::gamma);
@@ -177,13 +179,16 @@ TEST_P(NVT, pressure)
     }
 
     EXPECT_NEAR(p,
-                -0.89528939_r * targetTemperature * targetTemperature +
-                    7.48553466_r * targetTemperature - 4.00636731_r,
-                0.3_r);
-    EXPECT_NEAR(T, targetTemperature, 0.1_r);
+                real_t(-0.89528939) * targetTemperature * targetTemperature +
+                    real_t(7.48553466) * targetTemperature - real_t(4.00636731),
+                real_t(0.3));
+    EXPECT_NEAR(T, targetTemperature, real_t(0.1));
 }
 
-INSTANTIATE_TEST_SUITE_P(Pressure, NVT, ::testing::Values(0.8_r, 1.0_r, 1.2_r, 1.4_r, 1.6_r));
+INSTANTIATE_TEST_SUITE_P(
+    Pressure,
+    NVT,
+    ::testing::Values(real_t(0.8), real_t(1.0), real_t(1.2), real_t(1.4), real_t(1.6)));
 
 int main(int argc, char* argv[])
 {

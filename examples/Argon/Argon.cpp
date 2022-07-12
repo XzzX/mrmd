@@ -39,21 +39,21 @@ struct Config
     idx_t nsteps = 400001;
     static constexpr idx_t numAtoms = 16 * 16 * 16;
 
-    static constexpr real_t sigma = 0.34_r;        ///< units: nm
-    static constexpr real_t epsilon = 0.993653_r;  ///< units: kJ/mol
-    static constexpr real_t mass = 39.948_r;       ///< units: u
+    static constexpr real_t sigma = real_t(0.34);        ///< units: nm
+    static constexpr real_t epsilon = real_t(0.993653);  ///< units: kJ/mol
+    static constexpr real_t mass = real_t(39.948);       ///< units: u
 
-    static constexpr real_t rc = 2.3_r * sigma;
+    static constexpr real_t rc = real_t(2.3) * sigma;
     static constexpr real_t skin = 0.1;
     static constexpr real_t neighborCutoff = rc + skin;
 
     static constexpr real_t dt = 0.00217;  ///< units: ps
-    real_t temperature = 3.0_r;
-    real_t gamma = 0.7_r / dt;
+    real_t temperature = real_t(3.0);
+    real_t gamma = real_t(0.7) / dt;
 
-    real_t Lx = 3.196 * 2_r;  ///< units: nm
+    real_t Lx = 3.196 * real_t(2);  ///< units: nm
 
-    real_t cell_ratio = 1.0_r;
+    real_t cell_ratio = real_t(1.0);
 
     idx_t estimatedMaxNeighbors = 60;
 };
@@ -80,14 +80,14 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
         pos(idx, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
         pos(idx, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
 
-        vel(idx, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(idx, 0) = (randGen.drand() - real_t(0.5)) * maxVelocity;
+        vel(idx, 1) = (randGen.drand() - real_t(0.5)) * maxVelocity;
+        vel(idx, 2) = (randGen.drand() - real_t(0.5)) * maxVelocity;
         RNG.free_state(randGen);
 
         mass(idx) = Config::mass;
         type(idx) = 0;
-        charge(idx) = 0_r;
+        charge(idx) = real_t(0);
     };
     Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
 
@@ -98,21 +98,22 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
 
 void LJ(Config& config)
 {
-    auto subdomain =
-        data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
+    auto subdomain = data::Subdomain({real_t(0), real_t(0), real_t(0)},
+                                     {config.Lx, config.Lx, config.Lx},
+                                     config.neighborCutoff);
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
-    auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, 1_r);
+    auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, real_t(1));
     auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
-    io::dumpGRO("atoms_initial.gro", atoms, subdomain, 0_r, "Argon", false);
+    io::dumpGRO("atoms_initial.gro", atoms, subdomain, real_t(0), "Argon", false);
 
     communication::GhostLayer ghostLayer;
-    action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
+    action::LennardJones LJ(config.rc, config.sigma, config.epsilon, real_t(0.7) * config.sigma);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     analysis::MeanSquareDisplacement meanSquareDisplacement;
     meanSquareDisplacement.reset(atoms);
-    auto msd = 0_r;
+    auto msd = real_t(0);
     HalfVerletList verletList;
     Kokkos::Timer timer;
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
@@ -125,10 +126,10 @@ void LJ(Config& config)
     {
         maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
-        if (maxAtomDisplacement >= config.skin * 0.5_r)
+        if (maxAtomDisplacement >= config.skin * real_t(0.5))
         {
             // reset displacement
-            maxAtomDisplacement = 0_r;
+            maxAtomDisplacement = real_t(0);
 
             ghostLayer.exchangeRealAtoms(atoms, subdomain);
 
@@ -159,7 +160,7 @@ void LJ(Config& config)
         }
 
         auto force = atoms.getForce();
-        Cabana::deep_copy(force, 0_r);
+        Cabana::deep_copy(force, real_t(0));
 
         LJ.apply(atoms, verletList);
 
@@ -170,7 +171,7 @@ void LJ(Config& config)
             auto E0 = LJ.getEnergy() / real_c(atoms.numLocalAtoms);
             auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto T = (2_r / 3_r) * Ek;
+            auto T = (real_t(2) / real_t(3)) * Ek;
             //            std::cout << "system momentum: " << systemMomentum[0] << " | " <<
             //            systemMomentum[1]
             //                      << " | " << systemMomentum[2] << std::endl;
@@ -204,14 +205,14 @@ void LJ(Config& config)
 
         if (step % 1000 == 0)
         {
-            msd = meanSquareDisplacement.calc(atoms, subdomain) / (1000_r * config.dt);
-            if ((config.temperature > 0_r) && (step > 5000))
+            msd = meanSquareDisplacement.calc(atoms, subdomain) / (real_t(1000) * config.dt);
+            if ((config.temperature > real_t(0)) && (step > 5000))
             {
-                config.temperature -= 7.8e-3_r;
-                if (config.temperature < 0_r) config.temperature = 0_r;
+                config.temperature -= real_t(7.8e-3);
+                if (config.temperature < real_t(0)) config.temperature = real_t(0);
             }
 
-            langevinThermostat.set(config.gamma, config.temperature * 0.5_r, config.dt);
+            langevinThermostat.set(config.gamma, config.temperature * real_t(0.5), config.dt);
             langevinThermostat.apply(atoms);
 
             meanSquareDisplacement.reset(atoms);

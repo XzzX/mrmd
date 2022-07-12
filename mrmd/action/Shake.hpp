@@ -52,9 +52,9 @@ public:
         /// squared distances between atoms
         auto distSq = util::dot3(dist, dist);
 
-        auto invMassI = 1_r / mass_(idx);
-        auto invMassJ = 1_r / mass_(jdx);
-        auto reducedMass = 1_r / (invMassI + invMassJ);
+        auto invMassI = real_t(1) / mass_(idx);
+        auto invMassJ = real_t(1) / mass_(jdx);
+        auto reducedMass = real_t(1) / (invMassI + invMassJ);
 
         real_t relVel[3];
         relVel[0] = vel_(idx, 0) - vel_(jdx, 0);
@@ -93,21 +93,21 @@ public:
         /// squared distances between updated atoms
         real_t updatedDistSq = util::dot3(updatedDist, updatedDist);
 
-        auto invMassI = 1_r / mass_(idx);
-        auto invMassJ = 1_r / mass_(jdx);
+        auto invMassI = real_t(1) / mass_(idx);
+        auto invMassJ = real_t(1) / mass_(jdx);
 
         /// coefficient in quadratic equation for lamda, ax**2 + bx + c = 0
         real_t a = util::sqr(invMassI + invMassJ) * distSq;
-        real_t b = 2_r * (invMassI + invMassJ) * util::dot3(updatedDist, dist);
+        real_t b = real_t(2) * (invMassI + invMassJ) * util::dot3(updatedDist, dist);
         real_t c = updatedDistSq - util::sqr(eqDistance);
 
-        real_t determinant = b * b - 4_r * a * c;
+        real_t determinant = b * b - real_t(4) * a * c;
         MRMD_DEVICE_ASSERT_GREATER(determinant, 1e-8);
-        determinant = std::max(0_r, determinant);  // ensure positive determinant
+        determinant = std::max(real_t(0), determinant);  // ensure positive determinant
 
         // solve for lambda
-        auto lambda1 = (-b + std::sqrt(determinant)) / (2_r * a);
-        auto lambda2 = (-b - std::sqrt(determinant)) / (2_r * a);
+        auto lambda1 = (-b + std::sqrt(determinant)) / (real_t(2) * a);
+        auto lambda2 = (-b - std::sqrt(determinant)) / (real_t(2) * a);
         auto lambda = std::abs(lambda1) < std::abs(lambda2) ? lambda1 : lambda2;
 
         lambda /= dtf_;
@@ -140,7 +140,7 @@ public:
         util::grow(updatedPos_, idx_c(atoms.numLocalAtoms + atoms.numGhostAtoms));
 
         dtv_ = dt;
-        dtf_ = 0.5_r * dt * dt;
+        dtf_ = real_t(0.5) * dt * dt;
     }
 };
 }  // namespace impl

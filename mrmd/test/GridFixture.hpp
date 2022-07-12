@@ -22,10 +22,12 @@ protected:
         auto moleculesAtomsOffset = h_molecules.getAtomsOffset();
         auto moleculesNumAtoms = h_molecules.getNumAtoms();
         int64_t idx = 0;
-        for (real_t x = subdomain.minCorner[0] + 0.5_r; x < subdomain.maxCorner[0]; x += 1_r)
-            for (real_t y = subdomain.minCorner[1] + 0.5_r; y < subdomain.maxCorner[1]; y += 1_r)
-                for (real_t z = subdomain.minCorner[2] + 0.5_r; z < subdomain.maxCorner[2];
-                     z += 1_r)
+        for (real_t x = subdomain.minCorner[0] + real_t(0.5); x < subdomain.maxCorner[0];
+             x += real_t(1))
+            for (real_t y = subdomain.minCorner[1] + real_t(0.5); y < subdomain.maxCorner[1];
+                 y += real_t(1))
+                for (real_t z = subdomain.minCorner[2] + real_t(0.5); z < subdomain.maxCorner[2];
+                     z += real_t(1))
                 {
                     moleculesPos(idx, 0) = x;
                     moleculesPos(idx, 1) = y;
@@ -41,16 +43,18 @@ protected:
 
         auto atomsPos = h_atoms.getPos();
         idx = 0;
-        for (real_t x = subdomain.minCorner[0] + 0.5_r; x < subdomain.maxCorner[0]; x += 1_r)
-            for (real_t y = subdomain.minCorner[1] + 0.5_r; y < subdomain.maxCorner[1]; y += 1_r)
-                for (real_t z = subdomain.minCorner[2] + 0.5_r; z < subdomain.maxCorner[2];
-                     z += 1_r)
+        for (real_t x = subdomain.minCorner[0] + real_t(0.5); x < subdomain.maxCorner[0];
+             x += real_t(1))
+            for (real_t y = subdomain.minCorner[1] + real_t(0.5); y < subdomain.maxCorner[1];
+                 y += real_t(1))
+                for (real_t z = subdomain.minCorner[2] + real_t(0.5); z < subdomain.maxCorner[2];
+                     z += real_t(1))
                 {
                     for (auto i = 0; i < atomsPerMolecule; ++i)
                     {
-                        atomsPos(idx, 0) = x + 0.1_r * real_c(i);
-                        atomsPos(idx, 1) = y + 0.2_r * real_c(i);
-                        atomsPos(idx, 2) = z + 0.3_r * real_c(i);
+                        atomsPos(idx, 0) = x + real_t(0.1) * real_c(i);
+                        atomsPos(idx, 1) = y + real_t(0.2) * real_c(i);
+                        atomsPos(idx, 2) = z + real_t(0.3) * real_c(i);
                         ++idx;
                     }
                 }
@@ -66,7 +70,8 @@ protected:
     void SetUp() override { init(2); }
     // void TearDown() override {}
 
-    data::Subdomain subdomain = data::Subdomain({0_r, 0_r, 0_r}, {3_r, 3_r, 3_r}, 0.7_r);
+    data::Subdomain subdomain = data::Subdomain(
+        {real_t(0), real_t(0), real_t(0)}, {real_t(3), real_t(3), real_t(3)}, real_t(0.7));
     data::Molecules molecules = data::Molecules(200);
     data::Atoms atoms = data::Atoms(200);
 };

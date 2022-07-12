@@ -31,7 +31,8 @@ class PeriodicMappingTest : public testing::TestWithParam<TestData>
 
 TEST_P(PeriodicMappingTest, Check)
 {
-    data::Subdomain subdomain = data::Subdomain({0_r, 0_r, 0_r}, {1_r, 1_r, 1_r}, 0_r);
+    data::Subdomain subdomain = data::Subdomain(
+        {real_t(0), real_t(0), real_t(0)}, {real_t(1), real_t(1), real_t(1)}, real_t(0));
     data::HostAtoms h_atoms(1);
     auto pos = h_atoms.getPos();
     h_atoms.numLocalAtoms = 1;
@@ -49,28 +50,36 @@ TEST_P(PeriodicMappingTest, Check)
 
 INSTANTIATE_TEST_SUITE_P(Inside,
                          PeriodicMappingTest,
-                         testing::Values(TestData{{0.4_r, 0.5_r, 0.6_r}, {0.4_r, 0.5_r, 0.6_r}}));
+                         testing::Values(TestData{{real_t(0.4), real_t(0.5), real_t(0.6)},
+                                                  {real_t(0.4), real_t(0.5), real_t(0.6)}}));
 
 INSTANTIATE_TEST_SUITE_P(MappingX,
                          PeriodicMappingTest,
-                         testing::Values(TestData{{1.1_r, 0.5_r, 0.6_r}, {0.1_r, 0.5_r, 0.6_r}},
-                                         TestData{{-0.1_r, 0.5_r, 0.6_r}, {0.9_r, 0.5_r, 0.6_r}}));
+                         testing::Values(TestData{{real_t(1.1), real_t(0.5), real_t(0.6)},
+                                                  {real_t(0.1), real_t(0.5), real_t(0.6)}},
+                                         TestData{{real_t(-0.1), real_t(0.5), real_t(0.6)},
+                                                  {real_t(0.9), real_t(0.5), real_t(0.6)}}));
 
 INSTANTIATE_TEST_SUITE_P(MappingY,
                          PeriodicMappingTest,
-                         testing::Values(TestData{{0.4_r, 1.1_r, 0.6_r}, {0.4_r, 0.1_r, 0.6_r}},
-                                         TestData{{0.4_r, -0.1_r, 0.6_r}, {0.4_r, 0.9_r, 0.6_r}}));
+                         testing::Values(TestData{{real_t(0.4), real_t(1.1), real_t(0.6)},
+                                                  {real_t(0.4), real_t(0.1), real_t(0.6)}},
+                                         TestData{{real_t(0.4), real_t(-0.1), real_t(0.6)},
+                                                  {real_t(0.4), real_t(0.9), real_t(0.6)}}));
 
 INSTANTIATE_TEST_SUITE_P(MappingZ,
                          PeriodicMappingTest,
-                         testing::Values(TestData{{0.4_r, 0.5_r, 1.1_r}, {0.4_r, 0.5_r, 0.1_r}},
-                                         TestData{{0.4_r, 0.5_r, -0.1_r}, {0.4_r, 0.5_r, 0.9_r}}));
+                         testing::Values(TestData{{real_t(0.4), real_t(0.5), real_t(1.1)},
+                                                  {real_t(0.4), real_t(0.5), real_t(0.1)}},
+                                         TestData{{real_t(0.4), real_t(0.5), real_t(-0.1)},
+                                                  {real_t(0.4), real_t(0.5), real_t(0.9)}}));
 
 INSTANTIATE_TEST_SUITE_P(MappingXYZ,
                          PeriodicMappingTest,
-                         testing::Values(TestData{{1.1_r, 1.2_r, 1.3_r}, {0.1_r, 0.2_r, 0.3_r}},
-                                         TestData{{-0.3_r, -0.2_r, -0.1_r},
-                                                  {0.7_r, 0.8_r, 0.9_r}}));
+                         testing::Values(TestData{{real_t(1.1), real_t(1.2), real_t(1.3)},
+                                                  {real_t(0.1), real_t(0.2), real_t(0.3)}},
+                                         TestData{{real_t(-0.3), real_t(-0.2), real_t(-0.1)},
+                                                  {real_t(0.7), real_t(0.8), real_t(0.9)}}));
 
 }  // namespace impl
 }  // namespace communication

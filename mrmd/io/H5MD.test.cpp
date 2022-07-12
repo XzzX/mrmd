@@ -28,21 +28,21 @@ data::Atoms getAtoms(const std::shared_ptr<data::MPIInfo>& mpiInfo)
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
         pos(idx, 0) = real_c(idx * rank);
-        pos(idx, 1) = real_c(idx * rank) + 0.1_r;
-        pos(idx, 2) = real_c(idx * rank) + 0.2_r;
+        pos(idx, 1) = real_c(idx * rank) + real_t(0.1);
+        pos(idx, 2) = real_c(idx * rank) + real_t(0.2);
 
         vel(idx, 0) = real_c(idx * rank + 1);
-        vel(idx, 1) = real_c(idx * rank + 1) + 0.1_r;
-        vel(idx, 2) = real_c(idx * rank + 1) + 0.2_r;
+        vel(idx, 1) = real_c(idx * rank + 1) + real_t(0.1);
+        vel(idx, 2) = real_c(idx * rank + 1) + real_t(0.2);
 
         force(idx, 0) = real_c(idx * rank + 2);
-        force(idx, 1) = real_c(idx * rank + 2) + 0.1_r;
-        force(idx, 2) = real_c(idx * rank + 2) + 0.2_r;
+        force(idx, 1) = real_c(idx * rank + 2) + real_t(0.1);
+        force(idx, 2) = real_c(idx * rank + 2) + real_t(0.2);
 
         type(idx) = idx + 3;
-        charge(idx) = real_c(idx) + 4.1_r;
-        mass(idx) = real_c(idx) + 5.2_r;
-        relativeMass(idx) = real_c(idx) + 6.3_r;
+        charge(idx) = real_c(idx) + real_t(4.1);
+        mass(idx) = real_c(idx) + real_t(5.2);
+        relativeMass(idx) = real_c(idx) + real_t(6.3);
     };
     Kokkos::parallel_for("init-atoms", policy, kernel);
     Kokkos::fence();
@@ -56,7 +56,8 @@ TEST(H5MD, dump)
 {
     auto mpiInfo = std::make_shared<data::MPIInfo>(MPI_COMM_WORLD);
 
-    auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
+    auto subdomain1 = data::Subdomain(
+        {real_t(1), real_t(2), real_t(3)}, {real_t(4), real_t(6), real_t(8)}, real_t(0.5));
     auto atoms1 = getAtoms(mpiInfo);
 
     auto dump = DumpH5MDParallel(mpiInfo, "XzzX");

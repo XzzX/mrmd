@@ -30,11 +30,11 @@ size_t countWithinCutoff(const data::Atoms& atoms,
         for (auto jdx = idx + 1; jdx < numLocalAtoms + numGhostAtoms; ++jdx)
         {
             auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
-            if (periodic && (dx > box_diameter[0] * 0.5_r)) dx -= box_diameter[0];
+            if (periodic && (dx > box_diameter[0] * real_t(0.5))) dx -= box_diameter[0];
             auto dy = std::abs(pos(idx, 1) - pos(jdx, 1));
-            if (periodic && (dy > box_diameter[1] * 0.5_r)) dy -= box_diameter[1];
+            if (periodic && (dy > box_diameter[1] * real_t(0.5))) dy -= box_diameter[1];
             auto dz = std::abs(pos(idx, 2) - pos(jdx, 2));
-            if (periodic && (dz > box_diameter[2] * 0.5_r)) dz -= box_diameter[2];
+            if (periodic && (dz > box_diameter[2] * real_t(0.5))) dz -= box_diameter[2];
             auto distSqr = dx * dx + dy * dy + dz * dz;
             if (distSqr < rcSqr)
             {
@@ -54,10 +54,12 @@ protected:
     {
         auto pos = h_atoms.getPos();
         int64_t idx = 0;
-        for (real_t x = subdomain.minCorner[0] + 0.5_r; x < subdomain.maxCorner[0]; x += 1_r)
-            for (real_t y = subdomain.minCorner[1] + 0.5_r; y < subdomain.maxCorner[1]; y += 1_r)
-                for (real_t z = subdomain.minCorner[2] + 0.5_r; z < subdomain.maxCorner[2];
-                     z += 1_r)
+        for (real_t x = subdomain.minCorner[0] + real_t(0.5); x < subdomain.maxCorner[0];
+             x += real_t(1))
+            for (real_t y = subdomain.minCorner[1] + real_t(0.5); y < subdomain.maxCorner[1];
+                 y += real_t(1))
+                for (real_t z = subdomain.minCorner[2] + real_t(0.5); z < subdomain.maxCorner[2];
+                     z += real_t(1))
                 {
                     pos(idx, 0) = x;
                     pos(idx, 1) = y;
@@ -73,7 +75,8 @@ protected:
 
     // void TearDown() override {}
 
-    data::Subdomain subdomain = data::Subdomain({0_r, 0_r, 0_r}, {3_r, 3_r, 3_r}, 0.7_r);
+    data::Subdomain subdomain = data::Subdomain(
+        {real_t(0), real_t(0), real_t(0)}, {real_t(3), real_t(3), real_t(3)}, real_t(0.7));
     data::HostAtoms h_atoms = data::HostAtoms(200);
     data::Atoms atoms = data::Atoms(200);
 };
@@ -124,17 +127,17 @@ TEST_F(GhostExchangeTest, SelfExchangeXYZ)
 TEST_F(GhostExchangeTest, CountPairs)
 {
     size_t numPairs = 0;
-    numPairs = countWithinCutoff(atoms, 1.1_r, subdomain.diameter.data(), false);
+    numPairs = countWithinCutoff(atoms, real_t(1.1), subdomain.diameter.data(), false);
     EXPECT_EQ(numPairs, 12 * 3 + 9 * 2);
 
-    numPairs = countWithinCutoff(atoms, 1.1_r, subdomain.diameter.data(), true);
+    numPairs = countWithinCutoff(atoms, real_t(1.1), subdomain.diameter.data(), true);
     EXPECT_EQ(numPairs, 27 * 6 / 2);
 
     auto ghostExchange = GhostExchange();
     ghostExchange.createGhostAtomsXYZ(atoms, subdomain);
     EXPECT_EQ(atoms.numGhostAtoms, 98);
 
-    numPairs = countWithinCutoff(atoms, 1.1_r, subdomain.diameter.data(), false);
+    numPairs = countWithinCutoff(atoms, real_t(1.1), subdomain.diameter.data(), false);
     EXPECT_EQ(numPairs, 108);
 }
 

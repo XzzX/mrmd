@@ -16,7 +16,7 @@ public:
     KOKKOS_INLINE_FUNCTION
     real_t computeForce(const real_t& distSqr, const real_t q1, const real_t q2) const
     {
-        real_t prefac = 138.935458_r * q1 * q2;
+        real_t prefac = real_t(138.935458) * q1 * q2;
         return prefac / distSqr;
     }
 
@@ -24,7 +24,7 @@ public:
     real_t computeEnergy(const real_t& distSqr, const real_t q1, const real_t q2) const
     {
         auto r = std::sqrt(distSqr);
-        real_t prefac = 138.935458_r * q1 * q2;
+        real_t prefac = real_t(138.935458) * q1 * q2;
         return prefac / r;
     }
 };

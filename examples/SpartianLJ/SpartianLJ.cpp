@@ -39,50 +39,52 @@ struct Config
 
     // general simulation parameters
     idx_t nsteps = 5000001;
-    real_t dt = 0.0005_r;
+    real_t dt = real_t(0.0005);
 
     // simulation box parameters
-    real_t rho = 0.86_r;
+    real_t rho = real_t(0.86);
 
     // thermodynamic force parameters
-    real_t thermodynamicForceModulation = 2_r;
+    real_t thermodynamicForceModulation = real_t(2);
 
     // LJ parameters
-    real_t sigma = 1_r;
-    real_t epsilon = 1_r;
-    real_t rc = 2.5_r;
+    real_t sigma = real_t(1);
+    real_t epsilon = real_t(1);
+    real_t rc = real_t(2.5);
 
     // neighborlist parameters
-    real_t skin = 0.3_r;
+    real_t skin = real_t(0.3);
     real_t neighborCutoff = rc + skin;
-    real_t cell_ratio = 0.5_r;
+    real_t cell_ratio = real_t(0.5);
     idx_t estimatedMaxNeighbors = 60;
 
     // thermostat parameters
-    real_t temperature = 1.2_r;
-    real_t gamma = 1_r;
+    real_t temperature = real_t(1.2);
+    real_t gamma = real_t(1);
 
     // AdResS parameters
-    real_t atomisticRegionDiameter = 10_r;
-    real_t hybridRegionDiameter = 2.5_r;
+    real_t atomisticRegionDiameter = real_t(10);
+    real_t hybridRegionDiameter = real_t(2.5);
     idx_t lambdaExponent = 7;
     idx_t DriftForceSamplingInterval = 200;
     idx_t DriftForceUpdateInterval = 20000;
-    real_t DriftForceBinSize = 0.005_r;
+    real_t DriftForceBinSize = real_t(0.005);
 
     idx_t densitySamplingInterval = 200;
     idx_t densityUpdateInterval = 50000;
-    real_t densityBinWidth = 0.5_r;
-    real_t smoothingSigma = 2_r;
-    real_t smoothingIntensity = 2_r;
+    real_t densityBinWidth = real_t(0.5);
+    real_t smoothingSigma = real_t(2);
+    real_t smoothingIntensity = real_t(2);
 };
 
 void LJ(Config& config)
 {
-    auto subdomain = data::Subdomain(
-        {-2.5038699752178008e+01_r, -8.3462332507260033e+00_r, -8.3462332507260033e+00_r},
-        {2.5038699752178008e+01, 8.3462332507260033e+00, 8.3462332507260033e+00},
-        config.neighborCutoff);
+    auto subdomain =
+        data::Subdomain({real_t(-2.5038699752178008e+01),
+                         real_t(-8.3462332507260033e+00),
+                         real_t(-8.3462332507260033e+00)},
+                        {2.5038699752178008e+01, 8.3462332507260033e+00, 8.3462332507260033e+00},
+                        config.neighborCutoff);
 
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
     const idx_t numAtoms = idx_c(config.rho * volume);
@@ -101,7 +103,7 @@ void LJ(Config& config)
 
     Kokkos::Timer timer;
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
-    auto weightingFunction = weighting_function::Slab({0_r, 0_r, 0_r},
+    auto weightingFunction = weighting_function::Slab({real_t(0), real_t(0), real_t(0)},
                                                       config.atomisticRegionDiameter,
                                                       config.hybridRegionDiameter,
                                                       config.lambdaExponent);
@@ -110,7 +112,7 @@ void LJ(Config& config)
     std::ofstream fDriftForceCompensation("driftForce.txt");
 
     // actions
-    action::LJ_IdealGas LJ(0.1_r, config.rc, config.sigma, config.epsilon, true);
+    action::LJ_IdealGas LJ(real_t(0.1), config.rc, config.sigma, config.epsilon, true);
     action::ThermodynamicForce thermodynamicForce(
         config.rho, subdomain, config.densityBinWidth, config.thermodynamicForceModulation);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
@@ -129,10 +131,10 @@ void LJ(Config& config)
         // update molecule positions
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
-        if (maxAtomDisplacement >= config.skin * 0.5_r)
+        if (maxAtomDisplacement >= config.skin * real_t(0.5))
         {
             // reset displacement
-            maxAtomDisplacement = 0_r;
+            maxAtomDisplacement = real_t(0);
 
             ghostLayer.exchangeRealAtoms(molecules, atoms, subdomain);
 
@@ -165,9 +167,9 @@ void LJ(Config& config)
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
         auto atomsForce = atoms.getForce();
-        Cabana::deep_copy(atomsForce, 0_r);
+        Cabana::deep_copy(atomsForce, real_t(0));
         auto moleculesForce = molecules.getForce();
-        Cabana::deep_copy(moleculesForce, 0_r);
+        Cabana::deep_copy(moleculesForce, real_t(0));
 
         if (step % config.densitySamplingInterval == 0)
         {
@@ -194,20 +196,20 @@ void LJ(Config& config)
         {
             auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto T = (2_r / 3_r) * Ek;
+            auto T = (real_t(2) / real_t(3)) * Ek;
             E0 /= real_c(atoms.numLocalAtoms);
 
             // calc chemical potential
             auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
                                                            thermodynamicForce.getForce(0));
-            auto muLeft = 0_r;
+            auto muLeft = real_t(0);
             for (auto i = 0; i < Fth.extent(0) / 2; ++i)
             {
                 muLeft += Fth(i);
             }
             muLeft *= thermodynamicForce.getForce().binSize;
 
-            auto muRight = 0_r;
+            auto muRight = real_t(0);
             for (auto i = Fth.extent(0) / 2; i < Fth.extent(0); ++i)
             {
                 muRight += Fth(i);

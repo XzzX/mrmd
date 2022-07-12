@@ -12,8 +12,8 @@ namespace mrmd::action::impl
 {
 struct Energy
 {
-    real_t LJ = 0_r;
-    real_t coulomb = 0_r;
+    real_t LJ = real_t(0);
+    real_t coulomb = real_t(0);
 
     KOKKOS_INLINE_FUNCTION
     Energy() = default;
@@ -57,7 +57,7 @@ class SPC
 private:
     impl::CappedLennardJonesPotential LJ_;
     impl::Coulomb coulomb_;
-    real_t rcSqr_ = 0_r;
+    real_t rcSqr_ = real_t(0);
 
     data::Molecules::pos_t moleculesPos_;
     data::Molecules::force_t::atomic_access_slice moleculesForce_;
@@ -71,14 +71,15 @@ private:
     data::Atoms::force_t::atomic_access_slice atomsForce_;
     data::Atoms::charge_t atomsCharge_;
 
-    data::Histogram compensationEnergy_ = data::Histogram("compensationEnergy", 0_r, 1_r, 200);
+    data::Histogram compensationEnergy_ =
+        data::Histogram("compensationEnergy", real_t(0), real_t(1), 200);
     ScalarScatterView compensationEnergyScatter_;
 
     data::Histogram compensationEnergyCounter_ =
-        data::Histogram("compensationEnergyCounter", 0_r, 1_r, 200);
+        data::Histogram("compensationEnergyCounter", real_t(0), real_t(1), 200);
 
     data::Histogram meanCompensationEnergy_ =
-        data::Histogram("meanCompensationEnergy", 0_r, 1_r, 200);
+        data::Histogram("meanCompensationEnergy", real_t(0), real_t(1), 200);
 
     bool isDriftCompensationSamplingRun_ = false;
 
@@ -95,25 +96,26 @@ public:
     auto getEnergyLJ() const { return sumEnergyLJ_; }
     auto getEnergyCoulomb() const { return sumEnergyCoulomb_; }
 
-    static constexpr real_t massO = 15.999_r;  ///< unit: g/mol
-    static constexpr real_t chargeO = -0.82_r;
+    static constexpr real_t massO = real_t(15.999);  ///< unit: g/mol
+    static constexpr real_t chargeO = real_t(-0.82);
 
-    static constexpr real_t massH = 1.008_r;  ///< unit: g/mol
-    static constexpr real_t chargeH = +0.41_r;
+    static constexpr real_t massH = real_t(1.008);  ///< unit: g/mol
+    static constexpr real_t chargeH = real_t(+0.41);
 
     // LJ parameters for O-O interaction
     // DOI: 10.1021/j100308a038
-    static constexpr real_t sigma = 0.31655578901998815_r;   ///< unit: nm
-    static constexpr real_t epsilon = 0.6501695808187486_r;  ///< unit: kJ / mol
-    static constexpr real_t rc = 1.2_r;                      ///< unit: nm
+    static constexpr real_t sigma = real_t(0.31655578901998815);   ///< unit: nm
+    static constexpr real_t epsilon = real_t(0.6501695808187486);  ///< unit: kJ / mol
+    static constexpr real_t rc = real_t(1.2);                      ///< unit: nm
 
     // Coulomb DSF parameters
-    static constexpr real_t alpha = 2.0_r;  ///< unit: 1/nm
+    static constexpr real_t alpha = real_t(2.0);  ///< unit: 1/nm
 
     /// unit: nm, equilibirum distance between hydrogen and oxygen
-    static constexpr real_t eqDistanceHO = 0.1_r;
-    static constexpr real_t angleHOH = util::degToRad(109.47_r);  ///< unit: radians
-    const real_t eqDistanceHH = eqDistanceHO * std::sqrt(2_r - 2_r * std::cos(angleHOH));
+    static constexpr real_t eqDistanceHO = real_t(0.1);
+    static constexpr real_t angleHOH = util::degToRad(real_t(109.47));  ///< unit: radians
+    const real_t eqDistanceHH =
+        eqDistanceHO * std::sqrt(real_t(2) - real_t(2) * std::cos(angleHOH));
 
     static constexpr idx_t COMPENSATION_ENERGY_SAMPLING_INTERVAL = 200;
     static constexpr idx_t COMPENSATION_ENERGY_UPDATE_INTERVAL = 20000;
@@ -195,7 +197,7 @@ public:
                 auto q1 = atomsCharge_(idx);
 
                 // avoid atomic force contributions to idx in innermost loop
-                real_t forceTmpIdx[3] = {0_r, 0_r, 0_r};
+                real_t forceTmpIdx[3] = {real_t(0), real_t(0), real_t(0)};
 
                 for (idx_t jdx = startAtomsBeta; jdx < endAtomsBeta; ++jdx)
                 {
@@ -274,7 +276,7 @@ public:
         //        if (runCounter_ % compensationEnergyUpdateInveral == 0)
         //            updateMeanCompensationEnergy(
         //                compensationEnergy_, compensationEnergyCounter_, meanCompensationEnergy_,
-        //                10_r);
+        //                1real_t(0));
         //
         //        ++runCounter_;
 
@@ -293,7 +295,7 @@ public:
         auto idxH1 = startAtomsAlpha + 2;
 
         real_t dx[3];
-        real_t dist = 0_r;
+        real_t dist = real_t(0);
 
         dx[0] = atomsPos_(idxO, 0) - atomsPos_(idxH0, 0);
         dx[1] = atomsPos_(idxO, 1) - atomsPos_(idxH0, 1);
@@ -329,7 +331,7 @@ public:
         atomsForce_ = atoms.getForce();
         atomsCharge_ = atoms.getCharge();
 
-        real_t energy = 0_r;
+        real_t energy = real_t(0);
         auto policy = Kokkos::RangePolicy<BondEnergy>(
             0, molecules.numLocalMolecules + molecules.numGhostMolecules);
         Kokkos::parallel_reduce("SPC::calcHarmonicPotential", policy, *this, energy);
@@ -340,7 +342,7 @@ public:
     }
 
     SPC()
-        : LJ_({0.7_r * sigma}, {rc}, {sigma}, {epsilon}, 1, true),
+        : LJ_({real_t(0.7) * sigma}, {rc}, {sigma}, {epsilon}, 1, true),
           coulomb_(),
           rcSqr_(rc * rc),
           bonds_("bonds", 3)

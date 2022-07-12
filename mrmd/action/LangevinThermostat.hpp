@@ -26,7 +26,7 @@ public:
     void set(const real_t gamma, const real_t temperature, const real_t timestep)
     {
         pref1 = -gamma;
-        pref2 = std::sqrt(24_r * temperature * gamma / timestep);
+        pref2 = std::sqrt(real_t(24) * temperature * gamma / timestep);
     }
 
     LangevinThermostat(const real_t gamma, const real_t temperature, const real_t timestep)

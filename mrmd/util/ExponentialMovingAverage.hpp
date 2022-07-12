@@ -12,12 +12,12 @@ private:
     real_t alpha_;  ///< weighting factor
     real_t beta_;   ///< 1-alpha
 
-    real_t val_ = 0_r;
+    real_t val_ = real_t(0);
     bool isFirstVal_ = true;
 
 public:
     explicit ExponentialMovingAverage(const real_t& weightingFactor)
-        : alpha_(weightingFactor), beta_(1_r - weightingFactor)
+        : alpha_(weightingFactor), beta_(real_t(1) - weightingFactor)
     {
     }
 

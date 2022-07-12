@@ -12,7 +12,7 @@ using VelocityVerletTest = test::SingleAtom;
 
 TEST_F(VelocityVerletTest, preForceIntegration)
 {
-    auto dt = 4_r;
+    auto dt = real_t(4);
     VelocityVerlet::preForceIntegrate(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
@@ -20,22 +20,22 @@ TEST_F(VelocityVerletTest, preForceIntegration)
     auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
     auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
 
-    EXPECT_FLOAT_EQ(force(0, 0), 9_r);
-    EXPECT_FLOAT_EQ(force(0, 1), 7_r);
-    EXPECT_FLOAT_EQ(force(0, 2), 8_r);
+    EXPECT_FLOAT_EQ(force(0, 0), real_t(9));
+    EXPECT_FLOAT_EQ(force(0, 1), real_t(7));
+    EXPECT_FLOAT_EQ(force(0, 2), real_t(8));
 
-    EXPECT_FLOAT_EQ(vel(0, 0), 19_r);
-    EXPECT_FLOAT_EQ(vel(0, 1), 14.333333_r);
-    EXPECT_FLOAT_EQ(vel(0, 2), 13.666667_r);
+    EXPECT_FLOAT_EQ(vel(0, 0), real_t(19));
+    EXPECT_FLOAT_EQ(vel(0, 1), real_t(14.333333));
+    EXPECT_FLOAT_EQ(vel(0, 2), real_t(13.666667));
 
-    EXPECT_FLOAT_EQ(pos(0, 0), 78_r);
-    EXPECT_FLOAT_EQ(pos(0, 1), 60.333332_r);
-    EXPECT_FLOAT_EQ(pos(0, 2), 58.666668_r);
+    EXPECT_FLOAT_EQ(pos(0, 0), real_t(78));
+    EXPECT_FLOAT_EQ(pos(0, 1), real_t(60.333332));
+    EXPECT_FLOAT_EQ(pos(0, 2), real_t(58.666668));
 }
 
 TEST_F(VelocityVerletTest, postForceIntegration)
 {
-    auto dt = 4_r;
+    auto dt = real_t(4);
     VelocityVerlet::postForceIntegrate(atoms, dt);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
@@ -43,17 +43,17 @@ TEST_F(VelocityVerletTest, postForceIntegration)
     auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
     auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
 
-    EXPECT_FLOAT_EQ(force(0, 0), 9_r);
-    EXPECT_FLOAT_EQ(force(0, 1), 7_r);
-    EXPECT_FLOAT_EQ(force(0, 2), 8_r);
+    EXPECT_FLOAT_EQ(force(0, 0), real_t(9));
+    EXPECT_FLOAT_EQ(force(0, 1), real_t(7));
+    EXPECT_FLOAT_EQ(force(0, 2), real_t(8));
 
-    EXPECT_FLOAT_EQ(vel(0, 0), 19_r);
-    EXPECT_FLOAT_EQ(vel(0, 1), 14.333333_r);
-    EXPECT_FLOAT_EQ(vel(0, 2), 13.666667_r);
+    EXPECT_FLOAT_EQ(vel(0, 0), real_t(19));
+    EXPECT_FLOAT_EQ(vel(0, 1), real_t(14.333333));
+    EXPECT_FLOAT_EQ(vel(0, 2), real_t(13.666667));
 
-    EXPECT_FLOAT_EQ(pos(0, 0), 2_r);
-    EXPECT_FLOAT_EQ(pos(0, 1), 3_r);
-    EXPECT_FLOAT_EQ(pos(0, 2), 4_r);
+    EXPECT_FLOAT_EQ(pos(0, 0), real_t(2));
+    EXPECT_FLOAT_EQ(pos(0, 1), real_t(3));
+    EXPECT_FLOAT_EQ(pos(0, 2), real_t(4));
 }
 
 }  // namespace action

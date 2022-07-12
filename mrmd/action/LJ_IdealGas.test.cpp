@@ -28,13 +28,13 @@ protected:
             Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), molecules.getAoSoA());
 
         auto pos = Cabana::slice<data::Molecules::POS>(hMolecules);
-        pos(0, 0) = -0.5_r;
-        pos(0, 1) = 0_r;
-        pos(0, 2) = 0_r;
+        pos(0, 0) = real_t(-0.5);
+        pos(0, 1) = real_t(0);
+        pos(0, 2) = real_t(0);
 
-        pos(1, 0) = +0.5_r;
-        pos(1, 1) = 0_r;
-        pos(1, 2) = 0_r;
+        pos(1, 0) = real_t(+0.5);
+        pos(1, 1) = real_t(0);
+        pos(1, 2) = real_t(0);
 
         auto moleculesAtomsOffset = Cabana::slice<data::Molecules::ATOMS_OFFSET>(hMolecules);
         auto moleculesNumAtoms = Cabana::slice<data::Molecules::NUM_ATOMS>(hMolecules);
@@ -57,25 +57,25 @@ protected:
         auto pos = Cabana::slice<data::Atoms::POS>(hAtoms);
         auto relativeMass = Cabana::slice<data::Atoms::RELATIVE_MASS>(hAtoms);
 
-        pos(0, 0) = -0.5_r;
-        pos(0, 1) = -0.5_r;
-        pos(0, 2) = 0_r;
-        relativeMass(0) = 0.5_r;
+        pos(0, 0) = real_t(-0.5);
+        pos(0, 1) = real_t(-0.5);
+        pos(0, 2) = real_t(0);
+        relativeMass(0) = real_t(0.5);
 
-        pos(1, 0) = -0.5_r;
-        pos(1, 1) = +0.5_r;
-        pos(1, 2) = 0_r;
-        relativeMass(1) = 0.5_r;
+        pos(1, 0) = real_t(-0.5);
+        pos(1, 1) = real_t(+0.5);
+        pos(1, 2) = real_t(0);
+        relativeMass(1) = real_t(0.5);
 
-        pos(2, 0) = +0.5_r;
-        pos(2, 1) = -0.5_r;
-        pos(2, 2) = 0_r;
-        relativeMass(2) = 0.5_r;
+        pos(2, 0) = real_t(+0.5);
+        pos(2, 1) = real_t(-0.5);
+        pos(2, 2) = real_t(0);
+        relativeMass(2) = real_t(0.5);
 
-        pos(3, 0) = +0.5_r;
-        pos(3, 1) = +0.5_r;
-        pos(3, 2) = 0_r;
-        relativeMass(3) = 0.5_r;
+        pos(3, 0) = real_t(+0.5);
+        pos(3, 1) = real_t(+0.5);
+        pos(3, 2) = real_t(0);
+        relativeMass(3) = real_t(0.5);
 
         Cabana::deep_copy(atoms.getAoSoA(), hAtoms);
 
@@ -91,10 +91,10 @@ protected:
     {
         data::deep_copy(molecules, getMolecules());
 
-        auto cutoff = 2_r;
-        auto cellRatio = 1_r;
-        real_t minGrid[3] = {-1_r, -1_r, -1_r};
-        real_t maxGrid[3] = {+1_r, +1_r, +1_r};
+        auto cutoff = real_t(2);
+        auto cellRatio = real_t(1);
+        real_t minGrid[3] = {real_t(-1), real_t(-1), real_t(-1)};
+        real_t maxGrid[3] = {real_t(+1), real_t(+1), real_t(+1)};
         auto expectedNumNeighbors = 4;
         moleculesVerletList.build(molecules.getPos(),
                                   0,
@@ -107,16 +107,16 @@ protected:
 
         data::deep_copy(atoms, getAtoms());
         auto atomsForce = atoms.getForce();
-        Cabana::deep_copy(atomsForce, 0_r);
+        Cabana::deep_copy(atomsForce, real_t(0));
     }
 
     // void TearDown() override {}
 
-    static constexpr real_t epsilon = 2_r;
-    static constexpr real_t sigma = 0.9_r;
-    static constexpr real_t rc = 2.5_r * sigma;
-    static constexpr real_t cappingDistance = 0_r;
-    static constexpr real_t eps = 0.001_r;
+    static constexpr real_t epsilon = real_t(2);
+    static constexpr real_t sigma = real_t(0.9);
+    static constexpr real_t rc = real_t(2.5) * sigma;
+    static constexpr real_t cappingDistance = real_t(0);
+    static constexpr real_t eps = real_t(0.001);
 
     data::Molecules molecules = data::Molecules(1);
     HalfVerletList moleculesVerletList;
@@ -126,10 +126,10 @@ protected:
 TEST_F(LJ_IdealGas_Test, CG)
 {
     auto atomsForce = atoms.getForce();
-    Cabana::deep_copy(atomsForce, 2_r);
+    Cabana::deep_copy(atomsForce, real_t(2));
 
     auto moleculesLambda = molecules.getModulatedLambda();
-    Cabana::deep_copy(moleculesLambda, 0_r);
+    Cabana::deep_copy(moleculesLambda, real_t(0));
     action::LJ_IdealGas LJ(cappingDistance, rc, sigma, epsilon, true);
     LJ.run(molecules, moleculesVerletList, atoms);
 
@@ -138,7 +138,7 @@ TEST_F(LJ_IdealGas_Test, CG)
     {
         for (auto dim = 0; dim < 3; ++dim)
         {
-            EXPECT_FLOAT_EQ(h_atoms.getForce()(idx, dim), 2_r);
+            EXPECT_FLOAT_EQ(h_atoms.getForce()(idx, dim), real_t(2));
         }
     }
 }
@@ -146,63 +146,63 @@ TEST_F(LJ_IdealGas_Test, CG)
 TEST_F(LJ_IdealGas_Test, HY)
 {
     auto moleculesLambda = molecules.getModulatedLambda();
-    Cabana::deep_copy(moleculesLambda, 0.5_r);
+    Cabana::deep_copy(moleculesLambda, real_t(0.5));
 
     action::LJ_IdealGas LJ(cappingDistance, rc, sigma, epsilon, true);
     LJ.run(molecules, moleculesVerletList, atoms);
 
-    constexpr auto xForce = 0.22156665_r * 0.5_r;
-    constexpr auto yForce = 1.3825009_r * 0.5_r;
+    constexpr auto xForce = real_t(0.22156665) * real_t(0.5);
+    constexpr auto yForce = real_t(1.3825009) * real_t(0.5);
 
     data::HostAtoms h_atoms(atoms);
     auto force = h_atoms.getForce();
 
     EXPECT_FLOAT_EQ(force(0, 0), -xForce);
     EXPECT_FLOAT_EQ(force(0, 1), +yForce);
-    EXPECT_FLOAT_EQ(force(0, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(0, 2), real_t(0));
 
     EXPECT_FLOAT_EQ(force(1, 0), -xForce);
     EXPECT_FLOAT_EQ(force(1, 1), -yForce);
-    EXPECT_FLOAT_EQ(force(1, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(1, 2), real_t(0));
 
     EXPECT_FLOAT_EQ(force(2, 0), +xForce);
     EXPECT_FLOAT_EQ(force(2, 1), +yForce);
-    EXPECT_FLOAT_EQ(force(2, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(2, 2), real_t(0));
 
     EXPECT_FLOAT_EQ(force(3, 0), +xForce);
     EXPECT_FLOAT_EQ(force(3, 1), -yForce);
-    EXPECT_FLOAT_EQ(force(3, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(3, 2), real_t(0));
 }
 
 TEST_F(LJ_IdealGas_Test, AT)
 {
     auto moleculesLambda = molecules.getModulatedLambda();
-    Cabana::deep_copy(moleculesLambda, 1_r);
+    Cabana::deep_copy(moleculesLambda, real_t(1));
 
     action::LJ_IdealGas LJ(cappingDistance, rc, sigma, epsilon, true);
     LJ.run(molecules, moleculesVerletList, atoms);
 
-    constexpr auto xForce = 0.22156665_r;
-    constexpr auto yForce = 1.3825009_r;
+    constexpr auto xForce = real_t(0.22156665);
+    constexpr auto yForce = real_t(1.3825009);
 
     data::HostAtoms h_atoms(atoms);
     auto force = h_atoms.getForce();
 
     EXPECT_FLOAT_EQ(force(0, 0), -xForce);
     EXPECT_FLOAT_EQ(force(0, 1), +yForce);
-    EXPECT_FLOAT_EQ(force(0, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(0, 2), real_t(0));
 
     EXPECT_FLOAT_EQ(force(1, 0), -xForce);
     EXPECT_FLOAT_EQ(force(1, 1), -yForce);
-    EXPECT_FLOAT_EQ(force(1, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(1, 2), real_t(0));
 
     EXPECT_FLOAT_EQ(force(2, 0), +xForce);
     EXPECT_FLOAT_EQ(force(2, 1), +yForce);
-    EXPECT_FLOAT_EQ(force(2, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(2, 2), real_t(0));
 
     EXPECT_FLOAT_EQ(force(3, 0), +xForce);
     EXPECT_FLOAT_EQ(force(3, 1), -yForce);
-    EXPECT_FLOAT_EQ(force(3, 2), 0_r);
+    EXPECT_FLOAT_EQ(force(3, 2), real_t(0));
 }
 
 }  // namespace action

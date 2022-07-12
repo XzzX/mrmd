@@ -109,11 +109,11 @@ public:
     explicit GeneralMolecules(const idx_t numMolecules) : molecules_("molecules", numMolecules)
     {
         sliceAll();
-        Cabana::deep_copy(pos, 0_r);
-        Cabana::deep_copy(force, 0_r);
-        Cabana::deep_copy(lambda, 0_r);
-        Cabana::deep_copy(modulatedLambda, 0_r);
-        Cabana::deep_copy(gradLambda, 0_r);
+        Cabana::deep_copy(pos, real_t(0));
+        Cabana::deep_copy(force, real_t(0));
+        Cabana::deep_copy(lambda, real_t(0));
+        Cabana::deep_copy(modulatedLambda, real_t(0));
+        Cabana::deep_copy(gradLambda, real_t(0));
         Cabana::deep_copy(atomsOffset, 0);
         Cabana::deep_copy(numAtoms, 0);
     }

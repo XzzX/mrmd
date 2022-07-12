@@ -24,9 +24,9 @@ void LangevinThermostat::apply(data::Atoms& atoms)
         // Get a random number state from the pool for the active thread
         auto randGen = RNG.get_state();
 
-        force(idx, 0) += p1 * vel(idx, 0) * m + p2 * (randGen.drand() - 0.5_r) * mSqrt;
-        force(idx, 1) += p1 * vel(idx, 1) * m + p2 * (randGen.drand() - 0.5_r) * mSqrt;
-        force(idx, 2) += p1 * vel(idx, 2) * m + p2 * (randGen.drand() - 0.5_r) * mSqrt;
+        force(idx, 0) += p1 * vel(idx, 0) * m + p2 * (randGen.drand() - real_t(0.5)) * mSqrt;
+        force(idx, 1) += p1 * vel(idx, 1) * m + p2 * (randGen.drand() - real_t(0.5)) * mSqrt;
+        force(idx, 2) += p1 * vel(idx, 2) * m + p2 * (randGen.drand() - real_t(0.5)) * mSqrt;
 
         // Give the state back, which will allow another thread to acquire it
         RNG.free_state(randGen);

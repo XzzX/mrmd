@@ -8,11 +8,11 @@ namespace mrmd
 {
 namespace weighting_function
 {
-constexpr real_t REGION_CHECK_EPSILON = 0_r;
+constexpr real_t REGION_CHECK_EPSILON = real_t(0);
 
 KOKKOS_INLINE_FUNCTION bool isInATRegion(const real_t& lambda)
 {
-    return lambda >= (1_r - REGION_CHECK_EPSILON);
+    return lambda >= (real_t(1) - REGION_CHECK_EPSILON);
 }
 KOKKOS_INLINE_FUNCTION bool isInCGRegion(const real_t& lambda)
 {

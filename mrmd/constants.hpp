@@ -12,7 +12,7 @@ constexpr real_t M_SQRTPI = 1.77245385090551602729;  // sqrt(pi)
 
 namespace toSI
 {
-constexpr real_t temperature = 1e3_r / (6.02214129_r * 1.380649_r);
-constexpr real_t energy = 1e3_r / 6.02214129e23_r;
+constexpr real_t temperature = real_t(1e3) / (real_t(6.02214129) * real_t(1.380649));
+constexpr real_t energy = real_t(1e3) / real_t(6.02214129e23);
 }  // namespace toSI
 }  // namespace mrmd

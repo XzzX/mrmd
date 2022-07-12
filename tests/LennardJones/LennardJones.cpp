@@ -21,7 +21,7 @@ constexpr idx_t ESPP_GHOST = 22104;
 /// number of pairs in the neighbor list
 constexpr idx_t ESPP_NEIGHBORS = 1310403;
 /// initial lennard jones energy
-constexpr real_t ESPP_INITIAL_ENERGY = -94795.927_r;
+constexpr real_t ESPP_INITIAL_ENERGY = real_t(-94795.927);
 
 idx_t countWithinCutoff(data::Atoms& atoms,
                         const real_t& cutoff,
@@ -38,11 +38,11 @@ idx_t countWithinCutoff(data::Atoms& atoms,
             for (auto jdx = idx + 1; jdx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++jdx)
             {
                 auto dx = std::abs(pos(idx, 0) - pos(jdx, 0));
-                if (periodic && (dx > box[0] * 0.5_r)) dx -= box[0];
+                if (periodic && (dx > box[0] * real_t(0.5))) dx -= box[0];
                 auto dy = std::abs(pos(idx, 1) - pos(jdx, 1));
-                if (periodic && (dy > box[1] * 0.5_r)) dy -= box[1];
+                if (periodic && (dy > box[1] * real_t(0.5))) dy -= box[1];
                 auto dz = std::abs(pos(idx, 2) - pos(jdx, 2));
-                if (periodic && (dz > box[2] * 0.5_r)) dz -= box[2];
+                if (periodic && (dz > box[2] * real_t(0.5))) dz -= box[2];
                 auto distSqr = dx * dx + dy * dy + dz * dz;
                 if (distSqr < rcSqr)
                 {
@@ -71,7 +71,8 @@ TEST(LennardJones, ESPPComparison)
     constexpr double skin = 0.3;
     constexpr double dt = 0.005;
 
-    auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {33.8585, 33.8585, 33.8585}, rc + skin);
+    auto subdomain =
+        data::Subdomain({real_t(0), real_t(0), real_t(0)}, {33.8585, 33.8585, 33.8585}, rc + skin);
     Kokkos::Timer timer;
     auto atoms = io::restoreAtoms("positions.txt");
     EXPECT_EQ(atoms.numLocalAtoms, ESPP_REAL);
@@ -94,7 +95,7 @@ TEST(LennardJones, ESPPComparison)
     EXPECT_EQ(bfAtomPairs, 1426948);
     std::cout << "brute force: " << timer.seconds() << std::endl;
 
-    double cell_ratio = 1.0_r;
+    double cell_ratio = real_t(1.0);
     HalfVerletList verlet_list(atoms.getPos(),
                                0,
                                atoms.numLocalAtoms,
@@ -107,7 +108,7 @@ TEST(LennardJones, ESPPComparison)
     EXPECT_EQ(vlAtomPairs, ESPP_NEIGHBORS);
     std::cout << "create verlet list: " << timer.seconds() << std::endl;
 
-    action::LennardJones LJ(rc, 1_r, 1_r);
+    action::LennardJones LJ(rc, real_t(1), real_t(1));
     LJ.apply(atoms, verlet_list);
     real_t totalEnergy = LJ.getEnergy();
     EXPECT_FLOAT_EQ(totalEnergy, ESPP_INITIAL_ENERGY);

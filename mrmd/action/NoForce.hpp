@@ -29,7 +29,7 @@ public:
         posTmp[1] = pos_(idx, 1);
         posTmp[2] = pos_(idx, 2);
 
-        real_t forceTmp[3] = {0_r, 0_r, 0_r};
+        real_t forceTmp[3] = {real_t(0), real_t(0), real_t(0)};
 
         const auto numNeighbors = idx_c(HalfNeighborList::numNeighbor(verletList_, idx));
         for (idx_t n = 0; n < numNeighbors; ++n)

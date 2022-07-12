@@ -23,7 +23,7 @@ Histogram& Histogram::operator+=(const Histogram& rhs)
 data::Histogram gradient(const data::Histogram& input)
 {
     const auto inverseSpacing = input.inverseBinSize;
-    const auto inverseDoubleSpacing = 0.5_r * input.inverseBinSize;
+    const auto inverseDoubleSpacing = real_t(0.5) * input.inverseBinSize;
 
     data::Histogram grad("gradient", input.min, input.max, input.numBins);
     auto policy = Kokkos::RangePolicy<>(0, input.numBins);

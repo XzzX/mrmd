@@ -21,7 +21,7 @@ void integratePosition(data::Atoms& atoms, real_t dt)
     auto kernel = KOKKOS_LAMBDA(idx_t idx)
     {
         auto dtv = dt;
-        auto dtfm = 0.5_r * dt * dt / mass(idx);
+        auto dtfm = real_t(0.5) * dt * dt / mass(idx);
 
         pos(idx, 0) = pos(idx, 0) + dtv * vel(idx, 0) + dtfm * force(idx, 0);
         pos(idx, 1) = pos(idx, 1) + dtv * vel(idx, 1) + dtfm * force(idx, 1);
@@ -44,9 +44,9 @@ void enforceSingleConstraint(data::Atoms& atoms, real_t dt, real_t eqDistance)
 
 TEST_F(ShakeTest, Attraction)
 {
-    auto dt = 0.1_r;
+    auto dt = real_t(0.1);
 
-    enforceSingleConstraint(atoms, dt, 1_r);
+    enforceSingleConstraint(atoms, dt, real_t(1));
     integratePosition(atoms, dt);
 
     data::HostAtoms h_atoms(atoms);
@@ -57,8 +57,8 @@ TEST_F(ShakeTest, Attraction)
     EXPECT_FLOAT_EQ(force(0, 1), -force(1, 1));
     EXPECT_FLOAT_EQ(force(0, 2), -force(1, 2));
 
-    EXPECT_LT(force(0, 0), 0_r);
-    EXPECT_GT(force(0, 1), 0_r);
+    EXPECT_LT(force(0, 0), real_t(0));
+    EXPECT_GT(force(0, 1), real_t(0));
 
     auto calcDist = [=](idx_t idx, idx_t jdx)
     {
@@ -67,14 +67,14 @@ TEST_F(ShakeTest, Attraction)
         auto dz = newPos(idx, 2) - newPos(jdx, 2);
         return std::sqrt(dx * dx + dy * dy + dz * dz);
     };
-    EXPECT_FLOAT_EQ(calcDist(0, 1), 1_r);
+    EXPECT_FLOAT_EQ(calcDist(0, 1), real_t(1));
 }
 
 TEST_F(ShakeTest, Repulsion)
 {
-    auto dt = 0.1_r;
+    auto dt = real_t(0.1);
 
-    enforceSingleConstraint(atoms, dt, 2_r);
+    enforceSingleConstraint(atoms, dt, real_t(2));
     integratePosition(atoms, dt);
 
     data::HostAtoms h_atoms(atoms);
@@ -85,8 +85,8 @@ TEST_F(ShakeTest, Repulsion)
     EXPECT_FLOAT_EQ(force(0, 1), -force(1, 1));
     EXPECT_FLOAT_EQ(force(0, 2), -force(1, 2));
 
-    EXPECT_GT(force(0, 0), 0_r);
-    EXPECT_LT(force(0, 1), 0_r);
+    EXPECT_GT(force(0, 0), real_t(0));
+    EXPECT_LT(force(0, 1), real_t(0));
 
     auto calcDist = [=](idx_t idx, idx_t jdx)
     {
@@ -95,7 +95,7 @@ TEST_F(ShakeTest, Repulsion)
         auto dz = newPos(idx, 2) - newPos(jdx, 2);
         return std::sqrt(dx * dx + dy * dy + dz * dz);
     };
-    EXPECT_FLOAT_EQ(calcDist(0, 1), 2_r);
+    EXPECT_FLOAT_EQ(calcDist(0, 1), real_t(2));
 }
 
 void enforceConstraints(data::Atoms& atoms, real_t dt, const data::BondView& bonds)
@@ -117,25 +117,25 @@ void enforceConstraints(data::Atoms& atoms, real_t dt, const data::BondView& bon
 TEST_F(ShakeTest, Shrink)
 {
     auto force = atoms.getForce();
-    Cabana::deep_copy(force, 0_r);
-    auto dt = 0.1_r;
+    Cabana::deep_copy(force, real_t(0));
+    auto dt = real_t(0.1);
 
     data::BondView::host_mirror_type h_bonds("bonds", 4);
     h_bonds(0).idx = 0;
     h_bonds(0).jdx = 1;
-    h_bonds(0).eqDistance = 1_r;
+    h_bonds(0).eqDistance = real_t(1);
 
     h_bonds(1).idx = 1;
     h_bonds(1).jdx = 2;
-    h_bonds(1).eqDistance = 1_r;
+    h_bonds(1).eqDistance = real_t(1);
 
     h_bonds(2).idx = 2;
     h_bonds(2).jdx = 3;
-    h_bonds(2).eqDistance = 1_r;
+    h_bonds(2).eqDistance = real_t(1);
 
     h_bonds(3).idx = 3;
     h_bonds(3).jdx = 0;
-    h_bonds(3).eqDistance = 1_r;
+    h_bonds(3).eqDistance = real_t(1);
 
     auto bonds = Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), h_bonds);
 
@@ -154,32 +154,32 @@ TEST_F(ShakeTest, Shrink)
         auto dz = newPos(idx, 2) - newPos(jdx, 2);
         return std::sqrt(dx * dx + dy * dy + dz * dz);
     };
-    EXPECT_FLOAT_EQ(calcDist(0, 1), 1_r);
-    EXPECT_FLOAT_EQ(calcDist(1, 2), 1_r);
-    EXPECT_FLOAT_EQ(calcDist(2, 3), 1_r);
-    EXPECT_FLOAT_EQ(calcDist(3, 0), 1_r);
+    EXPECT_FLOAT_EQ(calcDist(0, 1), real_t(1));
+    EXPECT_FLOAT_EQ(calcDist(1, 2), real_t(1));
+    EXPECT_FLOAT_EQ(calcDist(2, 3), real_t(1));
+    EXPECT_FLOAT_EQ(calcDist(3, 0), real_t(1));
 }
 
 TEST_F(ShakeTest, Grow)
 {
-    auto dt = 0.1_r;
+    auto dt = real_t(0.1);
 
     data::BondView::host_mirror_type h_bonds("bonds", 4);
     h_bonds(0).idx = 0;
     h_bonds(0).jdx = 1;
-    h_bonds(0).eqDistance = 2_r;
+    h_bonds(0).eqDistance = real_t(2);
 
     h_bonds(1).idx = 1;
     h_bonds(1).jdx = 2;
-    h_bonds(1).eqDistance = 2_r;
+    h_bonds(1).eqDistance = real_t(2);
 
     h_bonds(2).idx = 2;
     h_bonds(2).jdx = 3;
-    h_bonds(2).eqDistance = 2_r;
+    h_bonds(2).eqDistance = real_t(2);
 
     h_bonds(3).idx = 3;
     h_bonds(3).jdx = 0;
-    h_bonds(3).eqDistance = 2_r;
+    h_bonds(3).eqDistance = real_t(2);
 
     auto bonds = Kokkos::create_mirror_view_and_copy(Kokkos::DefaultExecutionSpace(), h_bonds);
 
@@ -198,19 +198,19 @@ TEST_F(ShakeTest, Grow)
         auto dz = newPos(idx, 2) - newPos(jdx, 2);
         return std::sqrt(dx * dx + dy * dy + dz * dz);
     };
-    EXPECT_FLOAT_EQ(calcDist(0, 1), 2_r);
-    EXPECT_FLOAT_EQ(calcDist(1, 2), 2_r);
-    EXPECT_FLOAT_EQ(calcDist(2, 3), 2_r);
-    EXPECT_FLOAT_EQ(calcDist(3, 0), 2_r);
+    EXPECT_FLOAT_EQ(calcDist(0, 1), real_t(2));
+    EXPECT_FLOAT_EQ(calcDist(1, 2), real_t(2));
+    EXPECT_FLOAT_EQ(calcDist(2, 3), real_t(2));
+    EXPECT_FLOAT_EQ(calcDist(3, 0), real_t(2));
 }
 
 TEST_F(ShakeTest, Molecules)
 {
-    auto dt = 0.1_r;
+    auto dt = real_t(0.1);
     data::BondView::host_mirror_type bonds("bonds", 1);
     bonds(0).idx = 0;
     bonds(0).jdx = 1;
-    bonds(0).eqDistance = 1_r;
+    bonds(0).eqDistance = real_t(1);
 
     MoleculeConstraints mc(2, 1);
     mc.setConstraints(bonds);
@@ -223,15 +223,15 @@ TEST_F(ShakeTest, Molecules)
     EXPECT_FLOAT_EQ(force(0, 1), -force(1, 1));
     EXPECT_FLOAT_EQ(force(0, 2), -force(1, 2));
 
-    EXPECT_LT(force(0, 0), 0_r);
-    EXPECT_GT(force(0, 1), 0_r);
+    EXPECT_LT(force(0, 0), real_t(0));
+    EXPECT_GT(force(0, 1), real_t(0));
 
     EXPECT_FLOAT_EQ(force(2, 0), -force(3, 0));
     EXPECT_FLOAT_EQ(force(2, 1), -force(3, 1));
     EXPECT_FLOAT_EQ(force(2, 2), -force(3, 2));
 
-    EXPECT_GT(force(2, 0), 0_r);
-    EXPECT_LT(force(2, 1), 0_r);
+    EXPECT_GT(force(2, 0), real_t(0));
+    EXPECT_LT(force(2, 1), real_t(0));
 }
 
 }  // namespace action

@@ -12,7 +12,7 @@ real_t getPressure(data::Atoms& atoms, const data::Subdomain& subdomain)
     auto vel = atoms.getVel();
     auto force = atoms.getForce();
     auto mass = atoms.getMass();
-    real_t pressure = 0_r;
+    real_t pressure = real_t(0);
     auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms + atoms.numGhostAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, real_t& sum)
     {
@@ -33,7 +33,7 @@ real_t getPressure(data::Atoms& atoms, const data::Subdomain& subdomain)
     };
     Kokkos::parallel_reduce("getPressure", policy, kernel, pressure);
     auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
-    return pressure / (3_r * volume);
+    return pressure / (real_t(3) * volume);
 }
 
 }  // namespace analysis

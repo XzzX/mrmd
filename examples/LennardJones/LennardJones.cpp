@@ -35,16 +35,16 @@ struct Config
     real_t rc = 2.5;
     real_t skin = 0.3;
     real_t neighborCutoff = rc + skin;
-    real_t sigma = 1_r;
-    real_t epsilon = 1_r;
+    real_t sigma = real_t(1);
+    real_t epsilon = real_t(1);
     real_t dt = 0.001;
-    real_t temperature = 1.12_r;
-    real_t gamma = 1_r;
+    real_t temperature = real_t(1.12);
+    real_t gamma = real_t(1);
 
     real_t Lx = 33.8585;
-    real_t rho = 0.75_r;
+    real_t rho = real_t(0.75);
 
-    real_t cell_ratio = 1.0_r;
+    real_t cell_ratio = real_t(1.0);
 
     idx_t estimatedMaxNeighbors = 60;
 };
@@ -69,12 +69,12 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
         pos(idx, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
         pos(idx, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
 
-        vel(idx, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(idx, 0) = (randGen.drand() - real_t(0.5)) * maxVelocity;
+        vel(idx, 1) = (randGen.drand() - real_t(0.5)) * maxVelocity;
+        vel(idx, 2) = (randGen.drand() - real_t(0.5)) * maxVelocity;
         RNG.free_state(randGen);
 
-        mass(idx) = 1_r;
+        mass(idx) = real_t(1);
     };
     Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
 
@@ -85,8 +85,9 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
 
 void LJ(Config& config)
 {
-    auto subdomain =
-        data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
+    auto subdomain = data::Subdomain({real_t(0), real_t(0), real_t(0)},
+                                     {config.Lx, config.Lx, config.Lx},
+                                     config.neighborCutoff);
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
     data::Atoms atoms(0);
 
@@ -96,14 +97,14 @@ void LJ(Config& config)
     }
     else
     {
-        atoms = fillDomainWithAtomsSC(subdomain, idx_c(config.rho * volume), 1_r);
+        atoms = fillDomainWithAtomsSC(subdomain, idx_c(config.rho * volume), real_t(1));
     }
 
     auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
     communication::GhostLayer ghostLayer;
-    action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
+    action::LennardJones LJ(config.rc, config.sigma, config.epsilon, real_t(0.7) * config.sigma);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     HalfVerletList verletList;
     Kokkos::Timer timer;
@@ -115,10 +116,10 @@ void LJ(Config& config)
     {
         maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
-        if (maxAtomDisplacement >= config.skin * 0.5_r)
+        if (maxAtomDisplacement >= config.skin * real_t(0.5))
         {
             // reset displacement
-            maxAtomDisplacement = 0_r;
+            maxAtomDisplacement = real_t(0);
 
             ghostLayer.exchangeRealAtoms(atoms, subdomain);
 
@@ -149,7 +150,7 @@ void LJ(Config& config)
         }
 
         auto force = atoms.getForce();
-        Cabana::deep_copy(force, 0_r);
+        Cabana::deep_copy(force, real_t(0));
 
         LJ.apply(atoms, verletList);
 
@@ -157,10 +158,10 @@ void LJ(Config& config)
         {
             auto E0 = LJ.getEnergy() / real_c(atoms.numLocalAtoms);
             auto Ek = analysis::getKineticEnergy(atoms);
-            auto p2 = 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
+            auto p2 = real_t(2) * (Ek - LJ.getVirial()) / (real_t(3) * volume);
             Ek /= real_c(atoms.numLocalAtoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto T = (2_r / 3_r) * Ek;
+            auto T = (real_t(2) / real_t(3)) * Ek;
             auto p = analysis::getPressure(atoms, subdomain);
 
             util::printTable(step,

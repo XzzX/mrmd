@@ -33,28 +33,28 @@ public:
 
         if (dxSqr < atomisticRadiusSqr_)
         {
-            lambda = 1_r;
-            gradLambdaX = 0_r;
-            gradLambdaY = 0_r;
-            gradLambdaZ = 0_r;
+            lambda = real_t(1);
+            gradLambdaX = real_t(0);
+            gradLambdaY = real_t(0);
+            gradLambdaZ = real_t(0);
             return;
         }
         if (dxSqr > coarseRadiusSqr_)
         {
-            lambda = 0_r;
-            gradLambdaX = 0_r;
-            gradLambdaY = 0_r;
-            gradLambdaZ = 0_r;
+            lambda = real_t(0);
+            gradLambdaX = real_t(0);
+            gradLambdaY = real_t(0);
+            gradLambdaZ = real_t(0);
             return;
         }
 
         const auto r = std::sqrt(dxSqr);  ///< radial distance from center
-        const real_t arg = pi / (2_r * hybridRegionDiameter_) * (r - atomisticRadius_);
+        const real_t arg = pi / (real_t(2) * hybridRegionDiameter_) * (r - atomisticRadius_);
         auto base = std::cos(arg);
         lambda = util::powInt(base, exponent_);
 
-        auto factor = -pi / (2_r * hybridRegionDiameter_) * real_c(exponent_) * std::sin(arg) *
-                      util::powInt(base, exponent_ - 1) / r;
+        auto factor = -pi / (real_t(2) * hybridRegionDiameter_) * real_c(exponent_) *
+                      std::sin(arg) * util::powInt(base, exponent_ - 1) / r;
         gradLambdaX = factor * dx[0];
         gradLambdaY = factor * dx[1];
         gradLambdaZ = factor * dx[2];

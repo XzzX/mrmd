@@ -50,7 +50,7 @@ real_t MeanSquareDisplacement::calc(data::Atoms &atoms, const data::Subdomain &s
     auto initialPos = initialPosition_;
     auto pos = atoms.getPos();
 
-    auto sqDisplacement = 0_r;
+    auto sqDisplacement = real_t(0);
 
     auto policy = Kokkos::RangePolicy<>(0, numItems_);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, real_t &squareDisplacement)
@@ -60,9 +60,9 @@ real_t MeanSquareDisplacement::calc(data::Atoms &atoms, const data::Subdomain &s
         dx[1] = std::abs(initialPos(idx, 1) - pos(idx, 1));
         dx[2] = std::abs(initialPos(idx, 2) - pos(idx, 2));
 
-        if (dx[0] > 0.5_r * subdomain.diameter[0]) dx[0] -= subdomain.diameter[0];
-        if (dx[1] > 0.5_r * subdomain.diameter[1]) dx[1] -= subdomain.diameter[1];
-        if (dx[2] > 0.5_r * subdomain.diameter[2]) dx[2] -= subdomain.diameter[2];
+        if (dx[0] > real_t(0.5) * subdomain.diameter[0]) dx[0] -= subdomain.diameter[0];
+        if (dx[1] > real_t(0.5) * subdomain.diameter[1]) dx[1] -= subdomain.diameter[1];
+        if (dx[2] > real_t(0.5) * subdomain.diameter[2]) dx[2] -= subdomain.diameter[2];
 
         squareDisplacement += util::dot3(dx, dx);
     };
@@ -77,7 +77,7 @@ real_t MeanSquareDisplacement::calc(data::Molecules &molecules, const data::Subd
     auto initialPos = initialPosition_;
     auto pos = molecules.getPos();
 
-    auto sqDisplacement = 0_r;
+    auto sqDisplacement = real_t(0);
 
     auto policy = Kokkos::RangePolicy<>(0, numItems_);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, real_t &squareDisplacement)
@@ -87,9 +87,9 @@ real_t MeanSquareDisplacement::calc(data::Molecules &molecules, const data::Subd
         dx[1] = std::abs(initialPos(idx, 1) - pos(idx, 1));
         dx[2] = std::abs(initialPos(idx, 2) - pos(idx, 2));
 
-        if (dx[0] > 0.5_r * subdomain.diameter[0]) dx[0] -= subdomain.diameter[0];
-        if (dx[1] > 0.5_r * subdomain.diameter[1]) dx[1] -= subdomain.diameter[1];
-        if (dx[2] > 0.5_r * subdomain.diameter[2]) dx[2] -= subdomain.diameter[2];
+        if (dx[0] > real_t(0.5) * subdomain.diameter[0]) dx[0] -= subdomain.diameter[0];
+        if (dx[1] > real_t(0.5) * subdomain.diameter[1]) dx[1] -= subdomain.diameter[1];
+        if (dx[2] > real_t(0.5) * subdomain.diameter[2]) dx[2] -= subdomain.diameter[2];
 
         squareDisplacement += util::dot3(dx, dx);
     };

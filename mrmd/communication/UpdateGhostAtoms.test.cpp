@@ -31,9 +31,9 @@ protected:
     void SetUp() override
     {
         auto pos = h_atoms.getPos();
-        pos(0, 0) = 0.5_r;
-        pos(0, 1) = 0.5_r;
-        pos(0, 2) = 0.5_r;
+        pos(0, 0) = real_t(0.5);
+        pos(0, 1) = real_t(0.5);
+        pos(0, 2) = real_t(0.5);
         h_atoms.numLocalAtoms = 1;
         h_atoms.numGhostAtoms = 1;
         data::deep_copy(atoms, h_atoms);
@@ -46,7 +46,8 @@ protected:
 
     // void TearDown() override {}
 
-    data::Subdomain subdomain = data::Subdomain({0_r, 0_r, 0_r}, {1_r, 1_r, 1_r}, 0.1_r);
+    data::Subdomain subdomain = data::Subdomain(
+        {real_t(0), real_t(0), real_t(0)}, {real_t(1), real_t(1), real_t(1)}, real_t(0.1));
     data::HostAtoms h_atoms = data::HostAtoms(2);
     data::Atoms atoms = data::Atoms(2);
     IndexView correspondingRealAtom = IndexView("correspondingRealAtom", 2);
@@ -55,9 +56,9 @@ protected:
 TEST_P(UpdateGhostAtomsTest, Check)
 {
     auto pos = h_atoms.getPos();
-    pos(1, 0) = 0.5_r + GetParam().initialDelta[0];
-    pos(1, 1) = 0.5_r + GetParam().initialDelta[1];
-    pos(1, 2) = 0.5_r + GetParam().initialDelta[2];
+    pos(1, 0) = real_t(0.5) + GetParam().initialDelta[0];
+    pos(1, 1) = real_t(0.5) + GetParam().initialDelta[1];
+    pos(1, 2) = real_t(0.5) + GetParam().initialDelta[2];
     data::deep_copy(atoms, h_atoms);
 
     UpdateGhostAtoms::updateOnlyPos(atoms, correspondingRealAtom, subdomain);
@@ -65,34 +66,42 @@ TEST_P(UpdateGhostAtomsTest, Check)
     data::deep_copy(h_atoms, atoms);
     pos = h_atoms.getPos();
 
-    EXPECT_FLOAT_EQ(pos(1, 0), 0.5_r + GetParam().finalDelta[0]);
-    EXPECT_FLOAT_EQ(pos(1, 1), 0.5_r + GetParam().finalDelta[1]);
-    EXPECT_FLOAT_EQ(pos(1, 2), 0.5_r + GetParam().finalDelta[2]);
+    EXPECT_FLOAT_EQ(pos(1, 0), real_t(0.5) + GetParam().finalDelta[0]);
+    EXPECT_FLOAT_EQ(pos(1, 1), real_t(0.5) + GetParam().finalDelta[1]);
+    EXPECT_FLOAT_EQ(pos(1, 2), real_t(0.5) + GetParam().finalDelta[2]);
 }
 
 INSTANTIATE_TEST_SUITE_P(
     ShiftX,
     UpdateGhostAtomsTest,
-    testing::Values(UpdateGhostAtomsTestData{{0.2_r, 0_r, 0_r}, {1_r, 0_r, 0_r}},
-                    UpdateGhostAtomsTestData{{-0.2_r, 0_r, 0_r}, {-1_r, 0_r, 0_r}}));
+    testing::Values(UpdateGhostAtomsTestData{{real_t(0.2), real_t(0), real_t(0)},
+                                             {real_t(1), real_t(0), real_t(0)}},
+                    UpdateGhostAtomsTestData{{real_t(-0.2), real_t(0), real_t(0)},
+                                             {real_t(-1), real_t(0), real_t(0)}}));
 
 INSTANTIATE_TEST_SUITE_P(
     ShiftY,
     UpdateGhostAtomsTest,
-    testing::Values(UpdateGhostAtomsTestData{{0_r, 0.2_r, 0_r}, {0_r, 1_r, 0_r}},
-                    UpdateGhostAtomsTestData{{0_r, -0.2_r, 0_r}, {0_r, -1_r, 0_r}}));
+    testing::Values(UpdateGhostAtomsTestData{{real_t(0), real_t(0.2), real_t(0)},
+                                             {real_t(0), real_t(1), real_t(0)}},
+                    UpdateGhostAtomsTestData{{real_t(0), real_t(-0.2), real_t(0)},
+                                             {real_t(0), real_t(-1), real_t(0)}}));
 
 INSTANTIATE_TEST_SUITE_P(
     ShiftZ,
     UpdateGhostAtomsTest,
-    testing::Values(UpdateGhostAtomsTestData{{0_r, 0_r, 0.2_r}, {0_r, 0_r, 1_r}},
-                    UpdateGhostAtomsTestData{{0_r, 0_r, -0.2_r}, {0_r, 0_r, -1_r}}));
+    testing::Values(UpdateGhostAtomsTestData{{real_t(0), real_t(0), real_t(0.2)},
+                                             {real_t(0), real_t(0), real_t(1)}},
+                    UpdateGhostAtomsTestData{{real_t(0), real_t(0), real_t(-0.2)},
+                                             {real_t(0), real_t(0), real_t(-1)}}));
 
 INSTANTIATE_TEST_SUITE_P(
     ShiftXYZ,
     UpdateGhostAtomsTest,
-    testing::Values(UpdateGhostAtomsTestData{{0.2_r, 0.2_r, 0.2_r}, {1_r, 1_r, 1_r}},
-                    UpdateGhostAtomsTestData{{-0.2_r, -0.2_r, -0.2_r}, {-1_r, -1_r, -1_r}}));
+    testing::Values(UpdateGhostAtomsTestData{{real_t(0.2), real_t(0.2), real_t(0.2)},
+                                             {real_t(1), real_t(1), real_t(1)}},
+                    UpdateGhostAtomsTestData{{real_t(-0.2), real_t(-0.2), real_t(-0.2)},
+                                             {real_t(-1), real_t(-1), real_t(-1)}}));
 
 }  // namespace impl
 }  // namespace communication

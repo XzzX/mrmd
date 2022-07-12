@@ -43,37 +43,37 @@ struct Config
 
     // general simulation parameters
     idx_t nsteps = 40001;
-    real_t dt = 0.002_r;  ///< unit: ps
+    real_t dt = real_t(0.002);  ///< unit: ps
 
     // simulation box parameters
-    real_t rho = 32_r;  ///< unit: molecules/nm**3
+    real_t rho = real_t(32);  ///< unit: molecules/nm**3
 
     // thermodynamic force parameters
-    real_t thermodynamicForceModulation = 2_r;
+    real_t thermodynamicForceModulation = real_t(2);
 
     // neighborlist parameters
-    real_t skin = 0.3_r;  ///< unit: nm
+    real_t skin = real_t(0.3);  ///< unit: nm
     real_t neighborCutoff = action::SPC::rc + skin;
-    real_t cell_ratio = 0.5_r;
+    real_t cell_ratio = real_t(0.5);
     idx_t estimatedMaxNeighbors = 60;
 
     // thermostat parameters
-    real_t temperature = 300_r / toSI::temperature;  ///< unit: kJ/k_b/mol
-    real_t gamma = 10_r;
+    real_t temperature = real_t(300) / toSI::temperature;  ///< unit: kJ/k_b/mol
+    real_t gamma = real_t(10);
 
     // AdResS parameters
-    real_t atomisticRegionDiameter = 10_r;
-    real_t hybridRegionDiameter = 2.5_r;
+    real_t atomisticRegionDiameter = real_t(10);
+    real_t hybridRegionDiameter = real_t(2.5);
     idx_t lambdaExponent = 7;
     idx_t DriftForceSamplingInterval = 200;
     idx_t DriftForceUpdateInterval = 20000;
-    real_t DriftForceBinSize = 0.005_r;
+    real_t DriftForceBinSize = real_t(0.005);
 
     idx_t densitySamplingInterval = 200;
     idx_t densityUpdateInterval = 50000;
-    real_t densityBinWidth = 0.5_r;
-    real_t convSigma = 2_r;
-    real_t convRange = 2_r;
+    real_t densityBinWidth = real_t(0.5);
+    real_t convSigma = real_t(2);
+    real_t convRange = real_t(2);
 
     idx_t thermostatInterval = 10;
 };
@@ -113,19 +113,19 @@ void initMolecules(data::Molecules& molecules,
         pos(idx * 3 + 0, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
         pos(idx * 3 + 0, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
 
-        //        vel(idx * 3 + 0, 0) = (randGen.drand() - 0.5_r) * 1_r;
-        //        vel(idx * 3 + 0, 1) = (randGen.drand() - 0.5_r) * 1_r;
-        //        vel(idx * 3 + 0, 2) = (randGen.drand() - 0.5_r) * 1_r;
+        //        vel(idx * 3 + 0, 0) = (randGen.drand() - real_t(0.5)) * real_t(1);
+        //        vel(idx * 3 + 0, 1) = (randGen.drand() - real_t(0.5)) * real_t(1);
+        //        vel(idx * 3 + 0, 2) = (randGen.drand() - real_t(0.5)) * real_t(1);
 
         type(idx * 3 + 0) = 0;
         mass(idx * 3 + 0) = action::SPC::massO;  ///< unit: g/mol
         charge(idx * 3 + 0) = action::SPC::chargeO;
         realtiveMass(idx * 3 + 0) =
-            action::SPC::massO / (action::SPC::massO + 2_r * action::SPC::massH);
+            action::SPC::massO / (action::SPC::massO + real_t(2) * action::SPC::massH);
 
         // hydrogen 1
-        real_t theta = 2_r * M_PI * randGen.drand();
-        real_t phi = acos(1_r - 2_r * randGen.drand());
+        real_t theta = real_t(2) * M_PI * randGen.drand();
+        real_t phi = acos(real_t(1) - real_t(2) * randGen.drand());
         real_t randomDirection[3];
         randomDirection[0] = std::sin(phi) * std::cos(theta);
         randomDirection[1] = std::sin(phi) * std::sin(theta);
@@ -135,19 +135,19 @@ void initMolecules(data::Molecules& molecules,
         pos(idx * 3 + 1, 1) = pos(idx * 3 + 0, 1) + randomDirection[1] * action::SPC::eqDistanceHO;
         pos(idx * 3 + 1, 2) = pos(idx * 3 + 0, 2) + randomDirection[2] * action::SPC::eqDistanceHO;
 
-        //        vel(idx * 3 + 1, 0) = (randGen.drand() - 0.5_r) * 1_r;
-        //        vel(idx * 3 + 1, 1) = (randGen.drand() - 0.5_r) * 1_r;
-        //        vel(idx * 3 + 1, 2) = (randGen.drand() - 0.5_r) * 1_r;
+        //        vel(idx * 3 + 1, 0) = (randGen.drand() - real_t(0.5)) * real_t(1);
+        //        vel(idx * 3 + 1, 1) = (randGen.drand() - real_t(0.5)) * real_t(1);
+        //        vel(idx * 3 + 1, 2) = (randGen.drand() - real_t(0.5)) * real_t(1);
 
         type(idx * 3 + 1) = 1;
         mass(idx * 3 + 1) = action::SPC::massH;
         charge(idx * 3 + 1) = action::SPC::chargeH;
         realtiveMass(idx * 3 + 1) =
-            action::SPC::massH / (action::SPC::massO + 2_r * action::SPC::massH);
+            action::SPC::massH / (action::SPC::massO + real_t(2) * action::SPC::massH);
 
         // hydrogen 2
-        theta = 2_r * M_PI * randGen.drand();
-        phi = acos(1_r - 2_r * randGen.drand());
+        theta = real_t(2) * M_PI * randGen.drand();
+        phi = acos(real_t(1) - real_t(2) * randGen.drand());
         randomDirection[0] = std::sin(phi) * std::cos(theta);
         randomDirection[1] = std::sin(phi) * std::sin(theta);
         randomDirection[2] = std::cos(phi);
@@ -156,15 +156,15 @@ void initMolecules(data::Molecules& molecules,
         pos(idx * 3 + 2, 1) = pos(idx * 3 + 0, 1) + randomDirection[1] * action::SPC::eqDistanceHO;
         pos(idx * 3 + 2, 2) = pos(idx * 3 + 0, 2) + randomDirection[2] * action::SPC::eqDistanceHO;
 
-        //        vel(idx * 3 + 2, 0) = (randGen.drand() - 0.5_r) * 1_r;
-        //        vel(idx * 3 + 2, 1) = (randGen.drand() - 0.5_r) * 1_r;
-        //        vel(idx * 3 + 2, 2) = (randGen.drand() - 0.5_r) * 1_r;
+        //        vel(idx * 3 + 2, 0) = (randGen.drand() - real_t(0.5)) * real_t(1);
+        //        vel(idx * 3 + 2, 1) = (randGen.drand() - real_t(0.5)) * real_t(1);
+        //        vel(idx * 3 + 2, 2) = (randGen.drand() - real_t(0.5)) * real_t(1);
 
         type(idx * 3 + 2) = 1;
         mass(idx * 3 + 2) = action::SPC::massH;
         charge(idx * 3 + 2) = action::SPC::chargeH;
         realtiveMass(idx * 3 + 2) =
-            action::SPC::massH / (action::SPC::massO + 2_r * action::SPC::massH);
+            action::SPC::massH / (action::SPC::massO + real_t(2) * action::SPC::massH);
 
         // Give the state back, which will allow another thread to acquire it
         RNG.free_state(randGen);
@@ -176,7 +176,9 @@ void initMolecules(data::Molecules& molecules,
 
 void SPC(Config& config)
 {
-    auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {5_r, 5_r, 5_r}, config.neighborCutoff);
+    auto subdomain = data::Subdomain({real_t(0), real_t(0), real_t(0)},
+                                     {real_t(5), real_t(5), real_t(5)},
+                                     config.neighborCutoff);
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
 
     data::Atoms atoms(0);
@@ -195,7 +197,7 @@ void SPC(Config& config)
 
     Kokkos::Timer timer;
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
-    auto weightingFunction = weighting_function::Slab({0_r, 0_r, 0_r},
+    auto weightingFunction = weighting_function::Slab({real_t(0), real_t(0), real_t(0)},
                                                       config.atomisticRegionDiameter,
                                                       config.hybridRegionDiameter,
                                                       config.lambdaExponent);
@@ -210,7 +212,7 @@ void SPC(Config& config)
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     analysis::MeanSquareDisplacement meanSquareDisplacement;
     meanSquareDisplacement.reset(molecules);
-    auto selfDiffusion = 0_r;
+    auto selfDiffusion = real_t(0);
     communication::MultiResGhostLayer ghostLayer;
 
     util::printTable("step",
@@ -249,10 +251,10 @@ void SPC(Config& config)
         // update molecule positions
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
-        if (maxAtomDisplacement >= config.skin * 0.5_r)
+        if (maxAtomDisplacement >= config.skin * real_t(0.5))
         {
             // reset displacement
-            maxAtomDisplacement = 0_r;
+            maxAtomDisplacement = real_t(0);
 
             ghostLayer.exchangeRealAtoms(molecules, atoms, subdomain);
 
@@ -287,9 +289,9 @@ void SPC(Config& config)
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
         auto atomsForce = atoms.getForce();
-        Cabana::deep_copy(atomsForce, 0_r);
+        Cabana::deep_copy(atomsForce, real_t(0));
         auto moleculesForce = molecules.getForce();
-        Cabana::deep_copy(moleculesForce, 0_r);
+        Cabana::deep_copy(moleculesForce, real_t(0));
 
         //        if (step % config.densitySamplingInterval == 0)
         //        {
@@ -309,7 +311,7 @@ void SPC(Config& config)
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
-            auto Ebond = spc.calcBondEnergy(molecules, atoms, 20000_r);
+            auto Ebond = spc.calcBondEnergy(molecules, atoms, real_t(20000));
             auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto T = Ek;
             auto E_LJ = spc.getEnergyLJ() / real_c(atoms.numLocalAtoms);
@@ -318,7 +320,7 @@ void SPC(Config& config)
             // calc chemical potential
             auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
                                                            thermodynamicForce.getForce(0));
-            auto mu = 0_r;
+            auto mu = real_t(0);
             for (auto i = 0; i < Fth.extent(0) / 2; ++i)
             {
                 mu += Fth(i);
@@ -375,17 +377,18 @@ void SPC(Config& config)
             (step % config.thermostatInterval == 0))
         {
             selfDiffusion = meanSquareDisplacement.calc(molecules, subdomain) /
-                            (6_r * real_c(config.thermostatInterval) * config.dt);
+                            (real_t(6) * real_c(config.thermostatInterval) * config.dt);
             meanSquareDisplacement.reset(molecules);
 
             auto currentTemperature = analysis::getMeanKineticEnergy(atoms);
-            action::BerendsenThermostat::apply(atoms, currentTemperature, config.temperature, 1_r);
+            action::BerendsenThermostat::apply(
+                atoms, currentTemperature, config.temperature, real_t(1));
         }
 
         if (step < 1000)
         {
-            action::limitAccelerationPerComponent(atoms, 1000_r);
-            action::limitVelocityPerComponent(atoms, 100_r);
+            action::limitAccelerationPerComponent(atoms, real_t(1000));
+            action::limitVelocityPerComponent(atoms, real_t(100));
         }
 
         action::VelocityVerlet::postForceIntegrate(atoms, config.dt);

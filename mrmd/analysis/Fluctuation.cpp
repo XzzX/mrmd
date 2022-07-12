@@ -10,7 +10,7 @@ real_t getFluctuation(const data::MultiHistogram& hist,
                       const real_t& reference,
                       const idx_t& specimen)
 {
-    auto ret = 0_r;
+    auto ret = real_t(0);
     const real_t weighting = hist.binSize / (hist.max - hist.min);
     auto data = hist.data;
 

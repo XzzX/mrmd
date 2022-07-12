@@ -52,37 +52,37 @@ inline void setupAtoms(data::Atoms& atoms)
     {
         if (idx == 0)
         {
-            pos(0, 0) = 1_r;
-            pos(0, 1) = 0_r;
-            pos(0, 2) = 0_r;
-            mass(0) = 1_r;
-            relativeMass(0) = 0.25_r;
+            pos(0, 0) = real_t(1);
+            pos(0, 1) = real_t(0);
+            pos(0, 2) = real_t(0);
+            mass(0) = real_t(1);
+            relativeMass(0) = real_t(0.25);
         }
 
         if (idx == 1)
         {
-            pos(1, 0) = 0_r;
-            pos(1, 1) = 1_r;
-            pos(1, 2) = 0_r;
-            mass(1) = 3_r;
-            relativeMass(1) = 0.75_r;
+            pos(1, 0) = real_t(0);
+            pos(1, 1) = real_t(1);
+            pos(1, 2) = real_t(0);
+            mass(1) = real_t(3);
+            relativeMass(1) = real_t(0.75);
         }
         if (idx == 2)
         {
-            pos(2, 0) = -1_r;
-            pos(2, 1) = 0_r;
-            pos(2, 2) = 0_r;
-            mass(2) = 1_r;
-            relativeMass(2) = 0.25_r;
+            pos(2, 0) = real_t(-1);
+            pos(2, 1) = real_t(0);
+            pos(2, 2) = real_t(0);
+            mass(2) = real_t(1);
+            relativeMass(2) = real_t(0.25);
         }
 
         if (idx == 3)
         {
-            pos(3, 0) = 0_r;
-            pos(3, 1) = -1_r;
-            pos(3, 2) = 0_r;
-            mass(3) = 3_r;
-            relativeMass(3) = 0.75_r;
+            pos(3, 0) = real_t(0);
+            pos(3, 1) = real_t(-1);
+            pos(3, 2) = real_t(0);
+            mass(3) = real_t(3);
+            relativeMass(3) = real_t(0.75);
         }
     };
     Kokkos::parallel_for(policy, kernel);

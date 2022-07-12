@@ -15,7 +15,7 @@ void limitAccelerationPerComponent(data::Atoms& atoms, const real_t& maxAccelera
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
         auto m = mass(idx);
-        auto invM = 1_r / m;
+        auto invM = real_t(1) / m;
 
         force(idx, 0) = std::min(force(idx, 0) * invM, +maxAccelerationPerComponent) * m;
         force(idx, 0) = std::max(force(idx, 0) * invM, -maxAccelerationPerComponent) * m;

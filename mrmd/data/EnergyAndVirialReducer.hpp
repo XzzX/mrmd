@@ -4,8 +4,8 @@ namespace mrmd::data
 {
 struct EnergyAndVirialReducer
 {
-    real_t energy = 0_r;
-    real_t virial = 0_r;
+    real_t energy = real_t(0);
+    real_t virial = real_t(0);
 
     KOKKOS_INLINE_FUNCTION
     EnergyAndVirialReducer() = default;

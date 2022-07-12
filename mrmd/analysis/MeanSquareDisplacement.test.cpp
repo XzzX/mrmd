@@ -13,11 +13,12 @@ using MeanSquareDisplacementTest = test::SingleAtom;
 
 TEST_F(MeanSquareDisplacementTest, no_displacement)
 {
-    data::Subdomain subdomain({0_r, 0_r, 0_r}, {10_r, 10_r, 10_r}, 1_r);
+    data::Subdomain subdomain(
+        {real_t(0), real_t(0), real_t(0)}, {real_t(10), real_t(10), real_t(10)}, real_t(1));
     analysis::MeanSquareDisplacement msd;
     msd.reset(atoms);
     auto meanSqDisplacement = msd.calc(atoms, subdomain);
-    EXPECT_FLOAT_EQ(meanSqDisplacement, 0_r);
+    EXPECT_FLOAT_EQ(meanSqDisplacement, real_t(0));
 }
 }  // namespace analysis
 }  // namespace mrmd
