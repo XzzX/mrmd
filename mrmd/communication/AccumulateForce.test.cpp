@@ -24,14 +24,14 @@ TEST(AccumulateForceTest, ghostToReal)
     Kokkos::deep_copy(correspondingRealAtom, h_correspondingRealAtoms);
 
     auto force = atoms.getForce();
-    Cabana::deep_copy(force, 1_r);
+    Cabana::deep_copy(force, real_t(1));
 
     AccumulateForce::ghostToReal(atoms, correspondingRealAtom);
 
     data::HostAtoms h_atoms(atoms);
-    EXPECT_FLOAT_EQ(h_atoms.getForce()(0, 0), 101_r);
-    EXPECT_FLOAT_EQ(h_atoms.getForce()(0, 1), 101_r);
-    EXPECT_FLOAT_EQ(h_atoms.getForce()(0, 2), 101_r);
+    EXPECT_FLOAT_EQ(h_atoms.getForce()(0, 0), real_t(101));
+    EXPECT_FLOAT_EQ(h_atoms.getForce()(0, 1), real_t(101));
+    EXPECT_FLOAT_EQ(h_atoms.getForce()(0, 2), real_t(101));
 }
 
 }  // namespace impl

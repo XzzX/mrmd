@@ -13,8 +13,8 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
                                   const real_t& fracTypeA,
                                   const real_t& maxVelocity)
 {
-    assert(fracTypeA < 1_r);
-    assert(fracTypeA > 0_r);
+    assert(fracTypeA < real_t(1));
+    assert(fracTypeA > real_t(0));
     auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
 
     data::Atoms atoms(numAtoms);
@@ -35,13 +35,13 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
         pos(idx, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
         pos(idx, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
 
-        vel(idx, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(idx, 0) = (randGen.drand() - real_t(0.5)) * maxVelocity;
+        vel(idx, 1) = (randGen.drand() - real_t(0.5)) * maxVelocity;
+        vel(idx, 2) = (randGen.drand() - real_t(0.5)) * maxVelocity;
         RNG.free_state(randGen);
 
-        mass(idx) = 1_r;
-        relativeMass(idx) = 1_r;
+        mass(idx) = real_t(1);
+        relativeMass(idx) = real_t(1);
 
         type(idx) = idx < numAtomsA ? 0 : 1;
     };
@@ -56,7 +56,7 @@ void init(const YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdoma
 {
     if (config["restore_file"].IsDefined())
     {
-        subdomain = data::Subdomain({0_r, 0_r, 0_r},
+        subdomain = data::Subdomain({real_t(0), real_t(0), real_t(0)},
                                     {config["box"][0].as<real_t>(),
                                      config["box"][1].as<real_t>(),
                                      config["box"][2].as<real_t>()},
@@ -68,7 +68,7 @@ void init(const YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdoma
         return;
     }
 
-    subdomain = data::Subdomain({0_r, 0_r, 0_r},
+    subdomain = data::Subdomain({real_t(0), real_t(0), real_t(0)},
                                 {config["box"][0].as<real_t>(),
                                  config["box"][1].as<real_t>(),
                                  config["box"][2].as<real_t>()},

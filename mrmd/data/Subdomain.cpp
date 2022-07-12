@@ -33,7 +33,7 @@ void checkInvariants([[maybe_unused]] const Subdomain& subdomain)
         assert(subdomain.maxInnerCorner[dim] < subdomain.maxCorner[dim]);
         assert(subdomain.maxCorner[dim] < subdomain.maxGhostCorner[dim]);
 
-        assert(subdomain.diameter[dim] >= 0_r);
+        assert(subdomain.diameter[dim] >= real_t(0));
         assert(subdomain.diameter[dim] > subdomain.ghostLayerThickness &&
                "ghost layer to larger than subdomain");
     }

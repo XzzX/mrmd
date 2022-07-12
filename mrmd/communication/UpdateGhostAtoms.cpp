@@ -39,9 +39,9 @@ void updateOnlyPos(data::Atoms& atoms,
         pos(idx, 2) = pos(realIdx, 2);
 
         real_t delta[3];
-        delta[0] = 0.1_r * subdomain.diameter[0];
-        delta[1] = 0.1_r * subdomain.diameter[1];
-        delta[2] = 0.1_r * subdomain.diameter[2];
+        delta[0] = real_t(0.1) * subdomain.diameter[0];
+        delta[1] = real_t(0.1) * subdomain.diameter[1];
+        delta[2] = real_t(0.1) * subdomain.diameter[2];
         if (dx[0] > +delta[0]) pos(idx, 0) += subdomain.diameter[0];
         if (dx[1] > +delta[1]) pos(idx, 1) += subdomain.diameter[1];
         if (dx[2] > +delta[2]) pos(idx, 2) += subdomain.diameter[2];

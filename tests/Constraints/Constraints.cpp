@@ -10,12 +10,12 @@ using ConstraintTest = test::DiamondFixture;
 
 TEST_F(ConstraintTest, ShakeVelocityVerlet)
 {
-    auto dt = 0.1_r;
+    auto dt = real_t(0.1);
 
     data::BondView::host_mirror_type bonds("bonds", 1);
     bonds(0).idx = 0;
     bonds(0).jdx = 1;
-    bonds(0).eqDistance = 1_r;
+    bonds(0).eqDistance = real_t(1);
 
     action::MoleculeConstraints mc(1, 1);
     mc.setConstraints(bonds);
@@ -23,7 +23,7 @@ TEST_F(ConstraintTest, ShakeVelocityVerlet)
     mc.enforcePositionalConstraints(molecules, atoms, dt);
     action::VelocityVerlet::preForceIntegrate(atoms, dt);
     auto atomsForce = atoms.getForce();
-    Cabana::deep_copy(atomsForce, 0_r);
+    Cabana::deep_copy(atomsForce, real_t(0));
     action::VelocityVerlet::postForceIntegrate(atoms, dt);
     mc.enforceVelocityConstraints(molecules, atoms, dt);
 
@@ -52,8 +52,8 @@ TEST_F(ConstraintTest, ShakeVelocityVerlet)
 
         return util::dot3(dx, dv) / std::sqrt(util::dot3(dx, dx));
     };
-    EXPECT_FLOAT_EQ(calcDist(0, 1), 1_r);
-    EXPECT_FLOAT_EQ(calcRelVel(0, 1) + 1_r, 1_r);
+    EXPECT_FLOAT_EQ(calcDist(0, 1), real_t(1));
+    EXPECT_FLOAT_EQ(calcRelVel(0, 1) + real_t(1), real_t(1));
 }
 
 }  // namespace mrmd

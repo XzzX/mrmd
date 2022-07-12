@@ -62,9 +62,9 @@ void restoreLAMMPS(const std::string& filename, data::Atoms& atoms)
         h_vel(idx, 1) = velY;
         h_vel(idx, 2) = velZ;
 
-        h_mass(idx) = 1_r;
+        h_mass(idx) = real_t(1);
 
-        h_relativeMass(idx) = 1_r;
+        h_relativeMass(idx) = real_t(1);
 
         ++idx;
     }
@@ -76,7 +76,7 @@ void restoreLAMMPS(const std::string& filename, data::Atoms& atoms)
     atoms.numLocalAtoms = idx;
 
     auto force = atoms.getForce();
-    Cabana::deep_copy(force, 0_r);
+    Cabana::deep_copy(force, real_t(0));
     auto type = atoms.getType();
     Cabana::deep_copy(type, 0);
 }

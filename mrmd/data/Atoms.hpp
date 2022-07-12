@@ -109,13 +109,13 @@ public:
     explicit GeneralAtoms(const idx_t numAtoms) : atoms_("atoms", numAtoms)
     {
         sliceAll();
-        Cabana::deep_copy(pos, 0_r);
-        Cabana::deep_copy(vel, 0_r);
-        Cabana::deep_copy(force, 0_r);
+        Cabana::deep_copy(pos, real_t(0));
+        Cabana::deep_copy(vel, real_t(0));
+        Cabana::deep_copy(force, real_t(0));
         Cabana::deep_copy(type, 0);
-        Cabana::deep_copy(mass, 0_r);
-        Cabana::deep_copy(charge, 0_r);
-        Cabana::deep_copy(relativeMass, 0_r);
+        Cabana::deep_copy(mass, real_t(0));
+        Cabana::deep_copy(charge, real_t(0));
+        Cabana::deep_copy(relativeMass, real_t(0));
     }
     template <class DEVICE_TYPE_SRC, bool DEVICE_SRC>
     explicit GeneralAtoms(const GeneralAtoms<DEVICE_TYPE_SRC, DEVICE_SRC>& atoms);

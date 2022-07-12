@@ -29,9 +29,9 @@ static void update(const data::Molecules& molecules,
         auto atomsStart = moleculesAtomsOffset(moleculeIdx);
         auto atomsEnd = atomsStart + moleculesNumAtoms(moleculeIdx);
 
-        moleculesPos(moleculeIdx, 0) = 0_r;
-        moleculesPos(moleculeIdx, 1) = 0_r;
-        moleculesPos(moleculeIdx, 2) = 0_r;
+        moleculesPos(moleculeIdx, 0) = real_t(0);
+        moleculesPos(moleculeIdx, 1) = real_t(0);
+        moleculesPos(moleculeIdx, 2) = real_t(0);
 
         for (auto atomIdx = atomsStart; atomIdx < atomsEnd; ++atomIdx)
         {

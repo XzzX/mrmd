@@ -78,7 +78,7 @@ void MultiHistogram::makeSymmetric()
         Kokkos::MDRangePolicy<Kokkos::Rank<2>>({idx_t(0), idx_t(0)}, {numBins / 2, numHistograms});
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
     {
-        auto val = 0.5_r * (hist(idx, jdx) + hist(maxIdx - idx, jdx));
+        auto val = real_t(0.5) * (hist(idx, jdx) + hist(maxIdx - idx, jdx));
         hist(idx, jdx) = val;
         hist(maxIdx - idx, jdx) = val;
     };
@@ -101,7 +101,7 @@ void cumulativeMovingAverage(data::MultiHistogram& average,
         average.data(binIdx, histogramIdx) =
             (movingAverageFactor * average.data(binIdx, histogramIdx) +
              current.data(binIdx, histogramIdx)) /
-            (movingAverageFactor + 1_r);
+            (movingAverageFactor + real_t(1));
     };
     Kokkos::parallel_for("MultiHistogram::cumulativeMovingAverage", policy, kernel);
     Kokkos::fence();
@@ -110,7 +110,7 @@ void cumulativeMovingAverage(data::MultiHistogram& average,
 data::MultiHistogram gradient(const data::MultiHistogram& input, const bool periodic)
 {
     const auto inverseSpacing = input.inverseBinSize;
-    const auto inverseDoubleSpacing = 0.5_r * input.inverseBinSize;
+    const auto inverseDoubleSpacing = real_t(0.5) * input.inverseBinSize;
 
     data::MultiHistogram grad("gradient", input.min, input.max, input.numBins, input.numHistograms);
     auto policy =
@@ -162,7 +162,7 @@ data::MultiHistogram smoothen(data::MultiHistogram& input,
                               const real_t& range,
                               const bool periodic)
 {
-    const auto inverseSigma = 1_r / sigma;
+    const auto inverseSigma = real_t(1) / sigma;
     /// how many neighboring bins are affected
     const idx_t delta = int_c(range * sigma * input.inverseBinSize);
 
@@ -173,7 +173,7 @@ data::MultiHistogram smoothen(data::MultiHistogram& input,
                                                          {input.numBins, input.numHistograms});
     auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histogramIdx)
     {
-        auto normalization = 0_r;
+        auto normalization = real_t(0);
 
         idx_t jdxMin = binIdx - delta;
         idx_t jdxMax = binIdx + delta;

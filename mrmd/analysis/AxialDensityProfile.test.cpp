@@ -23,11 +23,11 @@ data::Atoms initAtoms()
         {
             for (auto j = 0; j < i + 1; ++j)
             {
-                atoms.getPos()(idx, 0) = real_c(i) + 0.5_r;
+                atoms.getPos()(idx, 0) = real_c(i) + real_t(0.5);
                 atoms.getType()(idx) = 0;
                 ++idx;
 
-                atoms.getPos()(idx, 0) = 10_r - (real_c(i) + 0.5_r);
+                atoms.getPos()(idx, 0) = real_t(10) - (real_c(i) + real_t(0.5));
                 atoms.getType()(idx) = 1;
                 ++idx;
             }
@@ -45,8 +45,14 @@ TEST(AxialDensityProfile, histogram)
 {
     auto atoms = initAtoms();
 
-    auto histogram = getAxialDensityProfile(
-        atoms.numLocalAtoms, atoms.getPos(), atoms.getType(), 2, 0_r, 10_r, 10, COORD_X);
+    auto histogram = getAxialDensityProfile(atoms.numLocalAtoms,
+                                            atoms.getPos(),
+                                            atoms.getType(),
+                                            2,
+                                            real_t(0),
+                                            real_t(10),
+                                            10,
+                                            COORD_X);
     auto h_data = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogram.data);
 
     for (auto i = 0; i < 10; ++i)

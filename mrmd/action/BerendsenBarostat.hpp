@@ -23,7 +23,7 @@ void apply(data::Atoms& atoms,
            bool stretchY = true,
            bool stretchZ = true)
 {
-    auto mu = std::cbrt(1_r + gamma * (currentPressure - targetPressure));
+    auto mu = std::cbrt(real_t(1) + gamma * (currentPressure - targetPressure));
     if (stretchX) subdomain.scaleDim(mu, COORD_X);
     if (stretchY) subdomain.scaleDim(mu, COORD_Y);
     if (stretchZ) subdomain.scaleDim(mu, COORD_Z);

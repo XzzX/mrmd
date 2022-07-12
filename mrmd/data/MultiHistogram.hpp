@@ -21,7 +21,7 @@ struct MultiHistogram
           numBins(numBinsArg),
           numHistograms(numHistogramsArg),
           binSize((max - min) / real_c(numBins)),
-          inverseBinSize(1_r / binSize),
+          inverseBinSize(real_t(1) / binSize),
           data(label, numBins, numHistograms)
     {
         MRMD_HOST_CHECK_GREATER(maxArg, minArg);
@@ -72,7 +72,7 @@ struct MultiHistogram
  */
 void cumulativeMovingAverage(data::MultiHistogram& average,
                              const data::MultiHistogram& current,
-                             const real_t movingAverageFactor = 10_r);
+                             const real_t movingAverageFactor = real_t(10));
 
 /**
  * Calculates the gradient of the histogram.

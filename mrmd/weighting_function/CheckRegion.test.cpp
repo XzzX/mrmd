@@ -8,23 +8,23 @@ namespace weighting_function
 {
 TEST(CheckRegion, AT)
 {
-    EXPECT_FALSE(isInATRegion(0_r));
-    EXPECT_FALSE(isInATRegion(0.5_r));
-    EXPECT_TRUE(isInATRegion(1_r));
+    EXPECT_FALSE(isInATRegion(real_t(0)));
+    EXPECT_FALSE(isInATRegion(real_t(0.5)));
+    EXPECT_TRUE(isInATRegion(real_t(1)));
 }
 
 TEST(CheckRegion, HY)
 {
-    EXPECT_FALSE(isInHYRegion(0_r));
-    EXPECT_TRUE(isInHYRegion(0.5_r));
-    EXPECT_FALSE(isInHYRegion(1_r));
+    EXPECT_FALSE(isInHYRegion(real_t(0)));
+    EXPECT_TRUE(isInHYRegion(real_t(0.5)));
+    EXPECT_FALSE(isInHYRegion(real_t(1)));
 }
 
 TEST(CheckRegion, CG)
 {
-    EXPECT_TRUE(isInCGRegion(0_r));
-    EXPECT_FALSE(isInCGRegion(0.5_r));
-    EXPECT_FALSE(isInCGRegion(1_r));
+    EXPECT_TRUE(isInCGRegion(real_t(0)));
+    EXPECT_FALSE(isInCGRegion(real_t(0.5)));
+    EXPECT_FALSE(isInCGRegion(real_t(1)));
 }
 }  // namespace weighting_function
 }  // namespace mrmd

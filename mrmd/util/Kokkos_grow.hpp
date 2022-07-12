@@ -8,7 +8,7 @@ namespace mrmd
 namespace util
 {
 template <class T, class... P>
-void grow(Kokkos::View<T, P...>& view, idx_t size, real_t safetyMargin = 1.1_r)
+void grow(Kokkos::View<T, P...>& view, idx_t size, real_t safetyMargin = real_t(1.1))
 {
     assert(size >= 0);
 

@@ -18,9 +18,9 @@ protected:
         data::HostMolecules molecules(2);
 
         auto pos = molecules.getPos();
-        pos(0, 0) = 0_r;
-        pos(0, 1) = 0_r;
-        pos(0, 2) = 0_r;
+        pos(0, 0) = real_t(0);
+        pos(0, 1) = real_t(0);
+        pos(0, 2) = real_t(0);
 
         auto moleculesAtomsOffset = molecules.getAtomsOffset();
         auto moleculesNumAtoms = molecules.getNumAtoms();
@@ -45,42 +45,42 @@ protected:
         auto realtiveMass = atoms.getRelativeMass();
 
         idx_t idx = 0;
-        pos(idx * 3 + 0, 0) = 0_r;
-        pos(idx * 3 + 0, 1) = 0_r;
-        pos(idx * 3 + 0, 2) = 0_r;
+        pos(idx * 3 + 0, 0) = real_t(0);
+        pos(idx * 3 + 0, 1) = real_t(0);
+        pos(idx * 3 + 0, 2) = real_t(0);
 
         type(idx * 3 + 0) = 0;
-        mass(idx * 3 + 0) = 15.999_r;
-        charge(idx * 3 + 0) = -0.82_r;
-        realtiveMass(idx * 3 + 0) = 15.999_r / (15.999_r + 2_r * 1.008_r);
+        mass(idx * 3 + 0) = real_t(15.999);
+        charge(idx * 3 + 0) = real_t(-0.82);
+        realtiveMass(idx * 3 + 0) = real_t(15.999) / (real_t(15.999) + real_t(2) * real_t(1.008));
 
         // hydrogen 1
         pos(idx * 3 + 1, 0) = pos(idx * 3 + 0, 0) + SPC::eqDistanceHO;
         pos(idx * 3 + 1, 1) = pos(idx * 3 + 0, 1);
         pos(idx * 3 + 1, 2) = pos(idx * 3 + 0, 2);
 
-        //        vel(idx * 3 + 1, 0) = (randGen.drand() - 0.5_r) * 1_r;
-        //        vel(idx * 3 + 1, 1) = (randGen.drand() - 0.5_r) * 1_r;
-        //        vel(idx * 3 + 1, 2) = (randGen.drand() - 0.5_r) * 1_r;
+        //        vel(idx * 3 + 1, 0) = (randGen.drand() - real_t(0.5)) * real_t(1);
+        //        vel(idx * 3 + 1, 1) = (randGen.drand() - real_t(0.5)) * real_t(1);
+        //        vel(idx * 3 + 1, 2) = (randGen.drand() - real_t(0.5)) * real_t(1);
 
         type(idx * 3 + 1) = 1;
-        mass(idx * 3 + 1) = 1.008_r;
-        charge(idx * 3 + 1) = +0.41_r;
-        realtiveMass(idx * 3 + 1) = 1.008_r / (15.999_r + 2_r * 1.008_r);
+        mass(idx * 3 + 1) = real_t(1.008);
+        charge(idx * 3 + 1) = real_t(+0.41);
+        realtiveMass(idx * 3 + 1) = real_t(1.008) / (real_t(15.999) + real_t(2) * real_t(1.008));
 
         // hydrogen 2
         pos(idx * 3 + 2, 0) = pos(idx * 3 + 0, 0) + SPC::eqDistanceHO * std::cos(SPC::angleHOH);
         pos(idx * 3 + 2, 1) = pos(idx * 3 + 0, 1) + SPC::eqDistanceHO * std::sin(SPC::angleHOH);
         pos(idx * 3 + 2, 2) = pos(idx * 3 + 0, 2);
 
-        //        vel(idx * 3 + 2, 0) = (randGen.drand() - 0.5_r) * 1_r;
-        //        vel(idx * 3 + 2, 1) = (randGen.drand() - 0.5_r) * 1_r;
-        //        vel(idx * 3 + 2, 2) = (randGen.drand() - 0.5_r) * 1_r;
+        //        vel(idx * 3 + 2, 0) = (randGen.drand() - real_t(0.5)) * real_t(1);
+        //        vel(idx * 3 + 2, 1) = (randGen.drand() - real_t(0.5)) * real_t(1);
+        //        vel(idx * 3 + 2, 2) = (randGen.drand() - real_t(0.5)) * real_t(1);
 
         type(idx * 3 + 2) = 1;
-        mass(idx * 3 + 2) = 1.008_r;
-        charge(idx * 3 + 2) = +0.41_r;
-        realtiveMass(idx * 3 + 2) = 1.008_r / (15.999_r + 2_r * 1.008_r);
+        mass(idx * 3 + 2) = real_t(1.008);
+        charge(idx * 3 + 2) = real_t(+0.41);
+        realtiveMass(idx * 3 + 2) = real_t(1.008) / (real_t(15.999) + real_t(2) * real_t(1.008));
 
         atoms.numLocalAtoms = 3;
         atoms.numGhostAtoms = 0;
@@ -93,10 +93,10 @@ protected:
         data::deep_copy(molecules, getMolecules());
         data::deep_copy(atoms, getAtoms());
 
-        auto cutoff = 2_r;
-        auto cellRatio = 1_r;
-        real_t minGrid[3] = {-1_r, -1_r, -1_r};
-        real_t maxGrid[3] = {+1_r, +1_r, +1_r};
+        auto cutoff = real_t(2);
+        auto cellRatio = real_t(1);
+        real_t minGrid[3] = {real_t(-1), real_t(-1), real_t(-1)};
+        real_t maxGrid[3] = {real_t(+1), real_t(+1), real_t(+1)};
         auto expectedNumNeighbors = 4;
         moleculesVerletList.build(molecules.getPos(),
                                   0,
@@ -117,24 +117,24 @@ protected:
 
 TEST_F(SPC_Test, CHECK_CONSTRAINTS)
 {
-    constexpr auto dt = 0.1_r;
+    constexpr auto dt = real_t(0.1);
 
     SPC spc;
     spc.enforcePositionalConstraints(molecules, atoms, dt);
 
     data::HostAtoms h_atoms(atoms);
     auto force = h_atoms.getForce();
-    EXPECT_FLOAT_EQ(force(0, 0) + 1_r, 1_r);
-    EXPECT_FLOAT_EQ(force(0, 1) + 1_r, 1_r);
-    EXPECT_FLOAT_EQ(force(0, 2) + 1_r, 1_r);
+    EXPECT_FLOAT_EQ(force(0, 0) + real_t(1), real_t(1));
+    EXPECT_FLOAT_EQ(force(0, 1) + real_t(1), real_t(1));
+    EXPECT_FLOAT_EQ(force(0, 2) + real_t(1), real_t(1));
 
-    EXPECT_FLOAT_EQ(force(1, 0) + 1_r, 1_r);
-    EXPECT_FLOAT_EQ(force(1, 1) + 1_r, 1_r);
-    EXPECT_FLOAT_EQ(force(1, 2) + 1_r, 1_r);
+    EXPECT_FLOAT_EQ(force(1, 0) + real_t(1), real_t(1));
+    EXPECT_FLOAT_EQ(force(1, 1) + real_t(1), real_t(1));
+    EXPECT_FLOAT_EQ(force(1, 2) + real_t(1), real_t(1));
 
-    EXPECT_FLOAT_EQ(force(2, 0) + 1_r, 1_r);
-    EXPECT_FLOAT_EQ(force(2, 1) + 1_r, 1_r);
-    EXPECT_FLOAT_EQ(force(2, 2) + 1_r, 1_r);
+    EXPECT_FLOAT_EQ(force(2, 0) + real_t(1), real_t(1));
+    EXPECT_FLOAT_EQ(force(2, 1) + real_t(1), real_t(1));
+    EXPECT_FLOAT_EQ(force(2, 2) + real_t(1), real_t(1));
 }
 
 }  // namespace action

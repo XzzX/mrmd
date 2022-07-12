@@ -39,7 +39,7 @@ data::Atoms restoreAtoms(const std::string& filename)
         h_pos(idx, 0) = x;
         h_pos(idx, 1) = y;
         h_pos(idx, 2) = z;
-        h_mass(idx) = 1_r;
+        h_mass(idx) = real_t(1);
         h_type(idx) = 0;
         ++idx;
     }
@@ -52,8 +52,8 @@ data::Atoms restoreAtoms(const std::string& filename)
 
     auto vel = p.getVel();
     auto force = p.getForce();
-    Cabana::deep_copy(vel, 0_r);
-    Cabana::deep_copy(force, 0_r);
+    Cabana::deep_copy(vel, real_t(0));
+    Cabana::deep_copy(force, real_t(0));
 
     return p;
 }

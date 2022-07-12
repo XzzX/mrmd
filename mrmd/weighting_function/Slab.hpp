@@ -62,37 +62,37 @@ public:
 
         if (absDx < atomisticRegionHalfDiameter_)
         {
-            lambda = 1_r;
-            modulatedLambda = 1_r;
-            gradLambdaX = 0_r;
-            gradLambdaY = 0_r;
-            gradLambdaZ = 0_r;
+            lambda = real_t(1);
+            modulatedLambda = real_t(1);
+            gradLambdaX = real_t(0);
+            gradLambdaY = real_t(0);
+            gradLambdaZ = real_t(0);
             return;
         }
         if (absDx > atomisticRegionHalfDiameter_ + hybridRegionDiameter_)
         {
-            lambda = 0_r;
-            modulatedLambda = 0_r;
-            gradLambdaX = 0_r;
-            gradLambdaY = 0_r;
-            gradLambdaZ = 0_r;
+            lambda = real_t(0);
+            modulatedLambda = real_t(0);
+            gradLambdaX = real_t(0);
+            gradLambdaY = real_t(0);
+            gradLambdaZ = real_t(0);
             return;
         }
 
         const real_t arg =
-            pi / (2_r * hybridRegionDiameter_) * (absDx - atomisticRegionHalfDiameter_);
+            pi / (real_t(2) * hybridRegionDiameter_) * (absDx - atomisticRegionHalfDiameter_);
         auto base = std::cos(arg);
         lambda = base * base;
         MRMD_DEVICE_ASSERT(!std::isnan(lambda), "absDx: " << absDx);
         modulatedLambda = util::powInt(base, exponent_);
 
-        auto factor = -pi / (2_r * hybridRegionDiameter_) * real_c(exponent_) * std::sin(arg) *
-                      util::powInt(base, exponent_ - 1) / absDx;
+        auto factor = -pi / (real_t(2) * hybridRegionDiameter_) * real_c(exponent_) *
+                      std::sin(arg) * util::powInt(base, exponent_ - 1) / absDx;
         MRMD_DEVICE_ASSERT(!std::isnan(factor));
         MRMD_DEVICE_ASSERT(!std::isnan(dx));
         gradLambdaX = factor * dx;
-        gradLambdaY = 0_r;
-        gradLambdaZ = 0_r;
+        gradLambdaY = real_t(0);
+        gradLambdaZ = real_t(0);
     }
 
     Slab(const std::array<real_t, 3>& center,
@@ -100,7 +100,7 @@ public:
          const real_t hybridRegionDiameter,
          const idx_t nu)
         : center_(center),
-          atomisticRegionHalfDiameter_(0.5_r * atomisticRegionDiameter),
+          atomisticRegionHalfDiameter_(real_t(0.5) * atomisticRegionDiameter),
           hybridRegionDiameter_(hybridRegionDiameter),
           exponent_(2 * nu)
     {

@@ -14,7 +14,8 @@ using MultiResRealAtomsExchangeTest = test::GridFixture;
 TEST_F(MultiResRealAtomsExchangeTest, SingleAtomTest)
 {
     init(1);
-    data::Subdomain domain({1_r, 1_r, 1_r}, {2_r, 2_r, 2_r}, 0.1_r);
+    data::Subdomain domain(
+        {real_t(1), real_t(1), real_t(1)}, {real_t(2), real_t(2), real_t(2)}, real_t(0.1));
     realAtomsExchange(domain, molecules, atoms);
 
     data::HostMolecules h_molecules(molecules);
@@ -45,7 +46,8 @@ TEST_F(MultiResRealAtomsExchangeTest, SingleAtomTest)
 TEST_F(MultiResRealAtomsExchangeTest, MultiAtomTest)
 {
     init(2);
-    data::Subdomain domain({1_r, 1_r, 1_r}, {2_r, 2_r, 2_r}, 0.1_r);
+    data::Subdomain domain(
+        {real_t(1), real_t(1), real_t(1)}, {real_t(2), real_t(2), real_t(2)}, real_t(0.1));
     realAtomsExchange(domain, molecules, atoms);
 
     data::HostMolecules h_molecules(molecules);

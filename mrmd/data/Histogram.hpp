@@ -15,7 +15,7 @@ struct Histogram
           max(maxArg),
           numBins(numBinsArg),
           binSize((max - min) / real_c(numBins)),
-          inverseBinSize(1_r / binSize),
+          inverseBinSize(real_t(1) / binSize),
           data(label, numBins)
     {
     }

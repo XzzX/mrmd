@@ -22,14 +22,14 @@ struct Config
     idx_t outputInterval = 10;
 
     idx_t nsteps = 21;
-    real_t dt = 0.001_r;
-    real_t temperature = 1.12_r;
-    real_t gamma = 1_r / dt;
+    real_t dt = real_t(0.001);
+    real_t temperature = real_t(1.12);
+    real_t gamma = real_t(1) / dt;
 
-    real_t Lx = 10_r;
+    real_t Lx = real_t(10);
     idx_t numAtoms = 100000;
 
-    real_t initialMaxVelocity = 10_r;
+    real_t initialMaxVelocity = real_t(10);
 };
 
 data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
@@ -52,12 +52,12 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
         pos(idx, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
         pos(idx, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
 
-        vel(idx, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(idx, 0) = (randGen.drand() - real_t(0.5)) * maxVelocity;
+        vel(idx, 1) = (randGen.drand() - real_t(0.5)) * maxVelocity;
+        vel(idx, 2) = (randGen.drand() - real_t(0.5)) * maxVelocity;
         RNG.free_state(randGen);
 
-        mass(idx) = 1_r;
+        mass(idx) = real_t(1);
     };
     Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
 
@@ -69,7 +69,8 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
 TEST(Integration, LangevinThermostat)
 {
     Config config;
-    auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
+    auto subdomain = data::Subdomain(
+        {real_t(0), real_t(0), real_t(0)}, {config.Lx, config.Lx, config.Lx}, real_t(1));
     auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
 
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
@@ -78,7 +79,7 @@ TEST(Integration, LangevinThermostat)
         action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
         auto force = atoms.getForce();
-        Cabana::deep_copy(force, 0_r);
+        Cabana::deep_copy(force, real_t(0));
 
         langevinThermostat.apply(atoms);
 
@@ -87,22 +88,23 @@ TEST(Integration, LangevinThermostat)
         if (config.bOutput && (step % config.outputInterval == 0))
         {
             auto Ek = analysis::getMeanKineticEnergy(atoms);
-            auto T = (2_r / 3_r) * Ek;
+            auto T = (real_t(2) / real_t(3)) * Ek;
             std::cout << "temperature: " << T << std::endl;
         }
     }
     auto Ek = analysis::getMeanKineticEnergy(atoms);
-    auto T = (2_r / 3_r) * Ek;
-    EXPECT_NEAR(T, config.temperature, 0.01_r);
+    auto T = (real_t(2) / real_t(3)) * Ek;
+    EXPECT_NEAR(T, config.temperature, real_t(0.01));
 }
 
 TEST(Integration, VelocityVerletLangevinThermostat)
 {
     Config config;
-    auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
+    auto subdomain = data::Subdomain(
+        {real_t(0), real_t(0), real_t(0)}, {config.Lx, config.Lx, config.Lx}, real_t(1));
     auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
 
-    action::VelocityVerletLangevinThermostat vv(1e5_r, config.temperature);
+    action::VelocityVerletLangevinThermostat vv(real_t(1e5), config.temperature);
     for (auto step = 0; step < config.nsteps; ++step)
     {
         vv.preForceIntegrate(atoms, config.dt);
@@ -111,13 +113,13 @@ TEST(Integration, VelocityVerletLangevinThermostat)
         if (config.bOutput && (step % config.outputInterval == 0))
         {
             auto Ek = analysis::getMeanKineticEnergy(atoms);
-            auto T = (2_r / 3_r) * Ek;
+            auto T = (real_t(2) / real_t(3)) * Ek;
             std::cout << "temperature: " << T << std::endl;
         }
     }
     auto Ek = analysis::getMeanKineticEnergy(atoms);
-    auto T = (2_r / 3_r) * Ek;
-    EXPECT_NEAR(T, config.temperature, 0.01_r);
+    auto T = (real_t(2) / real_t(3)) * Ek;
+    EXPECT_NEAR(T, config.temperature, real_t(0.01));
 }
 
 int main(int argc, char** argv)

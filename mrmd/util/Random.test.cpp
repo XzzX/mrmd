@@ -17,8 +17,8 @@ void randomRange()
     auto h_data = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), data);
     for (auto i = 0; i < 100; ++i)
     {
-        EXPECT_GE(h_data(i), 0_r);
-        EXPECT_LT(h_data(i), 1_r);
+        EXPECT_GE(h_data(i), real_t(0));
+        EXPECT_LT(h_data(i), real_t(1));
     }
 }
 TEST(Random, Range) { randomRange(); }

@@ -23,20 +23,20 @@ inline void setup(data::Atoms& atoms)
     auto policy = Kokkos::RangePolicy<>(0, 1);
     auto kernel = KOKKOS_LAMBDA(idx_t idx)
     {
-        pos(0, 0) = +2_r;
-        pos(0, 1) = +3_r;
-        pos(0, 2) = +4_r;
+        pos(0, 0) = real_t(+2);
+        pos(0, 1) = real_t(+3);
+        pos(0, 2) = real_t(+4);
 
-        vel(0, 0) = +7_r;
-        vel(0, 1) = +5_r;
-        vel(0, 2) = +3_r;
+        vel(0, 0) = real_t(+7);
+        vel(0, 1) = real_t(+5);
+        vel(0, 2) = real_t(+3);
 
-        force(0, 0) = +9_r;
-        force(0, 1) = +7_r;
-        force(0, 2) = +8_r;
+        force(0, 0) = real_t(+9);
+        force(0, 1) = real_t(+7);
+        force(0, 2) = real_t(+8);
 
-        mass(0) = 1.5_r;
-        charge(0) = 0.5_r;
+        mass(0) = real_t(1.5);
+        charge(0) = real_t(0.5);
     };
     Kokkos::parallel_for(policy, kernel);
     Kokkos::fence();

@@ -15,18 +15,18 @@ TEST(KineticEnergy, Simple)
     auto vel = Cabana::slice<data::Atoms::VEL>(h_AoSoA);
     auto mass = Cabana::slice<data::Atoms::MASS>(h_AoSoA);
 
-    vel(0, 0) = +2_r;
-    vel(0, 1) = +0_r;
-    vel(0, 2) = +0_r;
-    mass(0) = 1_r;
-    vel(1, 0) = -0_r;
-    vel(1, 1) = -8_r;
-    vel(1, 2) = -0_r;
-    mass(1) = 2_r;
-    vel(2, 0) = +0_r;
-    vel(2, 1) = +0_r;
-    vel(2, 2) = +16_r;
-    mass(2) = 0.5_r;
+    vel(0, 0) = real_t(+2);
+    vel(0, 1) = real_t(+0);
+    vel(0, 2) = real_t(+0);
+    mass(0) = real_t(1);
+    vel(1, 0) = real_t(-0);
+    vel(1, 1) = real_t(-8);
+    vel(1, 2) = real_t(-0);
+    mass(1) = real_t(2);
+    vel(2, 0) = real_t(+0);
+    vel(2, 1) = real_t(+0);
+    vel(2, 2) = real_t(+16);
+    mass(2) = real_t(0.5);
 
     Cabana::deep_copy(d_AoSoA, h_AoSoA);
 
@@ -35,6 +35,7 @@ TEST(KineticEnergy, Simple)
 
     auto energy = analysis::getKineticEnergy(atoms);
 
-    EXPECT_FLOAT_EQ(energy, (4_r + 2_r * 64_r + 0.5_r * 256_r) * 0.5_r);
+    EXPECT_FLOAT_EQ(energy,
+                    (real_t(4) + real_t(2) * real_t(64) + real_t(0.5) * real_t(256)) * real_t(0.5));
 }
 }  // namespace mrmd

@@ -6,7 +6,7 @@ namespace action
 {
 real_t VelocityVerlet::preForceIntegrate(data::Atoms& atoms, const real_t dt)
 {
-    auto dtf(0.5_r * dt);
+    auto dtf(real_t(0.5) * dt);
     auto dtv(dt);
     auto pos = atoms.getPos();
     auto vel = atoms.getVel();
@@ -30,7 +30,7 @@ real_t VelocityVerlet::preForceIntegrate(data::Atoms& atoms, const real_t dt)
         auto distSqr = dx * dx + dy * dy + dz * dz;
         if (distSqr > maxDistSqr) maxDistSqr = distSqr;
     };
-    real_t maxDistSqr = 0_r;
+    real_t maxDistSqr = real_t(0);
     Kokkos::parallel_reduce(
         "VelocityVerlet::preForceIntegrate", policy, kernel, Kokkos::Max<real_t>(maxDistSqr));
     Kokkos::fence();
@@ -39,7 +39,7 @@ real_t VelocityVerlet::preForceIntegrate(data::Atoms& atoms, const real_t dt)
 
 void VelocityVerlet::postForceIntegrate(data::Atoms& atoms, const real_t dt)
 {
-    auto dtf = 0.5_r * dt;
+    auto dtf = real_t(0.5) * dt;
     auto vel = atoms.getVel();
     auto force = atoms.getForce();
     auto mass = atoms.getMass();

@@ -31,17 +31,17 @@ void calcPotentialAndForce(impl::CappedLennardJonesPotential& LJ,
 
 TEST(LennardJones, ExplicitComparison)
 {
-    constexpr real_t epsilon = 2_r;
-    constexpr real_t sigma = 3.01_r;
-    constexpr real_t rc = 2.5_r * sigma;
-    constexpr real_t cappingDistance = 0.1_r;
+    constexpr real_t epsilon = real_t(2);
+    constexpr real_t sigma = real_t(3.01);
+    constexpr real_t rc = real_t(2.5) * sigma;
+    constexpr real_t cappingDistance = real_t(0.1);
     const auto cutoffPotential =
-        4_r * epsilon * (util::powInt(sigma / rc, 12) - util::powInt(sigma / rc, 6));
+        real_t(4) * epsilon * (util::powInt(sigma / rc, 12) - util::powInt(sigma / rc, 6));
 
     impl::CappedLennardJonesPotential LJ({cappingDistance}, {rc}, {sigma}, {epsilon}, 1, true);
 
     constexpr idx_t steps = 100;
-    constexpr real_t delta = 0.1_r;
+    constexpr real_t delta = real_t(0.1);
     constexpr real_t startingPos = cappingDistance + delta;
     EXPECT_GT(startingPos + real_c(steps) * delta, rc);
 
@@ -56,12 +56,13 @@ TEST(LennardJones, ExplicitComparison)
     {
         auto x = startingPos + real_c(idx) * delta;
         auto potential =
-            4_r * epsilon * (util::powInt(sigma / x, 12) - util::powInt(sigma / x, 6)) -
+            real_t(4) * epsilon * (util::powInt(sigma / x, 12) - util::powInt(sigma / x, 6)) -
             cutoffPotential;
         EXPECT_FLOAT_EQ(hPotential(idx), potential);
-        auto force = 4_r * epsilon *
-                     (-12_r * util::powInt(sigma / x, 12) + 6_r * util::powInt(sigma / x, 6)) * x /
-                     (x * x);
+        auto force =
+            real_t(4) * epsilon *
+            (real_t(-12) * util::powInt(sigma / x, 12) + real_t(6) * util::powInt(sigma / x, 6)) *
+            x / (x * x);
         EXPECT_FLOAT_EQ(hForce(idx), force);
     }
 }

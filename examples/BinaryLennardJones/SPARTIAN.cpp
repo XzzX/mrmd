@@ -27,7 +27,7 @@ void spartian(YAML::Node& config,
               data::Subdomain& subdomain)
 {
     constexpr int64_t estimatedMaxNeighbors = 60;
-    constexpr real_t cellRatio = 0.5_r;
+    constexpr real_t cellRatio = real_t(0.5);
     const real_t skin = config["LJ"]["skin"].as<real_t>();
     auto rcVec = config["LJ"]["cutoff"].as<std::vector<real_t>>();
     const real_t rc = *std::max_element(rcVec.begin(), rcVec.end());
@@ -55,7 +55,7 @@ void spartian(YAML::Node& config,
         config["pressure_averaging_coefficient"].as<real_t>());
     util::ExponentialMovingAverage currentTemperature(
         config["temperature_averaging_coefficient"].as<real_t>());
-    currentTemperature << analysis::getMeanKineticEnergy(atoms) * 2_r / 3_r;
+    currentTemperature << analysis::getMeanKineticEnergy(atoms) * real_t(2) / real_t(3);
 
     auto weightingFunction =
         weighting_function::Slab({config["center"][0].as<real_t>(),
@@ -122,8 +122,8 @@ void spartian(YAML::Node& config,
                             "XrhoB",
                             "Nlocal",
                             "Nghost");
-    auto Xrho1 = 0_r;
-    auto Xrho2 = 0_r;
+    auto Xrho1 = real_t(0);
+    auto Xrho2 = real_t(0);
     for (auto step = 0; step < config["time_steps"].as<int64_t>(); ++step)
     {
         assert(atoms.numLocalAtoms == molecules.numLocalMolecules);
@@ -135,10 +135,10 @@ void spartian(YAML::Node& config,
         // update molecule positions
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
-        if (maxAtomDisplacement >= skin * 0.5_r)
+        if (maxAtomDisplacement >= skin * real_t(0.5))
         {
             // reset displacement
-            maxAtomDisplacement = 0_r;
+            maxAtomDisplacement = real_t(0);
 
             ghostLayer.exchangeRealAtoms(molecules, atoms, subdomain);
 
@@ -169,9 +169,9 @@ void spartian(YAML::Node& config,
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
 
         auto atomsForce = atoms.getForce();
-        Cabana::deep_copy(atomsForce, 0_r);
+        Cabana::deep_copy(atomsForce, real_t(0));
         auto moleculesForce = molecules.getForce();
-        Cabana::deep_copy(moleculesForce, 0_r);
+        Cabana::deep_copy(moleculesForce, real_t(0));
 
         if (step % config["thermostat_interval"].as<int64_t>() == 0)
         {
@@ -196,8 +196,8 @@ void spartian(YAML::Node& config,
                                                  thermodynamicForce.getDensityProfile().max,
                                                  thermodynamicForce.getDensityProfile().numBins,
                                                  COORD_X);
-            densityProfile.scale(
-                1_r / (densityProfile.binSize * subdomain.diameter[1] * subdomain.diameter[2]));
+            densityProfile.scale(real_t(1) / (densityProfile.binSize * subdomain.diameter[1] *
+                                              subdomain.diameter[2]));
             Xrho1 = analysis::getFluctuation(densityProfile, rhoA, 0);
             Xrho2 = analysis::getFluctuation(densityProfile, rhoB, 1);
 
@@ -231,9 +231,9 @@ void spartian(YAML::Node& config,
                 config["temperature_averaging_coefficient"].as<real_t>());
         }
         auto Ek = analysis::getKineticEnergy(atoms);
-        //        currentPressure << 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
+        //        currentPressure << real_t(2) * (Ek - LJ.getVirial()) / (real_t(3) * volume);
         Ek /= real_c(atoms.numLocalAtoms);
-        currentTemperature << (2_r / 3_r) * Ek;
+        currentTemperature << (real_t(2) / real_t(3)) * Ek;
 
         ghostLayer.contributeBackGhostToReal(atoms);
         action::VelocityVerlet::postForceIntegrate(atoms, config["dt"].as<real_t>());
@@ -246,14 +246,14 @@ void spartian(YAML::Node& config,
                                                             thermodynamicForce.getForce(0));
             auto Fth2 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
                                                             thermodynamicForce.getForce(1));
-            auto muLeft = 0_r;
+            auto muLeft = real_t(0);
             for (auto i = 0; i < Fth2.extent(0) / 2; ++i)
             {
                 muLeft += Fth2(i);
             }
             muLeft *= thermodynamicForce.getForce().binSize;
 
-            auto muRight = 0_r;
+            auto muRight = real_t(0);
             for (auto i = Fth2.extent(0) / 2; i < Fth2.extent(0); ++i)
             {
                 muRight += Fth2(i);

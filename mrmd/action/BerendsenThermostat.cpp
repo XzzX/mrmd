@@ -15,14 +15,14 @@ void apply(data::Atoms& atoms,
            const real_t& targetTemperature,
            const real_t& gamma)
 {
-    if (currentTemperature <= 0_r)
+    if (currentTemperature <= real_t(0))
     {
         return;
     }
 
-    MRMD_HOST_CHECK_GREATER(targetTemperature, 0_r);
+    MRMD_HOST_CHECK_GREATER(targetTemperature, real_t(0));
 
-    auto beta = std::sqrt(1_r + gamma * (targetTemperature / currentTemperature - 1_r));
+    auto beta = std::sqrt(real_t(1) + gamma * (targetTemperature / currentTemperature - real_t(1)));
 
     auto vel = atoms.getVel();
 

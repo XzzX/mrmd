@@ -79,7 +79,7 @@ void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoo
         densityProfile_.makeSymmetric();
     }
 
-    auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
+    auto normalizationFactor = real_t(1) / (binVolume_ * real_c(densityProfileSamples_));
     densityProfile_.scale(normalizationFactor);
 
     auto smoothedDensityProfile =
@@ -90,7 +90,7 @@ void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoo
     force_ += smoothedDensityGradient;
 
     // reset sampling data
-    Kokkos::deep_copy(densityProfile_.data, 0_r);
+    Kokkos::deep_copy(densityProfile_.data, real_t(0));
     densityProfileSamples_ = 0;
 }
 
@@ -147,7 +147,7 @@ std::vector<real_t> ThermodynamicForce::getMuLeft() const
 {
     auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), getForce().data);
 
-    std::vector<real_t> muLeft(numTypes_, 0_r);
+    std::vector<real_t> muLeft(numTypes_, real_t(0));
     for (auto typeId = 0; typeId < numTypes_; ++typeId)
     {
         for (size_t i = 0; i < Fth.extent(0) / 2; ++i)
@@ -164,7 +164,7 @@ std::vector<real_t> ThermodynamicForce::getMuRight() const
 {
     auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), getForce().data);
 
-    std::vector<real_t> muLeft(numTypes_, 0_r);
+    std::vector<real_t> muLeft(numTypes_, real_t(0));
     for (auto typeId = 0; typeId < numTypes_; ++typeId)
     {
         for (size_t i = Fth.extent(0) / 2; i < Fth.extent(0); ++i)

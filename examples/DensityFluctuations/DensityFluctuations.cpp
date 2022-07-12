@@ -42,23 +42,23 @@ struct Config
     idx_t nsteps = 6000001;
     static constexpr idx_t numAtoms = 10 * 10 * 10;
 
-    static constexpr real_t sigma = 0.34_r;        ///< units: nm
-    static constexpr real_t epsilon = 0.993653_r;  ///< units: kJ/mol
-    static constexpr real_t mass = 39.948_r;       ///< units: u
+    static constexpr real_t sigma = real_t(0.34);        ///< units: nm
+    static constexpr real_t epsilon = real_t(0.993653);  ///< units: kJ/mol
+    static constexpr real_t mass = real_t(39.948);       ///< units: u
 
-    static constexpr real_t rc = 2.3_r * sigma;
+    static constexpr real_t rc = real_t(2.3) * sigma;
     static constexpr real_t skin = 0.1;
     static constexpr real_t neighborCutoff = rc + skin;
 
     static constexpr real_t dt = 0.00217;  ///< units: ps
-    real_t temperature = 3.0_r;
-    real_t gamma = 0.7_r / dt;
+    real_t temperature = real_t(3.0);
+    real_t gamma = real_t(0.7) / dt;
 
-    real_t Lx = 8_r;  ///< units: nm
-    real_t Ly = 8_r;  ///< units: nm
-    real_t Lz = 8_r;  ///< units: nm
+    real_t Lx = real_t(8);  ///< units: nm
+    real_t Ly = real_t(8);  ///< units: nm
+    real_t Lz = real_t(8);  ///< units: nm
 
-    real_t cell_ratio = 1.0_r;
+    real_t cell_ratio = real_t(1.0);
 
     idx_t estimatedMaxNeighbors = 60;
 
@@ -66,11 +66,11 @@ struct Config
     idx_t densityDeadTime = 10001;
     idx_t densitySamplingInterval = 10;
     idx_t densityUpdateInterval = 2000;
-    real_t densityBinWidth = 0.5_r;
-    real_t smoothingSigma = 2_r;
-    real_t smoothingIntensity = 2_r;
+    real_t densityBinWidth = real_t(0.5);
+    real_t smoothingSigma = real_t(2);
+    real_t smoothingIntensity = real_t(2);
     // thermodynamic force parameters
-    real_t thermodynamicForceModulation = 2.0_r;
+    real_t thermodynamicForceModulation = real_t(2.0);
 };
 
 data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
@@ -95,14 +95,14 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
         pos(idx, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
         pos(idx, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
 
-        vel(idx, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
+        vel(idx, 0) = (randGen.drand() - real_t(0.5)) * maxVelocity;
+        vel(idx, 1) = (randGen.drand() - real_t(0.5)) * maxVelocity;
+        vel(idx, 2) = (randGen.drand() - real_t(0.5)) * maxVelocity;
         RNG.free_state(randGen);
 
         mass(idx) = Config::mass;
         type(idx) = 0;
-        charge(idx) = 0_r;
+        charge(idx) = real_t(0);
     };
     Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
 
@@ -117,20 +117,20 @@ void LJ(Config& config)
                                      {config.Lx, config.Ly, config.Lz},
                                      config.neighborCutoff);
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
-    auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, 1_r);
+    auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, real_t(1));
     auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
-    io::dumpGRO("atoms_initial.gro", atoms, subdomain, 0_r, "Argon", false);
+    io::dumpGRO("atoms_initial.gro", atoms, subdomain, real_t(0), "Argon", false);
 
     communication::GhostLayer ghostLayer;
-    action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
+    action::LennardJones LJ(config.rc, config.sigma, config.epsilon, real_t(0.7) * config.sigma);
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     action::ThermodynamicForce thermodynamicForce(
         rho, subdomain, config.densityBinWidth, config.thermodynamicForceModulation);
     analysis::MeanSquareDisplacement meanSquareDisplacement;
     meanSquareDisplacement.reset(atoms);
-    auto msd = 0_r;
+    auto msd = real_t(0);
     HalfVerletList verletList;
     Kokkos::Timer timer;
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
@@ -146,10 +146,10 @@ void LJ(Config& config)
     {
         maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
-        if (maxAtomDisplacement >= config.skin * 0.5_r)
+        if (maxAtomDisplacement >= config.skin * real_t(0.5))
         {
             // reset displacement
-            maxAtomDisplacement = 0_r;
+            maxAtomDisplacement = real_t(0);
 
             ghostLayer.exchangeRealAtoms(atoms, subdomain);
 
@@ -181,7 +181,7 @@ void LJ(Config& config)
 
         auto pos = atoms.getPos();
         auto force = atoms.getForce();
-        Cabana::deep_copy(force, 0_r);
+        Cabana::deep_copy(force, real_t(0));
 
         if (step > config.densityStart)
         {
@@ -203,7 +203,7 @@ void LJ(Config& config)
             auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
             auto kernel = KOKKOS_LAMBDA(const idx_t idx)
             {
-                auto f = (pos(idx, 0) > 0) ? 10_r : -10_r;
+                auto f = (pos(idx, 0) > 0) ? real_t(10) : real_t(-10);
                 force(idx, 0) += f;
             };
             Kokkos::parallel_for("external-force", policy, kernel);
@@ -217,7 +217,7 @@ void LJ(Config& config)
             auto E0 = LJ.getEnergy() / real_c(atoms.numLocalAtoms);
             auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
-            auto T = (2_r / 3_r) * Ek;
+            auto T = (real_t(2) / real_t(3)) * Ek;
             //            std::cout << "system momentum: " << systemMomentum[0] << " | " <<
             //            systemMomentum[1]
             //                      << " | " << systemMomentum[2] << std::endl;
@@ -231,7 +231,7 @@ void LJ(Config& config)
                                                                    subdomain.maxCorner[0],
                                                                    10,
                                                                    COORD_X);
-            densityProfile.scale(1_r / (densityProfile.binSize * config.Ly * config.Lz * 4));
+            densityProfile.scale(real_t(1) / (densityProfile.binSize * config.Ly * config.Lz * 4));
             auto fluctuation = analysis::getFluctuation(densityProfile, rho, 0);
 
             util::printTable(step,
@@ -271,7 +271,7 @@ void LJ(Config& config)
 
         if (step % 1000 == 0)
         {
-            msd = meanSquareDisplacement.calc(atoms, subdomain) / (1000_r * config.dt);
+            msd = meanSquareDisplacement.calc(atoms, subdomain) / (real_t(1000) * config.dt);
             meanSquareDisplacement.reset(atoms);
         }
 

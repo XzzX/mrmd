@@ -16,7 +16,7 @@ namespace mrmd
 void nvt(YAML::Node& config, data::Atoms& atoms, const data::Subdomain& subdomain)
 {
     constexpr int64_t estimatedMaxNeighbors = 60;
-    constexpr real_t cellRatio = 0.5_r;
+    constexpr real_t cellRatio = real_t(0.5);
     const real_t skin = config["LJ"]["skin"].as<real_t>();
     auto rcVec = config["LJ"]["cutoff"].as<std::vector<real_t>>();
     const real_t rc = *std::max_element(rcVec.begin(), rcVec.end());
@@ -37,7 +37,7 @@ void nvt(YAML::Node& config, data::Atoms& atoms, const data::Subdomain& subdomai
         config["pressure_averaging_coefficient"].as<real_t>());
     util::ExponentialMovingAverage currentTemperature(
         config["temperature_averaging_coefficient"].as<real_t>());
-    currentTemperature << analysis::getMeanKineticEnergy(atoms) * 2_r / 3_r;
+    currentTemperature << analysis::getMeanKineticEnergy(atoms) * real_t(2) / real_t(3);
 
     Kokkos::Timer timer;
 
@@ -61,10 +61,10 @@ void nvt(YAML::Node& config, data::Atoms& atoms, const data::Subdomain& subdomai
                 config["temperature_relaxation_coefficient"].as<real_t>());
         }
 
-        if (maxAtomDisplacement >= skin * 0.5_r)
+        if (maxAtomDisplacement >= skin * real_t(0.5))
         {
             // reset displacement
-            maxAtomDisplacement = 0_r;
+            maxAtomDisplacement = real_t(0);
 
             ghostLayer.exchangeRealAtoms(atoms, subdomain);
 
@@ -93,7 +93,7 @@ void nvt(YAML::Node& config, data::Atoms& atoms, const data::Subdomain& subdomai
         }
 
         auto force = atoms.getForce();
-        Cabana::deep_copy(force, 0_r);
+        Cabana::deep_copy(force, real_t(0));
 
         LJ.apply(atoms, verletList);
 
@@ -105,9 +105,9 @@ void nvt(YAML::Node& config, data::Atoms& atoms, const data::Subdomain& subdomai
                 config["temperature_averaging_coefficient"].as<real_t>());
         }
         auto Ek = analysis::getKineticEnergy(atoms);
-        currentPressure << 2_r * (Ek - LJ.getVirial()) / (3_r * volume);
+        currentPressure << real_t(2) * (Ek - LJ.getVirial()) / (real_t(3) * volume);
         Ek /= real_c(atoms.numLocalAtoms);
-        currentTemperature << (2_r / 3_r) * Ek;
+        currentTemperature << (real_t(2) / real_t(3)) * Ek;
 
         ghostLayer.contributeBackGhostToReal(atoms);
         action::VelocityVerlet::postForceIntegrate(atoms, config["dt"].as<real_t>());

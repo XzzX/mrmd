@@ -32,15 +32,15 @@ data::Atoms initAtoms()
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t idy, const idx_t idz)
     {
         auto i = idx + idy * 100 + idz * 10000;
-        pos(i, 0) = real_c(idx) + 0.5_r;
-        pos(i, 1) = real_c(idy) + 0.5_r;
-        pos(i, 2) = real_c(idz) + 0.5_r;
+        pos(i, 0) = real_c(idx) + real_t(0.5);
+        pos(i, 1) = real_c(idy) + real_t(0.5);
+        pos(i, 2) = real_c(idz) + real_t(0.5);
 
         auto randGen = RNG.get_state();
 
-        vel(idx, 0) = (randGen.drand() - 0.5_r) * 2_r;
-        vel(idx, 1) = (randGen.drand() - 0.5_r) * 2_r;
-        vel(idx, 2) = (randGen.drand() - 0.5_r) * 2_r;
+        vel(idx, 0) = (randGen.drand() - real_t(0.5)) * real_t(2);
+        vel(idx, 1) = (randGen.drand() - real_t(0.5)) * real_t(2);
+        vel(idx, 2) = (randGen.drand() - real_t(0.5)) * real_t(2);
 
         // Give the state back, which will allow another thread to acquire it
         RNG.free_state(randGen);
@@ -53,7 +53,8 @@ data::Atoms initAtoms()
 
 void IdealGas(const Config& config)
 {
-    auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {100_r, 100_r, 100_r}, 1_r);
+    auto subdomain = data::Subdomain(
+        {real_t(0), real_t(0), real_t(0)}, {real_t(100), real_t(100), real_t(100)}, real_t(1));
     auto atoms = initAtoms();
 
     communication::GhostLayer ghostLayer;

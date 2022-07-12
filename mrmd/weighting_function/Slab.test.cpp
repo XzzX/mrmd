@@ -8,33 +8,33 @@ namespace weighting_function
 {
 TEST(Slab, testRegion)
 {
-    std::array<real_t, 3> center = {2_r, 3_r, 4_r};
-    real_t atomisticRegionDiameter = 2_r;
-    real_t hybridRegionDiameter = 2_r;
+    std::array<real_t, 3> center = {real_t(2), real_t(3), real_t(4)};
+    real_t atomisticRegionDiameter = real_t(2);
+    real_t hybridRegionDiameter = real_t(2);
     auto weight = Slab(center, atomisticRegionDiameter, hybridRegionDiameter, 2);
 
-    EXPECT_TRUE(weight.isInATRegion(2_r, 10_r, 10_r));
-    EXPECT_FALSE(weight.isInHYRegion(2_r, 10_r, 10_r));
-    EXPECT_FALSE(weight.isInCGRegion(2_r, 10_r, 10_r));
+    EXPECT_TRUE(weight.isInATRegion(real_t(2), real_t(10), real_t(10)));
+    EXPECT_FALSE(weight.isInHYRegion(real_t(2), real_t(10), real_t(10)));
+    EXPECT_FALSE(weight.isInCGRegion(real_t(2), real_t(10), real_t(10)));
 
-    EXPECT_FALSE(weight.isInATRegion(3.1_r, 10_r, 10_r));
-    EXPECT_TRUE(weight.isInHYRegion(3.1_r, 10_r, 10_r));
-    EXPECT_FALSE(weight.isInCGRegion(3.1_r, 10_r, 10_r));
+    EXPECT_FALSE(weight.isInATRegion(real_t(3.1), real_t(10), real_t(10)));
+    EXPECT_TRUE(weight.isInHYRegion(real_t(3.1), real_t(10), real_t(10)));
+    EXPECT_FALSE(weight.isInCGRegion(real_t(3.1), real_t(10), real_t(10)));
 
-    EXPECT_FALSE(weight.isInATRegion(5.2_r, 10_r, 10_r));
-    EXPECT_FALSE(weight.isInHYRegion(5.2_r, 10_r, 10_r));
-    EXPECT_TRUE(weight.isInCGRegion(5.2_r, 10_r, 10_r));
+    EXPECT_FALSE(weight.isInATRegion(real_t(5.2), real_t(10), real_t(10)));
+    EXPECT_FALSE(weight.isInHYRegion(real_t(5.2), real_t(10), real_t(10)));
+    EXPECT_TRUE(weight.isInCGRegion(real_t(5.2), real_t(10), real_t(10)));
 }
 
 TEST(Slab, monotonous)
 {
-    std::array<real_t, 3> center = {2_r, 3_r, 4_r};
-    real_t atomisticRegionDiameter = 2_r;
-    real_t hybridRegionDiameter = 2_r;
+    std::array<real_t, 3> center = {real_t(2), real_t(3), real_t(4)};
+    real_t atomisticRegionDiameter = real_t(2);
+    real_t hybridRegionDiameter = real_t(2);
     auto weight = Slab(center, atomisticRegionDiameter, hybridRegionDiameter, 2);
 
     std::array<real_t, 3> pos = center;
-    std::array<real_t, 3> delta = {0.1_r, 0.1_r, 0.1_r};
+    std::array<real_t, 3> delta = {real_t(0.1), real_t(0.1), real_t(0.1)};
     real_t tmp;
     real_t w;
     weight(pos[0], pos[1], pos[2], tmp, w, tmp, tmp, tmp);
@@ -51,31 +51,31 @@ TEST(Slab, monotonous)
 
 TEST(Slab, boundaryValues)
 {
-    std::array<real_t, 3> center = {2_r, 3_r, 4_r};
-    real_t atomisticRegionDiameter = 2_r;
-    real_t hybridRegionDiameter = 2_r;
+    std::array<real_t, 3> center = {real_t(2), real_t(3), real_t(4)};
+    real_t atomisticRegionDiameter = real_t(2);
+    real_t hybridRegionDiameter = real_t(2);
     auto weight = Slab(center, atomisticRegionDiameter, hybridRegionDiameter, 2);
 
     real_t tmp;
     real_t w;
-    weight(2.9_r, 3.1_r, 4.1_r, tmp, w, tmp, tmp, tmp);
-    EXPECT_FLOAT_EQ(w, 1_r);
+    weight(real_t(2.9), real_t(3.1), real_t(4.1), tmp, w, tmp, tmp, tmp);
+    EXPECT_FLOAT_EQ(w, real_t(1));
 
-    weight(5.1_r, 7.1_r, 8.1_r, tmp, w, tmp, tmp, tmp);
-    EXPECT_FLOAT_EQ(w, 0_r);
+    weight(real_t(5.1), real_t(7.1), real_t(8.1), tmp, w, tmp, tmp, tmp);
+    EXPECT_FLOAT_EQ(w, real_t(0));
 }
 
 // test deactivated since accuracy is to low
 // TEST(Slab, derivative)
 //{
-//    const auto eps = 1e-10_r;
-//    std::array<real_t, 3> center = {2_r, 3_r, 4_r};
-//    real_t atomisticRegionDiameter = 4_r;
-//    real_t hybridRegionDiameter = 2_r;
+//    const auto eps = real_t(1e-10);
+//    std::array<real_t, 3> center = {real_t(2), real_t(3), real_t(4)};
+//    real_t atomisticRegionDiameter = real_t(4);
+//    real_t hybridRegionDiameter = real_t(2);
 //    auto weight = Slab(center, atomisticRegionDiameter, hybridRegionDiameter, 2);
 //
 //    std::array<real_t, 3> pos = center;
-//    std::array<real_t, 3> delta = {0.1_r, 0.1_r, 0.1_r};
+//    std::array<real_t, 3> delta = {real_t(0.1), real_t(0.1), real_t(0.1)};
 //    for (auto i = 0; i < 60; ++i)
 //    {
 //        real_t lambda0;
@@ -83,9 +83,9 @@ TEST(Slab, boundaryValues)
 //        real_t gradLambda;
 //        real_t tmp;  ///< unused dump variable
 //
-//        weight(pos[0], 0_r, 0_r, lambda0, tmp, tmp, tmp);
-//        weight(pos[0] + 0.5_r * eps, 0_r, 0_r, tmp, gradLambda, tmp, tmp);
-//        weight(pos[0] + eps, 0_r, 0_r, lambda1, tmp, tmp, tmp);
+//        weight(pos[0], real_t(0), real_t(0), lambda0, tmp, tmp, tmp);
+//        weight(pos[0] + real_t(0.5) * eps, real_t(0), real_t(0), tmp, gradLambda, tmp, tmp);
+//        weight(pos[0] + eps, real_t(0), real_t(0), lambda1, tmp, tmp, tmp);
 //        EXPECT_FLOAT_EQ((lambda1 - lambda0) / eps, gradLambda);
 //        pos[0] += delta[0];
 //    }

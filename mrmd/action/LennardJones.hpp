@@ -41,7 +41,7 @@ public:
         if (distSqr >= precomputedValues_(typeIdx).cappingDistanceSqr)
         {
             // normal LJ calculation
-            auto frac2 = 1_r / distSqr;
+            auto frac2 = real_t(1) / distSqr;
             auto frac6 = frac2 * frac2 * frac2;
             ret.forceFactor =
                 frac6 *
@@ -71,8 +71,8 @@ public:
     {
         // reset capping distance to calculate capping factors with real functions
         auto capDist = precomputedValues_(typeIdx).cappingDistance;
-        precomputedValues_(typeIdx).cappingDistance = 0_r;
-        precomputedValues_(typeIdx).cappingDistanceSqr = 0_r;
+        precomputedValues_(typeIdx).cappingDistance = real_t(0);
+        precomputedValues_(typeIdx).cappingDistanceSqr = real_t(0);
         auto forceAndEnergy = computeForceAndEnergy(capDist * capDist, typeIdx);
         precomputedValues_(typeIdx).cappingCoeff = forceAndEnergy.forceFactor * capDist;
         precomputedValues_(typeIdx).energyAtCappingPoint = forceAndEnergy.energy;
@@ -108,10 +108,10 @@ public:
         {
             auto sig2 = sigma[typeIdx] * sigma[typeIdx];
             auto sig6 = sig2 * sig2 * sig2;
-            hPrecomputedValues(typeIdx).ff1 = 48_r * epsilon[typeIdx] * sig6 * sig6;
-            hPrecomputedValues(typeIdx).ff2 = 24_r * epsilon[typeIdx] * sig6;
-            hPrecomputedValues(typeIdx).ef1 = 4_r * epsilon[typeIdx] * sig6 * sig6;
-            hPrecomputedValues(typeIdx).ef2 = 4_r * epsilon[typeIdx] * sig6;
+            hPrecomputedValues(typeIdx).ff1 = real_t(48) * epsilon[typeIdx] * sig6 * sig6;
+            hPrecomputedValues(typeIdx).ff2 = real_t(24) * epsilon[typeIdx] * sig6;
+            hPrecomputedValues(typeIdx).ef1 = real_t(4) * epsilon[typeIdx] * sig6 * sig6;
+            hPrecomputedValues(typeIdx).ef2 = real_t(4) * epsilon[typeIdx] * sig6;
 
             hPrecomputedValues(typeIdx).rcSqr = rc[typeIdx] * rc[typeIdx];
 
@@ -152,7 +152,7 @@ public:
         posTmp[1] = pos_(idx, 1);
         posTmp[2] = pos_(idx, 2);
 
-        real_t forceTmp[3] = {0_r, 0_r, 0_r};
+        real_t forceTmp[3] = {real_t(0), real_t(0), real_t(0)};
 
         const auto numNeighbors = idx_c(HalfNeighborList::numNeighbor(verletList_, idx));
         for (idx_t n = 0; n < numNeighbors; ++n)
@@ -172,7 +172,7 @@ public:
             auto forceAndEnergy = LJ_.computeForceAndEnergy(distSqr, typeIdx);
             assert(!std::isnan(forceAndEnergy.forceFactor));
             energyAndVirial.energy += forceAndEnergy.energy;
-            energyAndVirial.virial -= 0.5_r * forceAndEnergy.forceFactor * distSqr;
+            energyAndVirial.virial -= real_t(0.5) * forceAndEnergy.forceFactor * distSqr;
 
             forceTmp[0] += dx * forceAndEnergy.forceFactor;
             forceTmp[1] += dy * forceAndEnergy.forceFactor;
@@ -196,7 +196,7 @@ public:
     LennardJones(const real_t rc,
                  const real_t& sigma,
                  const real_t& epsilon,
-                 const real_t& cappingDistance = 0_r);
+                 const real_t& cappingDistance = real_t(0));
 
     LennardJones(const std::vector<real_t>& cappingDistance,
                  const std::vector<real_t>& rc,

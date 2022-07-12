@@ -7,7 +7,7 @@ namespace analysis
 std::array<real_t, 3> getSystemMomentum(data::Atoms& atoms)
 {
     auto vel = atoms.getVel();
-    std::array<real_t, 3> velSum = {0_r, 0_r, 0_r};
+    std::array<real_t, 3> velSum = {real_t(0), real_t(0), real_t(0)};
     idx_t dim = 0;
 
     auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);

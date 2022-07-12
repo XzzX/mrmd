@@ -29,7 +29,7 @@ struct Subdomain
           maxCorner(maxCornerArg),
           ghostLayerThickness(ghostLayerThicknessArg)
     {
-        MRMD_HOST_CHECK_GREATEREQUAL(ghostLayerThicknessArg, 0_r);
+        MRMD_HOST_CHECK_GREATEREQUAL(ghostLayerThicknessArg, real_t(0));
 
         for (auto dim = 0; dim < 3; ++dim)
         {
@@ -41,7 +41,7 @@ struct Subdomain
 
             diameter[dim] = maxCorner[dim] - minCorner[dim];
             diameterWithGhostLayer[dim] =
-                maxCorner[dim] - minCorner[dim] + 2_r * ghostLayerThickness;
+                maxCorner[dim] - minCorner[dim] + real_t(2) * ghostLayerThickness;
         }
     }
 

@@ -24,7 +24,7 @@ void ghostToReal(data::Atoms& atoms, const IndexView& correspondingRealAtom)
         for (auto dim = 0; dim < DIMENSIONS; ++dim)
         {
             force(realIdx, dim) += force(idx, dim);
-            force(idx, dim) = 0_r;
+            force(idx, dim) = real_t(0);
         }
     };
 

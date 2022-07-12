@@ -31,7 +31,7 @@ data::MultiHistogram getAxialDensityProfile(const idx_t numAtoms,
         auto bin = histogram.getBin(positions(idx, axis));
         if (bin == -1) return;
         auto access = scatter.access();
-        access(bin, types(idx)) += 1_r;
+        access(bin, types(idx)) += real_t(1);
     };
     Kokkos::parallel_for(policy, kernel);
     Kokkos::Experimental::contribute(histogram.data, scatter);

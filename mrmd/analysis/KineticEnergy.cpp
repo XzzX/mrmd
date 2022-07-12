@@ -8,7 +8,7 @@ real_t getKineticEnergy(data::Atoms& atoms)
 {
     auto vel = atoms.getVel();
     auto mass = atoms.getMass();
-    real_t velSqr = 0_r;
+    real_t velSqr = real_t(0);
     auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx, real_t& sum)
     {
@@ -16,7 +16,7 @@ real_t getKineticEnergy(data::Atoms& atoms)
                (vel(idx, 0) * vel(idx, 0) + vel(idx, 1) * vel(idx, 1) + vel(idx, 2) * vel(idx, 2));
     };
     Kokkos::parallel_reduce("getKineticEnergy", policy, kernel, velSqr);
-    return 0.5_r * velSqr;
+    return real_t(0.5) * velSqr;
 }
 
 real_t getMeanKineticEnergy(data::Atoms& atoms)

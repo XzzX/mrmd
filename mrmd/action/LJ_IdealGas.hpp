@@ -15,7 +15,7 @@ namespace action
 inline void updateMeanCompensationEnergy(data::MultiHistogram& compensationEnergy,
                                          data::MultiHistogram& compensationEnergyCounter,
                                          data::MultiHistogram& meanCompensationEnergy,
-                                         const real_t runningAverageFactor = 10_r)
+                                         const real_t runningAverageFactor = real_t(10))
 {
     assert(compensationEnergy.numBins == compensationEnergyCounter.numBins);
     assert(compensationEnergy.numBins == meanCompensationEnergy.numBins);
@@ -25,7 +25,7 @@ inline void updateMeanCompensationEnergy(data::MultiHistogram& compensationEnerg
     auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histogramIdx)
     {
         // check if there is at least one entry in this bin
-        if (compensationEnergyCounter.data(binIdx, histogramIdx) < 0.5_r) return;
+        if (compensationEnergyCounter.data(binIdx, histogramIdx) < real_t(0.5)) return;
         assert(compensationEnergyCounter.data(binIdx, histogramIdx) > 0);
         auto energy = compensationEnergy.data(binIdx, histogramIdx) /
                       compensationEnergyCounter.data(binIdx, histogramIdx);
@@ -33,11 +33,11 @@ inline void updateMeanCompensationEnergy(data::MultiHistogram& compensationEnerg
         // use running average to calculate new mean compensation energy
         meanCompensationEnergy.data(binIdx, histogramIdx) =
             (runningAverageFactor * meanCompensationEnergy.data(binIdx, histogramIdx) + energy) /
-            (runningAverageFactor + 1_r);
+            (runningAverageFactor + real_t(1));
 
         // reset accumulation histograms
-        compensationEnergy.data(binIdx, histogramIdx) = 0_r;
-        compensationEnergyCounter.data(binIdx, histogramIdx) = 0_r;
+        compensationEnergy.data(binIdx, histogramIdx) = real_t(0);
+        compensationEnergyCounter.data(binIdx, histogramIdx) = real_t(0);
     };
     Kokkos::parallel_for("updateMeanCompensationEnergy", policy, kernel);
     Kokkos::fence();
@@ -47,7 +47,7 @@ class LJ_IdealGas
 {
 private:
     impl::CappedLennardJonesPotential LJ_;
-    real_t rcSqr_ = 0_r;
+    real_t rcSqr_ = real_t(0);
 
     data::Molecules::pos_t moleculesPos_;
     data::Molecules::force_t::atomic_access_slice moleculesForce_;
@@ -99,12 +99,12 @@ public:
     KOKKOS_INLINE_FUNCTION void operator()(const idx_t& alpha, real_t& sumEnergy) const
     {
         // avoid atomic force contributions to idx in innermost loop
-        real_t forceTmpAlpha[3] = {0_r, 0_r, 0_r};
+        real_t forceTmpAlpha[3] = {real_t(0), real_t(0), real_t(0)};
 
         /// weighting for molecule alpha
         const auto modulatedLambdaAlpha = moleculesModulatedLambda_(alpha);
-        assert(0_r <= modulatedLambdaAlpha);
-        assert(modulatedLambdaAlpha <= 1_r);
+        assert(real_t(0) <= modulatedLambdaAlpha);
+        assert(modulatedLambdaAlpha <= real_t(1));
 
         idx_t binAlpha = -1;
         if (weighting_function::isInHYRegion(modulatedLambdaAlpha))
@@ -131,21 +131,21 @@ public:
             assert(0 <= beta);
 
             // avoid atomic force contributions to idx in innermost loop
-            real_t forceTmpBeta[3] = {0_r, 0_r, 0_r};
+            real_t forceTmpBeta[3] = {real_t(0), real_t(0), real_t(0)};
 
             /// weighting for molecule beta
             const auto modulatedLambdaBeta = moleculesModulatedLambda_(beta);
-            assert(0_r <= modulatedLambdaBeta);
-            assert(modulatedLambdaBeta <= 1_r);
+            assert(real_t(0) <= modulatedLambdaBeta);
+            assert(modulatedLambdaBeta <= real_t(1));
 
             const real_t gradLambdaBeta[3] = {moleculesGradLambda_(beta, 0),
                                               moleculesGradLambda_(beta, 1),
                                               moleculesGradLambda_(beta, 2)};
 
             /// combined weighting of molecules alpha and beta
-            const auto weighting = 0.5_r * (modulatedLambdaAlpha + modulatedLambdaBeta);
-            assert(0_r <= weighting);
-            assert(weighting <= 1_r);
+            const auto weighting = real_t(0.5) * (modulatedLambdaAlpha + modulatedLambdaBeta);
+            assert(real_t(0) <= weighting);
+            assert(weighting <= real_t(1));
             if (weighting_function::isInCGRegion(modulatedLambdaAlpha) &&
                 weighting_function::isInCGRegion(modulatedLambdaBeta))
             {
@@ -171,7 +171,7 @@ public:
                 posTmp[2] = atomsPos_(idx, 2);
 
                 // avoid atomic force contributions to idx in innermost loop
-                real_t forceTmpIdx[3] = {0_r, 0_r, 0_r};
+                real_t forceTmpIdx[3] = {real_t(0), real_t(0), real_t(0)};
 
                 for (idx_t jdx = startAtomsBeta; jdx < endAtomsBeta; ++jdx)
                 {
@@ -201,7 +201,7 @@ public:
 
                     MRMD_DEVICE_ASSERT(!std::isnan(forceAndEnergy.energy));
                     sumEnergy += forceAndEnergy.energy * weighting;
-                    auto Vij = 0.5_r * forceAndEnergy.energy;
+                    auto Vij = real_t(0.5) * forceAndEnergy.energy;
 
                     if (weighting_function::isInHYRegion(modulatedLambdaAlpha) ||
                         weighting_function::isInHYRegion(modulatedLambdaBeta))
@@ -251,7 +251,7 @@ public:
             for (idx_t atomIdx = startAtomsAlpha; atomIdx < endAtomsAlpha; ++atomIdx)
             {
                 if (weighting_function::isInHYRegion(modulatedLambdaAlpha) && (binAlpha != -1))
-                    compensationEnergyCounter_.data(binAlpha, atomsType_(atomIdx)) += 1_r;
+                    compensationEnergyCounter_.data(binAlpha, atomsType_(atomIdx)) += real_t(1);
             }
         }
 
@@ -292,7 +292,7 @@ public:
 
         compensationEnergyScatter_ = MultiScatterView(compensationEnergy_.data);
 
-        real_t energy = 0_r;
+        real_t energy = real_t(0);
         auto policy = Kokkos::RangePolicy<>(0, molecules.numLocalMolecules);
         Kokkos::parallel_reduce("LJ_IdealGas::applyForces", policy, *this, energy);
 
@@ -301,8 +301,10 @@ public:
         Kokkos::fence();
 
         if (runCounter_ % compensationEnergyUpdateInveral == 0)
-            updateMeanCompensationEnergy(
-                compensationEnergy_, compensationEnergyCounter_, meanCompensationEnergy_, 10_r);
+            updateMeanCompensationEnergy(compensationEnergy_,
+                                         compensationEnergyCounter_,
+                                         meanCompensationEnergy_,
+                                         real_t(10));
 
         ++runCounter_;
 
@@ -326,11 +328,15 @@ public:
                 const bool doShift)
         : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, doShift),
           numTypes_(numTypes),
-          compensationEnergy_("compensationEnergy", 0_r, 1_r, COMPENSATION_ENERGY_BINS, numTypes),
-          compensationEnergyCounter_(
-              "compensationEnergyCounter", 0_r, 1_r, COMPENSATION_ENERGY_BINS, numTypes),
+          compensationEnergy_(
+              "compensationEnergy", real_t(0), real_t(1), COMPENSATION_ENERGY_BINS, numTypes),
+          compensationEnergyCounter_("compensationEnergyCounter",
+                                     real_t(0),
+                                     real_t(1),
+                                     COMPENSATION_ENERGY_BINS,
+                                     numTypes),
           meanCompensationEnergy_(
-              "meanCompensationEnergy", 0_r, 1_r, COMPENSATION_ENERGY_BINS, numTypes)
+              "meanCompensationEnergy", real_t(0), real_t(1), COMPENSATION_ENERGY_BINS, numTypes)
     {
         MRMD_HOST_ASSERT_EQUAL(cappingDistance.size(), numTypes * numTypes);
         MRMD_HOST_ASSERT_EQUAL(rc.size(), numTypes * numTypes);
