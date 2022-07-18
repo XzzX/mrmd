@@ -33,7 +33,7 @@ void apply(data::Atoms& atoms,
         vel(idx, 1) *= beta;
         vel(idx, 2) *= beta;
     };
-    Kokkos::parallel_for(policy, kernel, "BerendsenThermostat::apply");
+    Kokkos::parallel_for("BerendsenThermostat::apply", policy, kernel);
 
     Kokkos::fence();
 }

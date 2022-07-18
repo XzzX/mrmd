@@ -114,7 +114,7 @@ void ThermodynamicForce::apply(const data::Atoms& atoms) const
             atomsForce(idx, 0) -= forceHistogram.data(bin, atomsType(idx));
         }
     };
-    Kokkos::parallel_for(policy, kernel, "ThermodynamicForce::apply");
+    Kokkos::parallel_for("ThermodynamicForce::apply", policy, kernel);
     Kokkos::fence();
 }
 
@@ -139,7 +139,7 @@ void ThermodynamicForce::apply(const data::Atoms& atoms, const weighting_functio
             atomsForce(idx, 0) -= forceHistogram.data(bin, atomsType(idx));
         }
     };
-    Kokkos::parallel_for(policy, kernel, "ThermodynamicForce::apply");
+    Kokkos::parallel_for("ThermodynamicForce::apply", policy, kernel);
     Kokkos::fence();
 }
 

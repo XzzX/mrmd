@@ -51,7 +51,7 @@ void MultiHistogram::scale(const real_t& scalingFactor)
     {
         hist(idx, jdx) *= scalingFactor;
     };
-    Kokkos::parallel_for(policy, normalizeSampleKernel, "MultiHistogram::scale");
+    Kokkos::parallel_for("MultiHistogram::scale", policy, normalizeSampleKernel);
     Kokkos::fence();
 }
 
@@ -66,7 +66,7 @@ void MultiHistogram::scale(const ScalarView& scalingFactor)
     {
         hist(idx, jdx) *= scalingFactor(jdx);
     };
-    Kokkos::parallel_for(policy, normalizeSampleKernel, "MultiHistogram::scale");
+    Kokkos::parallel_for("MultiHistogram::scale", policy, normalizeSampleKernel);
     Kokkos::fence();
 }
 

@@ -37,7 +37,7 @@ void apply(data::Atoms& atoms,
         if (stretchY) pos(idx, COORD_Y) *= mu;
         if (stretchZ) pos(idx, COORD_Z) *= mu;
     };
-    Kokkos::parallel_for(policy, kernel, "BerendsenBarostat::apply");
+    Kokkos::parallel_for("BerendsenBarostat::apply", policy, kernel);
 
     Kokkos::fence();
 }

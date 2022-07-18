@@ -40,7 +40,7 @@ void mapIntoDomain(data::Atoms& atoms, const data::Subdomain& subdomain)
             assert(subdomain.minCorner[dim] <= x);
         }
     };
-    Kokkos::parallel_for(policy, kernel, "PeriodicMapping::mapIntoDomain");
+    Kokkos::parallel_for("PeriodicMapping::mapIntoDomain", policy, kernel);
     Kokkos::fence();
 }
 }  // namespace PeriodicMapping

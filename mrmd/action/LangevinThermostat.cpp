@@ -31,7 +31,7 @@ void LangevinThermostat::apply(data::Atoms& atoms)
         // Give the state back, which will allow another thread to acquire it
         RNG.free_state(randGen);
     };
-    Kokkos::parallel_for(policy, kernel, "LangevinThermostat::applyThermostat");
+    Kokkos::parallel_for("LangevinThermostat::applyThermostat", policy, kernel);
 
     Kokkos::fence();
 }

@@ -28,7 +28,7 @@ void ContributeMoleculeForceToAtoms::update(const data::Molecules& molecules,
             atomsForce(atomIdx, 2) += atomsRelativeMass(atomIdx) * moleculesForce(moleculeIdx, 2);
         }
     };
-    Kokkos::parallel_for(policy, kernel, "ContributeMoleculeForceToAtoms::update");
+    Kokkos::parallel_for("ContributeMoleculeForceToAtoms::update", policy, kernel);
     Kokkos::fence();
 }
 

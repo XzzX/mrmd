@@ -54,7 +54,7 @@ void realAtomsExchange(const data::Subdomain& subdomain,
             MRMD_DEVICE_ASSERT_LESSEQUAL(subdomain.minCorner[dim], moleculeX);
         }
     };
-    Kokkos::parallel_for(policy, kernel, "realAtomsExchange::periodicMapping");
+    Kokkos::parallel_for("realAtomsExchange::periodicMapping", policy, kernel);
     Kokkos::fence();
 }
 

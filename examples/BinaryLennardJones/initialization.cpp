@@ -92,7 +92,7 @@ data::Molecules initMolecules(const idx_t& numAtoms)
         offset(idx) = idx;
         size(idx) = 1;
     };
-    Kokkos::parallel_for(policy, kernel, "initMolecules");
+    Kokkos::parallel_for("initMolecules", policy, kernel);
     Kokkos::fence();
 
     molecules.numLocalMolecules = numAtoms;

@@ -49,7 +49,7 @@ void updateOnlyPos(data::Atoms& atoms,
         if (dx[1] < -delta[1]) pos(idx, 1) -= subdomain.diameter[1];
         if (dx[2] < -delta[2]) pos(idx, 2) -= subdomain.diameter[2];
     };
-    Kokkos::parallel_for(policy, kernel, "UpdateGhostAtoms::updateOnlyPos");
+    Kokkos::parallel_for("UpdateGhostAtoms::updateOnlyPos", policy, kernel);
     Kokkos::fence();
 }
 

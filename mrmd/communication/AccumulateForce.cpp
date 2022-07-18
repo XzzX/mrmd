@@ -28,7 +28,7 @@ void ghostToReal(data::Atoms& atoms, const IndexView& correspondingRealAtom)
         }
     };
 
-    Kokkos::parallel_for(policy, kernel, "AccumulateForce::ghostToReal");
+    Kokkos::parallel_for("AccumulateForce::ghostToReal", policy, kernel);
     Kokkos::fence();
 }
 }  // namespace AccumulateForce

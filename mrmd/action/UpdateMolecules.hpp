@@ -51,7 +51,7 @@ static void update(const data::Molecules& molecules,
                moleculesGradLambda(moleculeIdx, 1),
                moleculesGradLambda(moleculeIdx, 2));
     };
-    Kokkos::parallel_for(policy, kernel, "UpdateMolecules::update");
+    Kokkos::parallel_for("UpdateMolecules::update", policy, kernel);
     Kokkos::fence();
 }
 
