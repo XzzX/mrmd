@@ -16,7 +16,10 @@ private:
 
 public:
     KOKKOS_INLINE_FUNCTION
-    real_t computeForce(const real_t& /*distSqr*/) const { /* TO BE IMPLEMENTED */ }
+    real_t computeForce(const real_t& /*distSqr*/) const
+    { /* TO BE IMPLEMENTED */
+        return 0_r;
+    }
 
     KOKKOS_INLINE_FUNCTION
     void operator()(const idx_t& idx) const
