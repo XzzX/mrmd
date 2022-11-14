@@ -3,10 +3,12 @@
 #include <fmt/format.h>
 
 #include "assert/assert.hpp"
+#include "cmake.hpp"
 
 namespace mrmd::io
 {
 
+#ifdef MRMD_HDF5_AVAILABLE
 template <typename T>
 void RestoreH5MDParallel::readParallel(hid_t fileId,
                                        const std::string& dataset,
@@ -43,12 +45,11 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
     // check if in bounds
     for (auto i = 0; i < int_c(globalDims.size()); ++i)
     {
-        MRMD_HOST_CHECK_LESSEQUAL(
-            localDims[i] + offset[i], globalDims[i], fmt::format("i = {}", i));
+        MRMD_HOST_CHECK_LESSEQUAL(localDims[i] + offset[i], globalDims[i], fmt::format("i = {}", i));
     }
     auto fileSpace = CHECK_HDF5(H5Dget_space(dset));
-    CHECK_HDF5(H5Sselect_hyperslab(
-        fileSpace, H5S_SELECT_SET, offset.data(), stride.data(), count.data(), localDims.data()));
+    CHECK_HDF5(H5Sselect_hyperslab(fileSpace, H5S_SELECT_SET, offset.data(), stride.data(),
+                                   count.data(), localDims.data()));
 
     // set up memory data layout
     hid_t memSpace =
@@ -70,9 +71,7 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
     CHECK_HDF5(H5Dclose(dset));
 }
 
-void RestoreH5MDParallel::restore(const std::string& filename,
-                                  data::Subdomain& subdomain,
-                                  data::Atoms& atoms)
+void RestoreH5MDParallel::restore(const std::string& filename, data::Subdomain& subdomain, data::Atoms& atoms)
 {
     MPI_Info info = MPI_INFO_NULL;
 
@@ -105,37 +104,31 @@ void RestoreH5MDParallel::restore(const std::string& filename,
     std::vector<real_t> force;
     if (restoreForce)
     {
-        readParallel(
-            fileId, "/particles/" + particleGroupName_ + "/" + forceDataset + "/value", force);
+        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + forceDataset + "/value", force);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, force.size());
     }
     std::vector<idx_t> type;
     if (restoreType)
     {
-        readParallel(
-            fileId, "/particles/" + particleGroupName_ + "/" + typeDataset + "/value", type);
+        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + typeDataset + "/value", type);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, type.size());
     }
     std::vector<real_t> mass;
     if (restoreMass)
     {
-        readParallel(
-            fileId, "/particles/" + particleGroupName_ + "/" + massDataset + "/value", mass);
+        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + massDataset + "/value", mass);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, mass.size());
     }
     std::vector<real_t> charge;
     if (restoreCharge)
     {
-        readParallel(
-            fileId, "/particles/" + particleGroupName_ + "/" + chargeDataset + "/value", charge);
+        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + chargeDataset + "/value", charge);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, charge.size());
     }
     std::vector<real_t> relativeMass;
     if (restoreRelativeMass)
     {
-        readParallel(fileId,
-                     "/particles/" + particleGroupName_ + "/" + relativeMassDataset + "/value",
-                     relativeMass);
+        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + relativeMassDataset + "/value", relativeMass);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, relativeMass.size());
     }
 
@@ -172,5 +165,21 @@ void RestoreH5MDParallel::restore(const std::string& filename,
 
     CHECK_HDF5(H5Fclose(fileId));
 }
+#else
+template <typename T>
+void RestoreH5MDParallel::readParallel(hid_t /*fileId*/,
+                                       const std::string& /*dataset*/,
+                                       std::vector<T>& /*data*/)
+{
+    MRMD_HOST_CHECK(false, "HDF5 support not available!");
+    exit(EXIT_FAILURE);
+}
+
+void RestoreH5MDParallel::restore(const std::string& /*filename*/, data::Subdomain& /*subdomain*/, data::Atoms& /*atoms*/)
+{
+    MRMD_HOST_CHECK(false, "HDF5 support not available!");
+    exit(EXIT_FAILURE);
+}
+#endif
 
 }  // namespace mrmd::io

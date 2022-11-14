@@ -1,10 +1,9 @@
 #pragma once
 
-#include <mpi.h>
-
 #include <memory>
 #include <string>
 
+#include "cmake.hpp"
 #include "data/Atoms.hpp"
 #include "data/MPIInfo.hpp"
 #include "data/Subdomain.hpp"
@@ -18,12 +17,14 @@ class RestoreH5MDParallel
 public:
     RestoreH5MDParallel(const std::shared_ptr<data::MPIInfo>& mpiInfo,
                         const std::string& particleGroupName = "atoms")
-        : mpiInfo_(mpiInfo), particleGroupName_(particleGroupName)
+        : mpiInfo_(mpiInfo),
+          particleGroupName_(particleGroupName)
     {
     }
 
     void restore(const std::string& filename, data::Subdomain& subdomain, data::Atoms& atoms);
 
+    
     bool restorePos = true;
     bool restoreVel = true;
     bool restoreForce = true;
@@ -32,6 +33,7 @@ public:
     bool restoreCharge = true;
     bool restoreRelativeMass = true;
 
+    
     std::string posDataset = "pos";
     std::string velDataset = "vel";
     std::string forceDataset = "force";
@@ -42,7 +44,9 @@ public:
 
 private:
     template <typename T>
-    void readParallel(hid_t fileId, const std::string& dataset, std::vector<T>& data);
+    void readParallel(hid_t fileId,
+                      const std::string& dataset,
+                      std::vector<T>& data);
 
     std::shared_ptr<data::MPIInfo> mpiInfo_;
     std::string particleGroupName_;

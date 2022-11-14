@@ -5,12 +5,15 @@
 #include <numeric>
 
 #include "assert/assert.hpp"
+#ifdef MRMD_HDF5_AVAILABLE
 #include "hdf5.hpp"
+#endif
 #include "version.hpp"
 
 namespace mrmd::io
 {
 
+#ifdef MRMD_HDF5_AVAILABLE
 namespace impl
 {
 class DumpH5MDParallelImpl
@@ -264,5 +267,14 @@ void DumpH5MDParallel::dump(const std::string& filename,
     impl::DumpH5MDParallelImpl helper(*this);
     helper.dump(filename, subdomain, atoms);
 }
+#else
+void DumpH5MDParallel::dump(const std::string& /*filename*/,
+                            const data::Subdomain& /*subdomain*/,
+                            const data::Atoms& /*atoms*/)
+{
+    MRMD_HOST_CHECK(false, "HDF5 Support not available!");
+    exit(EXIT_FAILURE);
+}
+#endif
 
 }  // namespace mrmd::io

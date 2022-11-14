@@ -3,10 +3,12 @@
 #include <fmt/format.h>
 
 #include "assert/assert.hpp"
+#include "cmake.hpp"
 
 namespace mrmd::io
 {
 
+#ifdef MRMD_HDF5_AVAILABLE
 template <typename T>
 void RestoreH5MDParallel::readParallel(hid_t fileId,
                                        const std::string& dataset,
@@ -120,5 +122,21 @@ void RestoreH5MDParallel::restore(const std::string& filename, data::Subdomain& 
 
     CHECK_HDF5(H5Fclose(fileId));
 }
+#else
+template <typename T>
+void RestoreH5MDParallel::readParallel(hid_t /*fileId*/,
+                                       const std::string& /*dataset*/,
+                                       std::vector<T>& /*data*/)
+{
+    MRMD_HOST_CHECK(false, "HDF5 support not available!");
+    exit(EXIT_FAILURE);
+}
+
+void RestoreH5MDParallel::restore(const std::string& /*filename*/, data::Subdomain& /*subdomain*/, data::Atoms& /*atoms*/)
+{
+    MRMD_HOST_CHECK(false, "HDF5 support not available!");
+    exit(EXIT_FAILURE);
+}
+#endif
 
 }  // namespace mrmd::io

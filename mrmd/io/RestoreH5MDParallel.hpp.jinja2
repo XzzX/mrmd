@@ -1,10 +1,9 @@
 #pragma once
 
-#include <mpi.h>
-
 #include <memory>
 #include <string>
 
+#include "cmake.hpp"
 #include "data/Atoms.hpp"
 #include "data/MPIInfo.hpp"
 #include "data/Subdomain.hpp"

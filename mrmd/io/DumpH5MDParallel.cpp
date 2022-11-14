@@ -5,23 +5,30 @@
 #include <numeric>
 
 #include "assert/assert.hpp"
+#ifdef MRMD_HDF5_AVAILABLE
 #include "hdf5.hpp"
+#endif
 #include "version.hpp"
 
 namespace mrmd::io
 {
 
+#ifdef MRMD_HDF5_AVAILABLE
 namespace impl
 {
 class DumpH5MDParallelImpl
 {
 public:
-    explicit DumpH5MDParallelImpl(DumpH5MDParallel& config) : config_(config) {}
+    explicit DumpH5MDParallelImpl(DumpH5MDParallel& config)
+        : config_(config)
+    {
+    }
 
     void dump(const std::string& filename,
               const data::Subdomain& subdomain,
               const data::Atoms& atoms);
 
+    
     bool dumpPos = true;
     bool dumpVel = true;
     bool dumpForce = true;
@@ -30,6 +37,7 @@ public:
     bool dumpCharge = true;
     bool dumpRelativeMass = true;
 
+    
     std::string posDataset = "pos";
     std::string velDataset = "vel";
     std::string forceDataset = "force";
@@ -174,6 +182,7 @@ void DumpH5MDParallelImpl::writeBox(hid_t fileId, const data::Subdomain& subdoma
 
     CHECK_HDF5(H5Gclose(group));
 }
+
 
 void DumpH5MDParallelImpl::writePos(hid_t fileId, const data::HostAtoms& atoms)
 {
@@ -390,8 +399,7 @@ void DumpH5MDParallelImpl::writeRelativeMass(hid_t fileId, const data::HostAtoms
     using Datatype = real_t;
     constexpr int64_t dimensions = 1;  ///< dimensions of the property
 
-    std::string groupName =
-        "/particles/" + config_.particleGroupName + "/" + config_.relativeMassDataset;
+    std::string groupName = "/particles/" + config_.particleGroupName + "/" + config_.relativeMassDataset;
     auto group = H5Gcreate(fileId, groupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     std::vector<Datatype> data;
@@ -419,6 +427,7 @@ void DumpH5MDParallelImpl::writeRelativeMass(hid_t fileId, const data::HostAtoms
         fileId, timeDataset.c_str(), 1, dims.data(), typeToHDF5<double>(), time.data()));
     CHECK_HDF5(H5Gclose(group));
 }
+
 
 void DumpH5MDParallelImpl::updateCache(const data::HostAtoms& atoms)
 {
@@ -471,7 +480,7 @@ void DumpH5MDParallelImpl::dump(const std::string& filename,
     CHECK_HDF5(H5Fclose(file_id));
 }
 
-}  // namespace impl
+} // namespace impl
 
 void DumpH5MDParallel::dump(const std::string& filename,
                             const data::Subdomain& subdomain,
@@ -480,5 +489,14 @@ void DumpH5MDParallel::dump(const std::string& filename,
     impl::DumpH5MDParallelImpl helper(*this);
     helper.dump(filename, subdomain, atoms);
 }
+#else
+void DumpH5MDParallel::dump(const std::string& /*filename*/,
+                            const data::Subdomain& /*subdomain*/,
+                            const data::Atoms& /*atoms*/)
+{
+    MRMD_HOST_CHECK(false, "HDF5 Support not available!");
+    exit(EXIT_FAILURE);
+}
+#endif
 
 }  // namespace mrmd::io
