@@ -15,15 +15,14 @@ public:
     DumpH5MDParallel(const std::shared_ptr<data::MPIInfo>& mpiInfoArg,
                      const std::string& authorArg,
                      const std::string& particleGroupNameArg = "atoms")
-        : mpiInfo(mpiInfoArg),
-          author(authorArg),
-          particleGroupName(particleGroupNameArg)
+        : mpiInfo(mpiInfoArg), author(authorArg), particleGroupName(particleGroupNameArg)
     {
     }
 
-    void dump(const std::string& filename, const data::Subdomain& subdomain, const data::Atoms& atoms);
+    void dump(const std::string& filename,
+              const data::Subdomain& subdomain,
+              const data::Atoms& atoms);
 
-    
     bool dumpPos = true;
     bool dumpVel = true;
     bool dumpForce = true;
@@ -32,7 +31,6 @@ public:
     bool dumpCharge = true;
     bool dumpRelativeMass = true;
 
-    
     std::string posDataset = "pos";
     std::string velDataset = "vel";
     std::string forceDataset = "force";
