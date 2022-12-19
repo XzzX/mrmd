@@ -8,4 +8,5 @@ namespace mrmd
 constexpr static int VECTOR_LENGTH = @MRMD_VECTOR_LENGTH@;
 
 #cmakedefine MRMD_VERBOSE_ASSERTS
+#cmakedefine MRMD_HDF5_AVAILABLE
 }  // namespace mrmd

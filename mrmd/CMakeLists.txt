@@ -13,7 +13,10 @@ target_link_libraries(mrmd
         PUBLIC Cabana::cabanacore
         PUBLIC MPI::MPI_C MPI::MPI_CXX
         PRIVATE fmt::fmt
-        PUBLIC hdf5::hdf5 hdf5::hdf5_hl)
+        )
+if (MRMD_HDF5_AVAILABLE)
+    target_link_libraries(mrmd PUBLIC hdf5::hdf5 hdf5::hdf5_hl)
+endif ()
 target_include_directories(mrmd
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)

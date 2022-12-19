@@ -1,7 +1,5 @@
 #pragma once
 
-#include <mpi.h>
-
 #include <memory>
 #include <string>
 
