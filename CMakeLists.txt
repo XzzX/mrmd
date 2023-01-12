@@ -6,7 +6,7 @@ project(mrmd
         VERSION 0.2.0
         DESCRIPTION "Multi Resolution Molecular Dynamics"
         HOMEPAGE_URL https://github.com/XzzX/mrmd
-        LANGUAGES C CXX)
+        LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(TestFunctions)
@@ -46,6 +46,10 @@ find_package(Kokkos REQUIRED)
 ########################################################################
 set(HDF5_PREFER_PARALLEL ON)
 #set(HDF5_FIND_DEBUG ON)
+# C is only used for hdf5, see https://gitlab.kitware.com/cmake/cmake/-/merge_requests/8015
+if(CMAKE_VERSION VERSION_LESS 3.26)
+  enable_language(C)
+endif()
 find_package(HDF5 COMPONENTS C HL)
 if (HDF5_FOUND)
     if (NOT HDF5_IS_PARALLEL)
