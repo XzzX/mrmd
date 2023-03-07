@@ -36,7 +36,6 @@ jobs:
             -S kokkos \
             -B kokkos-build \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DKokkos_CXX_STANDARD=17 \
             -DKokkos_ENABLE_DEBUG=ON \
             -DKokkos_ENABLE_DEBUG_BOUNDS_CHECK=ON \
             -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
@@ -96,7 +95,6 @@ jobs:
             -S kokkos \
             -B kokkos-build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DKokkos_CXX_STANDARD=17 \
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
@@ -136,7 +134,6 @@ jobs:
             -S kokkos \
             -B kokkos-build \
             -DCMAKE_BUILD_TYPE=Release \
-            -DKokkos_CXX_STANDARD=17 \
             -DKokkos_ENABLE_HWLOC=ON \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
             -DKokkos_ENABLE_SERIAL=ON \
@@ -201,7 +198,7 @@ jobs:
 
       - name: kokkos
         run: |
-          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=Debug -DKokkos_CXX_STANDARD=17
+          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=Debug
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
@@ -227,7 +224,7 @@ jobs:
 
       - name: kokkos
         run: |
-          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=Debug -DKokkos_CXX_STANDARD=17 -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+          cmake -S kokkos -B kokkos-build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_POSITION_INDEPENDENT_CODE=ON
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
