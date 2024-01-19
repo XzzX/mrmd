@@ -96,7 +96,7 @@ set_target_properties(yaml-cpp PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "
 FetchContent_Declare(
         Cabana
         GIT_REPOSITORY https://github.com/ECP-copa/Cabana.git
-        GIT_TAG 0.6.1
+        GIT_TAG 0.5.0
 )
 FetchContent_MakeAvailable(Cabana)
 
