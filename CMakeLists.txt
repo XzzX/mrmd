@@ -6,7 +6,7 @@ project(mrmd
         VERSION 0.2.0
         DESCRIPTION "Multi Resolution Molecular Dynamics"
         HOMEPAGE_URL https://github.com/XzzX/mrmd
-        LANGUAGES CXX)
+        LANGUAGES C CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(TestFunctions)
