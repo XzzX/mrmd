@@ -1,4 +1,5 @@
 #include <Kokkos_Core.hpp>
+#include <iostream>
 
 #include "Cabana_AoSoA.hpp"
 #include "datatypes.hpp"
