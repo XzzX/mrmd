@@ -18,7 +18,7 @@ template <class SLICE_T>
 py::array_t<typename SLICE_T::value_type> getNPArray(const SLICE_T slice)
 {
     py::str dummyDataOwner;  // https://github.com/pybind/pybind11/issues/323#issuecomment-575717041
-    if (slice.rank() == 2)
+    if (slice.viewRank() == 2)
     {
         return py::array_t<typename SLICE_T::value_type>(
             {slice.extent(1), slice.extent(0)},
@@ -28,7 +28,7 @@ py::array_t<typename SLICE_T::value_type> getNPArray(const SLICE_T slice)
             dummyDataOwner);
     }
 
-    MRMD_HOST_CHECK_EQUAL(slice.rank(), 3);
+    MRMD_HOST_CHECK_EQUAL(slice.viewRank(), 3);
     return py::array_t<typename SLICE_T::value_type>(
         {slice.extent(2), slice.extent(1), slice.extent(0)},
         {sizeof(typename SLICE_T::value_type) * slice.stride(2),

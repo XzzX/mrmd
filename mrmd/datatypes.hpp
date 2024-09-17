@@ -129,7 +129,7 @@ using HostType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace,
                                 Kokkos::DefaultHostExecutionSpace::memory_space>;
 using DeviceType =
     Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::DefaultExecutionSpace::memory_space>;
-using LinkedCellList = Cabana::LinkedCellList<DeviceType>;
+using LinkedCellList = Cabana::LinkedCellList<typename DeviceType::memory_space>;
 using VerletList [[deprecated]] = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
                                                      Cabana::HalfNeighborTag,
                                                      Cabana::VerletLayout2D,

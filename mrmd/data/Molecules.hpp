@@ -31,7 +31,7 @@ public:
                                           real_t[DIMENSIONS],
                                           idx_t,
                                           idx_t>;
-    using MoleculesT = Cabana::AoSoA<DataTypes, DEVICE_TYPE, VECTOR_LENGTH>;
+    using MoleculesT = Cabana::AoSoA<DataTypes, typename DEVICE_TYPE::memory_space, VECTOR_LENGTH>;
 
     using pos_t = typename MoleculesT::template member_slice_type<POS>;
     using force_t = typename MoleculesT::template member_slice_type<FORCE>;

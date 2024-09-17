@@ -37,7 +37,7 @@ public:
                                           real_t,
                                           real_t,
                                           real_t>;
-    using AtomsT = Cabana::AoSoA<DataTypes, DEVICE_TYPE, VECTOR_LENGTH>;
+    using AtomsT = Cabana::AoSoA<DataTypes, typename DEVICE_TYPE::memory_space, VECTOR_LENGTH>;
 
     using pos_t = typename AtomsT::template member_slice_type<POS>;
     using vel_t = typename AtomsT::template member_slice_type<VEL>;
