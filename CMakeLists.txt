@@ -37,11 +37,6 @@ mark_as_advanced(
 find_package(MPI REQUIRED C CXX)
 
 ########################################################################
-# FIND Kokkos
-########################################################################
-find_package(Kokkos REQUIRED)
-
-########################################################################
 # FIND HDF5
 ########################################################################
 set(HDF5_PREFER_PARALLEL ON)
@@ -63,9 +58,18 @@ endif ()
 include(FetchContent)
 
 FetchContent_Declare(
+    Kokkos
+    GIT_REPOSITORY https://github.com/kokkos/kokkos.git
+    GIT_TAG 15dc143e5f39949eece972a798e175c4b463d4b8 #4.4.01
+    OVERRIDE_FIND_PACKAGE
+)
+FetchContent_MakeAvailable(Kokkos)
+
+
+FetchContent_Declare(
         CLI11
         GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
-        GIT_TAG v2.1.2
+        GIT_TAG 6c7b07a878ad834957b98d0f9ce1dbe0cb204fc9 #2.4.2
 )
 FetchContent_MakeAvailable(CLI11)
 
@@ -86,7 +90,7 @@ set_target_properties(fmt PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP
 FetchContent_Declare(
         YAML_CPP
         GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-        GIT_TAG yaml-cpp-0.7.0
+        GIT_TAG f7320141120f720aecc4c32be25586e7da9eb978 #0.8.0
 )
 FetchContent_MakeAvailable(YAML_CPP)
 
@@ -96,7 +100,7 @@ set_target_properties(yaml-cpp PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "
 FetchContent_Declare(
         Cabana
         GIT_REPOSITORY https://github.com/ECP-copa/Cabana.git
-        GIT_TAG 0.5.0
+        GIT_TAG 25f7411a1fc7c46ee2fc07ee0c452d8f589ff178 #0.6.1
 )
 FetchContent_MakeAvailable(Cabana)
 
@@ -106,7 +110,7 @@ set_target_properties(cabanacore PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
 FetchContent_Declare(
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG release-1.11.0
+        GIT_TAG b514bdc898e2951020cbdca1304b75f5950d1f59 #1.15.2
 )
 FetchContent_MakeAvailable(googletest)
 

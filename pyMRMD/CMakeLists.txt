@@ -5,7 +5,7 @@ cmake_print_variables(Python3_SITEARCH)
 FetchContent_Declare(
         pybind11
         GIT_REPOSITORY https://github.com/pybind/pybind11.git
-        GIT_TAG v2.9.0
+        GIT_TAG a2e59f0e7065404b44dfe92a28aca47ba1378dc4 #2.13.6
 )
 FetchContent_MakeAvailable(pybind11)
 
