@@ -22,7 +22,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: 'kokkos/kokkos'
           ref: 'master'
@@ -46,7 +46,7 @@ jobs:
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           path: 'mrmd'
 
@@ -81,7 +81,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: 'kokkos/kokkos'
           ref: 'master'
@@ -102,7 +102,7 @@ jobs:
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           path: 'mrmd'
 
@@ -123,7 +123,7 @@ jobs:
     runs-on: ubuntu-latest
     container: xzzx/devel:clang
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: 'kokkos/kokkos'
           ref: 'master'
@@ -135,7 +135,7 @@ jobs:
           cmake --build kokkos-build --target all -j 2
           sudo cmake --install kokkos-build
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: run formatter
         run: |
