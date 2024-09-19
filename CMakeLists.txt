@@ -16,6 +16,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+option(MRMD_CLANG_TIDY "Run clang-tidy checks during compilation." OFF)
+option(MRMD_ENABLE_HDF5 "Enable HDF5 support." ON)
+option(MRMD_ENABLE_COVERAGE "Enable code coverage. (clang)" OFF)
+option(MRMD_ENABLE_TESTING "Build tests and add them to ctest." ON)
+option(MRMD_LOCAL_ARCHITECTURE "Use instruction set of the local architecture." OFF)
+option(MRMD_VEC_REPORT "Enable reporting of loop vectorization." OFF)
+option(MRMD_VERBOSE_ASSERTS "Verbose asserts are only available on CPU!" OFF)
+option(MRMD_WERROR "Treat warnings as errors." OFF)
+
 # custom build type DebugOptimized
 set(CMAKE_C_FLAGS_DEBUGOPTIMIZED "${CMAKE_C_FLAGS_DEBUG} -O3" CACHE STRING "C flags for DebugOptimized")
 set(CMAKE_CXX_FLAGS_DEBUGOPTIMIZED "${CMAKE_CXX_FLAGS_DEBUG} -O3" CACHE STRING "CXX flags for DebugOptimized")
@@ -36,24 +45,26 @@ mark_as_advanced(
 ########################################################################
 find_package(MPI REQUIRED C CXX)
 
-########################################################################
-# FIND HDF5
-########################################################################
-set(HDF5_PREFER_PARALLEL ON)
-#set(HDF5_FIND_DEBUG ON)
-# C is only used for hdf5, see https://gitlab.kitware.com/cmake/cmake/-/merge_requests/8015
-if(CMAKE_VERSION VERSION_LESS 3.26)
-  enable_language(C)
-endif()
-find_package(HDF5 COMPONENTS C HL)
-if (HDF5_FOUND)
-    if (NOT HDF5_IS_PARALLEL)
-        message(FATAL_ERROR "HDF5 with MPI support is required! Serial version detected.")
+if (MRMD_ENABLE_HDF5)
+    ########################################################################
+    # FIND HDF5
+    ########################################################################
+    set(HDF5_PREFER_PARALLEL ON)
+    #set(HDF5_FIND_DEBUG ON)
+    # C is only used for hdf5, see https://gitlab.kitware.com/cmake/cmake/-/merge_requests/8015
+    if(CMAKE_VERSION VERSION_LESS 3.26)
+      enable_language(C)
+    endif()
+    find_package(HDF5 COMPONENTS C HL)
+    if (HDF5_FOUND)
+        if (NOT HDF5_IS_PARALLEL)
+            message(FATAL_ERROR "HDF5 with MPI support is required! Serial version detected.")
+        endif ()
+        #need to avoid _FORTIFY_SOURCE=2 which causes trouble in debug builds
+        set_target_properties(hdf5::hdf5 PROPERTIES INTERFACE_COMPILE_DEFINITIONS "")
+        set(MRMD_HDF5_AVAILABLE ON)
     endif ()
-    #need to avoid _FORTIFY_SOURCE=2 which causes trouble in debug builds
-    set_target_properties(hdf5::hdf5 PROPERTIES INTERFACE_COMPILE_DEFINITIONS "")
-    set(MRMD_HDF5_AVAILABLE ON)
-endif ()
+endif()
 
 include(FetchContent)
 
@@ -124,14 +135,6 @@ get_target_property(TMP gmock_main INTERFACE_INCLUDE_DIRECTORIES)
 set_target_properties(gmock_main PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${TMP}")
 
 enable_testing()
-
-option(MRMD_CLANG_TIDY "Run clang-tidy checks during compilation." OFF)
-option(MRMD_ENABLE_COVERAGE "Enable code coverage. (clang)" OFF)
-option(MRMD_ENABLE_TESTING "Build tests and add them to ctest." ON)
-option(MRMD_LOCAL_ARCHITECTURE "Use instruction set of the local architecture." OFF)
-option(MRMD_VEC_REPORT "Enable reporting of loop vectorization." OFF)
-option(MRMD_VERBOSE_ASSERTS "Verbose asserts are only available on CPU!" OFF)
-option(MRMD_WERROR "Treat warnings as errors." OFF)
 
 if (MRMD_CLANG_TIDY)
     find_program(CLANG_TIDY_COMMAND NAMES clang-tidy)
