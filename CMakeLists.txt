@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.25)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -75,6 +75,7 @@ FetchContent_Declare(
     OVERRIDE_FIND_PACKAGE
 )
 FetchContent_MakeAvailable(Kokkos)
+include(${kokkos_BINARY_DIR}/KokkosConfigCommon.cmake)
 
 
 FetchContent_Declare(
