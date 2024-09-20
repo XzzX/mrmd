@@ -1,6 +1,7 @@
 #include "RestoreTXT.hpp"
 
 #include <fstream>
+#include <iostream>
 
 namespace mrmd
 {

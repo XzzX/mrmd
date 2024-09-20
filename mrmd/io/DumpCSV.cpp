@@ -1,6 +1,7 @@
 #include "io/DumpCSV.hpp"
 
 #include <fstream>
+#include <iostream>
 
 #include "data/Atoms.hpp"
 
