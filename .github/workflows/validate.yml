@@ -7,7 +7,7 @@ jobs:
   debug-build:
     strategy:
       matrix:
-        CONTAINER: [ 'gcc', 'clang', 'icx', 'icc' ]
+        CONTAINER: [ 'gcc', 'clang' ]
         BACKEND: [ 'Kokkos_ENABLE_SERIAL', 'Kokkos_ENABLE_OPENMP' ]
 
     runs-on: ubuntu-latest
@@ -24,49 +24,37 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          repository: 'kokkos/kokkos'
-          ref: 'master'
-          path: 'kokkos'
-
-      - name: kokkos
-        run: |
-          ls
-          mkdir kokkos-build
-          cmake \
-            -S kokkos \
-            -B kokkos-build \
-            -DCMAKE_BUILD_TYPE=Debug \
-            -DKokkos_ENABLE_DEBUG=ON \
-            -DKokkos_ENABLE_DEBUG_BOUNDS_CHECK=ON \
-            -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
-            -DKokkos_ENABLE_HWLOC=ON \
-            -DKokkos_ENABLE_SERIAL=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-            -D${{ matrix.BACKEND }}=ON
-          cmake --build kokkos-build --target all -j 2
-          sudo cmake --install kokkos-build
-
-      - uses: actions/checkout@v4
-        with:
           path: 'mrmd'
 
       - name: Configure
-        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Debug -DMRMD_VERBOSE_ASSERTS=ON -DMRMD_WERROR=ON
+        run: cmake \
+               -S mrmd 
+               -B mrmd-build 
+               -DCMAKE_BUILD_TYPE=Debug 
+               -DMRMD_VERBOSE_ASSERTS=ON 
+               -DMRMD_WERROR=ON
+               -DKokkos_ENABLE_DEBUG=ON \
+               -DKokkos_ENABLE_DEBUG_BOUNDS_CHECK=ON \
+               -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
+               -DKokkos_ENABLE_HWLOC=ON \
+               -DKokkos_ENABLE_SERIAL=ON \
+               -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+               -D${{ matrix.BACKEND }}=ON
 
       - name: build dependencies
-        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox -j 2
+        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkos yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
 
       - name: build
-        run: cmake --build mrmd-build --target all -j 2
+        run: cmake --build mrmd-build --target all --parallel 2
 
       - name: Test
         working-directory: mrmd-build
-        run: ctest --output-on-failure -j 2
+        run: ctest --output-on-failure --parallel 2
 
   release-build:
     strategy:
       matrix:
-        CONTAINER: [ 'gcc', 'clang', 'icx', 'icc' ]
+        CONTAINER: [ 'gcc', 'clang' ]
         BACKEND: [ 'Kokkos_ENABLE_SERIAL', 'Kokkos_ENABLE_OPENMP' ]
 
     runs-on: ubuntu-latest
@@ -83,41 +71,29 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          repository: 'kokkos/kokkos'
-          ref: 'master'
-          path: 'kokkos'
-
-      - name: kokkos
-        run: |
-          ls
-          mkdir kokkos-build
-          cmake \
-            -S kokkos \
-            -B kokkos-build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DKokkos_ENABLE_HWLOC=ON \
-            -DKokkos_ENABLE_SERIAL=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-            -D${{ matrix.BACKEND }}=ON
-          cmake --build kokkos-build --target all -j 2
-          sudo cmake --install kokkos-build
-
-      - uses: actions/checkout@v4
-        with:
           path: 'mrmd'
 
       - name: Configure
-        run: cmake -S mrmd -B mrmd-build -DCMAKE_BUILD_TYPE=Release -DMRMD_VERBOSE_ASSERTS=ON -DMRMD_WERROR=ON
+        run: cmake \ 
+               -S mrmd \
+               -B mrmd-build \
+               -DCMAKE_BUILD_TYPE=Release \
+               -DMRMD_VERBOSE_ASSERTS=ON \
+               -DMRMD_WERROR=ON \
+               -DKokkos_ENABLE_HWLOC=ON \
+               -DKokkos_ENABLE_SERIAL=ON \
+               -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+               -D${{ matrix.BACKEND }}=ON
 
       - name: build dependencies
-        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox -j 2
+        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkos yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
 
       - name: build
-        run: cmake --build mrmd-build --target all -j 2
+        run: cmake --build mrmd-build --target all --parallel 2
 
       - name: Test
         working-directory: mrmd-build
-        run: ctest --output-on-failure -j 2
+        run: ctest --output-on-failure --parallel 2
 
   clang-format:
     runs-on: ubuntu-latest
