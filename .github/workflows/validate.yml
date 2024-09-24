@@ -80,7 +80,7 @@ jobs:
         run: |
           echo $(pwd)
           ls
-          cmake \ 
+          cmake \
             -S mrmd \
             -B mrmd-build \
             -DCMAKE_BUILD_TYPE=Release \
