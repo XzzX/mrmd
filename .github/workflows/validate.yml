@@ -28,6 +28,8 @@ jobs:
 
       - name: Configure
         run: |
+          echo $(pwd)
+          ls
           cmake \
             -S mrmd \
             -B mrmd-build \
@@ -76,6 +78,8 @@ jobs:
 
       - name: Configure
         run: |
+          echo $(pwd)
+          ls
           cmake \ 
             -S mrmd \
             -B mrmd-build \
