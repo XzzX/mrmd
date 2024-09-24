@@ -43,7 +43,7 @@ jobs:
             -D${{ matrix.BACKEND }}=ON
 
       - name: build dependencies
-        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main Kokkos yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
+        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
 
       - name: build
         run: cmake --build mrmd-build --target all --parallel 2
@@ -88,7 +88,7 @@ jobs:
             -D${{ matrix.BACKEND }}=ON
 
       - name: build dependencies
-        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main Kokkos yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
+        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
 
       - name: build
         run: cmake --build mrmd-build --target all --parallel 2
