@@ -7,7 +7,7 @@ jobs:
   debug-build:
     strategy:
       matrix:
-        CONTAINER: [ 'gcc', 'clang' ]
+        CONTAINER: [ 'gcc-11', 'clang-13' ]
         BACKEND: [ 'Kokkos_ENABLE_SERIAL', 'Kokkos_ENABLE_OPENMP' ]
 
     runs-on: ubuntu-latest
@@ -99,7 +99,7 @@ jobs:
 
   clang-format:
     runs-on: ubuntu-latest
-    container: xzzx/devel:clang
+    container: xzzx/devel:clang-13
     steps:
       - uses: actions/checkout@v4
 
