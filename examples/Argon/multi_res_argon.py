@@ -36,9 +36,18 @@ def fill_domain_with_atoms_sc(subdomain, num_atoms, max_velocity):
     atoms = pyMRMD.data.HostAtoms(num_atoms)
 
     pos = atoms.get_pos_np()
-    pos[0, :, :] = np.random.uniform(size=pos.shape[1:]) * subdomain.diameter[0] + subdomain.min_corner[0]
-    pos[1, :, :] = np.random.uniform(size=pos.shape[1:]) * subdomain.diameter[1] + subdomain.min_corner[1]
-    pos[2, :, :] = np.random.uniform(size=pos.shape[1:]) * subdomain.diameter[2] + subdomain.min_corner[2]
+    pos[0, :, :] = (
+        np.random.uniform(size=pos.shape[1:]) * subdomain.diameter[0]
+        + subdomain.min_corner[0]
+    )
+    pos[1, :, :] = (
+        np.random.uniform(size=pos.shape[1:]) * subdomain.diameter[1]
+        + subdomain.min_corner[1]
+    )
+    pos[2, :, :] = (
+        np.random.uniform(size=pos.shape[1:]) * subdomain.diameter[2]
+        + subdomain.min_corner[2]
+    )
 
     vel = atoms.get_vel_np()
     vel[:, :, :] = np.random.uniform(-0.5, 0.5, size=vel.shape) * max_velocity
@@ -57,17 +66,23 @@ def fill_domain_with_atoms_sc(subdomain, num_atoms, max_velocity):
 
 
 pyMRMD.initialize()
-subdomain = pyMRMD.data.Subdomain([0, 0, 0], [config.Lx, config.Lx, config.Lx], config.neighbor_cutoff)
+subdomain = pyMRMD.data.Subdomain(
+    [0, 0, 0], [config.Lx, config.Lx, config.Lx], config.neighbor_cutoff
+)
 volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]
 atoms = fill_domain_with_atoms_sc(subdomain, config.num_atoms, 1)
 molecules = pyMRMD.data.create_molecule_for_each_atom(atoms)
 rho = atoms.num_local_atoms / volume
-print('rho: ', rho)
+print("rho: ", rho)
 
 ghost_layer = pyMRMD.communication.MultiResGhostLayer()
 weighting_function = pyMRMD.weighting_function.Slab([-100, -100, -100], 1, 1, 1)
-LJ = pyMRMD.action.LennardJones(config.rc, config.sigma, config.epsilon, 0.7 * config.sigma)
-langevin_thermostat = pyMRMD.action.LangevinThermostat(config.gamma, config.temperature, config.dt)
+LJ = pyMRMD.action.LennardJones(
+    config.rc, config.sigma, config.epsilon, 0.7 * config.sigma
+)
+langevin_thermostat = pyMRMD.action.LangevinThermostat(
+    config.gamma, config.temperature, config.dt
+)
 mean_square_displacement = pyMRMD.analysis.MeanSquareDisplacement()
 mean_square_displacement.reset(atoms)
 verlet_list = pyMRMD.cabana.VerletList()
@@ -77,10 +92,12 @@ maxAtomDisplacement = 1e10
 rebuildCounter = 0
 msd = 0.0
 
-with open('statistics.txt', 'w') as fStat:
+with open("statistics.txt", "w") as fStat:
     for step in range(config.nsteps):
 
-        maxAtomDisplacement += pyMRMD.action.velocity_verlet.pre_force_integrate(atoms, config.dt)
+        maxAtomDisplacement += pyMRMD.action.velocity_verlet.pre_force_integrate(
+            atoms, config.dt
+        )
 
         pyMRMD.action.update_molecules.update(molecules, atoms, weighting_function)
 
@@ -92,12 +109,14 @@ with open('statistics.txt', 'w') as fStat:
             ghost_layer.exchange_real_atoms(molecules, atoms, subdomain)
 
             ghost_layer.create_ghost_atoms(molecules, atoms, subdomain)
-            pyMRMD.cabana.build_verlet_list(verlet_list,
-                                            atoms,
-                                            subdomain,
-                                            config.neighbor_cutoff,
-                                            config.cell_ratio,
-                                            config.estimated_max_neighbors)
+            pyMRMD.cabana.build_verlet_list(
+                verlet_list,
+                atoms,
+                subdomain,
+                config.neighbor_cutoff,
+                config.cell_ratio,
+                config.estimated_max_neighbors,
+            )
             ++rebuildCounter
         else:
             ghost_layer.update_ghost_atoms(atoms, subdomain)
@@ -115,13 +134,15 @@ with open('statistics.txt', 'w') as fStat:
         if config.bOutput and (step % config.outputInterval == 0):
             E0 = LJ.get_energy() / atoms.num_local_atoms
             Ek = pyMRMD.analysis.get_mean_kinetic_energy(atoms)
-            T = (2 / 3) * Ek;
+            T = (2 / 3) * Ek
             p = pyMRMD.analysis.get_pressure(atoms, subdomain)
             print(
-                f'{step:>8} | {timer.seconds():>8.3} | {T:>8.3} | {Ek:>8.3} | {E0:>8.3} | {E0 + Ek:>8.3} | {p:>8.3} | {msd:>8.3} | {atoms.num_local_atoms:>8} | {atoms.num_ghost_atoms:>8}')
+                f"{step:>8} | {timer.seconds():>8.3} | {T:>8.3} | {Ek:>8.3} | {E0:>8.3} | {E0 + Ek:>8.3} | {p:>8.3} | {msd:>8.3} | {atoms.num_local_atoms:>8} | {atoms.num_ghost_atoms:>8}"
+            )
 
             fStat.write(
-                f'{step:>8} {timer.seconds():>8} {T:>8} {Ek:>8} {E0:>8} {E0 + Ek:>8} {p:>8} {msd:>8} {atoms.num_local_atoms:>8} {atoms.num_ghost_atoms:>8}\n')
+                f"{step:>8} {timer.seconds():>8} {T:>8} {Ek:>8} {E0:>8} {E0 + Ek:>8} {p:>8} {msd:>8} {atoms.num_local_atoms:>8} {atoms.num_ghost_atoms:>8}\n"
+            )
 
         #            pyMRMD.io.dump_gro(f'argon_{step:0>6}.gro',
         #                               atoms,
