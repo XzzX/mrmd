@@ -99,7 +99,7 @@ jobs:
 
   clang-tidy:
     runs-on: ubuntu-latest
-    container: xzzx/devel:clang-13
+    container: xzzx/devel:clang-18
     steps:
       - name: versions
         run: |
@@ -131,11 +131,9 @@ jobs:
             -DKokkos_ENABLE_SERIAL=ON \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
-      - name: build dependencies
-        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
-
-      - name: build
-        run: cmake --build mrmd-build --target all --parallel 2
+      - name: run clang-tidy
+        working-directory: ./mrmd
+        run: run-clang-tidy-18 -p ../mrmd-build '^(?!.*_deps).*$' -header-filter='^(?!.*_deps).*$' -j 2
 
   clang-format:
     runs-on: ubuntu-latest
