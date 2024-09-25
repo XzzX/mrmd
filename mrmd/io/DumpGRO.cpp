@@ -32,7 +32,7 @@ void dumpGRO(const std::string& filename,
     auto lastAtomIdx = atoms.numLocalAtoms + (dumpGhosts ? atoms.numGhostAtoms : 0);
     fout << title << ", t=" << timestamp << std::endl;
     fout << lastAtomIdx << std::endl;
-    auto idxToString = [](int idx)
+    auto idxToString = [](idx_t idx)
     {
         switch (idx % 3)
         {
