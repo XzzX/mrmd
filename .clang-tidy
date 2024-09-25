@@ -24,6 +24,7 @@ modernize-*,
 
 performance-*,
 -performance-avoid-endl,
+-performance-enum-size,
 
 portability-*,
 
@@ -35,6 +36,7 @@ readability-*,
 -readability-identifier-length,
 -readability-magic-numbers,
 -readability-named-parameter,
+-readability-redundant-inline-specifier,
 -readability-redundant-string-init,
 -readability-static-accessed-through-instance,
 '

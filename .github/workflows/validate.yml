@@ -116,7 +116,7 @@ jobs:
         run: |
           cmake \
             -S mrmd \
-            -B mrmd-build \
+            -B build \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DCMAKE_BUILD_TYPE=Debug \
             -DMRMD_VERBOSE_ASSERTS=ON \
@@ -130,7 +130,7 @@ jobs:
 
       - name: run clang-tidy
         working-directory: ./mrmd
-        run: run-clang-tidy-18 -p ../mrmd-build '^(?!.*_deps).*$' -header-filter='^(?!.*_deps).*$' -j 2
+        run: run-clang-tidy-18 -p ../build -header-filter 'mrmd' -j 2 '^(?!.*_deps).*$' 
 
   clang-format:
     runs-on: ubuntu-latest
