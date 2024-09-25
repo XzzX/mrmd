@@ -10,19 +10,20 @@ bugprone-*,
 -bugprone-macro-parentheses,
 
 modernize-*,
--modernize-use-auto,
+-modernize-avoid-c-arrays,
+-modernize-concat-nested-namespaces,
 -modernize-loop-convert,
 -modernize-pass-by-value,
 -modernize-raw-string-literal,
--modernize-return-braced-init-list,
--modernize-use-transparent-functors,
 -modernize-redundant-void-arg,
--modernize-use-trailing-return-type,
--modernize-avoid-c-arrays,
--modernize-concat-nested-namespaces,
+-modernize-return-braced-init-list,
+-modernize-use-auto,
 -modernize-use-nodiscard,
+-modernize-use-trailing-return-type,
+-modernize-use-transparent-functors,
 
 performance-*,
+-performance-avoid-endl,
 
 portability-*,
 
@@ -31,14 +32,13 @@ readability-*,
 -readability-braces-around-statements,
 -readability-convert-member-functions-to-static,
 -readability-function-cognitive-complexity,
+-readability-identifier-length,
 -readability-magic-numbers,
 -readability-named-parameter,
 -readability-redundant-string-init,
 -readability-static-accessed-through-instance,
-
 '
 WarningsAsErrors: '*'
-HeaderFilterRegex: '.*'
 ...
 
 

@@ -32,6 +32,20 @@ void dumpGRO(const std::string& filename,
     auto lastAtomIdx = atoms.numLocalAtoms + (dumpGhosts ? atoms.numGhostAtoms : 0);
     fout << title << ", t=" << timestamp << std::endl;
     fout << lastAtomIdx << std::endl;
+    auto idxToString = [](int idx)
+    {
+        switch (idx % 3)
+        {
+            case 0:
+                return "OW1";
+            case 1:
+                return "HW2";
+            case 2:
+                return "HW3";
+            default:
+                return "ERROR";
+        }
+    };
     for (idx_t idx = 0; idx < lastAtomIdx; ++idx)
     {
         char buf[1024];
@@ -41,7 +55,7 @@ void dumpGRO(const std::string& filename,
                     "%5d%-5s%5s%5d%8.3f%8.3f%8.3f",
                     int_c(idx / 3 + 1),
                     "WATER",
-                    (idx % 3) == 0 ? "OW1" : ((idx % 3) == 1 ? "HW2" : "HW3"),
+                    idxToString(idx),
                     int_c(idx + 1),
                     pos(idx, 0),
                     pos(idx, 1),
@@ -53,7 +67,7 @@ void dumpGRO(const std::string& filename,
                     "%5d%-5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f",
                     int_c(idx / 3 + 1),
                     "WATER",
-                    (idx % 3) == 0 ? "OW1" : ((idx % 3) == 1 ? "HW2" : "HW3"),
+                    idxToString(idx),
                     int_c(idx + 1),
                     pos(idx, 0),
                     pos(idx, 1),
