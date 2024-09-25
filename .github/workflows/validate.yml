@@ -145,3 +145,17 @@ jobs:
 
       - name: check formatting
         run: git diff --exit-code
+
+  black-format:
+    runs-on: ubuntu-latest
+    container: xzzx/devel:clang-18
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: run formatter
+        run: |
+          git config --global --add safe.directory /__w/mrmd/mrmd
+          black .
+
+      - name: check formatting
+        run: git diff --exit-code
