@@ -134,7 +134,7 @@ jobs:
 
   clang-format:
     runs-on: ubuntu-latest
-    container: xzzx/devel:clang-13
+    container: xzzx/devel:clang-18
     steps:
       - uses: actions/checkout@v4
 
