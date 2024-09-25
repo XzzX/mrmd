@@ -8,7 +8,6 @@ jobs:
     strategy:
       matrix:
         CONTAINER: [ 'gcc-14', 'clang-18' ]
-        BACKEND: [ 'Kokkos_ENABLE_SERIAL', 'Kokkos_ENABLE_OPENMP' ]
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
@@ -39,8 +38,8 @@ jobs:
             -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-            -D${{ matrix.BACKEND }}=ON
+            -DKokkos_ENABLE_OPENMP=ON \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
@@ -56,7 +55,6 @@ jobs:
     strategy:
       matrix:
         CONTAINER: [ 'gcc-14', 'clang-18' ]
-        BACKEND: [ 'Kokkos_ENABLE_SERIAL', 'Kokkos_ENABLE_OPENMP' ]
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
@@ -84,8 +82,8 @@ jobs:
             -DMRMD_WERROR=ON \
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
-            -D${{ matrix.BACKEND }}=ON
+            -DKokkos_ENABLE_OPENMP=ON \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
