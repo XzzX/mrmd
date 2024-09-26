@@ -22,7 +22,7 @@ namespace weighting_function
 {
 TEST(Slab, testRegion)
 {
-    std::array<real_t, 3> center = {2_r, 3_r, 4_r};
+    Point3D center = {2_r, 3_r, 4_r};
     real_t atomisticRegionDiameter = 2_r;
     real_t hybridRegionDiameter = 2_r;
     auto weight = Slab(center, atomisticRegionDiameter, hybridRegionDiameter, 2);
@@ -42,13 +42,13 @@ TEST(Slab, testRegion)
 
 TEST(Slab, monotonous)
 {
-    std::array<real_t, 3> center = {2_r, 3_r, 4_r};
+    Point3D center = {2_r, 3_r, 4_r};
     real_t atomisticRegionDiameter = 2_r;
     real_t hybridRegionDiameter = 2_r;
     auto weight = Slab(center, atomisticRegionDiameter, hybridRegionDiameter, 2);
 
-    std::array<real_t, 3> pos = center;
-    std::array<real_t, 3> delta = {0.1_r, 0.1_r, 0.1_r};
+    Point3D pos = center;
+    Vector3D delta = {0.1_r, 0.1_r, 0.1_r};
     real_t tmp;
     real_t w;
     weight(pos[0], pos[1], pos[2], tmp, w, tmp, tmp, tmp);
@@ -65,7 +65,7 @@ TEST(Slab, monotonous)
 
 TEST(Slab, boundaryValues)
 {
-    std::array<real_t, 3> center = {2_r, 3_r, 4_r};
+    Point3D center = {2_r, 3_r, 4_r};
     real_t atomisticRegionDiameter = 2_r;
     real_t hybridRegionDiameter = 2_r;
     auto weight = Slab(center, atomisticRegionDiameter, hybridRegionDiameter, 2);
@@ -83,13 +83,13 @@ TEST(Slab, boundaryValues)
 // TEST(Slab, derivative)
 //{
 //    const auto eps = 1e-10_r;
-//    std::array<real_t, 3> center = {2_r, 3_r, 4_r};
+//    Point3D center = {2_r, 3_r, 4_r};
 //    real_t atomisticRegionDiameter = 4_r;
 //    real_t hybridRegionDiameter = 2_r;
 //    auto weight = Slab(center, atomisticRegionDiameter, hybridRegionDiameter, 2);
 //
-//    std::array<real_t, 3> pos = center;
-//    std::array<real_t, 3> delta = {0.1_r, 0.1_r, 0.1_r};
+//    Point3D pos = center;
+//    Vector3D delta = {0.1_r, 0.1_r, 0.1_r};
 //    for (auto i = 0; i < 60; ++i)
 //    {
 //        real_t lambda0;

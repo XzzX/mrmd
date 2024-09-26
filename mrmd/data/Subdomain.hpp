@@ -36,8 +36,8 @@ namespace data
 struct Subdomain
 {
     Subdomain() = default;
-    Subdomain(const std::array<real_t, 3>& minCornerArg,
-              const std::array<real_t, 3>& maxCornerArg,
+    Subdomain(const Point3D& minCornerArg,
+              const Point3D& maxCornerArg,
               real_t ghostLayerThicknessArg)
         : minCorner(minCornerArg),
           maxCorner(maxCornerArg),
@@ -62,37 +62,36 @@ struct Subdomain
     void scaleDim(const real_t& scalingFactor, const idx_t& dim);
     void scale(const real_t& scalingFactor);
 
-    std::array<real_t, 3> minCorner = {std::numeric_limits<real_t>::signaling_NaN(),
-                                       std::numeric_limits<real_t>::signaling_NaN(),
-                                       std::numeric_limits<real_t>::signaling_NaN()};
-    std::array<real_t, 3> maxCorner = {
-        std::numeric_limits<real_t>::signaling_NaN(),
-        std::numeric_limits<real_t>::signaling_NaN(),
-        std::numeric_limits<real_t>::signaling_NaN()};  // namespace data
+    Point3D minCorner = {std::numeric_limits<real_t>::signaling_NaN(),
+                         std::numeric_limits<real_t>::signaling_NaN(),
+                         std::numeric_limits<real_t>::signaling_NaN()};
+    Point3D maxCorner = {std::numeric_limits<real_t>::signaling_NaN(),
+                         std::numeric_limits<real_t>::signaling_NaN(),
+                         std::numeric_limits<real_t>::signaling_NaN()};  // namespace data
 
     real_t ghostLayerThickness = std::numeric_limits<real_t>::signaling_NaN();
 
-    std::array<real_t, 3> minGhostCorner = {std::numeric_limits<real_t>::signaling_NaN(),
-                                            std::numeric_limits<real_t>::signaling_NaN(),
-                                            std::numeric_limits<real_t>::signaling_NaN()};
-    std::array<real_t, 3> maxGhostCorner = {std::numeric_limits<real_t>::signaling_NaN(),
-                                            std::numeric_limits<real_t>::signaling_NaN(),
-                                            std::numeric_limits<real_t>::signaling_NaN()};
+    Point3D minGhostCorner = {std::numeric_limits<real_t>::signaling_NaN(),
+                              std::numeric_limits<real_t>::signaling_NaN(),
+                              std::numeric_limits<real_t>::signaling_NaN()};
+    Point3D maxGhostCorner = {std::numeric_limits<real_t>::signaling_NaN(),
+                              std::numeric_limits<real_t>::signaling_NaN(),
+                              std::numeric_limits<real_t>::signaling_NaN()};
 
-    std::array<real_t, 3> minInnerCorner = {std::numeric_limits<real_t>::signaling_NaN(),
-                                            std::numeric_limits<real_t>::signaling_NaN(),
-                                            std::numeric_limits<real_t>::signaling_NaN()};
-    std::array<real_t, 3> maxInnerCorner = {std::numeric_limits<real_t>::signaling_NaN(),
-                                            std::numeric_limits<real_t>::signaling_NaN(),
-                                            std::numeric_limits<real_t>::signaling_NaN()};
+    Point3D minInnerCorner = {std::numeric_limits<real_t>::signaling_NaN(),
+                              std::numeric_limits<real_t>::signaling_NaN(),
+                              std::numeric_limits<real_t>::signaling_NaN()};
+    Point3D maxInnerCorner = {std::numeric_limits<real_t>::signaling_NaN(),
+                              std::numeric_limits<real_t>::signaling_NaN(),
+                              std::numeric_limits<real_t>::signaling_NaN()};
 
-    std::array<real_t, 3> diameter = {std::numeric_limits<real_t>::signaling_NaN(),
-                                      std::numeric_limits<real_t>::signaling_NaN(),
-                                      std::numeric_limits<real_t>::signaling_NaN()};
+    Vector3D diameter = {std::numeric_limits<real_t>::signaling_NaN(),
+                         std::numeric_limits<real_t>::signaling_NaN(),
+                         std::numeric_limits<real_t>::signaling_NaN()};
 
-    std::array<real_t, 3> diameterWithGhostLayer = {std::numeric_limits<real_t>::signaling_NaN(),
-                                                    std::numeric_limits<real_t>::signaling_NaN(),
-                                                    std::numeric_limits<real_t>::signaling_NaN()};
+    Vector3D diameterWithGhostLayer = {std::numeric_limits<real_t>::signaling_NaN(),
+                                       std::numeric_limits<real_t>::signaling_NaN(),
+                                       std::numeric_limits<real_t>::signaling_NaN()};
 };
 
 void checkInvariants(const Subdomain& subdomain);

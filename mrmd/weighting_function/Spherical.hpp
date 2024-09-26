@@ -25,7 +25,7 @@ namespace weighting_function
 class Spherical
 {
 private:
-    const std::array<real_t, 3> center_;
+    const Point3D center_;
     const real_t atomisticRadius_;
     const real_t atomisticRadiusSqr_;
     const real_t hybridRegionDiameter_;
@@ -83,7 +83,7 @@ public:
         return lambda;
     }
 
-    Spherical(const std::array<real_t, 3>& center,
+    Spherical(const Point3D& center,
               const real_t atomisticRadius,
               const real_t hybridRegionDiameter,
               const int exponent)

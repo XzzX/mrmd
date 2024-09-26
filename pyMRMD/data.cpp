@@ -133,7 +133,7 @@ void init_data(py::module_ &m)
 
     py::class_<data::Subdomain>(m, "Subdomain")
         .def(py::init<>())
-        .def(py::init<const std::array<real_t, 3> &, const std::array<real_t, 3> &, real_t>())
+        .def(py::init<const Point3D &, const Point3D &, real_t>())
         .def_readonly("min_corner", &data::Subdomain::minCorner)
         .def_readonly("max_corner", &data::Subdomain::maxCorner)
         .def_readonly("ghost_layer_thickness", &data::Subdomain::ghostLayerThickness)

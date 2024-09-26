@@ -26,7 +26,7 @@ namespace weighting_function
 class Slab
 {
 private:
-    const std::array<real_t, 3> center_;
+    const Point3D center_;
     const real_t atomisticRegionHalfDiameter_;
     const real_t hybridRegionDiameter_;
     const idx_t exponent_;
@@ -109,7 +109,7 @@ public:
         gradLambdaZ = 0_r;
     }
 
-    Slab(const std::array<real_t, 3>& center,
+    Slab(const Point3D& center,
          const real_t atomisticRegionDiameter,
          const real_t hybridRegionDiameter,
          const idx_t nu)
