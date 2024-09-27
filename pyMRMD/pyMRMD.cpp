@@ -57,7 +57,7 @@ PYBIND11_MODULE(pyMRMD, m)
                 );
             })
         .def(py::init(
-            [](py::buffer b)
+            [](const py::buffer& b)
             {
                 /* Request a buffer descriptor from Python */
                 py::buffer_info info = b.request();
@@ -71,12 +71,12 @@ PYBIND11_MODULE(pyMRMD, m)
                 if (info.strides[0] != sizeof(real_t))
                     throw std::runtime_error("Incompatible buffer stride!");
 
-                auto data = static_cast<real_t *>(info.ptr);
+                auto* data = static_cast<real_t *>(info.ptr);
                 return Point3D{data[0], data[1], data[2]};
             }))
         .def(py::init([](real_t x, real_t y, real_t z) { return Point3D{x, y, z}; }))
         .def(py::init(
-            [](py::list my_list)
+            [](const py::list& my_list)
             {
                 return Point3D{my_list[0].cast<real_t>(),
                                my_list[1].cast<real_t>(),
