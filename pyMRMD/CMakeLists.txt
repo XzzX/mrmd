@@ -13,7 +13,7 @@
 # limitations under the License.
 
 include(CMakePrintHelpers)
-find_package(Python3 COMPONENTS Interpreter Development)
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 cmake_print_variables(Python3_SITEARCH)
 
 FetchContent_Declare(

@@ -31,6 +31,9 @@ jobs:
             -S mrmd \
             -B mrmd-build \
             -DCMAKE_BUILD_TYPE=Debug \
+            -DMRMD_ENABLE_HDF5=ON \
+            -DMRMD_ENABLE_MPI=ON \
+            -DMRMD_ENABLE_PYTHON=ON \
             -DMRMD_VERBOSE_ASSERTS=ON \
             -DMRMD_WERROR=ON \
             -DKokkos_ENABLE_DEBUG=ON \
@@ -58,6 +61,49 @@ jobs:
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
+    steps:
+      - name: versions
+        run: |
+          cat /etc/os-release
+          echo $PATH
+          git --version
+          cmake --version
+          $CC --version
+          $CXX --version
+
+      - uses: actions/checkout@v4
+        with:
+          path: 'mrmd'
+
+      - name: Configure
+        run: |
+          cmake \
+            -S mrmd \
+            -B mrmd-build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DMRMD_ENABLE_HDF5=ON \
+            -DMRMD_ENABLE_MPI=ON \
+            -DMRMD_ENABLE_PYTHON=ON \
+            -DMRMD_VERBOSE_ASSERTS=ON \
+            -DMRMD_WERROR=ON \
+            -DKokkos_ENABLE_HWLOC=ON \
+            -DKokkos_ENABLE_SERIAL=ON \
+            -DKokkos_ENABLE_OPENMP=ON \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+
+      - name: build dependencies
+        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
+
+      - name: build
+        run: cmake --build mrmd-build --target all --parallel 2
+
+      - name: Test
+        working-directory: mrmd-build
+        run: ctest --output-on-failure --parallel 2
+
+  minimal-build:
+    runs-on: ubuntu-latest
+    container: xzzx/devel:clang-18
     steps:
       - name: versions
         run: |
@@ -166,6 +212,9 @@ jobs:
             -B build \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -DCMAKE_BUILD_TYPE=Debug \
+            -DMRMD_ENABLE_HDF5=ON \
+            -DMRMD_ENABLE_MPI=ON \
+            -DMRMD_ENABLE_PYTHON=ON \
             -DMRMD_VERBOSE_ASSERTS=ON \
             -DMRMD_WERROR=ON \
             -DKokkos_ENABLE_DEBUG=ON \
@@ -221,6 +270,9 @@ jobs:
             -S mrmd \
             -B mrmd-build \
             -DCMAKE_BUILD_TYPE=Release \
+            -DMRMD_ENABLE_HDF5=ON \
+            -DMRMD_ENABLE_MPI=ON \
+            -DMRMD_ENABLE_PYTHON=ON \
             -DMRMD_VERBOSE_ASSERTS=ON \
             -DMRMD_WERROR=ON \
             -DKokkos_ENABLE_HWLOC=ON \
