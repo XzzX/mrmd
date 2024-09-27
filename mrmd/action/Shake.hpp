@@ -117,7 +117,7 @@ public:
 
         real_t determinant = b * b - 4_r * a * c;
         MRMD_DEVICE_ASSERT_GREATER(determinant, 1e-8);
-        determinant = std::max(0_r, determinant);  // ensure positive determinant
+        determinant = Kokkos::max(0_r, determinant);  // ensure positive determinant
 
         // solve for lambda
         auto lambda1 = (-b + std::sqrt(determinant)) / (2_r * a);

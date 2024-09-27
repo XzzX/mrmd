@@ -31,8 +31,10 @@ namespace py = pybind11;
 template <class SLICE_T>
 py::array_t<typename SLICE_T::value_type> getNPArray(const SLICE_T slice)
 {
+    static_assert(slice.viewRank() == 2 || slice.viewRank() == 3, "Invalid view rank dimension");
+
     py::str dummyDataOwner;  // https://github.com/pybind/pybind11/issues/323#issuecomment-575717041
-    if (slice.viewRank() == 2)
+    if constexpr(slice.viewRank() == 2)
     {
         return py::array_t<typename SLICE_T::value_type>(
             {slice.extent(1), slice.extent(0)},
@@ -42,14 +44,14 @@ py::array_t<typename SLICE_T::value_type> getNPArray(const SLICE_T slice)
             dummyDataOwner);
     }
 
-    MRMD_HOST_CHECK_EQUAL(slice.viewRank(), 3);
-    return py::array_t<typename SLICE_T::value_type>(
-        {slice.extent(2), slice.extent(1), slice.extent(0)},
-        {sizeof(typename SLICE_T::value_type) * slice.stride(2),
-         sizeof(typename SLICE_T::value_type) * slice.stride(1),
-         sizeof(typename SLICE_T::value_type) * slice.stride(0)},
-        slice.data(),
-        dummyDataOwner);
+    if constexpr(slice.viewRank() == 3)
+        return py::array_t<typename SLICE_T::value_type>(
+            {slice.extent(2), slice.extent(1), slice.extent(0)},
+            {sizeof(typename SLICE_T::value_type) * slice.stride(2),
+            sizeof(typename SLICE_T::value_type) * slice.stride(1),
+            sizeof(typename SLICE_T::value_type) * slice.stride(0)},
+            slice.data(),
+            dummyDataOwner);
 }
 
 template <class ATOMS_T>
@@ -133,7 +135,7 @@ void init_data(py::module_ &m)
 
     py::class_<data::Subdomain>(m, "Subdomain")
         .def(py::init<>())
-        .def(py::init<const std::array<real_t, 3> &, const std::array<real_t, 3> &, real_t>())
+        .def(py::init<const Point3D &, const Point3D &, real_t>())
         .def_readonly("min_corner", &data::Subdomain::minCorner)
         .def_readonly("max_corner", &data::Subdomain::maxCorner)
         .def_readonly("ghost_layer_thickness", &data::Subdomain::ghostLayerThickness)

@@ -31,14 +31,14 @@ void limitAccelerationPerComponent(data::Atoms& atoms, const real_t& maxAccelera
         auto m = mass(idx);
         auto invM = 1_r / m;
 
-        force(idx, 0) = std::min(force(idx, 0) * invM, +maxAccelerationPerComponent) * m;
-        force(idx, 0) = std::max(force(idx, 0) * invM, -maxAccelerationPerComponent) * m;
+        force(idx, 0) = Kokkos::min(force(idx, 0) * invM, +maxAccelerationPerComponent) * m;
+        force(idx, 0) = Kokkos::max(force(idx, 0) * invM, -maxAccelerationPerComponent) * m;
 
-        force(idx, 1) = std::min(force(idx, 1) * invM, +maxAccelerationPerComponent) * m;
-        force(idx, 1) = std::max(force(idx, 1) * invM, -maxAccelerationPerComponent) * m;
+        force(idx, 1) = Kokkos::min(force(idx, 1) * invM, +maxAccelerationPerComponent) * m;
+        force(idx, 1) = Kokkos::max(force(idx, 1) * invM, -maxAccelerationPerComponent) * m;
 
-        force(idx, 2) = std::min(force(idx, 2) * invM, +maxAccelerationPerComponent) * m;
-        force(idx, 2) = std::max(force(idx, 2) * invM, -maxAccelerationPerComponent) * m;
+        force(idx, 2) = Kokkos::min(force(idx, 2) * invM, +maxAccelerationPerComponent) * m;
+        force(idx, 2) = Kokkos::max(force(idx, 2) * invM, -maxAccelerationPerComponent) * m;
     };
     Kokkos::parallel_for("limitForcePerComponent", policy, kernel);
     Kokkos::fence();

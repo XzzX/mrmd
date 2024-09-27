@@ -16,6 +16,7 @@
 
 #include <Cabana_LinkedCellList.hpp>
 #include <Cabana_VerletList.hpp>
+#include <Kokkos_Array.hpp>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_ScatterView.hpp>
 #include <cstdint>
@@ -93,6 +94,8 @@ KOKKOS_INLINE_FUNCTION constexpr idx_t idx_c(const T &val)
 
 // convenience casting functions for floating point
 using real_t = double;
+using Point3D = Kokkos::Array<real_t, 3>;
+using Vector3D = Kokkos::Array<real_t, 3>;
 
 KOKKOS_INLINE_FUNCTION constexpr real_t operator"" _r(const long double val)
 {

@@ -194,8 +194,8 @@ data::MultiHistogram smoothen(data::MultiHistogram& input,
 
         if (!periodic)
         {
-            jdxMin = std::max(idx_t(0), jdxMin);
-            jdxMax = std::min(input.numBins - 1, jdxMax);
+            jdxMin = Kokkos::max(idx_t(0), jdxMin);
+            jdxMax = Kokkos::min(input.numBins - 1, jdxMax);
         }
         assert(jdxMin <= jdxMax);
 
@@ -208,7 +208,7 @@ data::MultiHistogram smoothen(data::MultiHistogram& input,
                 if (possiblyMappedIdx >= input.numBins) possiblyMappedIdx -= input.numBins;
             }
             const auto eFunc =
-                std::exp(-util::sqr(real_c(binIdx - jdx) * input.binSize * inverseSigma));
+                Kokkos::exp(-util::sqr(real_c(binIdx - jdx) * input.binSize * inverseSigma));
             normalization += eFunc;
             smoothenedDensityProfile.data(binIdx, histogramIdx) +=
                 input.data(possiblyMappedIdx, histogramIdx) * eFunc;

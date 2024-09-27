@@ -26,8 +26,8 @@ namespace impl
 {
 struct TestData
 {
-    std::array<real_t, 3> initialPos;
-    std::array<real_t, 3> mappedPos;
+    Point3D initialPos;
+    Point3D mappedPos;
 };
 
 std::ostream& operator<<(std::ostream& os, const TestData& data)

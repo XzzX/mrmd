@@ -39,7 +39,7 @@ constexpr real_t ESPP_INITIAL_ENERGY = -94795.927_r;
 
 idx_t countWithinCutoff(data::Atoms& atoms,
                         const real_t& cutoff,
-                        const std::array<real_t, 3>& box,
+                        const Vector3D& box,
                         const bool periodic)
 {
     auto rcSqr = cutoff * cutoff;

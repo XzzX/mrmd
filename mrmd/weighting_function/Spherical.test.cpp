@@ -22,13 +22,13 @@ namespace weighting_function
 {
 TEST(Spherical, monotonous)
 {
-    std::array<real_t, 3> center = {2_r, 3_r, 4_r};
+    Point3D center = {2_r, 3_r, 4_r};
     real_t atomisticRadius = 2_r;
     real_t hybridRegionDiameter = 2_r;
     auto weight = Spherical(center, atomisticRadius, hybridRegionDiameter, 2);
 
-    std::array<real_t, 3> pos = center;
-    std::array<real_t, 3> delta = {0.1_r, 0.1_r, 0.1_r};
+    Point3D pos = center;
+    Point3D delta = {0.1_r, 0.1_r, 0.1_r};
     auto w = weight(pos[0], pos[1], pos[2]);
     for (auto i = 0; i < 60; ++i)
     {
@@ -43,7 +43,7 @@ TEST(Spherical, monotonous)
 
 TEST(Spherical, boundaryValues)
 {
-    std::array<real_t, 3> center = {2_r, 3_r, 4_r};
+    Point3D center = {2_r, 3_r, 4_r};
     real_t atomisticRadius = 2_r;
     real_t hybridRegionDiameter = 2_r;
     auto weight = Spherical(center, atomisticRadius, hybridRegionDiameter, 2);
@@ -58,13 +58,13 @@ TEST(Spherical, boundaryValues)
 TEST(Spherical, derivative)
 {
     const auto eps = 1e-10_r;
-    std::array<real_t, 3> center = {2_r, 3_r, 4_r};
+    Point3D center = {2_r, 3_r, 4_r};
     real_t atomisticRadius = 2_r;
     real_t hybridRegionDiameter = 2_r;
     auto weight = Spherical(center, atomisticRadius, hybridRegionDiameter, 2);
 
-    std::array<real_t, 3> pos = center;
-    std::array<real_t, 3> delta = {0.1_r, 0.1_r, 0.1_r};
+    Point3D pos = center;
+    Vector3D delta = {0.1_r, 0.1_r, 0.1_r};
     for (auto i = 0; i < 60; ++i)
     {
         real_t lambda0;

@@ -26,8 +26,8 @@ namespace impl
 {
 struct UpdateGhostAtomsTestData
 {
-    std::array<real_t, 3> initialDelta;
-    std::array<real_t, 3> finalDelta;
+    Vector3D initialDelta;
+    Vector3D finalDelta;
 };
 
 std::ostream& operator<<(std::ostream& os, const UpdateGhostAtomsTestData& data)
