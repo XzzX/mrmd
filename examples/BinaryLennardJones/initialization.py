@@ -46,9 +46,9 @@ def fill_domain_with_atoms_sc(config, subdomain):
     relative_mass = atoms.get_relative_mass_np()
     relative_mass[:, :] = 1
 
-    type = atoms.get_type_np()
-    type[:, :] = 1
-    type[:, : int(num_atoms_a / type.shape[0])] = 0
+    atom_type = atoms.get_type_np()
+    atom_type[:, :] = 1
+    atom_type[:, : int(num_atoms_a / atom_type.shape[0])] = 0
 
     atoms.num_local_atoms = config["num_atoms"]
     atoms.num_ghost_atoms = 0
