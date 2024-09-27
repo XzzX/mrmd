@@ -33,24 +33,31 @@ def get_jinja_environment():
     return env
 
 
-def generate_file(path, template, context={}, filename=None):
+def generate_file(path, template, context=None, filename=None):
+    if context is None:
+        context = []
     path = Path(path)
     if filename is None:
         filename = Path(template.replace(".jinja2", ""))
     env = get_jinja_environment()
     print(f"generating: {(path / filename)}")
-    with open(path / filename, "wb") as fout:
+    with open(path / filename, "wb", encoding="utf-8") as fout:
         content = env.get_template(template).render(context)
         fout.write(content.encode("utf8"))
 
 
-with open("DumpH5MDParallel.json.jinja2") as f:
-    context = json.load(f)
+def main():
+    with open("DumpH5MDParallel.json.jinja2", encoding="utf-8") as f:
+        context = json.load(f)
 
-pprint(context)
+    pprint(context)
 
-generate_file(".", "DumpH5MDParallel.cpp.jinja2", context)
-generate_file(".", "DumpH5MDParallel.hpp.jinja2", context)
+    generate_file(".", "DumpH5MDParallel.cpp.jinja2", context)
+    generate_file(".", "DumpH5MDParallel.hpp.jinja2", context)
 
-generate_file(".", "RestoreH5MDParallel.cpp.jinja2", context)
-generate_file(".", "RestoreH5MDParallel.hpp.jinja2", context)
+    generate_file(".", "RestoreH5MDParallel.cpp.jinja2", context)
+    generate_file(".", "RestoreH5MDParallel.hpp.jinja2", context)
+
+
+if __name__ == "__main__":
+    main()

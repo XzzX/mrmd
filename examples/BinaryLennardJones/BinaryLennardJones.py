@@ -12,15 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 from pprint import pprint
 import pyMRMD
-from initialization import init_simulation, init_molecules
-from NPT import npt
-from SPARTIAN import spartian
+from .initialization import init_simulation
+from .NPT import npt
+from .SPARTIAN import spartian
 import yaml
 
-config = yaml.load(open("input.yaml", "r"), Loader=yaml.Loader)
+config = yaml.load(open("input.yaml", "r", encoding="utf-8"), Loader=yaml.Loader)
 pprint(config)
 
 pyMRMD.initialize()
