@@ -63,7 +63,7 @@ cmake -S mrmd \
 cmake --build mrmd-build --parallel 8
 export PYTHONPATH=$(pwd)/mrmd-build/pyMRMD/:$PYTHONPATH
 
-./mrmd/examples/Argon/Argon --nsteps 1000
+./mrmd-build/examples/Argon/Argon --nsteps 1000 --output 100
 # OR
-python ./mrmd/examples/Argon/argon.py --nsteps 1000
+python ./mrmd/examples/Argon/argon.py --nsteps 1000 --output 100
 ```
