@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import numpy as np
 import pyMRMD
 
@@ -75,8 +76,7 @@ def fill_domain_with_atoms_sc(config, subdomain, num_atoms, max_velocity):
     return pyMRMD.data.DeviceAtoms(atoms)
 
 
-def main():
-    config = Config()
+def main(config):
     pyMRMD.initialize()
     subdomain = pyMRMD.data.Subdomain(
         [0, 0, 0], [config.Lx, config.Lx, config.Lx], config.neighbor_cutoff
@@ -175,4 +175,28 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    config = Config()
+
+    parser = argparse.ArgumentParser(
+        prog="Argon", description="Simulating the cooling of argon."
+    )
+    parser.add_argument(
+        "-n",
+        "--nsteps",
+        type=int,
+        default=config.nsteps,
+        help="number of simulation steps",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=int,
+        default=config.outputInterval,
+        help="output interval",
+    )
+    args = parser.parse_args()
+
+    config.nsteps = args.nsteps
+    config.outputInterval = args.output
+
+    main(config)
