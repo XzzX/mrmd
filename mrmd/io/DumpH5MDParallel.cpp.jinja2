@@ -19,7 +19,7 @@
 #include <numeric>
 
 #include "assert/assert.hpp"
-#ifdef MRMD_HDF5_AVAILABLE
+#ifdef MRMD_ENABLE_HDF5
 #include "hdf5.hpp"
 #endif
 #include "version.hpp"
@@ -27,7 +27,7 @@
 namespace mrmd::io
 {
 
-#ifdef MRMD_HDF5_AVAILABLE
+#ifdef MRMD_ENABLE_HDF5
 namespace impl
 {
 class DumpH5MDParallelImpl

@@ -22,7 +22,7 @@
 namespace mrmd::io
 {
 
-#ifdef MRMD_HDF5_AVAILABLE
+#ifdef MRMD_ENABLE_HDF5
 template <typename T>
 void RestoreH5MDParallel::readParallel(hid_t fileId,
                                        const std::string& dataset,

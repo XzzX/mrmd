@@ -14,7 +14,7 @@
 
 #pragma once
 
-#ifdef MRMD_HDF5_AVAILABLE
+#ifdef MRMD_ENABLE_HDF5
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #endif
@@ -25,7 +25,7 @@ namespace mrmd
 {
 namespace io
 {
-#ifdef MRMD_HDF5_AVAILABLE
+#ifdef MRMD_ENABLE_HDF5
 template <typename T>
 hid_t typeToHDF5()
 {
@@ -67,23 +67,6 @@ auto CHECK_HDF5(const T& status)
         MRMD_HOST_CHECK_GREATEREQUAL(status, 0);
     }
     return status;
-}
-#else
-
-using hid_t = int;
-
-template <typename T>
-hid_t typeToHDF5()
-{
-    MRMD_HOST_CHECK(false, "HDF5 support not available!");
-    exit(EXIT_FAILURE);
-}
-
-template <typename T>
-auto CHECK_HDF5(const T& status)
-{
-    MRMD_HOST_CHECK(false, "HDF5 support not available!");
-    exit(EXIT_FAILURE);
 }
 #endif
 
