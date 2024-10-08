@@ -19,8 +19,8 @@
 #ifdef MRMD_ENABLE_MPI
 #include <mpi.h>
 #else
-#define MPI_SUCCESS                   0
+#define MPI_SUCCESS 0
 
-inline int MPI_Init(int* /*argc*/, char*** /*argv*/) {return MPI_SUCCESS;}
-inline int MPI_Finalize() {return MPI_SUCCESS;}
+inline int MPI_Init(int* /*argc*/, char*** /*argv*/) { return MPI_SUCCESS; }
+inline int MPI_Finalize() { return MPI_SUCCESS; }
 #endif
