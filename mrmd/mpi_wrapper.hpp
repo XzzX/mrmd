@@ -12,34 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "initialization.hpp"
+#pragma once
 
-#include <Kokkos_Core.hpp>
+#include "cmake.hpp"
 
-#include "mpi_wrapper.hpp"
+#ifdef MRMD_ENABLE_MPI
+#include <mpi.h>
+#else
+#define MPI_SUCCESS 0
 
-namespace mrmd
-{
-void initialize(int argc, char** argv)
-{
-    MPI_Init(&argc, &argv);
-    Kokkos::initialize(argc, argv);
-}
-
-void initialize()
-{
-    int argc = 0;
-    char const* argv = "";
-    // get around warning:
-    // ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-    char* argvv = const_cast<char*>(argv);
-
-    initialize(argc, &argvv);
-}
-
-void finalize()
-{
-    Kokkos::finalize();
-    MPI_Finalize();
-}
-}  // namespace mrmd
+inline int MPI_Init(int* /*argc*/, char*** /*argv*/) { return MPI_SUCCESS; }
+inline int MPI_Finalize() { return MPI_SUCCESS; }
+#endif

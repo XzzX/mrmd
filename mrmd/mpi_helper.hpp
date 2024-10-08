@@ -14,9 +14,8 @@
 
 #pragma once
 
-#include <mpi.h>
-
 #include "assert/assert.hpp"
+#include "mpi_wrapper.hpp"
 
 namespace mrmd
 {

@@ -68,6 +68,8 @@ auto CHECK_HDF5(const T& status)
     }
     return status;
 }
+#else
+using hid_t = int;
 #endif
 
 }  // namespace io

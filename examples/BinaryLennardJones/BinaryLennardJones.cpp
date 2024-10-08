@@ -30,6 +30,7 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "initialization.hpp"
+#include "mpi_wrapper.hpp"
 
 using namespace mrmd;
 

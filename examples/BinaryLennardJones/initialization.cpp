@@ -76,7 +76,7 @@ void init(const YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdoma
                                      config["box"][2].as<real_t>()},
                                     config["ghost_layer_thickness"].as<real_t>());
 
-        auto mpiInfo = std::make_shared<data::MPIInfo>(MPI_COMM_WORLD);
+        auto mpiInfo = std::make_shared<data::MPIInfo>();
         auto io = io::RestoreH5MDParallel(mpiInfo);
         io.restore(config["restore_file"].as<std::string>(), subdomain, atoms);
         return;
