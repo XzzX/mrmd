@@ -103,7 +103,7 @@ jobs:
 
   minimal-build:
     runs-on: ubuntu-latest
-    container: xzzx/devel:clang-18
+    container: xzzx/devel:ubuntu-minimal
     steps:
       - name: versions
         run: |
