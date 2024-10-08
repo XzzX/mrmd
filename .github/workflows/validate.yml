@@ -111,8 +111,6 @@ jobs:
           echo $PATH
           git --version
           cmake --version
-          $CC --version
-          $CXX --version
 
       - uses: actions/checkout@v4
         with:
