@@ -18,6 +18,7 @@
 
 namespace mrmd::data
 {
+#ifdef MRMD_ENABLE_MPI
 struct MPIInfo
 {
     MPI_Comm comm = MPI_COMM_NULL;
@@ -31,4 +32,12 @@ struct MPIInfo
         CHECK_MPI(MPI_Comm_size(communicator, &size));
     }
 };
+#else
+struct MPIInfo
+{
+    int comm = -1;
+    int rank = 1;
+    int size = 1;
+};
+#endif
 }  // namespace mrmd::data

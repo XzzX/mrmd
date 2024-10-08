@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #include <gtest/gtest.h>
-#include <mpi.h>
+#include "mpi_wrapper.hpp"
 
 #include <Kokkos_Core.hpp>
 

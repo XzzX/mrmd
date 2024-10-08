@@ -16,7 +16,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#include "mpi_helper.hpp"
+#include "mpi_wrapper.hpp"
 
 namespace mrmd
 {

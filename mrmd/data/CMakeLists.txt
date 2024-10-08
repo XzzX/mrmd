@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-mrmd_add_test(NAME test.data.MPIInfo
-        FILES MPIInfo.test.cpp
-        PROCESSES 2)
+if (MRMD_ENABLE_MPI)
+    mrmd_add_test(NAME test.data.MPIInfo
+            FILES MPIInfo.test.cpp
+            PROCESSES 2)
+endif()
 
 mrmd_add_test(NAME test.data.MultiHistogram
         FILES MultiHistogram.test.cpp)

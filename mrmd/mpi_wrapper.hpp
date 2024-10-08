@@ -14,11 +14,13 @@
 
 #pragma once
 
-#include "mpi_wrapper.hpp"
+#include "cmake.hpp"
 
-#include "assert/assert.hpp"
+#ifdef MRMD_ENABLE_MPI
+#include <mpi.h>
+#else
+#define MPI_SUCCESS                   0
 
-namespace mrmd
-{
-inline void CHECK_MPI(const int& status) { MRMD_HOST_CHECK_EQUAL(status, MPI_SUCCESS); }
-}  // namespace mrmd
+inline int MPI_Init(int* /*argc*/, char*** /*argv*/) {return MPI_SUCCESS;}
+inline int MPI_Finalize() {return MPI_SUCCESS;}
+#endif
