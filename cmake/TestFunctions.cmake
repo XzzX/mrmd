@@ -41,7 +41,7 @@ function(mrmd_add_test)
                 )
         if (MRMD_ENABLE_MPI)
             add_test(NAME ${ARG_NAME} COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${num_processes} --oversubscribe --allow-run-as-root ${MPIEXEC_PREFLAGS} ./${ARG_NAME})
-        else
+        else ()
             add_test(NAME ${ARG_NAME} COMMAND ./${ARG_NAME})
         endif()
 
