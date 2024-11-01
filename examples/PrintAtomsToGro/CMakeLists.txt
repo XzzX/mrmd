@@ -12,13 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(Argon)
-add_subdirectory(BinaryLennardJones)
-add_subdirectory(ComplexAtomics)
-add_subdirectory(DensityFluctuations)
-add_subdirectory(IdealGas)
-add_subdirectory(LennardJones)
-add_subdirectory(SPC)
-add_subdirectory(SpartianLJ)
-add_subdirectory(Vectorization)
-add_subdirectory(PrintAtomsToGro)
+add_executable(PrintAtomsToGro
+        PrintAtomsToGro.cpp
+        )
+target_link_libraries(PrintAtomsToGro
+        PRIVATE mrmd
+        )
+add_test(NAME Example.PrintAtomsToGro COMMAND ./PrintAtomsToGro)
