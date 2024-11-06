@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "DumpGRO.hpp"
+
+#include <gtest/gtest.h>
 
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
@@ -21,15 +23,13 @@ namespace mrmd
 {
 namespace io
 {
-void dumpGRO(const std::string& filename,
-             data::Atoms& atoms,
-             const data::Subdomain& subdomain,
-             const real_t& timestamp,
-             const std::string& title,
-             bool dumpGhosts = true,
-             bool dumpVelocities = false,
-             const std::string& resName = "Water",
-             std::vector<std::string> typeNames = {"OW1", "HW2", "HW3"}
-);
+TEST(DumpGRO, atoms)
+{
+    auto atoms = data::Atoms(100 * 2);
+    auto subdomain = data::Subdomain();
+    atoms.numLocalAtoms = 10;
+    atoms.numGhostAtoms = 10;
+    dumpGRO("test.gro", atoms, subdomain, 0, "Test", true, true, "TestRes", {"TestAtom"});
+}
 }  // namespace io
 }  // namespace mrmd

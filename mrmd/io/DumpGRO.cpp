@@ -28,13 +28,16 @@ void dumpGRO(const std::string& filename,
              const real_t& timestamp,
              const std::string& title,
              bool dumpGhosts,
-             bool dumpVelocities)
+             bool dumpVelocities,
+             const std::string& resName,
+             std::vector<std::string> typeNames)
 {
     // very ugly, will also copy the whole atom data which is unnecessary, custom slicing
     // required
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
     auto pos = Cabana::slice<data::Atoms::POS>(hAoSoA);
     auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
+    auto typ = Cabana::slice<data::Atoms::TYPE>(hAoSoA);
 
     std::ofstream fout(filename);
     if (!fout.is_open())
@@ -46,30 +49,19 @@ void dumpGRO(const std::string& filename,
     auto lastAtomIdx = atoms.numLocalAtoms + (dumpGhosts ? atoms.numGhostAtoms : 0);
     fout << title << ", t=" << timestamp << std::endl;
     fout << lastAtomIdx << std::endl;
-    auto idxToString = [](idx_t idx)
-    {
-        switch (idx % 3)
-        {
-            case 0:
-                return "OW1";
-            case 1:
-                return "HW2";
-            case 2:
-                return "HW3";
-            default:
-                return "ERROR";
-        }
-    };
+
     for (idx_t idx = 0; idx < lastAtomIdx; ++idx)
     {
+        std::string typeName = typeNames[typ(idx)];
+
         char buf[1024];
         if (!dumpVelocities)
         {
             sprintf(buf,
                     "%5d%-5s%5s%5d%8.3f%8.3f%8.3f",
-                    int_c(idx / 3 + 1),
-                    "WATER",
-                    idxToString(idx),
+                    int_c(idx + 1),
+                    resName.c_str(),
+                    typeName.c_str(),
                     int_c(idx + 1),
                     pos(idx, 0),
                     pos(idx, 1),
@@ -79,9 +71,9 @@ void dumpGRO(const std::string& filename,
         {
             sprintf(buf,
                     "%5d%-5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f",
-                    int_c(idx / 3 + 1),
-                    "WATER",
-                    idxToString(idx),
+                    int_c(idx + 1),
+                    resName.c_str(),
+                    typeName.c_str(),
                     int_c(idx + 1),
                     pos(idx, 0),
                     pos(idx, 1),

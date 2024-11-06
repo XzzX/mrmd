@@ -40,6 +40,8 @@ struct Config
     real_t cell_ratio = 1.0_r;
 
     idx_t estimatedMaxNeighbors = 60;
+
+    std::vector<std::string> typeNames = {"Ar"};
 };
 
 data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
@@ -91,7 +93,7 @@ int main(int argc, char* argv[])  // NOLINT
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
     auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, 1_r);
 
-    io::dumpGRO("atoms_initial.gro", atoms, subdomain, 0_r, "Argon", false);
+    io::dumpGRO("atoms_initial.gro", atoms, subdomain, 0_r, "Argon System", false, true, "Argon", config.typeNames);
 
     return EXIT_SUCCESS;
 }
