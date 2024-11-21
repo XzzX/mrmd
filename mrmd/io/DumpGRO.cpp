@@ -30,7 +30,7 @@ void dumpGRO(const std::string& filename,
              bool dumpGhosts,
              bool dumpVelocities,
              const std::string& resName,
-             std::vector<std::string> typeNames)
+             const std::vector<const std::string>& typeNames)
 {
     // very ugly, will also copy the whole atom data which is unnecessary, custom slicing
     // required
