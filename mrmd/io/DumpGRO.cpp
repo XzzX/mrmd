@@ -52,7 +52,7 @@ void dumpGRO(const std::string& filename,
 
     for (idx_t idx = 0; idx < lastAtomIdx; ++idx)
     {
-        std::string typeName = typeNames[typ(idx)];
+        const std::string& typeName = typeNames[typ(idx)];
 
         char buf[1024];
         if (!dumpVelocities)
