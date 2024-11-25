@@ -27,10 +27,10 @@ void dumpGRO(const std::string& filename,
              const data::Subdomain& subdomain,
              const real_t& timestamp,
              const std::string& title,
-             bool dumpGhosts,
-             bool dumpVelocities,
              const std::string& resName,
-             const std::vector<const std::string>& typeNames)
+             const std::vector<std::string>& typeNames,
+             bool dumpGhosts,
+             bool dumpVelocities)
 {
     // very ugly, will also copy the whole atom data which is unnecessary, custom slicing
     // required
@@ -52,7 +52,7 @@ void dumpGRO(const std::string& filename,
 
     for (idx_t idx = 0; idx < lastAtomIdx; ++idx)
     {
-        const std::string& typeName = typeNames[typ(idx)];
+        auto typeName = typeNames[typ(idx)];
 
         char buf[1024];
         if (!dumpVelocities)

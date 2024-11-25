@@ -26,10 +26,10 @@ void dumpGRO(const std::string& filename,
              const data::Subdomain& subdomain,
              const real_t& timestamp,
              const std::string& title,
+             const std::string& resName,
+             const std::vector<std::string>& typeNames,
              bool dumpGhosts = true,
-             bool dumpVelocities = false,
-             const std::string& resName = "Water",
-             std::vector<std::string> typeNames = {"OW1", "HW2", "HW3"}
+             bool dumpVelocities = false
 );
 }  // namespace io
 }  // namespace mrmd
