@@ -74,6 +74,10 @@ struct Config
     real_t cell_ratio = 1.0_r;
 
     idx_t estimatedMaxNeighbors = 60;
+
+    const std::string resName = "Argon"; 
+    const std::vector<std::string> typeNames = {"Ar"};
+
 };
 
 data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
@@ -126,7 +130,7 @@ void LJ(Config& config)
     auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
-    io::dumpGRO("atoms_initial.gro", atoms, subdomain, 0_r, "Argon", false);
+    io::dumpGRO("atoms_initial.gro", atoms, subdomain, 0_r, "Argon", config.resName, config.typeNames, false);
 
     communication::MultiResGhostLayer ghostLayer;
     weighting_function::Slab weightingFunction({-100_r, -100_r, -100_r}, 1_r, 1_r, 1);
@@ -220,12 +224,12 @@ void LJ(Config& config)
                   << E0 + Ek << " " << p << " " << msd << " " << atoms.numLocalAtoms << " "
                   << atoms.numGhostAtoms << " " << std::endl;
 
-            io::dumpGRO(fmt::format("argon_{:0>6}.gro", step),
-                        atoms,
-                        subdomain,
-                        step * config.dt,
-                        "Argon",
-                        false);
+            //io::dumpGRO(fmt::format("argon_{:0>6}.gro", step),
+            //            atoms,
+            //            subdomain,
+            //            step * config.dt,
+            //            "Argon",
+            //            false);
 
             //            io::dumpCSV("atoms_" + std::to_string(step) + ".csv", atoms,
             //            false);
