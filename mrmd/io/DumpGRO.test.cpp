@@ -23,13 +23,39 @@ namespace mrmd
 {
 namespace io
 {
+
+bool compareFiles(FILE* f1, FILE* f2) {
+  int N = 10000;
+  char buf1[N];
+  char buf2[N];
+
+  do {
+    size_t r1 = fread(buf1, 1, N, f1);
+    size_t r2 = fread(buf2, 1, N, f2);
+
+    if (r1 != r2 ||
+        memcmp(buf1, buf2, r1)) {
+      return 0;
+    }
+  } while (!feof(f1) || !feof(f2));
+
+  return true;
+}
+
 TEST(DumpGRO, atoms)
 {
     auto atoms = data::Atoms(100 * 2);
     auto subdomain = data::Subdomain();
     atoms.numLocalAtoms = 10;
     atoms.numGhostAtoms = 10;
-    dumpGRO("test.gro", atoms, subdomain, 0, "Test", true, true, "TestRes", {"TestAtom"});
+    FILE* testFile = std::fopen("test.gro", "r");
+    FILE* refFile = std::fopen("../../../tests/testData/ref.gro", "r");
+
+    const std::vector<std::string> typeNames = {"Atom"};
+    dumpGRO("test.gro", atoms, subdomain, 0, "Test", "Res", typeNames, true, true);
+
+    auto equalFiles = compareFiles(testFile, refFile);
+    ASSERT_TRUE(equalFiles);
 }
 }  // namespace io
 }  // namespace mrmd
