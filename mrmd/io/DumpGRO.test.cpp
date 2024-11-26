@@ -24,23 +24,24 @@ namespace mrmd
 namespace io
 {
 
-bool compareFiles(FILE* f1, FILE* f2) {
-  int N = 10000;
-  char buf1[N];
-  char buf2[N];
+void compareFiles(const std::string& filename1, const std::string& filename2)
+{
+    std::ifstream file1(filename1);
+    std::ifstream file2(filename2);
 
-  do {
-    size_t r1 = fread(buf1, 1, N, f1);
-    size_t r2 = fread(buf2, 1, N, f2);
+    ASSERT_TRUE(file1.is_open());
+    ASSERT_TRUE(file2.is_open());
 
-    if (r1 != r2 ||
-        memcmp(buf1, buf2, r1)) {
-      return 0;
+    std::string line1, line2;
+    while (std::getline(file1, line1) && std::getline(file2, line2))
+    {
+        ASSERT_EQ(line1, line2);
     }
-  } while (!feof(f1) || !feof(f2));
 
-  return true;
+    file1.close();
+    file2.close();
 }
+
 
 TEST(DumpGRO, atoms)
 {
@@ -52,11 +53,7 @@ TEST(DumpGRO, atoms)
     const std::vector<std::string> typeNames = {"At"};
     dumpGRO("testAtom.gro", atoms, subdomain, 0, "Test", "Atom", typeNames, true, true);
 
-    FILE* testFile = std::fopen("testAtom.gro", "r");
-    FILE* refFile = std::fopen("../../../tests/testData/refAtom.gro", "r");
-
-    auto equalFiles = compareFiles(testFile, refFile);
-    ASSERT_TRUE(equalFiles);
+    compareFiles("testAtom.gro", "DumpGRO.test.gro");
 }
 }  // namespace io
 }  // namespace mrmd
