@@ -50,7 +50,7 @@ TEST(DumpGRO, atoms)
     atoms.numGhostAtoms = 10;
 
     const std::vector<std::string> typeNames = {"At"};
-    dumpGRO("test.gro", atoms, subdomain, 0, "Test", "Atom", typeNames, true, true);
+    dumpGRO("testAtom.gro", atoms, subdomain, 0, "Test", "Atom", typeNames, true, true);
 
     FILE* testFile = std::fopen("testAtom.gro", "r");
     FILE* refFile = std::fopen("../../../tests/testData/refAtom.gro", "r");
