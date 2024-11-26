@@ -48,11 +48,12 @@ TEST(DumpGRO, atoms)
     auto subdomain = data::Subdomain();
     atoms.numLocalAtoms = 10;
     atoms.numGhostAtoms = 10;
-    FILE* testFile = std::fopen("test.gro", "r");
-    FILE* refFile = std::fopen("../../../tests/testData/ref.gro", "r");
 
-    const std::vector<std::string> typeNames = {"Atom"};
-    dumpGRO("test.gro", atoms, subdomain, 0, "Test", "Res", typeNames, true, true);
+    const std::vector<std::string> typeNames = {"At"};
+    dumpGRO("test.gro", atoms, subdomain, 0, "Test", "Atom", typeNames, true, true);
+
+    FILE* testFile = std::fopen("testAtom.gro", "r");
+    FILE* refFile = std::fopen("../../../tests/testData/refAtom.gro", "r");
 
     auto equalFiles = compareFiles(testFile, refFile);
     ASSERT_TRUE(equalFiles);

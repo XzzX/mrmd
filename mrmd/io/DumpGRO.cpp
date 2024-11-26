@@ -37,7 +37,7 @@ void dumpGRO(const std::string& filename,
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
     auto pos = Cabana::slice<data::Atoms::POS>(hAoSoA);
     auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
-    auto typ = Cabana::slice<data::Atoms::TYPE>(hAoSoA);
+    auto type = Cabana::slice<data::Atoms::TYPE>(hAoSoA);
 
     std::ofstream fout(filename);
     if (!fout.is_open())
@@ -52,7 +52,7 @@ void dumpGRO(const std::string& filename,
 
     for (idx_t idx = 0; idx < lastAtomIdx; ++idx)
     {
-        auto typeName = typeNames[typ(idx)];
+        auto typeName = typeNames[type(idx)];
 
         char buf[1024];
         if (!dumpVelocities)
