@@ -44,7 +44,7 @@ bool compareFiles(FILE* f1, FILE* f2) {
 
 TEST(DumpGRO, atoms)
 {
-    auto atoms = data::Atoms(100 * 2);
+    auto atoms = data::Atoms(10 * 2);
     auto subdomain = data::Subdomain();
     atoms.numLocalAtoms = 10;
     atoms.numGhostAtoms = 10;
