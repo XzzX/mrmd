@@ -42,7 +42,6 @@ void compareFiles(const std::string& filename1, const std::string& filename2)
     file2.close();
 }
 
-
 TEST(DumpGRO, atoms)
 {
     auto atoms = data::Atoms(10 * 2);

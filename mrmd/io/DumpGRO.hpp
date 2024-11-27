@@ -29,7 +29,6 @@ void dumpGRO(const std::string& filename,
              const std::string& resName,
              const std::vector<std::string>& typeNames,
              bool dumpGhosts = true,
-             bool dumpVelocities = false
-);
+             bool dumpVelocities = false);
 }  // namespace io
 }  // namespace mrmd
