@@ -224,12 +224,14 @@ void LJ(Config& config)
                   << E0 + Ek << " " << p << " " << msd << " " << atoms.numLocalAtoms << " "
                   << atoms.numGhostAtoms << " " << std::endl;
 
-            //io::dumpGRO(fmt::format("argon_{:0>6}.gro", step),
-            //            atoms,
-            //            subdomain,
-            //            step * config.dt,
-            //            "Argon",
-            //            false);
+            io::dumpGRO(fmt::format("argon_{:0>6}.gro", step),
+                        atoms,
+                        subdomain,
+                        step * config.dt,
+                        "Argon",
+                        config.resName, 
+                        config.typeNames,
+                        false);
 
             //            io::dumpCSV("atoms_" + std::to_string(step) + ".csv", atoms,
             //            false);
