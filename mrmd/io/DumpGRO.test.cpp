@@ -15,6 +15,7 @@
 #include "DumpGRO.hpp"
 
 #include <gtest/gtest.h>
+
 #include <fstream>
 #include <string>
 
@@ -34,7 +35,8 @@ void compareFiles(const std::string& filename1, const std::string& filename2)
     ASSERT_TRUE(file1.is_open());
     ASSERT_TRUE(file2.is_open());
 
-    std::string line1, line2;
+    std::string line1 = "";
+    std::string line2 = "";
     while (std::getline(file1, line1) && std::getline(file2, line2))
     {
         ASSERT_EQ(line1, line2);
