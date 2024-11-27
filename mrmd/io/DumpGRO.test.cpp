@@ -15,6 +15,8 @@
 #include "DumpGRO.hpp"
 
 #include <gtest/gtest.h>
+#include <fstream>
+#include <string>
 
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
