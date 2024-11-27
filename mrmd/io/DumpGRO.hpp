@@ -26,6 +26,8 @@ void dumpGRO(const std::string& filename,
              const data::Subdomain& subdomain,
              const real_t& timestamp,
              const std::string& title,
+             const std::string& resName,
+             const std::vector<std::string>& typeNames,
              bool dumpGhosts = true,
              bool dumpVelocities = false);
 }  // namespace io

@@ -85,6 +85,9 @@ struct Config
     real_t smoothingIntensity = 2_r;
     // thermodynamic force parameters
     real_t thermodynamicForceModulation = 2.0_r;
+
+    const std::string resName = "Argon"; 
+    const std::vector<std::string> typeNames = {"Ar"};
 };
 
 data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
@@ -135,7 +138,7 @@ void LJ(Config& config)
     auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
-    io::dumpGRO("atoms_initial.gro", atoms, subdomain, 0_r, "Argon", false);
+    io::dumpGRO("atoms_initial.gro", atoms, subdomain, 0_r, "Argon", config.resName, config.typeNames, false);
 
     communication::GhostLayer ghostLayer;
     action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);

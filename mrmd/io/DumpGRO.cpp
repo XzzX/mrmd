@@ -27,6 +27,8 @@ void dumpGRO(const std::string& filename,
              const data::Subdomain& subdomain,
              const real_t& timestamp,
              const std::string& title,
+             const std::string& resName,
+             const std::vector<std::string>& typeNames,
              bool dumpGhosts,
              bool dumpVelocities)
 {
@@ -35,6 +37,7 @@ void dumpGRO(const std::string& filename,
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
     auto pos = Cabana::slice<data::Atoms::POS>(hAoSoA);
     auto vel = Cabana::slice<data::Atoms::VEL>(hAoSoA);
+    auto type = Cabana::slice<data::Atoms::TYPE>(hAoSoA);
 
     std::ofstream fout(filename);
     if (!fout.is_open())
@@ -46,30 +49,19 @@ void dumpGRO(const std::string& filename,
     auto lastAtomIdx = atoms.numLocalAtoms + (dumpGhosts ? atoms.numGhostAtoms : 0);
     fout << title << ", t=" << timestamp << std::endl;
     fout << lastAtomIdx << std::endl;
-    auto idxToString = [](idx_t idx)
-    {
-        switch (idx % 3)
-        {
-            case 0:
-                return "OW1";
-            case 1:
-                return "HW2";
-            case 2:
-                return "HW3";
-            default:
-                return "ERROR";
-        }
-    };
+
     for (idx_t idx = 0; idx < lastAtomIdx; ++idx)
     {
+        const auto& typeName = typeNames[type(idx)];
+
         char buf[1024];
         if (!dumpVelocities)
         {
             sprintf(buf,
                     "%5d%-5s%5s%5d%8.3f%8.3f%8.3f",
-                    int_c(idx / 3 + 1),
-                    "WATER",
-                    idxToString(idx),
+                    int_c(idx + 1),
+                    resName.c_str(),
+                    typeName.c_str(),
                     int_c(idx + 1),
                     pos(idx, 0),
                     pos(idx, 1),
@@ -79,9 +71,9 @@ void dumpGRO(const std::string& filename,
         {
             sprintf(buf,
                     "%5d%-5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f",
-                    int_c(idx / 3 + 1),
-                    "WATER",
-                    idxToString(idx),
+                    int_c(idx + 1),
+                    resName.c_str(),
+                    typeName.c_str(),
                     int_c(idx + 1),
                     pos(idx, 0),
                     pos(idx, 1),

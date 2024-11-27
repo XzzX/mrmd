@@ -14,6 +14,9 @@
 
 mrmd_add_test(NAME test.io.DumpCSV
               FILES DumpCSV.test.cpp)
+configure_file(DumpGRO.test.gro ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+mrmd_add_test(NAME test.io.DumpGRO
+              FILES DumpGRO.test.cpp)
 
 if (MRMD_ENABLE_HDF5)
     mrmd_add_test(NAME test.io.H5MD
