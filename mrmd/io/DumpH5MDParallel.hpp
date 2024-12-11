@@ -45,8 +45,8 @@ public:
     bool dumpCharge = true;
     bool dumpRelativeMass = true;
 
-    std::string posDataset = "pos";
-    std::string velDataset = "vel";
+    std::string posDataset = "position";
+    std::string velDataset = "velocity";
     std::string forceDataset = "force";
     std::string typeDataset = "type";
     std::string massDataset = "mass";
