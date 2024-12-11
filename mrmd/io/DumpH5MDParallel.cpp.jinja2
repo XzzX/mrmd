@@ -165,8 +165,8 @@ void DumpH5MDParallelImpl::writeBox(hid_t fileId, const data::Subdomain& subdoma
     CHECK_HDF5(H5Sclose(space));
     CHECK_HDF5(H5Tclose(boundaryType));
 
-    CHECK_HDF5(H5LTset_attribute_double(
-        fileId, groupName.c_str(), "edges", subdomain.diameter.data(), subdomain.diameter.size()));
+    hsize_t edges_size = subdomain.diameter.size();
+    CHECK_HDF5(H5LTmake_dataset_double(group, "edges", 1, &edges_size, subdomain.diameter.data()));
     CHECK_HDF5(H5LTset_attribute_double(fileId,
                                         groupName.c_str(),
                                         "minCorner",
