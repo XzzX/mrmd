@@ -30,6 +30,10 @@ namespace mrmd::io
 #ifdef MRMD_ENABLE_HDF5
 namespace impl
 {
+/**
+ * This class collects everything needed for the HDF5 dump. If HDF5 is disabled,
+ * this class can be skipped and all HDF5 dependencies are gone.
+ */
 class DumpH5MDParallelImpl
 {
 public:
