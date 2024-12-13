@@ -42,14 +42,6 @@ public:
               const data::Subdomain& subdomain,
               const data::Atoms& atoms);
 
-    {% for prop in particle %}
-    bool dump{{prop.name | cap_first}} = {{prop.default}};
-    {%- endfor %}
-
-    {% for prop in particle %}
-    std::string {{prop.name}}Dataset = "{{prop.dataset}}";
-    {%- endfor %}
-
 private:
     void updateCache(const data::HostAtoms& atoms);
 

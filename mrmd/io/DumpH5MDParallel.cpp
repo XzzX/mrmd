@@ -39,22 +39,6 @@ public:
               const data::Subdomain& subdomain,
               const data::Atoms& atoms);
 
-    bool dumpPos = true;
-    bool dumpVel = true;
-    bool dumpForce = true;
-    bool dumpType = true;
-    bool dumpMass = true;
-    bool dumpCharge = true;
-    bool dumpRelativeMass = true;
-
-    std::string posDataset = "position";
-    std::string velDataset = "velocity";
-    std::string forceDataset = "force";
-    std::string typeDataset = "type";
-    std::string massDataset = "mass";
-    std::string chargeDataset = "charge";
-    std::string relativeMassDataset = "relativeMass";
-
 private:
     void updateCache(const data::HostAtoms& atoms);
 
