@@ -162,8 +162,19 @@ void DumpH5MDParallelImpl::writeBox(hid_t fileId, const data::Subdomain& subdoma
     CHECK_HDF5(H5Sclose(space));
     CHECK_HDF5(H5Tclose(boundaryType));
 
-    hsize_t edges_size = subdomain.diameter.size();
-    CHECK_HDF5(H5LTmake_dataset_double(group, "edges", 1, &edges_size, subdomain.diameter.data()));
+    std::string edgesGroupName = groupName + "/edges";
+    auto edgesGroup = H5Gcreate(fileId, edgesGroupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    std::vector<hsize_t> edgesStepDims = {1};
+    std::vector<int64_t> step = {0};
+    std::string edgesStepDataset = edgesGroupName + "/step";
+    CHECK_HDF5(H5LTmake_dataset(
+        fileId, edgesStepDataset.c_str(), 1, edgesStepDims.data(), typeToHDF5<int64_t>(), step.data()));
+    std::vector<hsize_t> edgesValueDims = {1, 3};
+    std::string edgesValueDataset = edgesGroupName + "/value";
+    CHECK_HDF5(H5LTmake_dataset(
+        fileId, edgesValueDataset.c_str(), 2, edgesValueDims.data(), typeToHDF5<double>(), subdomain.diameter.data()));
+    CHECK_HDF5(H5Gclose(edgesGroup));
+
     CHECK_HDF5(H5LTset_attribute_double(fileId,
                                         groupName.c_str(),
                                         "minCorner",
@@ -178,6 +189,7 @@ void DumpH5MDParallelImpl::writeBox(hid_t fileId, const data::Subdomain& subdoma
         fileId, groupName.c_str(), "ghostLayerThickness", &subdomain.ghostLayerThickness, 1));
 
     CHECK_HDF5(H5Gclose(group));
+
 }
 
 void DumpH5MDParallelImpl::writePos(hid_t fileId, const data::HostAtoms& atoms)
