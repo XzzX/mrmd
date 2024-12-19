@@ -30,6 +30,10 @@ namespace mrmd::io
 #ifdef MRMD_ENABLE_HDF5
 namespace impl
 {
+/**
+ * This class collects everything needed for the HDF5 dump. If HDF5 is disabled,
+ * this class can be skipped and all HDF5 dependencies are gone.
+ */
 class DumpH5MDParallelImpl
 {
 public:
@@ -38,22 +42,6 @@ public:
     void dump(const std::string& filename,
               const data::Subdomain& subdomain,
               const data::Atoms& atoms);
-
-    bool dumpPos = true;
-    bool dumpVel = true;
-    bool dumpForce = true;
-    bool dumpType = true;
-    bool dumpMass = true;
-    bool dumpCharge = true;
-    bool dumpRelativeMass = true;
-
-    std::string posDataset = "pos";
-    std::string velDataset = "vel";
-    std::string forceDataset = "force";
-    std::string typeDataset = "type";
-    std::string massDataset = "mass";
-    std::string chargeDataset = "charge";
-    std::string relativeMassDataset = "relativeMass";
 
 private:
     void updateCache(const data::HostAtoms& atoms);
@@ -174,8 +162,28 @@ void DumpH5MDParallelImpl::writeBox(hid_t fileId, const data::Subdomain& subdoma
     CHECK_HDF5(H5Sclose(space));
     CHECK_HDF5(H5Tclose(boundaryType));
 
-    CHECK_HDF5(H5LTset_attribute_double(
-        fileId, groupName.c_str(), "edges", subdomain.diameter.data(), subdomain.diameter.size()));
+    std::string edgesGroupName = groupName + "/edges";
+    auto edgesGroup =
+        H5Gcreate(fileId, edgesGroupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    std::vector<hsize_t> edgesStepDims = {1};
+    std::vector<int64_t> step = {0};
+    std::string edgesStepDataset = edgesGroupName + "/step";
+    CHECK_HDF5(H5LTmake_dataset(fileId,
+                                edgesStepDataset.c_str(),
+                                1,
+                                edgesStepDims.data(),
+                                typeToHDF5<int64_t>(),
+                                step.data()));
+    std::vector<hsize_t> edgesValueDims = {1, 3};
+    std::string edgesValueDataset = edgesGroupName + "/value";
+    CHECK_HDF5(H5LTmake_dataset(fileId,
+                                edgesValueDataset.c_str(),
+                                2,
+                                edgesValueDims.data(),
+                                typeToHDF5<double>(),
+                                subdomain.diameter.data()));
+    CHECK_HDF5(H5Gclose(edgesGroup));
+
     CHECK_HDF5(H5LTset_attribute_double(fileId,
                                         groupName.c_str(),
                                         "minCorner",

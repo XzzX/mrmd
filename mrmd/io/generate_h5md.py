@@ -41,7 +41,7 @@ def generate_file(path, template, context=None, filename=None):
         filename = Path(template.replace(".jinja2", ""))
     env = get_jinja_environment()
     print(f"generating: {(path / filename)}")
-    with open(path / filename, "wb", encoding="utf-8") as fout:
+    with open(path / filename, "wb") as fout:
         content = env.get_template(template).render(context)
         fout.write(content.encode("utf8"))
 
