@@ -48,6 +48,7 @@ public:
         assert(typeId >= 0);
         return Kokkos::subview(force_.data, Kokkos::ALL(), typeId);
     }
+    inline auto getForceGrid() const { return force_.getGrid(); };
 
     inline auto getDensityProfile() const { return densityProfile_; }
     inline auto getDensityProfile(const idx_t& typeId) const
@@ -56,6 +57,7 @@ public:
         assert(typeId >= 0);
         return Kokkos::subview(densityProfile_.data, Kokkos::ALL(), typeId);
     }
+    inline auto getDensityGrid() const { return densityProfile_.getGrid(); };
     inline const auto& getNumberOfDensityProfileSamples() const { return densityProfileSamples_; }
 
     void sample(data::Atoms& atoms);

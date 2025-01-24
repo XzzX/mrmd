@@ -62,6 +62,16 @@ struct MultiHistogram
         return bin;
     }
 
+    KOKKOS_INLINE_FUNCTION ScalarView getGrid() const
+    {
+        ScalarView grid ("grid", numBins);
+        for (auto i = 0; i < numBins; ++i)
+        {
+            grid[i] = min + (i + 0.5_r) * (max - min) / numBins;
+        }  
+        return grid;
+    }
+
     const real_t min;
     const real_t max;
     const idx_t numBins;
