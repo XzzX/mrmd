@@ -175,7 +175,8 @@ public:
         }
         else
         {
-            setWeightInHY(dx, absDx, lambda, modulatedLambda, gradLambdaX, gradLambdaY, gradLambdaZ);
+            setWeightInHY(
+                dx, absDx, lambda, modulatedLambda, gradLambdaX, gradLambdaY, gradLambdaZ);
             return;
         }
     }
