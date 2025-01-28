@@ -67,7 +67,7 @@ struct MultiHistogram
         ScalarView grid("grid", numBins);
         for (auto i = 0; i < numBins; ++i)
         {
-            grid[i] = min + (i + 0.5_r) * (max - min) / numBins;
+            grid[i] = min + (i + 0.5_r) * (max - min) / real_c(numBins);
         }
         return grid;
     }
