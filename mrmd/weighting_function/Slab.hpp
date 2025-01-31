@@ -25,12 +25,19 @@ namespace weighting_function
 {
 class Slab
 {
+public:
+    enum class InterfaceType
+    {
+        SMOOTH,
+        ABRUPT
+    };
+
 private:
     const Point3D center_;
     const real_t atomisticRegionHalfDiameter_;
     const real_t hybridRegionDiameter_;
     const idx_t exponent_;
-    const idx_t interfaceType_;
+    const InterfaceType interfaceType_;
 
 public:
     KOKKOS_INLINE_FUNCTION
@@ -73,12 +80,12 @@ public:
     {
         switch (interfaceType_)
         {
-            case 0:
+            case InterfaceType::SMOOTH:
                 // smooth interface
                 setSmoothWeightInHY(
                     dx, absDx, lambda, modulatedLambda, gradLambdaX, gradLambdaY, gradLambdaZ);
                 break;
-            case 1:
+            case InterfaceType::ABRUPT:
                 // abrupt interface
                 setAbruptWeightInHY(lambda, modulatedLambda, gradLambdaX, gradLambdaY, gradLambdaZ);
                 break;
@@ -166,18 +173,15 @@ public:
         if (absDx < atomisticRegionHalfDiameter_)
         {
             setWeightInAT(lambda, modulatedLambda, gradLambdaX, gradLambdaY, gradLambdaZ);
-            return;
         }
         else if (absDx > atomisticRegionHalfDiameter_ + hybridRegionDiameter_)
         {
             setWeightInCG(lambda, modulatedLambda, gradLambdaX, gradLambdaY, gradLambdaZ);
-            return;
         }
         else
         {
             setWeightInHY(
                 dx, absDx, lambda, modulatedLambda, gradLambdaX, gradLambdaY, gradLambdaZ);
-            return;
         }
     }
 
@@ -185,7 +189,7 @@ public:
          const real_t atomisticRegionDiameter,
          const real_t hybridRegionDiameter,
          const idx_t nu,
-         const idx_t interfaceType = 0)
+         const InterfaceType interfaceType = InterfaceType::SMOOTH)
         : center_(center),
           atomisticRegionHalfDiameter_(0.5_r * atomisticRegionDiameter),
           hybridRegionDiameter_(hybridRegionDiameter),
