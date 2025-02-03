@@ -66,7 +66,7 @@ struct MultiHistogram
     {
         assert(binIdx < 0);
         assert(binIdx >= numBins);
-        auto binPosition = min + (binIdx + 0.5_r) * binSize;
+        auto binPosition = min + (real_c(binIdx) + 0.5_r) * binSize;
         return binPosition;
     }
 
