@@ -157,6 +157,31 @@ void ThermodynamicForce::apply(const data::Atoms& atoms, const weighting_functio
     Kokkos::fence();
 }
 
+void ThermodynamicForce::apply(const data::Atoms& atoms, const util::ApplicationRegion& applicationRegion) const
+{
+    auto atomsPos = atoms.getPos();
+    auto atomsForce = atoms.getForce();
+    auto atomsType = atoms.getType();
+
+    auto forceHistogram = force_;  // avoid capturing this pointer
+
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
+    {
+        auto xPos = atomsPos(idx, 0);
+        if (!applicationRegion.isInApplicationRegion(atomsPos(idx, 0), atomsPos(idx, 1), atomsPos(idx, 2))) return;
+        auto bin = forceHistogram.getBin(xPos);
+        if (bin != -1)
+        {
+            MRMD_DEVICE_ASSERT_LESS(atomsType(idx), forceHistogram.numHistograms);
+            MRMD_DEVICE_ASSERT(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
+            atomsForce(idx, 0) -= forceHistogram.data(bin, atomsType(idx));
+        }
+    };
+    Kokkos::parallel_for("ThermodynamicForce::apply", policy, kernel);
+    Kokkos::fence();
+}
+
 std::vector<real_t> ThermodynamicForce::getMuLeft() const
 {
     auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), getForce().data);

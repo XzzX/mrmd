@@ -20,6 +20,7 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "weighting_function/Slab.hpp"
+#include "util/applicationRegion.hpp"
 
 namespace mrmd
 {
@@ -62,7 +63,7 @@ public:
     void update(const real_t& smoothingSigma, const real_t& smoothingIntensity);
     void apply(const data::Atoms& atoms) const;
     void apply(const data::Atoms& atoms, const weighting_function::Slab& slab) const;
-
+    void apply(const data::Atoms& atoms, const util::ApplicationRegion& applicationRegion) const;
     std::vector<real_t> getMuLeft() const;
     std::vector<real_t> getMuRight() const;
 
