@@ -62,14 +62,12 @@ struct MultiHistogram
         return bin;
     }
 
-    KOKKOS_INLINE_FUNCTION ScalarView getGrid() const
+    KOKKOS_INLINE_FUNCTION real_t getBinPosition(idx_t binIdx) const
     {
-        ScalarView grid("grid", numBins);
-        for (auto i = 0; i < numBins; ++i)
-        {
-            grid[i] = min + (i + 0.5_r) * (max - min) / real_c(numBins);
-        }
-        return grid;
+        assert(binIdx < 0);
+        assert(binIdx >= numBins);
+        auto binPosition = min + (binIdx + 0.5_r) * binSize;
+        return binPosition;
     }
 
     const real_t min;
