@@ -22,7 +22,7 @@ namespace util
 {
 class ApplicationRegion
 {
-    private:
+private:
     const Point3D center_;
     const real_t applicationRegionMin_;
     const real_t applicationRegionMax_;
@@ -38,13 +38,13 @@ public:
     }
 
     ApplicationRegion(const Point3D& center,
-         const real_t applicationRegionMin,
-         const real_t applicationRegionMax)
+                      const real_t applicationRegionMin,
+                      const real_t applicationRegionMax)
         : center_(center),
           applicationRegionMin_(applicationRegionMin),
           applicationRegionMax_(applicationRegionMax)
     {
     }
 };
-} // namespace util
-} // namespace mrmd
+}  // namespace util
+}  // namespace mrmd

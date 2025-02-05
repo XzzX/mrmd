@@ -23,7 +23,7 @@ namespace util
 TEST(ApplicationRegion, testRegion)
 {
     Point3D center = {2_r, 3_r, 4_r};
-    const auto applicationRegionMin = 2_r; 
+    const auto applicationRegionMin = 2_r;
     const auto applicationRegionMax = 4_r;
     auto applicationRegion = ApplicationRegion(center, applicationRegionMin, applicationRegionMax);
 
@@ -38,5 +38,5 @@ TEST(ApplicationRegion, testRegion)
     EXPECT_FALSE(applicationRegion.isInApplicationRegion(-2.1_r, 10_r, 10_r));
 }
 
-} // namespace util
-} // namespace mrmd
+}  // namespace util
+}  // namespace mrmd
