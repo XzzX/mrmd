@@ -20,7 +20,7 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "weighting_function/Slab.hpp"
-#include "util/applicationRegion.hpp"
+#include "util/ApplicationRegion.hpp"
 
 namespace mrmd
 {
