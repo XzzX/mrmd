@@ -73,7 +73,7 @@ struct MultiHistogram
     ScalarView::HostMirror createGrid() const
     {
         ScalarView::HostMirror grid("grid", numBins);
-        for (auto i = 0; i < numBins; ++i)
+        for (idx_t i = 0; i < numBins; ++i)
         {
             grid[i] = getBinPosition(i);
         }
