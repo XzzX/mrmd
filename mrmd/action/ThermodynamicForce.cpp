@@ -157,7 +157,8 @@ void ThermodynamicForce::apply(const data::Atoms& atoms, const weighting_functio
     Kokkos::fence();
 }
 
-void ThermodynamicForce::apply(const data::Atoms& atoms, const util::ApplicationRegion& applicationRegion) const
+void ThermodynamicForce::apply(const data::Atoms& atoms,
+                               const util::ApplicationRegion& applicationRegion) const
 {
     auto atomsPos = atoms.getPos();
     auto atomsForce = atoms.getForce();
@@ -169,7 +170,9 @@ void ThermodynamicForce::apply(const data::Atoms& atoms, const util::Application
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
         auto xPos = atomsPos(idx, 0);
-        if (!applicationRegion.isInApplicationRegion(atomsPos(idx, 0), atomsPos(idx, 1), atomsPos(idx, 2))) return;
+        if (!applicationRegion.isInApplicationRegion(
+                atomsPos(idx, 0), atomsPos(idx, 1), atomsPos(idx, 2)))
+            return;
         auto bin = forceHistogram.getBin(xPos);
         if (bin != -1)
         {
