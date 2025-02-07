@@ -75,7 +75,7 @@ struct MultiHistogram
         ScalarView::HostMirror grid("grid", numBins);
         for (auto i = 0; i < numBins; ++i)
         {
-            grid[i] = min + (i + 0.5_r) * binSize;
+            grid[i] = getBinPosition(i);
         }
         return grid;
     }
