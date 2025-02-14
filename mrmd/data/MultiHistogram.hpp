@@ -64,8 +64,8 @@ struct MultiHistogram
 
     KOKKOS_INLINE_FUNCTION real_t getBinPosition(idx_t binIdx) const
     {
-        assert(binIdx < 0);
-        assert(binIdx >= numBins);
+        assert(binIdx >= 0);
+        assert(binIdx < numBins);
         auto binPosition = min + (real_c(binIdx) + 0.5_r) * binSize;
         return binPosition;
     }
