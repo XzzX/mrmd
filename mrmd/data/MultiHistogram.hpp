@@ -56,7 +56,7 @@ struct MultiHistogram
      */
     KOKKOS_INLINE_FUNCTION idx_t getBin(const real_t& val) const
     {
-        auto bin = idx_c((val - min) * inverseBinSize);
+        auto bin = idx_c(std::floor((val - min) * inverseBinSize));
         if (bin < 0) bin = -1;
         if (bin >= numBins) bin = -1;
         return bin;
@@ -64,21 +64,13 @@ struct MultiHistogram
 
     KOKKOS_INLINE_FUNCTION real_t getBinPosition(idx_t binIdx) const
     {
-        assert(binIdx < 0);
-        assert(binIdx >= numBins);
+        assert(binIdx >= 0);
+        assert(binIdx < numBins);
         auto binPosition = min + (real_c(binIdx) + 0.5_r) * binSize;
         return binPosition;
     }
 
-    ScalarView::HostMirror createGrid() const
-    {
-        ScalarView::HostMirror grid("grid", numBins);
-        for (idx_t i = 0; i < numBins; ++i)
-        {
-            grid[i] = getBinPosition(i);
-        }
-        return grid;
-    }
+    ScalarView::HostMirror createGrid() const;
 
     const real_t min;
     const real_t max;

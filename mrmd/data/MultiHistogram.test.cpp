@@ -21,6 +21,22 @@ namespace mrmd
 namespace data
 {
 
+TEST(MultiHistogram, getBin)
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 10, 2);
+    EXPECT_EQ(histogram.getBin(-0.5_r), -1);
+    EXPECT_EQ(histogram.getBin(0.5_r), 0);
+    EXPECT_EQ(histogram.getBin(5.5_r), 5);
+    EXPECT_EQ(histogram.getBin(10.5_r), -1);
+}
+
+TEST(MultiHistogram, getBinPosition)
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 10, 2);
+    EXPECT_FLOAT_EQ(histogram.getBinPosition(0), 0.5_r);
+    EXPECT_FLOAT_EQ(histogram.getBinPosition(5), 5.5_r);
+}
+
 TEST(MultiHistogram, scale)
 {
     MultiHistogram histogram("histogram", 0_r, 10_r, 11, 2);
