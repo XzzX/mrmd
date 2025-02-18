@@ -21,6 +21,13 @@ namespace mrmd
 namespace data
 {
 
+TEST(MultiHistogram, getBinPosition)
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 10, 2);
+    EXPECT_FLOAT_EQ(histogram.getBinPosition(0), 0.5_r);
+    EXPECT_FLOAT_EQ(histogram.getBinPosition(5), 5.5_r);
+}
+
 TEST(MultiHistogram, scale)
 {
     MultiHistogram histogram("histogram", 0_r, 10_r, 11, 2);

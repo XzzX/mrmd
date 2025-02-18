@@ -70,15 +70,7 @@ struct MultiHistogram
         return binPosition;
     }
 
-    ScalarView::HostMirror createGrid() const
-    {
-        ScalarView::HostMirror grid("grid", numBins);
-        for (idx_t i = 0; i < numBins; ++i)
-        {
-            grid[i] = getBinPosition(i);
-        }
-        return grid;
-    }
+    ScalarView::HostMirror createGrid() const;
 
     const real_t min;
     const real_t max;
