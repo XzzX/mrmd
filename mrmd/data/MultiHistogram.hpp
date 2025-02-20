@@ -18,11 +18,13 @@
 
 #include "assert/assert.hpp"
 #include "datatypes.hpp"
+#include "functional.hpp"
 
 namespace mrmd
 {
 namespace data
 {
+
 struct MultiHistogram
 {
     MultiHistogram(const std::string& label,
@@ -82,7 +84,9 @@ struct MultiHistogram
 
     MultiHistogram& operator+=(const MultiHistogram& rhs);
     MultiHistogram& operator-=(const MultiHistogram& rhs);
+    MultiHistogram& operator*=(const MultiHistogram& rhs);
     MultiHistogram& operator/=(const MultiHistogram& rhs);
+
     void scale(const real_t& scalingFactor);
     void scale(const ScalarView& scalingFactor);
     void makeSymmetric();
@@ -123,6 +127,69 @@ data::MultiHistogram smoothen(data::MultiHistogram& input,
                               const real_t& sigma,
                               const real_t& range,
                               const bool periodic = false);
+
+/**
+ * Applies a binary operation to corresponding elements of two input MultiHistograms and stores
+ * the result in an output MultiHistogram.
+ *
+ * @tparam BinaryOp The type of the binary operation to be applied.
+ * @param input1 The first input MultiHistogram.
+ * @param input2 The second input MultiHistogram.
+ * @param output The MultiHistogram where the result of the binary operation will be stored.
+ * @param binary_op The binary operation to apply to the elements of input1 and input2.
+ * 
+ * @pre The dimensions (numBins and numHistograms) of input1, input2, and output must match.
+ */
+
+template <class BinaryOp>
+void transform(const MultiHistogram& input1,
+               const MultiHistogram& input2,
+               MultiHistogram& output,
+               const BinaryOp& binary_op)
+{
+    assert(input1.numHistograms == input2.numHistograms);
+    assert(input1.numHistograms == output.numHistograms);
+    assert(input1.numBins == input2.numBins);
+    assert(input1.numBins == output.numBins);
+
+    auto input1Data = input1.data;
+    auto input2Data = input2.data;
+    auto outputData = output.data;
+
+    auto policy =
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {input1.numBins, input1.numHistograms});
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
+    {
+        outputData(idx, jdx) = binary_op(input1Data(idx, jdx), input2Data(idx, jdx));
+    };
+    Kokkos::parallel_for("MultiHistogram::transform", policy, kernel);
+    Kokkos::fence();
+}
+
+inline
+MultiHistogram& MultiHistogram::operator+=(const MultiHistogram& rhs)
+{
+    transform(*this, rhs, *this, bin_op::add);
+    return *this;
+}
+inline
+MultiHistogram& MultiHistogram::operator-=(const MultiHistogram& rhs)
+{
+    transform(*this, rhs, *this, bin_op::sub);
+    return *this;
+}
+inline
+MultiHistogram& MultiHistogram::operator*=(const MultiHistogram& rhs)
+{
+    transform(*this, rhs, *this, bin_op::mul);
+    return *this;
+}
+inline
+MultiHistogram& MultiHistogram::operator/=(const MultiHistogram& rhs)
+{
+    transform(*this, rhs, *this, bin_op::div);
+    return *this;
+}
 
 }  // namespace data
 }  // namespace mrmd

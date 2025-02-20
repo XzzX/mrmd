@@ -98,6 +98,56 @@ TEST(MultiHistogram, op_plusequal)
     }
 }
 
+TEST(MultiHistogram, op_minusequal)
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 11, 2);
+    auto h_data = Kokkos::create_mirror_view(histogram.data);
+    h_data(5, 0) = 10_r;
+    h_data(5, 1) = 5_r;
+    Kokkos::deep_copy(histogram.data, h_data);
+
+    MultiHistogram histogram2("histogram", 0_r, 10_r, 11, 2);
+    auto h_data2 = Kokkos::create_mirror_view(histogram2.data);
+    h_data2(5, 0) = 8_r;
+    h_data2(5, 1) = 1_r;
+    Kokkos::deep_copy(histogram2.data, h_data2);
+
+    histogram -= histogram2;
+
+    Kokkos::deep_copy(h_data, histogram.data);
+
+    for (auto idx = 0; idx < 10; ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_data(idx, 0), idx == 5 ? 2_r : 0_r);
+        EXPECT_FLOAT_EQ(h_data(idx, 1), idx == 5 ? 4_r : 0_r);
+    }
+}
+
+TEST(MultiHistogram, op_mulequal)
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 11, 2);
+    auto h_data = Kokkos::create_mirror_view(histogram.data);
+    h_data(5, 0) = 10_r;
+    h_data(5, 1) = 5_r;
+    Kokkos::deep_copy(histogram.data, h_data);
+
+    MultiHistogram histogram2("histogram", 0_r, 10_r, 11, 2);
+    auto h_data2 = Kokkos::create_mirror_view(histogram2.data);
+    h_data2(5, 0) = 8_r;
+    h_data2(5, 1) = 2_r;
+    Kokkos::deep_copy(histogram2.data, h_data2);
+
+    histogram *= histogram2;
+
+    Kokkos::deep_copy(h_data, histogram.data);
+
+    for (auto idx = 0; idx < 10; ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_data(idx, 0), idx == 5 ? 80_r : 0_r);
+        EXPECT_FLOAT_EQ(h_data(idx, 1), idx == 5 ? 10_r : 0_r);
+    }
+}
+
 TEST(MultiHistogram, op_divequal)
 {
     MultiHistogram histogram("histogram", 0_r, 10_r, 11, 2);
