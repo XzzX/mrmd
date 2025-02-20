@@ -147,10 +147,10 @@ void transform(const MultiHistogram& input1,
                MultiHistogram& output,
                const BinaryOp& binary_op)
 {
-    assert(input1.numHistograms == input2.numHistograms);
-    assert(input1.numHistograms == output.numHistograms);
-    assert(input1.numBins == input2.numBins);
-    assert(input1.numBins == output.numBins);
+    MRMD_HOST_CHECK_EQUAL(input1.numHistograms, input2.numHistograms);
+    MRMD_HOST_CHECK_EQUAL(input1.numHistograms, output.numHistograms);
+    MRMD_HOST_CHECK_EQUAL(input1.numBins, input2.numBins);
+    MRMD_HOST_CHECK_EQUAL(input1.numBins, output.numBins);
 
     auto input1Data = input1.data;
     auto input2Data = input2.data;
