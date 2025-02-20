@@ -137,7 +137,7 @@ data::MultiHistogram smoothen(data::MultiHistogram& input,
  * @param input2 The second input MultiHistogram.
  * @param output The MultiHistogram where the result of the binary operation will be stored.
  * @param binary_op The binary operation to apply to the elements of input1 and input2.
- * 
+ *
  * @pre The dimensions (numBins and numHistograms) of input1, input2, and output must match.
  */
 
@@ -166,26 +166,22 @@ void transform(const MultiHistogram& input1,
     Kokkos::fence();
 }
 
-inline
-MultiHistogram& MultiHistogram::operator+=(const MultiHistogram& rhs)
+inline MultiHistogram& MultiHistogram::operator+=(const MultiHistogram& rhs)
 {
     transform(*this, rhs, *this, bin_op::add);
     return *this;
 }
-inline
-MultiHistogram& MultiHistogram::operator-=(const MultiHistogram& rhs)
+inline MultiHistogram& MultiHistogram::operator-=(const MultiHistogram& rhs)
 {
     transform(*this, rhs, *this, bin_op::sub);
     return *this;
 }
-inline
-MultiHistogram& MultiHistogram::operator*=(const MultiHistogram& rhs)
+inline MultiHistogram& MultiHistogram::operator*=(const MultiHistogram& rhs)
 {
     transform(*this, rhs, *this, bin_op::mul);
     return *this;
 }
-inline
-MultiHistogram& MultiHistogram::operator/=(const MultiHistogram& rhs)
+inline MultiHistogram& MultiHistogram::operator/=(const MultiHistogram& rhs)
 {
     transform(*this, rhs, *this, bin_op::div);
     return *this;
