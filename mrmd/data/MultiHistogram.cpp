@@ -67,7 +67,6 @@ MultiHistogram& MultiHistogram::operator-=(const MultiHistogram& rhs)
     return *this;
 }
 
-
 MultiHistogram& MultiHistogram::operator/=(const MultiHistogram& rhs)
 {
     if (numBins != rhs.numBins) exit(EXIT_FAILURE);
