@@ -81,6 +81,7 @@ struct MultiHistogram
     MultiView data;
 
     MultiHistogram& operator+=(const MultiHistogram& rhs);
+    MultiHistogram& operator-=(const MultiHistogram& rhs);
     MultiHistogram& operator/=(const MultiHistogram& rhs);
     void scale(const real_t& scalingFactor);
     void scale(const ScalarView& scalingFactor);

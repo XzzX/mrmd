@@ -101,7 +101,7 @@ void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoo
     auto smoothedDensityGradient = data::gradient(smoothedDensityProfile, usePeriodicity_);
     smoothedDensityGradient.scale(forceFactor_);
 
-    force_ += smoothedDensityGradient;
+    force_ -= smoothedDensityGradient;
 
     // reset sampling data
     Kokkos::deep_copy(densityProfile_.data, 0_r);
@@ -125,7 +125,7 @@ void ThermodynamicForce::apply(const data::Atoms& atoms) const
         {
             MRMD_DEVICE_ASSERT_LESS(atomsType(idx), forceHistogram.numHistograms);
             MRMD_DEVICE_ASSERT(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
-            atomsForce(idx, 0) -= forceHistogram.data(bin, atomsType(idx));
+            atomsForce(idx, 0) += forceHistogram.data(bin, atomsType(idx));
         }
     };
     Kokkos::parallel_for("ThermodynamicForce::apply", policy, kernel);
@@ -150,7 +150,7 @@ void ThermodynamicForce::apply(const data::Atoms& atoms, const weighting_functio
         {
             MRMD_DEVICE_ASSERT_LESS(atomsType(idx), forceHistogram.numHistograms);
             MRMD_DEVICE_ASSERT(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
-            atomsForce(idx, 0) -= forceHistogram.data(bin, atomsType(idx));
+            atomsForce(idx, 0) += forceHistogram.data(bin, atomsType(idx));
         }
     };
     Kokkos::parallel_for("ThermodynamicForce::apply", policy, kernel);
@@ -178,7 +178,7 @@ void ThermodynamicForce::apply(const data::Atoms& atoms,
         {
             MRMD_DEVICE_ASSERT_LESS(atomsType(idx), forceHistogram.numHistograms);
             MRMD_DEVICE_ASSERT(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
-            atomsForce(idx, 0) -= forceHistogram.data(bin, atomsType(idx));
+            atomsForce(idx, 0) += forceHistogram.data(bin, atomsType(idx));
         }
     };
     Kokkos::parallel_for("ThermodynamicForce::apply", policy, kernel);

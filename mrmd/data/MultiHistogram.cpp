@@ -50,6 +50,24 @@ MultiHistogram& MultiHistogram::operator+=(const MultiHistogram& rhs)
     return *this;
 }
 
+MultiHistogram& MultiHistogram::operator-=(const MultiHistogram& rhs)
+{
+    if (numBins != rhs.numBins) exit(EXIT_FAILURE);
+    assert(min == rhs.min);
+    assert(max == rhs.max);
+
+    auto lhs = data;
+    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {numBins, numHistograms});
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
+    {
+        lhs(idx, jdx) -= rhs.data(idx, jdx);
+    };
+    Kokkos::parallel_for("MultiHistogram::operator-=", policy, kernel);
+    Kokkos::fence();
+    return *this;
+}
+
+
 MultiHistogram& MultiHistogram::operator/=(const MultiHistogram& rhs)
 {
     if (numBins != rhs.numBins) exit(EXIT_FAILURE);
