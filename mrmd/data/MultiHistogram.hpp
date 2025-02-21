@@ -166,26 +166,5 @@ void transform(const MultiHistogram& input1,
     Kokkos::fence();
 }
 
-inline MultiHistogram& MultiHistogram::operator+=(const MultiHistogram& rhs)
-{
-    transform(*this, rhs, *this, bin_op::add);
-    return *this;
-}
-inline MultiHistogram& MultiHistogram::operator-=(const MultiHistogram& rhs)
-{
-    transform(*this, rhs, *this, bin_op::sub);
-    return *this;
-}
-inline MultiHistogram& MultiHistogram::operator*=(const MultiHistogram& rhs)
-{
-    transform(*this, rhs, *this, bin_op::mul);
-    return *this;
-}
-inline MultiHistogram& MultiHistogram::operator/=(const MultiHistogram& rhs)
-{
-    transform(*this, rhs, *this, bin_op::div);
-    return *this;
-}
-
 }  // namespace data
 }  // namespace mrmd

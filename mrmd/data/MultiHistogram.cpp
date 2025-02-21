@@ -33,6 +33,27 @@ ScalarView::HostMirror MultiHistogram::createGrid() const
     return grid;
 }
 
+MultiHistogram& MultiHistogram::operator+=(const MultiHistogram& rhs)
+{
+    transform(*this, rhs, *this, bin_op::add);
+    return *this;
+}
+MultiHistogram& MultiHistogram::operator-=(const MultiHistogram& rhs)
+{
+    transform(*this, rhs, *this, bin_op::sub);
+    return *this;
+}
+MultiHistogram& MultiHistogram::operator*=(const MultiHistogram& rhs)
+{
+    transform(*this, rhs, *this, bin_op::mul);
+    return *this;
+}
+MultiHistogram& MultiHistogram::operator/=(const MultiHistogram& rhs)
+{
+    transform(*this, rhs, *this, bin_op::div);
+    return *this;
+}
+
 void MultiHistogram::scale(const real_t& scalingFactor)
 {
     auto hist = data;  // avoid capturing this pointer
