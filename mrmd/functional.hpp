@@ -20,9 +20,21 @@ namespace mrmd
 {
 namespace bin_op
 {
-KOKKOS_INLINE_FUNCTION real_t add(real_t x, real_t y) { return x + y; }
-KOKKOS_INLINE_FUNCTION real_t sub(real_t x, real_t y) { return x - y; }
-KOKKOS_INLINE_FUNCTION real_t mul(real_t x, real_t y) { return x * y; }
-KOKKOS_INLINE_FUNCTION real_t div(real_t x, real_t y) { return x / y; }
+struct Add
+{
+    KOKKOS_INLINE_FUNCTION real_t operator()(real_t x, real_t y) const { return x + y; }
+};
+struct Sub
+{
+    KOKKOS_INLINE_FUNCTION real_t operator()(real_t x, real_t y) const { return x - y; }
+};
+struct Mul
+{
+    KOKKOS_INLINE_FUNCTION real_t operator()(real_t x, real_t y) const { return x * y; }
+};
+struct Div
+{
+    KOKKOS_INLINE_FUNCTION real_t operator()(real_t x, real_t y) const { return x / y; }
+};
 }  // namespace bin_op
 }  // namespace mrmd

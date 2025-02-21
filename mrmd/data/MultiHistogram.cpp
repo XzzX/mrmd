@@ -35,22 +35,22 @@ ScalarView::HostMirror MultiHistogram::createGrid() const
 
 MultiHistogram& MultiHistogram::operator+=(const MultiHistogram& rhs)
 {
-    transform(*this, rhs, *this, bin_op::add);
+    transform(*this, rhs, *this, bin_op::Add());
     return *this;
 }
 MultiHistogram& MultiHistogram::operator-=(const MultiHistogram& rhs)
 {
-    transform(*this, rhs, *this, bin_op::sub);
+    transform(*this, rhs, *this, bin_op::Sub());
     return *this;
 }
 MultiHistogram& MultiHistogram::operator*=(const MultiHistogram& rhs)
 {
-    transform(*this, rhs, *this, bin_op::mul);
+    transform(*this, rhs, *this, bin_op::Mul());
     return *this;
 }
 MultiHistogram& MultiHistogram::operator/=(const MultiHistogram& rhs)
 {
-    transform(*this, rhs, *this, bin_op::div);
+    transform(*this, rhs, *this, bin_op::Div());
     return *this;
 }
 
