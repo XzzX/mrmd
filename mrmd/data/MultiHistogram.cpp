@@ -35,35 +35,22 @@ ScalarView::HostMirror MultiHistogram::createGrid() const
 
 MultiHistogram& MultiHistogram::operator+=(const MultiHistogram& rhs)
 {
-    if (numBins != rhs.numBins) exit(EXIT_FAILURE);
-    assert(min == rhs.min);
-    assert(max == rhs.max);
-
-    auto lhs = data;
-    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {numBins, numHistograms});
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
-    {
-        lhs(idx, jdx) += rhs.data(idx, jdx);
-    };
-    Kokkos::parallel_for("MultiHistogram::operator+=", policy, kernel);
-    Kokkos::fence();
+    transform(*this, rhs, *this, bin_op::Add());
     return *this;
 }
-
+MultiHistogram& MultiHistogram::operator-=(const MultiHistogram& rhs)
+{
+    transform(*this, rhs, *this, bin_op::Sub());
+    return *this;
+}
+MultiHistogram& MultiHistogram::operator*=(const MultiHistogram& rhs)
+{
+    transform(*this, rhs, *this, bin_op::Mul());
+    return *this;
+}
 MultiHistogram& MultiHistogram::operator/=(const MultiHistogram& rhs)
 {
-    if (numBins != rhs.numBins) exit(EXIT_FAILURE);
-    assert(min == rhs.min);
-    assert(max == rhs.max);
-
-    auto lhs = data;
-    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {numBins, numHistograms});
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
-    {
-        lhs(idx, jdx) /= rhs.data(idx, jdx);
-    };
-    Kokkos::parallel_for("MultiHistogram::operator/=", policy, kernel);
-    Kokkos::fence();
+    transform(*this, rhs, *this, bin_op::Div());
     return *this;
 }
 
