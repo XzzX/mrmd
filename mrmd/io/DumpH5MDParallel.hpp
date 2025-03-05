@@ -32,6 +32,15 @@ public:
         : mpiInfo(mpiInfoArg), author(authorArg), particleGroupName(particleGroupNameArg)
     {
     }
+    std::vector<hid_t> open(const std::string& filename);
+
+    void dumpStep(const hid_t& file_id,
+        const data::Subdomain& subdomain,
+        const data::Atoms& atoms,
+        const idx_t step,
+        const real_t dt);
+
+    void close(const hid_t& file_id, const hid_t& group1, const hid_t& group2);
 
     void dump(const std::string& filename,
               const data::Subdomain& subdomain,

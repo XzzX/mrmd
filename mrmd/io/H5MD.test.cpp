@@ -117,5 +117,21 @@ TEST(H5MD, dump)
         EXPECT_FLOAT_EQ(h_atoms1.getRelativeMass()(idx), h_atoms2.getRelativeMass()(idx));
     }
 }
+
+TEST(H5MD, dumpMultipleSteps)
+{
+    auto mpiInfo = std::make_shared<data::MPIInfo>(MPI_COMM_WORLD);
+
+    auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
+    auto atoms1 = getAtoms(mpiInfo);
+
+    auto dump = DumpH5MDParallel(mpiInfo, "XzzX");
+
+    auto dump_ids = dump.open("dummyMultipleSteps.hdf5");
+
+    dump.dumpStep(dump_ids[0], subdomain1, atoms1, 0, 0_r);
+
+    dump.close(dump_ids[0], dump_ids[1], dump_ids[2]);
+}
 }  // namespace io
 }  // namespace mrmd
