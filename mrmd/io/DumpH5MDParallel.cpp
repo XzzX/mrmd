@@ -46,14 +46,16 @@ public:
         const idx_t step,
         const real_t dt);
     void close(const hid_t& file_id, const hid_t& group1, const hid_t& group2);
-    void dump(const std::string& filename,
-              const data::Subdomain& subdomain,
-              const data::Atoms& atoms);
     hid_t openGroup(const hid_t& fileId, const std::string& groupName) const;
     void closeGroup(const hid_t& groupId) const;
     std::vector<hid_t> openBox(const hid_t& fileId) const;
     void closeBox(const hid_t& boxGroupId, const hid_t& edgesGroupId) const;
-    void writeBoxStep(const hid_t& boxGroupId, const data::Subdomain& subdomain) const;
+    void writeStep(const hid_t& stepSetId, const idx_t& step) const;
+    hid_t createStepSet(const hid_t& edgesGroupId, const hsize_t* dims, const hsize_t& ndims) const;
+
+    void dump(const std::string& filename,
+        const data::Subdomain& subdomain,
+        const data::Atoms& atoms);
 
 private:
     void updateCache(const data::HostAtoms& atoms);
@@ -118,7 +120,7 @@ void DumpH5MDParallelImpl::closeGroup(const hid_t& groupId) const
 void DumpH5MDParallelImpl::dumpStep(const hid_t& file_id,
         const data::Subdomain& subdomain,
         const data::Atoms& atoms,
-        const idx_t /*step*/,
+        const idx_t step,
         const real_t /*dt*/)
 {
     data::HostAtoms h_atoms(atoms);  // NOLINT
@@ -126,7 +128,7 @@ void DumpH5MDParallelImpl::dumpStep(const hid_t& file_id,
     updateCache(h_atoms);
 
     auto boxIds = openBox(file_id);
-    writeBoxStep(boxIds[1], subdomain);
+    writeStep(boxIds[2], step);
     closeBox(boxIds[0], boxIds[1]);
 }
 
@@ -161,8 +163,13 @@ std::vector<hid_t> DumpH5MDParallelImpl::openBox(const hid_t& fileId) const
 
     auto edgesGroupId =
     H5Gcreate(boxGroupId, "edges", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    
+    const hsize_t stepNumDims = 1;
+    hsize_t stepDimsCreate[stepNumDims] = {0};
 
-    return {boxGroupId, edgesGroupId};
+    auto stepSetId = createStepSet(edgesGroupId, stepDimsCreate, stepNumDims); 
+
+    return {boxGroupId, edgesGroupId, stepSetId};
 }
 
 void DumpH5MDParallelImpl::closeBox(const hid_t& boxGroupId, const hid_t& edgesGroupId) const
@@ -171,24 +178,44 @@ void DumpH5MDParallelImpl::closeBox(const hid_t& boxGroupId, const hid_t& edgesG
     CHECK_HDF5(H5Gclose(boxGroupId));
 }
 
-void DumpH5MDParallelImpl::writeBoxStep(const hid_t& edgesGroupId, const data::Subdomain& subdomain) const
+hid_t DumpH5MDParallelImpl::createStepSet(const hid_t& edgesGroupId, const hsize_t* dims, const hsize_t& ndims) const
 {
-    std::vector<hsize_t> edgesStepDims = {1};
-    std::vector<int64_t> step = {0};
+    hsize_t max_dims[ndims] = {H5S_UNLIMITED};
+    hid_t file_space = H5Screate_simple(ndims, dims, max_dims);
 
-    CHECK_HDF5(H5LTmake_dataset(edgesGroupId,
-                                "step",
-                                1,
-                                edgesStepDims.data(),
-                                typeToHDF5<int64_t>(),
-                                step.data()));
-    std::vector<hsize_t> edgesValueDims = {1, 3};
-    CHECK_HDF5(H5LTmake_dataset(edgesGroupId,
-                                "value",
-                                2,
-                                edgesValueDims.data(),
-                                typeToHDF5<double>(),
-                                subdomain.diameter.data()));
+    hid_t plist = H5Pcreate(H5P_DATASET_CREATE);
+    H5Pset_layout(plist, H5D_CHUNKED);
+
+    hsize_t chunk_dims[ndims] = {2};
+    H5Pset_chunk(plist, ndims, chunk_dims);
+    
+    hid_t stepSetId = H5Dcreate(edgesGroupId, "step", H5T_NATIVE_INT64, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+
+    H5Pclose(plist);
+    H5Sclose(file_space);
+
+    return stepSetId;
+}
+
+void DumpH5MDParallelImpl::writeStep(const hid_t& stepSetId, const idx_t& step) const
+{
+    const hsize_t stepNumDims = 1;
+    hsize_t stepDimsAppend[stepNumDims] = {1};
+
+    hid_t mem_space = H5Screate_simple(stepNumDims, stepDimsAppend, NULL);
+
+    H5Dset_extent(stepSetId, stepDimsAppend);
+
+    auto file_space = H5Dget_space(stepSetId);
+    hsize_t start[1] = {0};
+    hsize_t count[1] = {1};
+    H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start, NULL, count, NULL);
+
+    H5Dwrite(stepSetId, H5T_NATIVE_INT64, mem_space, file_space, H5P_DEFAULT, &step);
+    
+    H5Sclose(file_space);
+    H5Sclose(mem_space);
+    H5Dclose(stepSetId);
 }
 
 
