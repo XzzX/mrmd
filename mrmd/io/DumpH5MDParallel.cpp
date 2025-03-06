@@ -51,9 +51,9 @@ public:
               const data::Atoms& atoms);
     hid_t openGroup(const hid_t& fileId, const std::string& groupName) const;
     void closeGroup(const hid_t& groupId) const;
-    std::string openBox(const hid_t& fileId) const;
+    std::vector<hid_t> openBox(const hid_t& fileId) const;
     void closeBox(const hid_t& boxGroupId, const hid_t& edgesGroupId) const;
-    void writeBoxStep(const hid_t& fileId, const std::string& boxGroupName, const data::Subdomain& subdomain) const;
+    void writeBoxStep(const hid_t& boxGroupId, const data::Subdomain& subdomain) const;
 
 private:
     void updateCache(const data::HostAtoms& atoms);
@@ -82,6 +82,124 @@ private:
     /// Offset of the local particle chunk in the global particle array.
     int64_t particleOffset = -1;
 };
+
+std::vector<hid_t> DumpH5MDParallelImpl::open(const std::string& filename)
+{
+    MPI_Info info = MPI_INFO_NULL;
+
+    auto plist = CHECK_HDF5(H5Pcreate(H5P_FILE_ACCESS));
+    CHECK_HDF5(H5Pset_fapl_mpio(plist, config_.mpiInfo->comm, info));
+
+    auto file_id = CHECK_HDF5(H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist));
+
+    auto group1 =
+    CHECK_HDF5(H5Gcreate(file_id, "/particles", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+    std::string particleGroup = "/particles/" + config_.particleGroupName;
+    auto group2 = CHECK_HDF5(
+    H5Gcreate(file_id, particleGroup.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+
+    writeHeader(file_id);
+
+    return {file_id, group1, group2};
+}
+
+hid_t DumpH5MDParallelImpl::openGroup(const hid_t& fileId, const std::string& groupName) const
+{
+    auto groupId =
+        CHECK_HDF5(H5Gcreate(fileId, groupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+    return groupId;
+}
+
+void DumpH5MDParallelImpl::closeGroup(const hid_t& groupId) const
+{
+    CHECK_HDF5(H5Gclose(groupId));
+}
+
+void DumpH5MDParallelImpl::dumpStep(const hid_t& file_id,
+        const data::Subdomain& subdomain,
+        const data::Atoms& atoms,
+        const idx_t /*step*/,
+        const real_t /*dt*/)
+{
+    data::HostAtoms h_atoms(atoms);  // NOLINT
+
+    updateCache(h_atoms);
+
+    auto boxIds = openBox(file_id);
+    writeBoxStep(boxIds[1], subdomain);
+    closeBox(boxIds[0], boxIds[1]);
+}
+
+void DumpH5MDParallelImpl::close(const hid_t& file_id, const hid_t& group1, const hid_t& group2)
+{
+    CHECK_HDF5(H5Gclose(group1));
+    CHECK_HDF5(H5Gclose(group2));
+
+    CHECK_HDF5(H5Fclose(file_id));
+}
+
+std::vector<hid_t> DumpH5MDParallelImpl::openBox(const hid_t& fileId) const
+{
+    std::string boxGroupName = "/particles/" + config_.particleGroupName + "/box";
+    
+    auto boxGroupId = openGroup(fileId, boxGroupName); 
+
+    std::vector<int> dims = {3};
+    CHECK_HDF5(
+        H5LTset_attribute_int(fileId, boxGroupName.c_str(), "dimension", dims.data(), dims.size()));
+
+    auto boundaryType = H5Tcopy(H5T_C_S1);
+    CHECK_HDF5(H5Tset_size(boundaryType, 8));
+    CHECK_HDF5(H5Tset_strpad(boundaryType, H5T_STR_NULLPAD));
+    std::vector<hsize_t> boundaryDims = {3};
+    auto space = H5Screate_simple(int_c(boundaryDims.size()), boundaryDims.data(), nullptr);
+    auto att = H5Acreate(boxGroupId, "boundary", boundaryType, space, H5P_DEFAULT, H5P_DEFAULT);
+    CHECK_HDF5(H5Awrite(att, boundaryType, "periodicperiodicperiodic"));
+    CHECK_HDF5(H5Aclose(att));
+    CHECK_HDF5(H5Sclose(space));
+    CHECK_HDF5(H5Tclose(boundaryType));
+
+    auto edgesGroupId =
+    H5Gcreate(boxGroupId, "edges", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    return {boxGroupId, edgesGroupId};
+}
+
+void DumpH5MDParallelImpl::closeBox(const hid_t& boxGroupId, const hid_t& edgesGroupId) const
+{
+    CHECK_HDF5(H5Gclose(edgesGroupId));
+    CHECK_HDF5(H5Gclose(boxGroupId));
+}
+
+void DumpH5MDParallelImpl::writeBoxStep(const hid_t& edgesGroupId, const data::Subdomain& subdomain) const
+{
+    std::vector<hsize_t> edgesStepDims = {1};
+    std::vector<int64_t> step = {0};
+
+    CHECK_HDF5(H5LTmake_dataset(edgesGroupId,
+                                "step",
+                                1,
+                                edgesStepDims.data(),
+                                typeToHDF5<int64_t>(),
+                                step.data()));
+    std::vector<hsize_t> edgesValueDims = {1, 3};
+    CHECK_HDF5(H5LTmake_dataset(edgesGroupId,
+                                "value",
+                                2,
+                                edgesValueDims.data(),
+                                typeToHDF5<double>(),
+                                subdomain.diameter.data()));
+}
+
+
+
+
+
+
+
+
+
+
 
 template <typename T>
 void DumpH5MDParallelImpl::writeParallel(hid_t fileId,
@@ -152,59 +270,6 @@ void DumpH5MDParallelImpl::writeHeader(hid_t fileId) const
 
     CHECK_HDF5(H5LTset_attribute_string(fileId, "/h5md/creator", "name", PROJECT_NAME.c_str()));
     CHECK_HDF5(H5LTset_attribute_string(fileId, "/h5md/creator", "version", MRMD_VERSION.c_str()));
-}
-
-std::string DumpH5MDParallelImpl::openBox(const hid_t& fileId) const
-{
-    std::string boxGroupName = "/particles/" + config_.particleGroupName + "/box";
-    
-    auto boxGroupId = openGroup(fileId, boxGroupName); 
-
-    std::vector<int> dims = {3};
-    CHECK_HDF5(
-        H5LTset_attribute_int(fileId, boxGroupName.c_str(), "dimension", dims.data(), dims.size()));
-
-    auto boundaryType = H5Tcopy(H5T_C_S1);
-    CHECK_HDF5(H5Tset_size(boundaryType, 8));
-    CHECK_HDF5(H5Tset_strpad(boundaryType, H5T_STR_NULLPAD));
-    std::vector<hsize_t> boundaryDims = {3};
-    auto space = H5Screate_simple(int_c(boundaryDims.size()), boundaryDims.data(), nullptr);
-    auto att = H5Acreate(boxGroupId, "boundary", boundaryType, space, H5P_DEFAULT, H5P_DEFAULT);
-    CHECK_HDF5(H5Awrite(att, boundaryType, "periodicperiodicperiodic"));
-    CHECK_HDF5(H5Aclose(att));
-    CHECK_HDF5(H5Sclose(space));
-    CHECK_HDF5(H5Tclose(boundaryType));
-
-    CHECK_HDF5(H5Gclose(boxGroupId));
-    return boxGroupName;
-}
-
-void DumpH5MDParallelImpl::writeBoxStep(const hid_t& fileId, const std::string& boxGroupName, const data::Subdomain& subdomain) const
-{
-    std::string edgesGroupName = boxGroupName + "/edges";
-    auto edgesGroupId =
-        H5Gcreate(fileId, edgesGroupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-
-    std::vector<hsize_t> edgesStepDims = {1};
-    std::vector<int64_t> step = {0};
-
-    std::string stepDatasetName = edgesGroupName + "/step";
-    CHECK_HDF5(H5LTmake_dataset(edgesGroupId,
-                                stepDatasetName.c_str(),
-                                1,
-                                edgesStepDims.data(),
-                                typeToHDF5<int64_t>(),
-                                step.data()));
-    std::vector<hsize_t> edgesValueDims = {1, 3};
-    std::string valueDatasetName = edgesGroupName + "/value";
-    CHECK_HDF5(H5LTmake_dataset(edgesGroupId,
-                                valueDatasetName.c_str(),
-                                2,
-                                edgesValueDims.data(),
-                                typeToHDF5<double>(),
-                                subdomain.diameter.data()));
-
-    CHECK_HDF5(H5Gclose(edgesGroupId));
 }
 
 void DumpH5MDParallelImpl::writeBox(hid_t fileId, const data::Subdomain& subdomain) const
@@ -525,67 +590,6 @@ void DumpH5MDParallelImpl::updateCache(const data::HostAtoms& atoms)
 
     MPI_Exscan(&numLocalParticles, &particleOffset, 1, MPI_INT64_T, MPI_SUM, config_.mpiInfo->comm);
     if (config_.mpiInfo->rank == 0) particleOffset = 0;
-}
-
-std::vector<hid_t> DumpH5MDParallelImpl::open(const std::string& filename)
-{
-    MPI_Info info = MPI_INFO_NULL;
-
-    auto plist = CHECK_HDF5(H5Pcreate(H5P_FILE_ACCESS));
-    CHECK_HDF5(H5Pset_fapl_mpio(plist, config_.mpiInfo->comm, info));
-
-    auto file_id = CHECK_HDF5(H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist));
-
-    auto group1 =
-    CHECK_HDF5(H5Gcreate(file_id, "/particles", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
-    std::string particleGroup = "/particles/" + config_.particleGroupName;
-    auto group2 = CHECK_HDF5(
-    H5Gcreate(file_id, particleGroup.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
-
-    writeHeader(file_id);
-
-    return {file_id, group1, group2};
-}
-
-hid_t DumpH5MDParallelImpl::openGroup(const hid_t& fileId, const std::string& groupName) const
-{
-    auto groupId =
-        CHECK_HDF5(H5Gcreate(fileId, groupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
-    return groupId;
-}
-
-void DumpH5MDParallelImpl::closeGroup(const hid_t& groupId) const
-{
-    CHECK_HDF5(H5Gclose(groupId));
-}
-
-void DumpH5MDParallelImpl::dumpStep(const hid_t& file_id,
-        const data::Subdomain& subdomain,
-        const data::Atoms& atoms,
-        const idx_t /*step*/,
-        const real_t /*dt*/)
-{
-    data::HostAtoms h_atoms(atoms);  // NOLINT
-
-    updateCache(h_atoms);
-
-    auto boxGroupName = openBox(file_id);
-    writeBoxStep(file_id, boxGroupName, subdomain);
-    if (config_.dumpPos) writePos(file_id, h_atoms);
-    if (config_.dumpVel) writeVel(file_id, h_atoms);
-    if (config_.dumpForce) writeForce(file_id, h_atoms);
-    if (config_.dumpType) writeType(file_id, h_atoms);
-    if (config_.dumpMass) writeMass(file_id, h_atoms);
-    if (config_.dumpCharge) writeCharge(file_id, h_atoms);
-    if (config_.dumpRelativeMass) writeRelativeMass(file_id, h_atoms);
-}
-
-void DumpH5MDParallelImpl::close(const hid_t& file_id, const hid_t& group1, const hid_t& group2)
-{
-    CHECK_HDF5(H5Gclose(group1));
-    CHECK_HDF5(H5Gclose(group2));
-
-    CHECK_HDF5(H5Fclose(file_id));
 }
 
 void DumpH5MDParallelImpl::dump(const std::string& filename,
