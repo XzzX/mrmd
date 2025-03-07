@@ -75,6 +75,7 @@ public:
     hid_t edgesGroupId;
     hid_t stepSetId;
     hid_t timeSetId;
+    hid_t boxValueSetId;
 
     hsize_t saveCount = 0;
 };

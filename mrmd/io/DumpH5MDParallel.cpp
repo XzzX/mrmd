@@ -58,13 +58,18 @@ private:
     void closeGroup(const hid_t& groupId) const;
     void openBox() const;
     hid_t createChunkedDataset(const hid_t& groupId, const hsize_t dims[], const hsize_t& ndims, const std::string& name, const hid_t& dtype) const;
-    void createStepDataset() const;
-    void createTimeDataset() const;
-
     void closeDataset(const hid_t& datasetId) const;
 
     void writeStep(const idx_t& step) const;
     void writeTime(const real_t& time) const;
+    template <typename T>
+    void appendData(const hid_t datasetId,
+        const std::vector<T>& data) const;
+    template <typename T>
+    void appendParallel(const hid_t datasetId,
+        const std::vector<hsize_t>& globalDims,
+        const std::vector<hsize_t>& localDims,
+        const std::vector<T>& data);
 
     void updateCache(const data::HostAtoms& atoms);
 
@@ -135,6 +140,7 @@ void DumpH5MDParallelImpl::closeGroup(const hid_t& groupId) const
 
 void DumpH5MDParallelImpl::close() const
 {
+    closeDataset(config_.boxValueSetId);
     closeDataset(config_.timeSetId);
     closeDataset(config_.stepSetId);
     closeGroup(config_.edgesGroupId);
@@ -166,9 +172,12 @@ void DumpH5MDParallelImpl::openBox() const
     config_.edgesGroupId = createGroup(config_.boxGroupId, "edges");
     
     std::vector<hsize_t> stepDims = {1};
-    config_.stepSetId = createChunkedDataset(config_.edgesGroupId, stepDims.data(), stepDims.size(), "step", H5T_NATIVE_INT64);
     std::vector<hsize_t> timeDims = {1};
+    std::vector<hsize_t> boxValueDims = {3};
+
+    config_.stepSetId = createChunkedDataset(config_.edgesGroupId, stepDims.data(), stepDims.size(), "step", H5T_NATIVE_INT64);
     config_.timeSetId = createChunkedDataset(config_.edgesGroupId, timeDims.data(), timeDims.size(), "time", H5T_NATIVE_DOUBLE);
+    config_.boxValueSetId = createChunkedDataset(config_.edgesGroupId, boxValueDims.data(), boxValueDims.size(), "value", H5T_NATIVE_DOUBLE);
 }
 
 hid_t DumpH5MDParallelImpl::createChunkedDataset(const hid_t& groupId, const hsize_t dims[], const hsize_t& ndims, const std::string& name, const hid_t& dtype) const
@@ -205,56 +214,81 @@ void DumpH5MDParallelImpl::dumpStep(
 
     updateCache(h_atoms);
 
-    writeStep(step);
-    writeTime(real_c(step) * dt);
+    appendData(config_.stepSetId, std::vector<idx_t>{step});
+    appendData(config_.timeSetId, std::vector<real_t>{real_c(step) * dt});
+    appendData(config_.boxValueSetId, std::vector<real_t>{subdomain.diameter[0], subdomain.diameter[1], subdomain.diameter[2]});
     config_.saveCount += 1;
 }
 
-void DumpH5MDParallelImpl::writeStep(const idx_t& step) const
+template <typename T>
+void DumpH5MDParallelImpl::appendData(const hid_t datasetId, const std::vector<T>& data) const
 {
-    const hsize_t stepNumDims = 1;
-    const hsize_t stepDimsAppend = 1;
+    const hsize_t rank = 2;
+    const std::vector<hsize_t> dims = {1, data.size()};
 
-    const hid_t mem_space = H5Screate_simple(stepNumDims, &stepDimsAppend, NULL);
+    const hid_t mem_space = H5Screate_simple(rank, dims.data(), NULL);
 
-    const hsize_t newSize = config_.saveCount + 1; 
-    H5Dset_extent(config_.stepSetId, &newSize);
+    const std::vector<hsize_t> newSize = {config_.saveCount + 1, data.size()}; 
+    H5Dset_extent(datasetId, newSize.data());
 
-    const auto file_space = H5Dget_space(config_.stepSetId);
+    const auto file_space = H5Dget_space(datasetId);
     
-    const hsize_t start = config_.saveCount;
-    const hsize_t count = 1;
-    H5Sselect_hyperslab(file_space, H5S_SELECT_SET, &start, NULL, &count, NULL);
+    const std::vector<hsize_t> start = {config_.saveCount, data.size()};
+    const std::vector<hsize_t> count = {1, data.size()};
+    H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start.data(), NULL, count.data(), NULL);
 
-    H5Dwrite(config_.stepSetId, H5T_NATIVE_INT64, mem_space, file_space, H5P_DEFAULT, &step);
+    H5Dwrite(datasetId, typeToHDF5<T>(), mem_space, file_space, H5P_DEFAULT, data.data());
     
     H5Sclose(file_space);
     H5Sclose(mem_space);
 }
 
-void DumpH5MDParallelImpl::writeTime(const real_t& time) const
+template <typename T>
+void DumpH5MDParallelImpl::appendParallel(const hid_t datasetId,
+                                          const std::vector<hsize_t>& globalDims,
+                                          const std::vector<hsize_t>& localDims,
+                                          const std::vector<T>& data)
 {
-    const hsize_t stepNumDims = 1;
-    const hsize_t stepDimsAppend = 1;
+    MRMD_HOST_CHECK_EQUAL(globalDims.size(), localDims.size());
+    MRMD_HOST_CHECK_EQUAL(
+        data.size(),
+        std::accumulate(localDims.begin(), localDims.end(), hsize_t(1), std::multiplies<>()));
 
-    const hid_t mem_space = H5Screate_simple(stepNumDims, &stepDimsAppend, NULL);
+    auto dataSpace =
+        CHECK_HDF5(H5Screate_simple(int_c(globalDims.size()), globalDims.data(), NULL));
 
-    const hsize_t newSize = config_.saveCount + 1; 
-    H5Dset_extent(config_.timeSetId, &newSize);
+    std::vector<hsize_t> offset(globalDims.size(), 0);
+    offset[1] = particleOffset;
+    std::vector<hsize_t> stride(globalDims.size(), 1);
+    std::vector<hsize_t> count(globalDims.size(), 1);
+    for (auto i = 0; i < int_c(globalDims.size()); ++i)
+    {
+        MRMD_HOST_CHECK_LESSEQUAL(
+            localDims[i] + offset[i], globalDims[i], fmt::format("i = {}", i));
+    }
+    auto dstSpace = CHECK_HDF5(H5Dget_space(datasetId));
+    CHECK_HDF5(H5Sselect_hyperslab(
+        dstSpace, H5S_SELECT_SET, offset.data(), stride.data(), count.data(), localDims.data()));
 
-    const auto file_space = H5Dget_space(config_.timeSetId);
-    
-    const hsize_t start = config_.saveCount;
-    const hsize_t count = 1;
-    H5Sselect_hyperslab(file_space, H5S_SELECT_SET, &start, NULL, &count, NULL);
+    std::vector<hsize_t> localOffset(globalDims.size(), 0);
+    auto srcSpace =
+        CHECK_HDF5(H5Screate_simple(int_c(localDims.size()), localDims.data(), NULL));
+    CHECK_HDF5(H5Sselect_hyperslab(srcSpace,
+                                    H5S_SELECT_SET,
+                                    localOffset.data(),
+                                    stride.data(),
+                                    count.data(),
+                                    localDims.data()));
 
-    H5Dwrite(config_.timeSetId, H5T_NATIVE_DOUBLE, mem_space, file_space, H5P_DEFAULT, &time);
-    
-    H5Sclose(file_space);
-    H5Sclose(mem_space);
+    auto dataPropertyList = CHECK_HDF5(H5Pcreate(H5P_DATASET_XFER));
+    CHECK_HDF5(H5Pset_dxpl_mpio(dataPropertyList, H5FD_MPIO_COLLECTIVE));
+    CHECK_HDF5(H5Dwrite(datasetId, typeToHDF5<T>(), srcSpace, dstSpace, dataPropertyList, data.data()));
+
+    CHECK_HDF5(H5Pclose(dataPropertyList));
+    CHECK_HDF5(H5Sclose(dstSpace));
+    CHECK_HDF5(H5Sclose(srcSpace));
+    CHECK_HDF5(H5Sclose(dataSpace));
 }
-
-
 
 
 
