@@ -57,6 +57,7 @@ private:
     hid_t createGroup(const hid_t& parentElementId, const std::string& groupName) const;
     void closeGroup(const hid_t& groupId) const;
     void openBox() const;
+    hid_t createChunkedDataset(const hid_t& groupId, const hsize_t dims[], const hsize_t& ndims, const std::string& name, const hid_t& dtype) const;
     void createStepDataset() const;
     void createTimeDataset() const;
 
@@ -164,46 +165,29 @@ void DumpH5MDParallelImpl::openBox() const
 
     config_.edgesGroupId = createGroup(config_.boxGroupId, "edges");
     
-    createStepDataset();
-    createTimeDataset();
+    std::vector<hsize_t> stepDims = {1};
+    config_.stepSetId = createChunkedDataset(config_.edgesGroupId, stepDims.data(), stepDims.size(), "step", H5T_NATIVE_INT64);
+    std::vector<hsize_t> timeDims = {1};
+    config_.timeSetId = createChunkedDataset(config_.edgesGroupId, timeDims.data(), timeDims.size(), "time", H5T_NATIVE_DOUBLE);
 }
 
-void DumpH5MDParallelImpl::createStepDataset() const
+hid_t DumpH5MDParallelImpl::createChunkedDataset(const hid_t& groupId, const hsize_t dims[], const hsize_t& ndims, const std::string& name, const hid_t& dtype) const
 {
-    const hsize_t ndims = 1; 
-    const hsize_t dims[ndims] = {1};
-    const hsize_t max_dims[ndims] = {H5S_UNLIMITED};
-    hid_t file_space = H5Screate_simple(ndims, dims, max_dims);
+    const std::vector<hsize_t> max_dims = {H5S_UNLIMITED};
+    hid_t file_space = H5Screate_simple(ndims, dims, max_dims.data());
 
     hid_t plist = H5Pcreate(H5P_DATASET_CREATE);
     H5Pset_layout(plist, H5D_CHUNKED);
 
-    hsize_t chunk_dims[ndims] = {1};
-    H5Pset_chunk(plist, ndims, chunk_dims);
-    
-    config_.stepSetId = H5Dcreate(config_.edgesGroupId, "step", H5T_NATIVE_INT64, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
+    const std::vector<hsize_t> chunk_dims = {1};
+    H5Pset_chunk(plist, ndims, chunk_dims.data());
+
+    auto datasetId = H5Dcreate(groupId, name.c_str(), dtype, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
 
     H5Pclose(plist);
     H5Sclose(file_space);
-}
 
-void DumpH5MDParallelImpl::createTimeDataset() const
-{
-    const hsize_t ndims = 1; 
-    const hsize_t dims[ndims] = {1};
-    const hsize_t max_dims[ndims] = {H5S_UNLIMITED};
-    hid_t file_space = H5Screate_simple(ndims, dims, max_dims);
-
-    hid_t plist = H5Pcreate(H5P_DATASET_CREATE);
-    H5Pset_layout(plist, H5D_CHUNKED);
-
-    hsize_t chunk_dims[ndims] = {1};
-    H5Pset_chunk(plist, ndims, chunk_dims);
-    
-    config_.timeSetId = H5Dcreate(config_.edgesGroupId, "time", H5T_NATIVE_DOUBLE, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
-
-    H5Pclose(plist);
-    H5Sclose(file_space);
+    return datasetId;
 }
 
 void DumpH5MDParallelImpl::closeDataset(const hid_t& datasetId) const
