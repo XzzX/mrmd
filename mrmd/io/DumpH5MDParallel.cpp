@@ -57,7 +57,7 @@ private:
     hid_t createGroup(const hid_t& parentElementId, const std::string& groupName) const;
     void closeGroup(const hid_t& groupId) const;
     void openBox() const;
-    void writeStep(const hid_t& stepSetId, const idx_t& step) const;
+    void writeStep(const idx_t& step) const;
     hid_t createStepDataset(const hid_t& groupId, const hsize_t* dims, const hsize_t& ndims) const;
     void closeDataset(const hid_t& datasetId) const;
 
@@ -138,7 +138,7 @@ void DumpH5MDParallelImpl::dumpStep(
 
     updateCache(h_atoms);
 
-    writeStep(config_.stepSetId, step);
+    writeStep(step);
 }
 
 void DumpH5MDParallelImpl::close() const
@@ -204,25 +204,26 @@ void DumpH5MDParallelImpl::closeDataset(const hid_t& datasetId) const
     H5Dclose(datasetId);
 }
 
-void DumpH5MDParallelImpl::writeStep(const hid_t& stepSetId, const idx_t& step) const
+void DumpH5MDParallelImpl::writeStep(const idx_t& step) const
 {
     const hsize_t stepNumDims = 1;
-    const hsize_t stepDimsAppend[stepNumDims] = {1};
+    const hsize_t stepDimsAppend = 1;
 
-    const hid_t mem_space = H5Screate_simple(stepNumDims, stepDimsAppend, NULL);
+    const hid_t mem_space = H5Screate_simple(stepNumDims, &stepDimsAppend, NULL);
 
-    const hsize_t newSize = step + 1; 
-    H5Dset_extent(stepSetId, &newSize);
+    const hsize_t newSize = config_.saveCount + 1; 
+    H5Dset_extent(config_.stepSetId, &newSize);
 
-    const auto file_space = H5Dget_space(stepSetId);
+    const auto file_space = H5Dget_space(config_.stepSetId);
     
-    const hsize_t start = step;
-    const hsize_t count = step + 1;
+    const hsize_t start = config_.saveCount;
+    const hsize_t count = 1;
     H5Sselect_hyperslab(file_space, H5S_SELECT_SET, &start, NULL, &count, NULL);
 
-    const hsize_t writeStep = 1;
-    H5Dwrite(stepSetId, H5T_NATIVE_INT64, mem_space, file_space, H5P_DEFAULT, &writeStep);
+    H5Dwrite(config_.stepSetId, H5T_NATIVE_INT64, mem_space, file_space, H5P_DEFAULT, &step);
     
+    config_.saveCount += 1;
+
     H5Sclose(file_space);
     H5Sclose(mem_space);
 }

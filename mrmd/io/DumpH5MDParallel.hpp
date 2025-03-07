@@ -75,6 +75,6 @@ public:
     hid_t edgesGroupId;
     hid_t stepSetId;
 
-    hsize_t saveStep = 0;
+    hsize_t saveCount = 0;
 };
 }  // namespace mrmd::io
