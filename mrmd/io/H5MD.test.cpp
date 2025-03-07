@@ -124,6 +124,7 @@ TEST(H5MD, dumpMultipleSteps)
 
     auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
     auto atoms1 = getAtoms(mpiInfo);
+    real_t dt = 0.002_r;
 
     auto dump = DumpH5MDParallel(mpiInfo, "XzzX");
 
@@ -131,7 +132,7 @@ TEST(H5MD, dumpMultipleSteps)
     
     for (idx_t step = 0; step < 10; ++step)
     {
-        dump.dumpStep(subdomain1, atoms1, step, 0_r);
+        dump.dumpStep(subdomain1, atoms1, step, dt);
     }
 
     dump.close();
