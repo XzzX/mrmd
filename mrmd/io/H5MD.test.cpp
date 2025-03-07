@@ -127,11 +127,9 @@ TEST(H5MD, dumpMultipleSteps)
 
     auto dump = DumpH5MDParallel(mpiInfo, "XzzX");
 
-    auto dump_ids = dump.open("dummyMultipleSteps.hdf5");
-
-    dump.dumpStep(dump_ids[0], subdomain1, atoms1, 0, 0_r);
-
-    dump.close(dump_ids[0], dump_ids[1], dump_ids[2]);
+    auto ids = dump.open("dummyMultipleSteps.hdf5");
+    dump.dumpStep(ids, subdomain1, atoms1, 0, 0_r);
+    dump.close(ids);
 }
 }  // namespace io
 }  // namespace mrmd

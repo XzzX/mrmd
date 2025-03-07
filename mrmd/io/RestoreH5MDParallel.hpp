@@ -30,8 +30,8 @@ class RestoreH5MDParallel
 {
 public:
     RestoreH5MDParallel(const std::shared_ptr<data::MPIInfo>& mpiInfo,
-                        const std::string& particleGroupName = "atoms")
-        : mpiInfo_(mpiInfo), particleGroupName_(particleGroupName)
+                        const std::string& particleSubGroupName = "atoms")
+        : mpiInfo_(mpiInfo), particleGroupName_(particleSubGroupName)
     {
     }
 

@@ -23,24 +23,36 @@
 
 namespace mrmd::io
 {
+struct Identifiers
+{
+public:
+    hid_t fileId;
+    hid_t particleGroupId;
+    hid_t particleSubGroupId;
+    hid_t boxGroupId;
+    hid_t edgesGroupId;
+    hid_t stepSetId;
+};
+
 class DumpH5MDParallel
 {
 public:
     DumpH5MDParallel(const std::shared_ptr<data::MPIInfo>& mpiInfoArg,
                      const std::string& authorArg,
-                     const std::string& particleGroupNameArg = "atoms")
-        : mpiInfo(mpiInfoArg), author(authorArg), particleGroupName(particleGroupNameArg)
+                     const std::string& particleSubGroupNameArg = "atoms")
+        : mpiInfo(mpiInfoArg), author(authorArg), particleSubGroupName(particleSubGroupNameArg)
     {
     }
-    std::vector<hid_t> open(const std::string& filename);
+    Identifiers open(const std::string& filename);
 
-    void dumpStep(const hid_t& file_id,
+    void dumpStep(
+        const Identifiers& ids,
         const data::Subdomain& subdomain,
         const data::Atoms& atoms,
         const idx_t step,
         const real_t dt);
 
-    void close(const hid_t& file_id, const hid_t& group1, const hid_t& group2);
+    void close(const Identifiers& ids);
 
     void dump(const std::string& filename,
               const data::Subdomain& subdomain,
@@ -65,7 +77,6 @@ public:
     std::shared_ptr<data::MPIInfo> mpiInfo;
 
     std::string author = "xxx";
-    std::string particleGroupName = "atoms";
+    std::string particleSubGroupName = "atoms";
 };
-
 }  // namespace mrmd::io
