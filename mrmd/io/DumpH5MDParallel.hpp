@@ -23,16 +23,6 @@
 
 namespace mrmd::io
 {
-struct Identifiers
-{
-public:
-    hid_t fileId;
-    hid_t particleGroupId;
-    hid_t particleSubGroupId;
-    hid_t boxGroupId;
-    hid_t edgesGroupId;
-    hid_t stepSetId;
-};
 
 class DumpH5MDParallel
 {
@@ -43,16 +33,15 @@ public:
         : mpiInfo(mpiInfoArg), author(authorArg), particleSubGroupName(particleSubGroupNameArg)
     {
     }
-    Identifiers open(const std::string& filename);
+    void open(const std::string& filename);
 
     void dumpStep(
-        const Identifiers& ids,
         const data::Subdomain& subdomain,
         const data::Atoms& atoms,
         const idx_t step,
         const real_t dt);
 
-    void close(const Identifiers& ids);
+    void close();
 
     void dump(const std::string& filename,
               const data::Subdomain& subdomain,
@@ -78,5 +67,14 @@ public:
 
     std::string author = "xxx";
     std::string particleSubGroupName = "atoms";
+
+    hid_t fileId;
+    hid_t particleGroupId;
+    hid_t particleSubGroupId;
+    hid_t boxGroupId;
+    hid_t edgesGroupId;
+    hid_t stepSetId;
+
+    hsize_t saveStep = 0;
 };
 }  // namespace mrmd::io

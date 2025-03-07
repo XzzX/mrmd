@@ -127,14 +127,14 @@ TEST(H5MD, dumpMultipleSteps)
 
     auto dump = DumpH5MDParallel(mpiInfo, "XzzX");
 
-    auto ids = dump.open("dummyMultipleSteps.hdf5");
+    dump.open("dummyMultipleSteps.hdf5");
     
     for (idx_t step = 0; step < 10; ++step)
     {
-        dump.dumpStep(ids, subdomain1, atoms1, step, 0_r);
+        dump.dumpStep(subdomain1, atoms1, step, 0_r);
     }
-    
-    dump.close(ids);
+
+    dump.close();
 }
 }  // namespace io
 }  // namespace mrmd
