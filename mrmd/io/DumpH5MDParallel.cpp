@@ -279,13 +279,12 @@ hid_t DumpH5MDParallelImpl::createChunkedDataset(const hid_t& groupId,
 {
     std::vector<hsize_t> max_dims = dims;
     max_dims[0] = H5S_UNLIMITED;
-    hid_t fileSpace = H5Screate_simple(dims.size(), dims.data(), max_dims.data());
+    hid_t fileSpace = H5Screate_simple(int_c(dims.size()), dims.data(), max_dims.data());
 
     hid_t plist = H5Pcreate(H5P_DATASET_CREATE);
     H5Pset_layout(plist, H5D_CHUNKED);
 
-    const std::vector<hsize_t> chunk_dims = dims;
-    H5Pset_chunk(plist, dims.size(), chunk_dims.data());
+    H5Pset_chunk(plist, int_c(dims.size()), dims.data());
 
     auto datasetId =
         H5Dcreate(groupId, name.c_str(), dtype, fileSpace, H5P_DEFAULT, plist, H5P_DEFAULT);
@@ -500,7 +499,7 @@ void DumpH5MDParallelImpl::appendDataParallel(const hid_t datasetId,
         fileSpace, H5S_SELECT_SET, offset.data(), stride.data(), count.data(), dims.data()));
 
     std::vector<hsize_t> localOffset(dims.size(), 0);
-    const hid_t memorySpace = H5Screate_simple(dims.size(), dims.data(), nullptr);
+    const hid_t memorySpace = H5Screate_simple(int_c(dims.size()), dims.data(), nullptr);
     CHECK_HDF5(H5Sselect_hyperslab(
         memorySpace, H5S_SELECT_SET, localOffset.data(), stride.data(), count.data(), dims.data()));
 
@@ -519,7 +518,7 @@ void DumpH5MDParallelImpl::appendData(const hid_t datasetId,
                                       const std::vector<T>& data,
                                       const std::vector<hsize_t>& dims) const
 {
-    const hid_t memorySpace = H5Screate_simple(dims.size(), dims.data(), nullptr);
+    const hid_t memorySpace = H5Screate_simple(int_c(dims.size()), dims.data(), nullptr);
 
     std::vector<hsize_t> newSize = dims;
     newSize[0] = config_.saveCount + 1;
