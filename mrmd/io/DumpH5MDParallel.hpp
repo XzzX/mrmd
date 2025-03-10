@@ -37,8 +37,8 @@ public:
 
     void dumpStep(const data::Subdomain& subdomain,
                   const data::Atoms& atoms,
-                  const idx_t step,
-                  const real_t dt);
+                  const idx_t& step,
+                  const real_t& dt);
 
     void close();
 

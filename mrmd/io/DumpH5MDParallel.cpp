@@ -980,8 +980,8 @@ void DumpH5MDParallel::open(const std::string& filename, const data::Atoms& atom
 
 void DumpH5MDParallel::dumpStep(const data::Subdomain& subdomain,
                                 const data::Atoms& atoms,
-                                const idx_t step,
-                                const real_t dt)
+                                const idx_t& step,
+                                const real_t& dt)
 {
     impl::DumpH5MDParallelImpl helper(*this);
     helper.dumpStep(subdomain, atoms, step, dt);
@@ -1001,7 +1001,7 @@ void DumpH5MDParallel::dump(const std::string& filename,
     helper.dump(filename, subdomain, atoms);
 }
 #else
-void DumpH5MDParallel::open(const std::string& /*filename*/)
+void DumpH5MDParallel::open(const std::string& /*filename*/, const data::Atoms& /*atoms*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 Support not available!");
     exit(EXIT_FAILURE);
@@ -1012,9 +1012,10 @@ void DumpH5MDParallel::close(const hid_t& /*file_id*/);
     MRMD_HOST_CHECK(false, "HDF5 Support not available!");
     exit(EXIT_FAILURE);
 }
-void DumpH5MDParallel::dumpStep(const hid_t& /*file_id*/,
-                                const data::Subdomain& /*subdomain*/,
-                                const data::Atoms& /*atoms*/)
+void DumpH5MDParallel::dumpStep(const data::Subdomain& /*subdomain*/,
+                                const data::Atoms& /*atoms*/,
+                                const idx_t& /*step*/,
+                                const real_t& /*dt*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 Support not available!");
     exit(EXIT_FAILURE);
