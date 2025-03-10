@@ -500,7 +500,7 @@ void DumpH5MDParallelImpl::appendDataParallel(const hid_t datasetId,
         fileSpace, H5S_SELECT_SET, offset.data(), stride.data(), count.data(), dims.data()));
 
     std::vector<hsize_t> localOffset(dims.size(), 0);
-    const hid_t memorySpace = H5Screate_simple(dims.size(), dims.data(), NULL);
+    const hid_t memorySpace = H5Screate_simple(dims.size(), dims.data(), nullptr);
     CHECK_HDF5(H5Sselect_hyperslab(
         memorySpace, H5S_SELECT_SET, localOffset.data(), stride.data(), count.data(), dims.data()));
 
@@ -519,7 +519,7 @@ void DumpH5MDParallelImpl::appendData(const hid_t datasetId,
                                       const std::vector<T>& data,
                                       const std::vector<hsize_t>& dims) const
 {
-    const hid_t memorySpace = H5Screate_simple(dims.size(), dims.data(), NULL);
+    const hid_t memorySpace = H5Screate_simple(dims.size(), dims.data(), nullptr);
 
     std::vector<hsize_t> newSize = dims;
     newSize[0] = config_.saveCount + 1;
@@ -531,7 +531,7 @@ void DumpH5MDParallelImpl::appendData(const hid_t datasetId,
     start[0] = config_.saveCount;
     std::vector<hsize_t> count = dims;
     count[0] = 1;
-    H5Sselect_hyperslab(fileSpace, H5S_SELECT_SET, start.data(), NULL, count.data(), NULL);
+    H5Sselect_hyperslab(fileSpace, H5S_SELECT_SET, start.data(), nullptr, count.data(), nullptr);
 
     H5Dwrite(datasetId, typeToHDF5<T>(), memorySpace, fileSpace, H5P_DEFAULT, data.data());
 
