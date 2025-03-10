@@ -40,36 +40,44 @@ public:
     explicit DumpH5MDParallelImpl(DumpH5MDParallel& config) : config_(config) {}
 
     void open(const std::string& filename, const data::Atoms& atoms);
-    void dumpStep(
-        const data::Subdomain& subdomain,
-        const data::Atoms& atoms,
-        const idx_t step,
-        const real_t dt);
-        void close() const;
+    void dumpStep(const data::Subdomain& subdomain,
+                  const data::Atoms& atoms,
+                  const idx_t step,
+                  const real_t dt);
+    void close() const;
 
     void dump(const std::string& filename,
-        const data::Subdomain& subdomain,
-        const data::Atoms& atoms);
+              const data::Subdomain& subdomain,
+              const data::Atoms& atoms);
 
 private:
     hid_t createFile(const std::string& filename, const hid_t& propertyList) const;
-    void closeFile(const hid_t& fileId) const; 
+    void closeFile(const hid_t& fileId) const;
     hid_t createGroup(const hid_t& parentElementId, const std::string& groupName) const;
     void closeGroup(const hid_t& groupId) const;
     void openBox() const;
-    hid_t createChunkedDataset(const hid_t& groupId, const std::vector<hsize_t>& dims, const std::string& name, const hid_t& dtype) const;
+    hid_t createChunkedDataset(const hid_t& groupId,
+                               const std::vector<hsize_t>& dims,
+                               const std::string& name,
+                               const hid_t& dtype) const;
     void closeDataset(const hid_t& datasetId) const;
 
     template <typename T>
-    void appendData(const hid_t datasetId, const std::vector<T>& data, const std::vector<hsize_t>& dims) const;
+    void appendData(const hid_t datasetId,
+                    const std::vector<T>& data,
+                    const std::vector<hsize_t>& dims) const;
     template <typename T>
-    void appendDataParallel(const hid_t datasetId, const std::vector<T>& data, const std::vector<hsize_t>& dims) const;
+    void appendDataParallel(const hid_t datasetId,
+                            const std::vector<T>& data,
+                            const std::vector<hsize_t>& dims) const;
     void appendEdges(const idx_t& step, const real_t& dt, const data::Subdomain& subdomain) const;
     void appendCharges(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
     void appendForces(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
     void appendMasses(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
     void appendPositions(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
-    void appendRelativeMasses(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
+    void appendRelativeMasses(const idx_t& step,
+                              const real_t& dt,
+                              const data::HostAtoms& atoms) const;
     void appendTypes(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
     void appendVelocities(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
 
@@ -87,10 +95,10 @@ private:
 
     template <typename T>
     void writeParallel(hid_t fileId,
-        const std::string& name,
-        const std::vector<hsize_t>& globalDims,
-        const std::vector<hsize_t>& localDims,
-        const std::vector<T>& data);
+                       const std::string& name,
+                       const std::vector<hsize_t>& globalDims,
+                       const std::vector<hsize_t>& localDims,
+                       const std::vector<T>& data);
 
     DumpH5MDParallel& config_;
 
@@ -117,39 +125,64 @@ void DumpH5MDParallelImpl::open(const std::string& filename, const data::Atoms& 
     openBox();
 
     config_.chargesGroupId = createGroup(config_.particleSubGroupId, "charge");
-    config_.chargesStepSetId = createChunkedDataset(config_.chargesGroupId, std::vector<hsize_t> {1}, "step", H5T_NATIVE_INT64);
-    config_.chargesTimeSetId = createChunkedDataset(config_.chargesGroupId, std::vector<hsize_t> {1}, "time", H5T_NATIVE_DOUBLE);
-    config_.chargesValueSetId = createChunkedDataset(config_.chargesGroupId, std::vector<hsize_t> {1, atoms.size(), 1}, "value", H5T_NATIVE_DOUBLE);
+    config_.chargesStepSetId = createChunkedDataset(
+        config_.chargesGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
+    config_.chargesTimeSetId = createChunkedDataset(
+        config_.chargesGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
+    config_.chargesValueSetId = createChunkedDataset(config_.chargesGroupId,
+                                                     std::vector<hsize_t>{1, atoms.size(), 1},
+                                                     "value",
+                                                     H5T_NATIVE_DOUBLE);
 
     config_.forceGroupId = createGroup(config_.particleSubGroupId, "force");
-    config_.forceStepSetId = createChunkedDataset(config_.forceGroupId, std::vector<hsize_t> {1}, "step", H5T_NATIVE_INT64);
-    config_.forceTimeSetId = createChunkedDataset(config_.forceGroupId, std::vector<hsize_t> {1}, "time", H5T_NATIVE_DOUBLE);
-    config_.forceValueSetId = createChunkedDataset(config_.forceGroupId, std::vector<hsize_t> {1, atoms.size(), 3}, "value", H5T_NATIVE_DOUBLE);
-    
+    config_.forceStepSetId = createChunkedDataset(
+        config_.forceGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
+    config_.forceTimeSetId = createChunkedDataset(
+        config_.forceGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
+    config_.forceValueSetId = createChunkedDataset(
+        config_.forceGroupId, std::vector<hsize_t>{1, atoms.size(), 3}, "value", H5T_NATIVE_DOUBLE);
+
     config_.massGroupId = createGroup(config_.particleSubGroupId, "mass");
-    config_.massStepSetId = createChunkedDataset(config_.massGroupId, std::vector<hsize_t> {1}, "step", H5T_NATIVE_INT64);
-    config_.massTimeSetId = createChunkedDataset(config_.massGroupId, std::vector<hsize_t> {1}, "time", H5T_NATIVE_DOUBLE);
-    config_.massValueSetId = createChunkedDataset(config_.massGroupId, std::vector<hsize_t> {1, atoms.size(), 1}, "value", H5T_NATIVE_DOUBLE);
+    config_.massStepSetId = createChunkedDataset(
+        config_.massGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
+    config_.massTimeSetId = createChunkedDataset(
+        config_.massGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
+    config_.massValueSetId = createChunkedDataset(
+        config_.massGroupId, std::vector<hsize_t>{1, atoms.size(), 1}, "value", H5T_NATIVE_DOUBLE);
 
     config_.posGroupId = createGroup(config_.particleSubGroupId, "position");
-    config_.posStepSetId = createChunkedDataset(config_.posGroupId, std::vector<hsize_t> {1}, "step", H5T_NATIVE_INT64);
-    config_.posTimeSetId = createChunkedDataset(config_.posGroupId, std::vector<hsize_t> {1}, "time", H5T_NATIVE_DOUBLE);
-    config_.posValueSetId = createChunkedDataset(config_.posGroupId, std::vector<hsize_t> {1, atoms.size(), 3}, "value", H5T_NATIVE_DOUBLE);
+    config_.posStepSetId =
+        createChunkedDataset(config_.posGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
+    config_.posTimeSetId = createChunkedDataset(
+        config_.posGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
+    config_.posValueSetId = createChunkedDataset(
+        config_.posGroupId, std::vector<hsize_t>{1, atoms.size(), 3}, "value", H5T_NATIVE_DOUBLE);
 
     config_.relativeMassGroupId = createGroup(config_.particleSubGroupId, "relativeMass");
-    config_.relativeMassStepSetId = createChunkedDataset(config_.relativeMassGroupId, std::vector<hsize_t> {1}, "step", H5T_NATIVE_INT64);
-    config_.relativeMassTimeSetId = createChunkedDataset(config_.relativeMassGroupId, std::vector<hsize_t> {1}, "time", H5T_NATIVE_DOUBLE);
-    config_.relativeMassValueSetId = createChunkedDataset(config_.relativeMassGroupId, std::vector<hsize_t> {1, atoms.size(), 1}, "value", H5T_NATIVE_DOUBLE);
+    config_.relativeMassStepSetId = createChunkedDataset(
+        config_.relativeMassGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
+    config_.relativeMassTimeSetId = createChunkedDataset(
+        config_.relativeMassGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
+    config_.relativeMassValueSetId = createChunkedDataset(config_.relativeMassGroupId,
+                                                          std::vector<hsize_t>{1, atoms.size(), 1},
+                                                          "value",
+                                                          H5T_NATIVE_DOUBLE);
 
     config_.typeGroupId = createGroup(config_.particleSubGroupId, "type");
-    config_.typeStepSetId = createChunkedDataset(config_.typeGroupId, std::vector<hsize_t> {1}, "step", H5T_NATIVE_INT64);
-    config_.typeTimeSetId = createChunkedDataset(config_.typeGroupId, std::vector<hsize_t> {1}, "time", H5T_NATIVE_DOUBLE);
-    config_.typeValueSetId = createChunkedDataset(config_.typeGroupId, std::vector<hsize_t> {1, atoms.size(), 1}, "value", H5T_NATIVE_INT64);
+    config_.typeStepSetId = createChunkedDataset(
+        config_.typeGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
+    config_.typeTimeSetId = createChunkedDataset(
+        config_.typeGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
+    config_.typeValueSetId = createChunkedDataset(
+        config_.typeGroupId, std::vector<hsize_t>{1, atoms.size(), 1}, "value", H5T_NATIVE_INT64);
 
     config_.velGroupId = createGroup(config_.particleSubGroupId, "velocity");
-    config_.velStepSetId = createChunkedDataset(config_.velGroupId, std::vector<hsize_t> {1}, "step", H5T_NATIVE_INT64);
-    config_.velTimeSetId = createChunkedDataset(config_.velGroupId, std::vector<hsize_t> {1}, "time", H5T_NATIVE_DOUBLE);
-    config_.velValueSetId = createChunkedDataset(config_.velGroupId, std::vector<hsize_t> {1, atoms.size(), 3}, "value", H5T_NATIVE_DOUBLE);
+    config_.velStepSetId =
+        createChunkedDataset(config_.velGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
+    config_.velTimeSetId = createChunkedDataset(
+        config_.velGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
+    config_.velValueSetId = createChunkedDataset(
+        config_.velGroupId, std::vector<hsize_t>{1, atoms.size(), 3}, "value", H5T_NATIVE_DOUBLE);
 }
 
 hid_t DumpH5MDParallelImpl::createFile(const std::string& filename, const hid_t& propertyList) const
@@ -158,22 +191,17 @@ hid_t DumpH5MDParallelImpl::createFile(const std::string& filename, const hid_t&
     return fileId;
 }
 
-void DumpH5MDParallelImpl::closeFile(const hid_t& fileId) const
-{
-    CHECK_HDF5(H5Fclose(fileId));
-}
+void DumpH5MDParallelImpl::closeFile(const hid_t& fileId) const { CHECK_HDF5(H5Fclose(fileId)); }
 
-hid_t DumpH5MDParallelImpl::createGroup(const hid_t& parentElementId, const std::string& groupName) const
+hid_t DumpH5MDParallelImpl::createGroup(const hid_t& parentElementId,
+                                        const std::string& groupName) const
 {
-    auto groupId =
-        CHECK_HDF5(H5Gcreate(parentElementId, groupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+    auto groupId = CHECK_HDF5(
+        H5Gcreate(parentElementId, groupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
     return groupId;
 }
 
-void DumpH5MDParallelImpl::closeGroup(const hid_t& groupId) const
-{
-    CHECK_HDF5(H5Gclose(groupId));
-}
+void DumpH5MDParallelImpl::closeGroup(const hid_t& groupId) const { CHECK_HDF5(H5Gclose(groupId)); }
 
 void DumpH5MDParallelImpl::close() const
 {
@@ -216,31 +244,38 @@ void DumpH5MDParallelImpl::close() const
 }
 
 void DumpH5MDParallelImpl::openBox() const
-{   
-    config_.boxGroupId = createGroup(config_.particleSubGroupId, "box"); 
+{
+    config_.boxGroupId = createGroup(config_.particleSubGroupId, "box");
 
     std::vector<int> dims = {3};
-    CHECK_HDF5(
-        H5LTset_attribute_int(config_.particleSubGroupId, "box", "dimension", dims.data(), dims.size()));
+    CHECK_HDF5(H5LTset_attribute_int(
+        config_.particleSubGroupId, "box", "dimension", dims.data(), dims.size()));
 
     auto boundaryType = H5Tcopy(H5T_C_S1);
     CHECK_HDF5(H5Tset_size(boundaryType, 8));
     CHECK_HDF5(H5Tset_strpad(boundaryType, H5T_STR_NULLPAD));
     std::vector<hsize_t> boundaryDims = {3};
     auto space = H5Screate_simple(int_c(boundaryDims.size()), boundaryDims.data(), nullptr);
-    auto att = H5Acreate(config_.boxGroupId, "boundary", boundaryType, space, H5P_DEFAULT, H5P_DEFAULT);
+    auto att =
+        H5Acreate(config_.boxGroupId, "boundary", boundaryType, space, H5P_DEFAULT, H5P_DEFAULT);
     CHECK_HDF5(H5Awrite(att, boundaryType, "periodicperiodicperiodic"));
     CHECK_HDF5(H5Aclose(att));
     CHECK_HDF5(H5Sclose(space));
     CHECK_HDF5(H5Tclose(boundaryType));
-    
+
     config_.edgesGroupId = createGroup(config_.boxGroupId, "edges");
-    config_.edgesStepSetId = createChunkedDataset(config_.edgesGroupId, std::vector<hsize_t> {1}, "step", H5T_NATIVE_INT64);
-    config_.edgesTimeSetId = createChunkedDataset(config_.edgesGroupId, std::vector<hsize_t> {1}, "time", H5T_NATIVE_DOUBLE);
-    config_.edgesValueSetId = createChunkedDataset(config_.edgesGroupId, std::vector<hsize_t> {1, 3}, "value", H5T_NATIVE_DOUBLE);
+    config_.edgesStepSetId = createChunkedDataset(
+        config_.edgesGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
+    config_.edgesTimeSetId = createChunkedDataset(
+        config_.edgesGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
+    config_.edgesValueSetId = createChunkedDataset(
+        config_.edgesGroupId, std::vector<hsize_t>{1, 3}, "value", H5T_NATIVE_DOUBLE);
 }
 
-hid_t DumpH5MDParallelImpl::createChunkedDataset(const hid_t& groupId, const std::vector<hsize_t>& dims, const std::string& name, const hid_t& dtype) const
+hid_t DumpH5MDParallelImpl::createChunkedDataset(const hid_t& groupId,
+                                                 const std::vector<hsize_t>& dims,
+                                                 const std::string& name,
+                                                 const hid_t& dtype) const
 {
     std::vector<hsize_t> max_dims = dims;
     max_dims[0] = H5S_UNLIMITED;
@@ -252,7 +287,8 @@ hid_t DumpH5MDParallelImpl::createChunkedDataset(const hid_t& groupId, const std
     const std::vector<hsize_t> chunk_dims = dims;
     H5Pset_chunk(plist, dims.size(), chunk_dims.data());
 
-    auto datasetId = H5Dcreate(groupId, name.c_str(), dtype, fileSpace, H5P_DEFAULT, plist, H5P_DEFAULT);
+    auto datasetId =
+        H5Dcreate(groupId, name.c_str(), dtype, fileSpace, H5P_DEFAULT, plist, H5P_DEFAULT);
 
     H5Pclose(plist);
     H5Sclose(fileSpace);
@@ -260,16 +296,12 @@ hid_t DumpH5MDParallelImpl::createChunkedDataset(const hid_t& groupId, const std
     return datasetId;
 }
 
-void DumpH5MDParallelImpl::closeDataset(const hid_t& datasetId) const
-{
-    H5Dclose(datasetId);
-}
+void DumpH5MDParallelImpl::closeDataset(const hid_t& datasetId) const { H5Dclose(datasetId); }
 
-void DumpH5MDParallelImpl::dumpStep(
-    const data::Subdomain& subdomain,
-    const data::Atoms& atoms,
-    const idx_t step,
-    const real_t dt)
+void DumpH5MDParallelImpl::dumpStep(const data::Subdomain& subdomain,
+                                    const data::Atoms& atoms,
+                                    const idx_t step,
+                                    const real_t dt)
 {
     data::HostAtoms h_atoms(atoms);  // NOLINT
 
@@ -286,19 +318,28 @@ void DumpH5MDParallelImpl::dumpStep(
     config_.saveCount += 1;
 }
 
-void DumpH5MDParallelImpl::appendEdges(const idx_t& step, const real_t& dt, const data::Subdomain& subdomain) const
+void DumpH5MDParallelImpl::appendEdges(const idx_t& step,
+                                       const real_t& dt,
+                                       const data::Subdomain& subdomain) const
 {
     appendData(config_.edgesStepSetId, std::vector<idx_t>{step}, std::vector<hsize_t>{1});
-    appendData(config_.edgesTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
-    appendData(config_.edgesValueSetId, std::vector<real_t>{subdomain.diameter[0], subdomain.diameter[1], subdomain.diameter[2]}, std::vector<hsize_t>{1, 3});
+    appendData(
+        config_.edgesTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
+    appendData(
+        config_.edgesValueSetId,
+        std::vector<real_t>{subdomain.diameter[0], subdomain.diameter[1], subdomain.diameter[2]},
+        std::vector<hsize_t>{1, 3});
 }
 
-void DumpH5MDParallelImpl::appendCharges(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const
+void DumpH5MDParallelImpl::appendCharges(const idx_t& step,
+                                         const real_t& dt,
+                                         const data::HostAtoms& atoms) const
 {
     appendData(config_.chargesStepSetId, std::vector<idx_t>{step}, std::vector<hsize_t>{1});
-    appendData(config_.chargesTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
+    appendData(
+        config_.chargesTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
     hsize_t numberLocalAtoms = atoms.numLocalAtoms;
-    constexpr int64_t dimensions = 1; 
+    constexpr int64_t dimensions = 1;
     std::vector<real_t> charges;
     charges.reserve(numLocalParticles * dimensions);
     for (idx_t idx = 0; idx < numLocalParticles; ++idx)
@@ -306,13 +347,17 @@ void DumpH5MDParallelImpl::appendCharges(const idx_t& step, const real_t& dt, co
         charges.emplace_back(atoms.getCharge()(idx));
     }
     MRMD_HOST_CHECK_EQUAL(int64_c(charges.size()), numLocalParticles * dimensions);
-    appendDataParallel(config_.chargesValueSetId, charges, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
+    appendDataParallel(
+        config_.chargesValueSetId, charges, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
 }
 
-void DumpH5MDParallelImpl::appendForces(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const
+void DumpH5MDParallelImpl::appendForces(const idx_t& step,
+                                        const real_t& dt,
+                                        const data::HostAtoms& atoms) const
 {
     appendData(config_.forceStepSetId, std::vector<idx_t>{step}, std::vector<hsize_t>{1});
-    appendData(config_.forceTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
+    appendData(
+        config_.forceTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
     hsize_t numberLocalAtoms = atoms.numLocalAtoms;
     constexpr int64_t dimensions = 3;
     std::vector<real_t> positions;
@@ -324,15 +369,19 @@ void DumpH5MDParallelImpl::appendForces(const idx_t& step, const real_t& dt, con
         positions.emplace_back(atoms.getForce()(idx, 2));
     }
     MRMD_HOST_CHECK_EQUAL(int64_c(positions.size()), numLocalParticles * dimensions);
-    appendDataParallel(config_.forceValueSetId, positions, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
+    appendDataParallel(
+        config_.forceValueSetId, positions, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
 }
 
-void DumpH5MDParallelImpl::appendMasses(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const
+void DumpH5MDParallelImpl::appendMasses(const idx_t& step,
+                                        const real_t& dt,
+                                        const data::HostAtoms& atoms) const
 {
     appendData(config_.massStepSetId, std::vector<idx_t>{step}, std::vector<hsize_t>{1});
-    appendData(config_.massTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
+    appendData(
+        config_.massTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
     hsize_t numberLocalAtoms = atoms.numLocalAtoms;
-    constexpr int64_t dimensions = 1; 
+    constexpr int64_t dimensions = 1;
     std::vector<real_t> masses;
     masses.reserve(numLocalParticles * dimensions);
     for (idx_t idx = 0; idx < numLocalParticles; ++idx)
@@ -340,13 +389,17 @@ void DumpH5MDParallelImpl::appendMasses(const idx_t& step, const real_t& dt, con
         masses.emplace_back(atoms.getMass()(idx));
     }
     MRMD_HOST_CHECK_EQUAL(int64_c(masses.size()), numLocalParticles * dimensions);
-    appendDataParallel(config_.massValueSetId, masses, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
+    appendDataParallel(
+        config_.massValueSetId, masses, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
 }
 
-void DumpH5MDParallelImpl::appendPositions(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const
+void DumpH5MDParallelImpl::appendPositions(const idx_t& step,
+                                           const real_t& dt,
+                                           const data::HostAtoms& atoms) const
 {
     appendData(config_.posStepSetId, std::vector<idx_t>{step}, std::vector<hsize_t>{1});
-    appendData(config_.posTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
+    appendData(
+        config_.posTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
     hsize_t numberLocalAtoms = atoms.numLocalAtoms;
     constexpr int64_t dimensions = 3;
     std::vector<real_t> positions;
@@ -358,15 +411,20 @@ void DumpH5MDParallelImpl::appendPositions(const idx_t& step, const real_t& dt, 
         positions.emplace_back(atoms.getPos()(idx, 2));
     }
     MRMD_HOST_CHECK_EQUAL(int64_c(positions.size()), numLocalParticles * dimensions);
-    appendDataParallel(config_.posValueSetId, positions, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
+    appendDataParallel(
+        config_.posValueSetId, positions, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
 }
 
-void DumpH5MDParallelImpl::appendRelativeMasses(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const
+void DumpH5MDParallelImpl::appendRelativeMasses(const idx_t& step,
+                                                const real_t& dt,
+                                                const data::HostAtoms& atoms) const
 {
     appendData(config_.relativeMassStepSetId, std::vector<idx_t>{step}, std::vector<hsize_t>{1});
-    appendData(config_.relativeMassTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
+    appendData(config_.relativeMassTimeSetId,
+               std::vector<real_t>{real_c(step) * dt},
+               std::vector<hsize_t>{1});
     hsize_t numberLocalAtoms = atoms.numLocalAtoms;
-    constexpr int64_t dimensions = 1; 
+    constexpr int64_t dimensions = 1;
     std::vector<real_t> relativeMasses;
     relativeMasses.reserve(numLocalParticles * dimensions);
     for (idx_t idx = 0; idx < numLocalParticles; ++idx)
@@ -374,15 +432,20 @@ void DumpH5MDParallelImpl::appendRelativeMasses(const idx_t& step, const real_t&
         relativeMasses.emplace_back(atoms.getRelativeMass()(idx));
     }
     MRMD_HOST_CHECK_EQUAL(int64_c(relativeMasses.size()), numLocalParticles * dimensions);
-    appendDataParallel(config_.relativeMassValueSetId, relativeMasses, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
+    appendDataParallel(config_.relativeMassValueSetId,
+                       relativeMasses,
+                       std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
 }
 
-void DumpH5MDParallelImpl::appendTypes(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const
+void DumpH5MDParallelImpl::appendTypes(const idx_t& step,
+                                       const real_t& dt,
+                                       const data::HostAtoms& atoms) const
 {
     appendData(config_.typeStepSetId, std::vector<idx_t>{step}, std::vector<hsize_t>{1});
-    appendData(config_.typeTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
+    appendData(
+        config_.typeTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
     hsize_t numberLocalAtoms = atoms.numLocalAtoms;
-    constexpr int64_t dimensions = 1; 
+    constexpr int64_t dimensions = 1;
     std::vector<real_t> types;
     types.reserve(numLocalParticles * dimensions);
     for (idx_t idx = 0; idx < numLocalParticles; ++idx)
@@ -390,13 +453,17 @@ void DumpH5MDParallelImpl::appendTypes(const idx_t& step, const real_t& dt, cons
         types.emplace_back(atoms.getType()(idx));
     }
     MRMD_HOST_CHECK_EQUAL(int64_c(types.size()), numLocalParticles * dimensions);
-    appendDataParallel(config_.typeValueSetId, types, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
+    appendDataParallel(
+        config_.typeValueSetId, types, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
 }
 
-void DumpH5MDParallelImpl::appendVelocities(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const
+void DumpH5MDParallelImpl::appendVelocities(const idx_t& step,
+                                            const real_t& dt,
+                                            const data::HostAtoms& atoms) const
 {
     appendData(config_.velStepSetId, std::vector<idx_t>{step}, std::vector<hsize_t>{1});
-    appendData(config_.velTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
+    appendData(
+        config_.velTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
     hsize_t numberLocalAtoms = atoms.numLocalAtoms;
     constexpr int64_t dimensions = 3;
     std::vector<real_t> velocities;
@@ -408,18 +475,21 @@ void DumpH5MDParallelImpl::appendVelocities(const idx_t& step, const real_t& dt,
         velocities.emplace_back(atoms.getVel()(idx, 2));
     }
     MRMD_HOST_CHECK_EQUAL(int64_c(velocities.size()), numLocalParticles * dimensions);
-    appendDataParallel(config_.velValueSetId, velocities, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
+    appendDataParallel(
+        config_.velValueSetId, velocities, std::vector<hsize_t>{1, numberLocalAtoms, dimensions});
 }
 
 template <typename T>
-void DumpH5MDParallelImpl::appendDataParallel(const hid_t datasetId, const std::vector<T>& data, const std::vector<hsize_t>& dims) const
+void DumpH5MDParallelImpl::appendDataParallel(const hid_t datasetId,
+                                              const std::vector<T>& data,
+                                              const std::vector<hsize_t>& dims) const
 {
     std::vector<hsize_t> newSize = dims;
     newSize[0] = config_.saveCount + 1;
     H5Dset_extent(datasetId, newSize.data());
 
     const auto fileSpace = H5Dget_space(datasetId);
-    
+
     std::vector<hsize_t> offset(dims.size(), 0);
     offset[0] = config_.saveCount;
     offset[1] = particleOffset;
@@ -431,24 +501,23 @@ void DumpH5MDParallelImpl::appendDataParallel(const hid_t datasetId, const std::
 
     std::vector<hsize_t> localOffset(dims.size(), 0);
     const hid_t memorySpace = H5Screate_simple(dims.size(), dims.data(), NULL);
-    CHECK_HDF5(H5Sselect_hyperslab(memorySpace,
-        H5S_SELECT_SET,
-        localOffset.data(),
-        stride.data(),
-        count.data(),
-        dims.data()));
+    CHECK_HDF5(H5Sselect_hyperslab(
+        memorySpace, H5S_SELECT_SET, localOffset.data(), stride.data(), count.data(), dims.data()));
 
-        auto propertyList = CHECK_HDF5(H5Pcreate(H5P_DATASET_XFER));
-        CHECK_HDF5(H5Pset_dxpl_mpio(propertyList, H5FD_MPIO_COLLECTIVE));
-        CHECK_HDF5(H5Dwrite(datasetId, typeToHDF5<T>(), memorySpace, fileSpace, propertyList, data.data()));
-        
+    auto propertyList = CHECK_HDF5(H5Pcreate(H5P_DATASET_XFER));
+    CHECK_HDF5(H5Pset_dxpl_mpio(propertyList, H5FD_MPIO_COLLECTIVE));
+    CHECK_HDF5(
+        H5Dwrite(datasetId, typeToHDF5<T>(), memorySpace, fileSpace, propertyList, data.data()));
+
     CHECK_HDF5(H5Pclose(propertyList));
     H5Sclose(fileSpace);
     H5Sclose(memorySpace);
 }
 
 template <typename T>
-void DumpH5MDParallelImpl::appendData(const hid_t datasetId, const std::vector<T>& data, const std::vector<hsize_t>& dims) const
+void DumpH5MDParallelImpl::appendData(const hid_t datasetId,
+                                      const std::vector<T>& data,
+                                      const std::vector<hsize_t>& dims) const
 {
     const hid_t memorySpace = H5Screate_simple(dims.size(), dims.data(), NULL);
 
@@ -457,7 +526,7 @@ void DumpH5MDParallelImpl::appendData(const hid_t datasetId, const std::vector<T
     H5Dset_extent(datasetId, newSize.data());
 
     const auto fileSpace = H5Dget_space(datasetId);
-    
+
     std::vector<hsize_t> start(dims.size(), 0);
     start[0] = config_.saveCount;
     std::vector<hsize_t> count = dims;
@@ -465,7 +534,7 @@ void DumpH5MDParallelImpl::appendData(const hid_t datasetId, const std::vector<T
     H5Sselect_hyperslab(fileSpace, H5S_SELECT_SET, start.data(), NULL, count.data(), NULL);
 
     H5Dwrite(datasetId, typeToHDF5<T>(), memorySpace, fileSpace, H5P_DEFAULT, data.data());
-    
+
     H5Sclose(fileSpace);
     H5Sclose(memorySpace);
 }
@@ -679,7 +748,8 @@ void DumpH5MDParallelImpl::writeForce(hid_t fileId, const data::HostAtoms& atoms
     using Datatype = real_t;
     constexpr int64_t dimensions = 3;  ///< dimensions of the property
 
-    std::string groupName = "/particles/" + config_.particleSubGroupName + "/" + config_.forceDataset;
+    std::string groupName =
+        "/particles/" + config_.particleSubGroupName + "/" + config_.forceDataset;
     auto group = H5Gcreate(fileId, groupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     std::vector<Datatype> data;
@@ -715,7 +785,8 @@ void DumpH5MDParallelImpl::writeType(hid_t fileId, const data::HostAtoms& atoms)
     using Datatype = idx_t;
     constexpr int64_t dimensions = 1;  ///< dimensions of the property
 
-    std::string groupName = "/particles/" + config_.particleSubGroupName + "/" + config_.typeDataset;
+    std::string groupName =
+        "/particles/" + config_.particleSubGroupName + "/" + config_.typeDataset;
     auto group = H5Gcreate(fileId, groupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     std::vector<Datatype> data;
@@ -749,7 +820,8 @@ void DumpH5MDParallelImpl::writeMass(hid_t fileId, const data::HostAtoms& atoms)
     using Datatype = real_t;
     constexpr int64_t dimensions = 1;  ///< dimensions of the property
 
-    std::string groupName = "/particles/" + config_.particleSubGroupName + "/" + config_.massDataset;
+    std::string groupName =
+        "/particles/" + config_.particleSubGroupName + "/" + config_.massDataset;
     auto group = H5Gcreate(fileId, groupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     std::vector<Datatype> data;
@@ -783,7 +855,8 @@ void DumpH5MDParallelImpl::writeCharge(hid_t fileId, const data::HostAtoms& atom
     using Datatype = real_t;
     constexpr int64_t dimensions = 1;  ///< dimensions of the property
 
-    std::string groupName = "/particles/" + config_.particleSubGroupName + "/" + config_.chargeDataset;
+    std::string groupName =
+        "/particles/" + config_.particleSubGroupName + "/" + config_.chargeDataset;
     auto group = H5Gcreate(fileId, groupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     std::vector<Datatype> data;
@@ -905,11 +978,10 @@ void DumpH5MDParallel::open(const std::string& filename, const data::Atoms& atom
     helper.open(filename, atoms);
 }
 
-void DumpH5MDParallel::dumpStep(
-    const data::Subdomain& subdomain,
-    const data::Atoms& atoms,
-    const idx_t step,
-    const real_t dt)
+void DumpH5MDParallel::dumpStep(const data::Subdomain& subdomain,
+                                const data::Atoms& atoms,
+                                const idx_t step,
+                                const real_t dt)
 {
     impl::DumpH5MDParallelImpl helper(*this);
     helper.dumpStep(subdomain, atoms, step, dt);
@@ -941,11 +1013,11 @@ void DumpH5MDParallel::close(const hid_t& /*file_id*/);
     exit(EXIT_FAILURE);
 }
 void DumpH5MDParallel::dumpStep(const hid_t& /*file_id*/,
-    const data::Subdomain& /*subdomain*/,
-    const data::Atoms& /*atoms*/)
+                                const data::Subdomain& /*subdomain*/,
+                                const data::Atoms& /*atoms*/)
 {
-MRMD_HOST_CHECK(false, "HDF5 Support not available!");
-exit(EXIT_FAILURE);
+    MRMD_HOST_CHECK(false, "HDF5 Support not available!");
+    exit(EXIT_FAILURE);
 }
 
 void DumpH5MDParallel::dump(const std::string& /*filename*/,

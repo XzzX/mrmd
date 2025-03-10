@@ -129,7 +129,7 @@ TEST(H5MD, dumpMultipleSteps)
     auto dump = DumpH5MDParallel(mpiInfo, "XzzX");
 
     dump.open("dummyMultipleSteps.h5md", atoms1);
-    
+
     for (idx_t step = 0; step < 10; ++step)
     {
         dump.dumpStep(subdomain1, atoms1, step, dt);

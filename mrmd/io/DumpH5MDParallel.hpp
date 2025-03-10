@@ -35,11 +35,10 @@ public:
     }
     void open(const std::string& filename, const data::Atoms& atoms);
 
-    void dumpStep(
-        const data::Subdomain& subdomain,
-        const data::Atoms& atoms,
-        const idx_t step,
-        const real_t dt);
+    void dumpStep(const data::Subdomain& subdomain,
+                  const data::Atoms& atoms,
+                  const idx_t step,
+                  const real_t dt);
 
     void close();
 
