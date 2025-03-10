@@ -57,7 +57,7 @@ private:
     hid_t createGroup(const hid_t& parentElementId, const std::string& groupName) const;
     void closeGroup(const hid_t& groupId) const;
     void openBox() const;
-    hid_t createChunkedDataset(const hid_t& groupId, const hsize_t dims[], const hsize_t& ndims, const std::string& name, const hid_t& dtype) const;
+    hid_t createChunkedDataset(const hid_t& groupId, const std::vector<hsize_t>& dims, const std::string& name, const hid_t& dtype) const;
     void closeDataset(const hid_t& datasetId) const;
 
     void writeStep(const idx_t& step) const;
@@ -173,23 +173,23 @@ void DumpH5MDParallelImpl::openBox() const
     
     std::vector<hsize_t> stepDims = {1};
     std::vector<hsize_t> timeDims = {1};
-    std::vector<hsize_t> boxValueDims = {3};
+    std::vector<hsize_t> boxValueDims = {1, 3};
 
-    config_.stepSetId = createChunkedDataset(config_.edgesGroupId, stepDims.data(), stepDims.size(), "step", H5T_NATIVE_INT64);
-    config_.timeSetId = createChunkedDataset(config_.edgesGroupId, timeDims.data(), timeDims.size(), "time", H5T_NATIVE_DOUBLE);
-    config_.boxValueSetId = createChunkedDataset(config_.edgesGroupId, boxValueDims.data(), boxValueDims.size(), "value", H5T_NATIVE_DOUBLE);
+    config_.stepSetId = createChunkedDataset(config_.edgesGroupId, stepDims, "step", H5T_NATIVE_INT64);
+    config_.timeSetId = createChunkedDataset(config_.edgesGroupId, timeDims, "time", H5T_NATIVE_DOUBLE);
+    config_.boxValueSetId = createChunkedDataset(config_.edgesGroupId, boxValueDims, "value", H5T_NATIVE_DOUBLE);
 }
 
-hid_t DumpH5MDParallelImpl::createChunkedDataset(const hid_t& groupId, const hsize_t dims[], const hsize_t& ndims, const std::string& name, const hid_t& dtype) const
+hid_t DumpH5MDParallelImpl::createChunkedDataset(const hid_t& groupId, const std::vector<hsize_t>& dims, const std::string& name, const hid_t& dtype) const
 {
-    const std::vector<hsize_t> max_dims = {H5S_UNLIMITED};
-    hid_t file_space = H5Screate_simple(ndims, dims, max_dims.data());
+    const std::vector<hsize_t> max_dims = {H5S_UNLIMITED, dims[1]};
+    hid_t file_space = H5Screate_simple(dims.size(), dims.data(), max_dims.data());
 
     hid_t plist = H5Pcreate(H5P_DATASET_CREATE);
     H5Pset_layout(plist, H5D_CHUNKED);
 
-    const std::vector<hsize_t> chunk_dims = {1};
-    H5Pset_chunk(plist, ndims, chunk_dims.data());
+    const std::vector<hsize_t> chunk_dims = dims;
+    H5Pset_chunk(plist, dims.size(), chunk_dims.data());
 
     auto datasetId = H5Dcreate(groupId, name.c_str(), dtype, file_space, H5P_DEFAULT, plist, H5P_DEFAULT);
 
@@ -233,7 +233,7 @@ void DumpH5MDParallelImpl::appendData(const hid_t datasetId, const std::vector<T
 
     const auto file_space = H5Dget_space(datasetId);
     
-    const std::vector<hsize_t> start = {config_.saveCount, data.size()};
+    const std::vector<hsize_t> start = {config_.saveCount, 0};
     const std::vector<hsize_t> count = {1, data.size()};
     H5Sselect_hyperslab(file_space, H5S_SELECT_SET, start.data(), NULL, count.data(), NULL);
 
