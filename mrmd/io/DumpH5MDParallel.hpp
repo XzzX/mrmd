@@ -33,7 +33,7 @@ public:
         : mpiInfo(mpiInfoArg), author(authorArg), particleSubGroupName(particleSubGroupNameArg)
     {
     }
-    void open(const std::string& filename);
+    void open(const std::string& filename, const data::Atoms& atoms);
 
     void dumpStep(
         const data::Subdomain& subdomain,
@@ -73,9 +73,17 @@ public:
     hid_t particleSubGroupId;
     hid_t boxGroupId;
     hid_t edgesGroupId;
-    hid_t stepSetId;
-    hid_t timeSetId;
-    hid_t boxValueSetId;
+    hid_t edgesStepSetId;
+    hid_t edgesTimeSetId;
+    hid_t edgesValueSetId;
+    hid_t chargesGroupId;
+    hid_t chargesStepSetId;
+    hid_t chargesTimeSetId;
+    hid_t chargesValueSetId;
+    hid_t posGroupId;
+    hid_t posStepSetId;
+    hid_t posTimeSetId;
+    hid_t posValueSetId;
 
     hsize_t saveCount = 0;
 };
