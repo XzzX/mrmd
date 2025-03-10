@@ -1007,7 +1007,7 @@ void DumpH5MDParallel::open(const std::string& /*filename*/, const data::Atoms& 
     exit(EXIT_FAILURE);
 }
 
-void DumpH5MDParallel::close();
+void DumpH5MDParallel::close()
 {
     MRMD_HOST_CHECK(false, "HDF5 Support not available!");
     exit(EXIT_FAILURE);
