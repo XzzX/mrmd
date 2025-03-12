@@ -15,20 +15,43 @@
 #pragma once
 
 #include <fstream>
+#include "datatypes.hpp"
 
 namespace mrmd
 {
 namespace io
 {
-void dumpProfile(std::ofstream& fileProfile, const ScalarView& dataProfile, const real_t& normalizationFactor = 1_r)
+class DumpProfile
 {
-    for (auto i = 0; i < dataProfile.extent(0); ++i)
+public:
+    void open(const std::string& filename, const ScalarView& grid)
     {
-        std::string separator = (i < dataProfile.extent(0) - 1) ? " " : "";
-        fileProfile << dataProfile(i) * normalizationFactor << separator;
-    }
-    fileProfile << std::endl;
-}
+        fileProfile_.open(filename);
 
+        for (auto i = 0; i < grid.extent(0); ++i)
+        {
+            std::string separator = (i < grid.extent(0) - 1) ? " " : "";
+            fileProfile_ << grid(i) << separator;
+        }
+        fileProfile_ << std::endl;    
+    }
+
+    void close()
+    {
+        fileProfile_.close();
+    }
+
+    void dumpStep(const ScalarView& dataProfile, const real_t& normalizationFactor = 1_r)
+    {
+        for (auto i = 0; i < dataProfile.extent(0); ++i)
+        {
+            std::string separator = (i < dataProfile.extent(0) - 1) ? " " : "";
+            fileProfile_ << dataProfile(i) * normalizationFactor << separator;
+        }
+        fileProfile_ << std::endl;    
+    }
+private:
+    std::ofstream fileProfile_;
+};
 }  // namespace io
 }  // namespace mrmd
