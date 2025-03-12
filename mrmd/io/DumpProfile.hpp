@@ -50,6 +50,13 @@ public:
         }
         fileProfile_ << std::endl;    
     }
+
+    void dump(const std::string& filename, const ScalarView& grid, const ScalarView& dataProfile, const real_t& normalizationFactor = 1_r)
+    {
+        open(filename, grid);
+        dumpStep(dataProfile, normalizationFactor);
+        close();
+    }
 private:
     std::ofstream fileProfile_;
 };
