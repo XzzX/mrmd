@@ -23,7 +23,7 @@ namespace mrmd
 {
 namespace io
 {
-void dumpThermoForce(std::string& filename, const action::ThermodynamicForce& thermoForce, const idx_t& typeId)
+void dumpThermoForce(const std::string& filename, const action::ThermodynamicForce& thermoForce, const idx_t& typeId)
 {
     DumpProfile dumpThermoForce;
     dumpThermoForce.dump(filename, thermoForce.getForce().createGrid(), thermoForce.getForce(typeId));
