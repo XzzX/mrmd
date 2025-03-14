@@ -28,7 +28,7 @@ action::ThermodynamicForce createThermoForce(const idx_t& numBins,
                                              const std::vector<real_t>& targetDensities,
                                              const std::vector<real_t>& forceModulations)
 {
-    real_t binWidth = (subdomain.maxCorner[0] - subdomain.minCorner[0]) / numBins;
+    real_t binWidth = (subdomain.maxCorner[0] - subdomain.minCorner[0]) / real_c(numBins);
     action::ThermodynamicForce thermodynamicForce(
         targetDensities, subdomain, binWidth, forceModulations);
 
@@ -38,7 +38,7 @@ action::ThermodynamicForce createThermoForce(const idx_t& numBins,
     {
         for (idx_t forceNum = 0; forceNum < numForces; forceNum++)
         {
-            forces(binNum, forceNum) = 1_r * (binNum + 1) * (forceNum + 1);
+            forces(binNum, forceNum) = 1_r * (real_c(binNum) + 1) * (real_c(forceNum) + 1);
         }
     }
     thermodynamicForce.setForce(forces);

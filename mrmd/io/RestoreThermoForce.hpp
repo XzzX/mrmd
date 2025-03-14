@@ -44,7 +44,7 @@ action::ThermodynamicForce restoreThermoForce(
     std::stringstream gridLineStream(line);
     while (gridLineStream >> word)
     {
-        gridRead(binNum) = std::stold(word);
+        gridRead(binNum) = std::stod(word);
         binNum++;
         MRMD_HOST_ASSERT_LESSEQUAL(binNum, maxGridSize);
     }
@@ -61,7 +61,7 @@ action::ThermodynamicForce restoreThermoForce(
         std::stringstream forceLineStream(line);
         while (forceLineStream >> word)
         {
-            forcesRead(binNum, histNum) = std::stold(word);
+            forcesRead(binNum, histNum) = std::stod(word);
             binNum++;
         }
         histNum++;
