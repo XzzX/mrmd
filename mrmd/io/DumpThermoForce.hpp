@@ -29,18 +29,23 @@ void dumpThermoForce(const std::string& filename,
                      const idx_t& typeId)
 {
     DumpProfile dumpThermoForce;
-    ScalarView forceView =
-        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), thermoForce.getForce(typeId));
+    ScalarView forceView = thermoForce.getForce(typeId);
     dumpThermoForce.dump(filename, thermoForce.getForce().createGrid(), forceView);
 }
 void dumpThermoForce(const std::string& filename, const action::ThermodynamicForce& thermoForce)
 {
     DumpProfile dumpThermoForce;
     dumpThermoForce.open(filename, thermoForce.getForce().createGrid());
+    idx_t numBins = thermoForce.getForce().createGrid().size();
+
     for (idx_t typeId = 0; typeId < thermoForce.getForce().numHistograms; typeId++)
     {
-        ScalarView forceView("force-view", thermoForce.getForce().numBins);
-        Kokkos::deep_copy(forceView, thermoForce.getForce(typeId));
+        ScalarView forceView("forceTest", numBins);
+
+        for (idx_t idx = 0; idx < numBins; idx++)
+        {
+            forceView(idx) = thermoForce.getForce(typeId)(idx);
+        }
         dumpThermoForce.dumpStep(forceView);
     }
     dumpThermoForce.close();
