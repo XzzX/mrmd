@@ -15,6 +15,7 @@
 #pragma once
 
 #include <fstream>
+
 #include "datatypes.hpp"
 
 namespace mrmd
@@ -33,13 +34,10 @@ public:
             std::string separator = (i < grid.extent(0) - 1) ? " " : "";
             fileProfile_ << grid(i) << separator;
         }
-        fileProfile_ << std::endl;    
+        fileProfile_ << std::endl;
     }
 
-    void close()
-    {
-        fileProfile_.close();
-    }
+    void close() { fileProfile_.close(); }
 
     void dumpStep(const ScalarView& dataProfile, const real_t& normalizationFactor = 1_r)
     {
@@ -48,15 +46,19 @@ public:
             std::string separator = (i < dataProfile.extent(0) - 1) ? " " : "";
             fileProfile_ << dataProfile(i) * normalizationFactor << separator;
         }
-        fileProfile_ << std::endl;    
+        fileProfile_ << std::endl;
     }
 
-    void dump(const std::string& filename, const ScalarView& grid, const ScalarView& dataProfile, const real_t& normalizationFactor = 1_r)
+    void dump(const std::string& filename,
+              const ScalarView& grid,
+              const ScalarView& dataProfile,
+              const real_t& normalizationFactor = 1_r)
     {
         open(filename, grid);
         dumpStep(dataProfile, normalizationFactor);
         close();
     }
+
 private:
     std::ofstream fileProfile_;
 };
