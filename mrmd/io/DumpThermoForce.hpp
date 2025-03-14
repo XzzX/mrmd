@@ -29,8 +29,8 @@ void dumpThermoForce(const std::string& filename,
                      const idx_t& typeId)
 {
     DumpProfile dumpThermoForce;
-    ScalarView forceView("force-view", thermoForce.getForce().numBins);
-    Kokkos::deep_copy(forceView, thermoForce.getForce(typeId));
+    ScalarView forceView =
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), thermoForce.getForce(typeId));
     dumpThermoForce.dump(filename, thermoForce.getForce().createGrid(), forceView);
 }
 void dumpThermoForce(const std::string& filename, const action::ThermodynamicForce& thermoForce)
