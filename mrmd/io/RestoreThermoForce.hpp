@@ -21,7 +21,7 @@ namespace mrmd
 {
 namespace io
 {
-    action::ThermodynamicForce restoreThermoForce(const std::string& filename, const data::Subdomain& subdomain, const real_t& targetDensity = 1_r, const real_t& thermodynamicForceModulation = 1_r, const bool enforceSymmetry = false, const bool usePeriodicity = false, const idx_t& maxGridSize = 10000, const idx_t& maxNumForces = 5)
+    action::ThermodynamicForce restoreThermoForce(const std::string& filename, const data::Subdomain& subdomain, const std::vector<real_t>& targetDensities = {1_r}, const std::vector<real_t>& thermodynamicForceModulations = {1_r}, const bool enforceSymmetry = false, const bool usePeriodicity = false, const idx_t& maxGridSize = 10000, const idx_t& maxNumForces = 5)
     {
         std::string line;
         std::string word;
@@ -37,17 +37,17 @@ namespace io
         {
             gridRead(binNum) = std::stold(word);
             binNum++;
-            MRMD_HOST_ASSERT_LESS(binNum, maxGridSize);
+            MRMD_HOST_ASSERT_LESSEQUAL(binNum, maxGridSize);
         }
         ScalarView grid = Kokkos::subview(gridRead, Kokkos::make_pair(0, binNum));
         real_t binWidth = grid(1) - grid(0);
-        binNum = 0;
 
         //MRMD_HOST_ASSERT_EQUAL(grid(0) - subdomain.minCorner[0], subdomain.maxCorner[0] - grid(binNum));
         //MRMD_HOST_ASSERT_LESSEQUAL(grid(0) - subdomain.minCorner[0], grid(1) - grid(0))
 
         while (std::getline(fileThermoForce, line))
         {
+            binNum = 0;
             std::stringstream forceLineStream(line);
             while (forceLineStream >> word)
             {
@@ -56,7 +56,7 @@ namespace io
             }
             histNum++;
 
-            MRMD_HOST_ASSERT_LESS(histNum, maxNumForces);
+            MRMD_HOST_ASSERT_LESSEQUAL(histNum, maxNumForces);
         }
         fileThermoForce.close();  
         
@@ -64,7 +64,7 @@ namespace io
         
         //MRMD_HOST_ASSERT_EQUAL(grid, forcesHist.createGrid());
 
-        action::ThermodynamicForce thermodynamicForce(targetDensity, subdomain, binWidth, thermodynamicForceModulation, enforceSymmetry, usePeriodicity);
+        action::ThermodynamicForce thermodynamicForce(targetDensities, subdomain, binWidth, thermodynamicForceModulations, enforceSymmetry, usePeriodicity);
         thermodynamicForce.setForce(forces);
 
         return thermodynamicForce;

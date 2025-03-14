@@ -26,7 +26,21 @@ namespace io
 void dumpThermoForce(const std::string& filename, const action::ThermodynamicForce& thermoForce, const idx_t& typeId)
 {
     DumpProfile dumpThermoForce;
-    dumpThermoForce.dump(filename, thermoForce.getForce().createGrid(), thermoForce.getForce(typeId));
+    ScalarView forceView("force-view", thermoForce.getForce().numBins);
+    Kokkos::deep_copy(forceView, thermoForce.getForce(typeId));
+    dumpThermoForce.dump(filename, thermoForce.getForce().createGrid(), forceView);
+}
+void dumpThermoForce(const std::string& filename, const action::ThermodynamicForce& thermoForce)
+{
+    DumpProfile dumpThermoForce;
+    dumpThermoForce.open(filename, thermoForce.getForce().createGrid());
+    for (idx_t typeId = 0; typeId < thermoForce.getForce().numHistograms; typeId++)
+    {
+        ScalarView forceView("force-view", thermoForce.getForce().numBins);
+        Kokkos::deep_copy(forceView, thermoForce.getForce(typeId));    
+        dumpThermoForce.dumpStep(forceView);
+    }
+    dumpThermoForce.close();
 }
 }  // namespace io
 }  // namespace mrmd

@@ -49,9 +49,9 @@ public:
         assert(typeId >= 0);
         return Kokkos::subview(force_.data, Kokkos::ALL(), typeId);
     }
-    inline void setForce(const MultiView& force)
+    inline void setForce(const MultiView& forces)
     {
-        Kokkos::deep_copy(force_.data, force);  
+        Kokkos::deep_copy(force_.data, forces);  
     }
     inline auto getDensityProfile() const { return densityProfile_; }
     inline auto getDensityProfile(const idx_t& typeId) const
