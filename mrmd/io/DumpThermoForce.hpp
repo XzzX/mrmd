@@ -15,15 +15,18 @@
 #pragma once
 
 #include <fstream>
+
 #include "DumpProfile.hpp"
-#include "datatypes.hpp"
 #include "action/ThermodynamicForce.hpp"
+#include "datatypes.hpp"
 
 namespace mrmd
 {
 namespace io
 {
-void dumpThermoForce(const std::string& filename, const action::ThermodynamicForce& thermoForce, const idx_t& typeId)
+void dumpThermoForce(const std::string& filename,
+                     const action::ThermodynamicForce& thermoForce,
+                     const idx_t& typeId)
 {
     DumpProfile dumpThermoForce;
     ScalarView forceView("force-view", thermoForce.getForce().numBins);
@@ -37,7 +40,7 @@ void dumpThermoForce(const std::string& filename, const action::ThermodynamicFor
     for (idx_t typeId = 0; typeId < thermoForce.getForce().numHistograms; typeId++)
     {
         ScalarView forceView("force-view", thermoForce.getForce().numBins);
-        Kokkos::deep_copy(forceView, thermoForce.getForce(typeId));    
+        Kokkos::deep_copy(forceView, thermoForce.getForce(typeId));
         dumpThermoForce.dumpStep(forceView);
     }
     dumpThermoForce.close();

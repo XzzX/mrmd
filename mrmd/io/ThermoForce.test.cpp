@@ -12,20 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <gtest/gtest.h>
+
 #include "DumpThermoForce.hpp"
 #include "RestoreThermoForce.hpp"
 #include "data/Subdomain.hpp"
-
-#include <gtest/gtest.h>
 
 namespace mrmd
 {
 namespace io
 {
-action::ThermodynamicForce createThermoForce(const idx_t& numBins, const idx_t& numForces, const data::Subdomain& subdomain, const std::vector<real_t>& targetDensities, const std::vector<real_t>& forceModulations)
+action::ThermodynamicForce createThermoForce(const idx_t& numBins,
+                                             const idx_t& numForces,
+                                             const data::Subdomain& subdomain,
+                                             const std::vector<real_t>& targetDensities,
+                                             const std::vector<real_t>& forceModulations)
 {
     real_t binWidth = (subdomain.maxCorner[0] - subdomain.minCorner[0]) / numBins;
-    action::ThermodynamicForce thermodynamicForce(targetDensities, subdomain, binWidth, forceModulations);
+    action::ThermodynamicForce thermodynamicForce(
+        targetDensities, subdomain, binWidth, forceModulations);
 
     MultiView forces("thermoForce", numBins, numForces);
 
@@ -49,7 +54,8 @@ TEST(ThermoForce, dumpSingleForce)
     const std::vector<real_t> targetDensities(numForces, 1_r);
     const std::vector<real_t> forceModulations(numForces, 1_r);
 
-    auto thermodynamicForce1 = createThermoForce(numBins, numForces, subdomain, targetDensities, forceModulations);
+    auto thermodynamicForce1 =
+        createThermoForce(numBins, numForces, subdomain, targetDensities, forceModulations);
     dumpThermoForce("dummySingleForce.txt", thermodynamicForce1, 0);
 
     auto thermodynamicForce2 = restoreThermoForce("dummySingleForce.txt", subdomain);
@@ -62,7 +68,8 @@ TEST(ThermoForce, dumpSingleForce)
         EXPECT_FLOAT_EQ(grid1(binNum), grid2(binNum));
         for (idx_t forceNum = 0; forceNum < numForces; forceNum++)
         {
-            EXPECT_FLOAT_EQ(thermodynamicForce1.getForce().data(binNum, forceNum), thermodynamicForce2.getForce().data(binNum, forceNum));
+            EXPECT_FLOAT_EQ(thermodynamicForce1.getForce().data(binNum, forceNum),
+                            thermodynamicForce2.getForce().data(binNum, forceNum));
         }
     }
 }
@@ -74,11 +81,13 @@ TEST(ThermoForce, dumpMultipleForces)
     const std::vector<real_t> targetDensities(numForces, 1_r);
     const std::vector<real_t> forceModulations(numForces, 1_r);
 
-    auto thermodynamicForce1 = createThermoForce(numBins, numForces, subdomain, targetDensities, forceModulations);
-    
+    auto thermodynamicForce1 =
+        createThermoForce(numBins, numForces, subdomain, targetDensities, forceModulations);
+
     dumpThermoForce("dummyMultipleForces.txt", thermodynamicForce1);
 
-    auto thermodynamicForce2 = restoreThermoForce("dummyMultipleForces.txt", subdomain, targetDensities, forceModulations);
+    auto thermodynamicForce2 =
+        restoreThermoForce("dummyMultipleForces.txt", subdomain, targetDensities, forceModulations);
 
     auto grid1 = thermodynamicForce1.getForce().createGrid();
     auto grid2 = thermodynamicForce2.getForce().createGrid();
@@ -88,7 +97,8 @@ TEST(ThermoForce, dumpMultipleForces)
         EXPECT_FLOAT_EQ(grid1(binNum), grid2(binNum));
         for (idx_t forceNum = 0; forceNum < numForces; forceNum++)
         {
-            EXPECT_FLOAT_EQ(thermodynamicForce1.getForce().data(binNum, forceNum), thermodynamicForce2.getForce().data(binNum, forceNum));
+            EXPECT_FLOAT_EQ(thermodynamicForce1.getForce().data(binNum, forceNum),
+                            thermodynamicForce2.getForce().data(binNum, forceNum));
         }
     }
 }
