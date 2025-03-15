@@ -23,9 +23,9 @@ namespace mrmd
 namespace data
 {
 
-ScalarView::HostMirror MultiHistogram::createGrid() const
+ScalarView MultiHistogram::createGrid() const
 {
-    ScalarView::HostMirror grid("grid", numBins);
+    ScalarView grid("grid", numBins);
     for (idx_t i = 0; i < numBins; ++i)
     {
         grid[i] = getBinPosition(i);
