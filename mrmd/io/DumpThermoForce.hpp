@@ -28,7 +28,7 @@ void dumpThermoForce(const std::string& filename,
                      const action::ThermodynamicForce& thermoForce,
                      const idx_t& typeId)
 {
-    DumpProfile dumpThermoForce;
+    //DumpProfile dumpThermoForce;
     auto numBins = thermoForce.getForce().createGrid().size();
     ScalarView forceView("forceView", numBins);
 
@@ -40,7 +40,17 @@ void dumpThermoForce(const std::string& filename,
     Kokkos::parallel_for(policy, kernel);
     Kokkos::fence();
 
-    dumpThermoForce.dump(filename, thermoForce.getForce().createGrid(), forceView);
+    //dumpThermoForce.dump(filename, thermoForce.getForce().createGrid(), forceView);
+    std::ofstream fileThermoForce(filename);
+    {
+        for (auto i = 0; i < forceView.extent(0); ++i)
+        {
+            std::string separator = (i < forceView.extent(0) - 1) ? " " : "";
+            fileThermoForce << forceView(i) << separator;
+        }
+        fileThermoForce << std::endl;
+    }
+    fileThermoForce.close();
 }
 void dumpThermoForce(const std::string& filename, const action::ThermodynamicForce& thermoForce)
 {
