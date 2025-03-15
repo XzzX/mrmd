@@ -40,9 +40,7 @@ void dumpThermoForce(const std::string& filename,
     Kokkos::parallel_for(policy, kernel);
     Kokkos::fence();
 
-    ScalarView grid = thermoForce.getForce().createGrid();
-
-    dumpThermoForce.dump(filename, grid, forceView);
+    dumpThermoForce.dump(filename, thermoForce.getForce().createGrid(), forceView);
 }
 void dumpThermoForce(const std::string& filename, const action::ThermodynamicForce& thermoForce)
 {
