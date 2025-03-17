@@ -69,7 +69,7 @@ TEST(ThermoForce, dumpSingleForce)
     {
         EXPECT_FLOAT_EQ(grid1(idx), grid2(idx));
         EXPECT_FLOAT_EQ(thermodynamicForce1.getForce().data(idx, jdx),
-        thermodynamicForce2.getForce().data(idx, jdx));
+                        thermodynamicForce2.getForce().data(idx, jdx));
     };
     Kokkos::parallel_for("compareThermoForces", policy, kernel);
     Kokkos::fence();
@@ -99,7 +99,7 @@ TEST(ThermoForce, dumpMultipleForces)
     {
         EXPECT_FLOAT_EQ(grid1(idx), grid2(idx));
         EXPECT_FLOAT_EQ(thermodynamicForce1.getForce().data(idx, jdx),
-        thermodynamicForce2.getForce().data(idx, jdx));
+                        thermodynamicForce2.getForce().data(idx, jdx));
     };
     Kokkos::parallel_for("compareThermoForces", policy, kernel);
     Kokkos::fence();
