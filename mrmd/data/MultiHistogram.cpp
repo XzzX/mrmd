@@ -26,10 +26,12 @@ namespace data
 ScalarView MultiHistogram::createGrid() const
 {
     ScalarView grid("grid", numBins);
-    for (idx_t i = 0; i < numBins; ++i)
-    {
-        grid[i] = getBinPosition(i);
-    }
+
+    auto policy = Kokkos::RangePolicy<>(0, numBins);
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx) { grid(idx) = getBinPosition(idx); };
+    Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
+    Kokkos::fence();
+
     return grid;
 }
 
