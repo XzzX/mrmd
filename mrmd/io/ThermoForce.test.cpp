@@ -39,7 +39,7 @@ action::ThermodynamicForce createThermoForce(const idx_t& numBins,
     {
         forces(idx, jdx) = 1_r * (real_c(idx) + 1) * (real_c(jdx) + 1);
     };
-    Kokkos::parallel_for("createThermoForce", policy, kernel);
+    Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
     Kokkos::fence();
 
     thermodynamicForce.setForce(forces);
@@ -61,20 +61,21 @@ TEST(ThermoForce, dumpSingleForce)
 
     auto thermodynamicForce2 = restoreThermoForce("dummySingleForce.txt", subdomain);
 
-    auto grid1 = thermodynamicForce1.getForce().createGrid();
-    auto grid2 = thermodynamicForce2.getForce().createGrid();
+    auto grid1 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+                                                     thermodynamicForce1.getForce().createGrid());
+    auto grid2 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+                                                     thermodynamicForce2.getForce().createGrid());
+    auto thermoForce1 =
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), thermodynamicForce1.getForce(0));
+    auto thermoForce2 =
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), thermodynamicForce2.getForce(0));
 
-    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {numBins, numForces});
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
+    for (idx_t binNum = 0; binNum < numBins; binNum++)
     {
-        EXPECT_FLOAT_EQ(grid1(idx), grid2(idx));
-        EXPECT_FLOAT_EQ(thermodynamicForce1.getForce().data(idx, jdx),
-                        thermodynamicForce2.getForce().data(idx, jdx));
-    };
-    Kokkos::parallel_for("compareThermoForces", policy, kernel);
-    Kokkos::fence();
+        EXPECT_FLOAT_EQ(grid1(binNum), grid2(binNum));
+        EXPECT_FLOAT_EQ(thermoForce1(binNum), thermoForce2(binNum));
+    }
 }
-
 TEST(ThermoForce, dumpMultipleForces)
 {
     idx_t numBins = 100;
@@ -91,19 +92,23 @@ TEST(ThermoForce, dumpMultipleForces)
     auto thermodynamicForce2 =
         restoreThermoForce("dummyMultipleForces.txt", subdomain, targetDensities, forceModulations);
 
-    auto grid1 = thermodynamicForce1.getForce().createGrid();
-    auto grid2 = thermodynamicForce2.getForce().createGrid();
+    auto grid1 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+                                                     thermodynamicForce1.getForce().createGrid());
+    auto grid2 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+                                                     thermodynamicForce2.getForce().createGrid());
+    auto thermoForce1 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+                                                            thermodynamicForce1.getForce().data);
+    auto thermoForce2 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+                                                            thermodynamicForce2.getForce().data);
 
-    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {numBins, numForces});
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t jdx)
+    for (idx_t binNum = 0; binNum < numBins; binNum++)
     {
-        EXPECT_FLOAT_EQ(grid1(idx), grid2(idx));
-        EXPECT_FLOAT_EQ(thermodynamicForce1.getForce().data(idx, jdx),
-                        thermodynamicForce2.getForce().data(idx, jdx));
-    };
-    Kokkos::parallel_for("compareThermoForces", policy, kernel);
-    Kokkos::fence();
+        EXPECT_FLOAT_EQ(grid1(binNum), grid2(binNum));
+        for (idx_t forceNum = 0; forceNum < numForces; forceNum++)
+        {
+            EXPECT_FLOAT_EQ(thermoForce1(binNum, forceNum), thermoForce2(binNum, forceNum));
+        }
+    }
 }
-
 }  // namespace io
 }  // namespace mrmd
