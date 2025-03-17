@@ -29,31 +29,34 @@ action::ThermodynamicForce restoreThermoForce(
     const std::vector<real_t>& thermodynamicForceModulations = {1_r},
     const bool enforceSymmetry = false,
     const bool usePeriodicity = false,
-    const idx_t& maxGridSize = 10000,
-    const idx_t& maxNumForces = 5)
+    const idx_t maxNumForces = 10
+    )
 {
     std::string line;
     std::string word;
     int binNum = 0;
     int histNum = 0;
-    ScalarView gridRead("grid", maxGridSize);
-    MultiView forcesRead("thermodynamic-force", maxGridSize, maxNumForces);
+    real_t grid0;
+    real_t grid1;
 
     std::ifstream fileThermoForce(filename);
     std::getline(fileThermoForce, line);
     std::stringstream gridLineStream(line);
     while (gridLineStream >> word)
     {
-        gridRead(binNum) = std::stod(word);
+        if (binNum == 0)
+        {
+            grid0 = std::stod(word);
+        }
+        if (binNum == 1)
+        {
+            grid1 = std::stod(word);
+        }
         binNum++;
-        MRMD_HOST_ASSERT_LESSEQUAL(binNum, maxGridSize);
     }
-    ScalarView grid = Kokkos::subview(gridRead, Kokkos::make_pair(0, binNum));
-    real_t binWidth = grid(1) - grid(0);
-
-    // MRMD_HOST_ASSERT_EQUAL(grid(0) - subdomain.minCorner[0], subdomain.maxCorner[0] -
-    // grid(binNum)); MRMD_HOST_ASSERT_LESSEQUAL(grid(0) - subdomain.minCorner[0], grid(1) -
-    // grid(0))
+    real_t binWidth = grid1 - grid0;
+    
+    MultiView::HostMirror h_forcesRead("h_forcesRead", binNum, maxNumForces); 
 
     while (std::getline(fileThermoForce, line))
     {
@@ -61,7 +64,7 @@ action::ThermodynamicForce restoreThermoForce(
         std::stringstream forceLineStream(line);
         while (forceLineStream >> word)
         {
-            forcesRead(binNum, histNum) = std::stod(word);
+            h_forcesRead(binNum, histNum) = std::stod(word);
             binNum++;
         }
         histNum++;
@@ -70,10 +73,10 @@ action::ThermodynamicForce restoreThermoForce(
     }
     fileThermoForce.close();
 
-    MultiView forces =
-        Kokkos::subview(forcesRead, Kokkos::make_pair(0, binNum), Kokkos::make_pair(0, histNum));
-
-    // MRMD_HOST_ASSERT_EQUAL(grid, forcesHist.createGrid());
+    auto h_forces =
+        Kokkos::subview(h_forcesRead, Kokkos::make_pair(0, binNum), Kokkos::make_pair(0, histNum));
+    MultiView d_forces("d_forces", binNum, histNum);
+    Kokkos::deep_copy(d_forces, h_forces);
 
     action::ThermodynamicForce thermodynamicForce(targetDensities,
                                                   subdomain,
@@ -81,7 +84,8 @@ action::ThermodynamicForce restoreThermoForce(
                                                   thermodynamicForceModulations,
                                                   enforceSymmetry,
                                                   usePeriodicity);
-    thermodynamicForce.setForce(forces);
+    
+    thermodynamicForce.setForce(d_forces);
 
     return thermodynamicForce;
 }

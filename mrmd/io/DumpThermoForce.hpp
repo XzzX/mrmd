@@ -25,44 +25,38 @@ namespace mrmd
 namespace io
 {
 void dumpThermoForce(const std::string& filename,
-                     const action::ThermodynamicForce& thermoForce,
+                     const action::ThermodynamicForce& thermodynamicForce,
                      const idx_t& typeId)
 {
     DumpProfile dumpThermoForce;
-    auto numBins = thermoForce.getForce().createGrid().size();
-    ScalarView forceView("forceView", numBins);
-
-    auto policy = Kokkos::RangePolicy<>(0, numBins);
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
+    auto numBins = thermodynamicForce.getForce().createGrid().size();
+    ScalarView::HostMirror forceView("forceView", numBins);
+    auto thermoForce = Kokkos::create_mirror_view(Kokkos::HostSpace(), thermodynamicForce.getForce(typeId));
+    for (idx_t idx = 0; idx < numBins; ++idx)
     {
-        forceView(idx) = thermoForce.getForce(typeId)(idx);
-    };
-    Kokkos::parallel_for(policy, kernel);
-    Kokkos::fence();
-
-    dumpThermoForce.dump(filename, thermoForce.getForce().createGrid(), forceView);
-}
-void dumpThermoForce(const std::string& filename, const action::ThermodynamicForce& thermoForce)
-{
-    DumpProfile dumpThermoForce;
-    dumpThermoForce.open(filename, thermoForce.getForce().createGrid());
-    auto numBins = thermoForce.getForce().createGrid().size();
-
-    for (idx_t typeId = 0; typeId < thermoForce.getForce().numHistograms; typeId++)
-    {
-        ScalarView forceView("forceTest", numBins);
-
-        auto policy = Kokkos::RangePolicy<>(0, numBins);
-        auto kernel = KOKKOS_LAMBDA(const idx_t idx)
-        {
-            forceView(idx) = thermoForce.getForce(typeId)(idx);
-        };
-        Kokkos::parallel_for(policy, kernel);
-        Kokkos::fence();
-
-        dumpThermoForce.dumpStep(forceView);
+        forceView(idx) = thermoForce(idx);
     }
-    dumpThermoForce.close();
+
+    dumpThermoForce.dump(filename, thermodynamicForce.getForce().createGrid(), forceView);
 }
+//void dumpThermoForce(const std::string& filename, const action::ThermodynamicForce& thermoForce)
+//{
+//    DumpProfile dumpThermoForce;
+//    dumpThermoForce.open(filename, thermoForce.getForce().createGrid());
+//    auto numBins = thermoForce.getForce().createGrid().size();
+//
+//    for (idx_t typeId = 0; typeId < thermoForce.getForce().numHistograms; typeId++)
+//    {
+//        ScalarView forceView("forceTest", numBins);
+//
+//        for (idx_t idx = 0; idx < numBins; ++idx)
+//        {
+//            forceView(idx) = thermoForce.getForce(typeId)(idx);
+//        }
+//
+//        dumpThermoForce.dumpStep(forceView);
+//    }
+//    dumpThermoForce.close();
+//}
 }  // namespace io
 }  // namespace mrmd

@@ -25,7 +25,7 @@ namespace io
 class DumpProfile
 {
 public:
-    void open(const std::string& filename, const ScalarView& grid)
+    void open(const std::string& filename, const ScalarView::HostMirror& grid)
     {
         fileProfile_.open(filename);
 
@@ -40,7 +40,7 @@ public:
 
     void close() { fileProfile_.close(); }
 
-    void dumpStep(const ScalarView& dataProfile, const real_t& normalizationFactor = 1_r)
+    void dumpStep(const ScalarView::HostMirror& dataProfile, const real_t& normalizationFactor = 1_r)
     {
         for (auto i = 0; i < dataProfile.extent(0); ++i)
         {
@@ -51,8 +51,8 @@ public:
     }
 
     void dump(const std::string& filename,
-              const ScalarView& grid,
-              const ScalarView& dataProfile,
+              const ScalarView::HostMirror& grid,
+              const ScalarView::HostMirror& dataProfile,
               const real_t& normalizationFactor = 1_r)
     {
         open(filename, grid);
