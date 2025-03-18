@@ -39,7 +39,7 @@ action::ThermodynamicForce createThermoForce(const idx_t& numBins,
     {
         forces(idx, jdx) = 1_r * (real_c(idx) + 1) * (real_c(jdx) + 1);
     };
-    Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
+    Kokkos::parallel_for("createThermoForce", policy, kernel);
     Kokkos::fence();
 
     thermodynamicForce.setForce(forces);
