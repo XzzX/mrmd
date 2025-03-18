@@ -74,39 +74,37 @@ TEST(ThermoForce, dumpSingleForce)
         EXPECT_FLOAT_EQ(thermoForce1(binNum), thermoForce2(binNum));
     }
 }
-//TEST(ThermoForce, dumpMultipleForces)
-//{
-//    idx_t numBins = 100;
-//    idx_t numForces = 5;
-//    data::Subdomain subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
-//    const std::vector<real_t> targetDensities(numForces, 1_r);
-//    const std::vector<real_t> forceModulations(numForces, 1_r);
-//
-//    auto thermodynamicForce1 =
-//        createThermoForce(numBins, numForces, subdomain, targetDensities, forceModulations);
-//
-//    dumpThermoForce("dummyMultipleForces.txt", thermodynamicForce1);
-//
-//    auto thermodynamicForce2 =
-//        restoreThermoForce("dummyMultipleForces.txt", subdomain, targetDensities, forceModulations);
-//
-//    auto grid1 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
-//                                                     thermodynamicForce1.getForce().createGrid());
-//    auto grid2 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
-//                                                     thermodynamicForce2.getForce().createGrid());
-//    auto thermoForce1 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
-//                                                            thermodynamicForce1.getForce().data);
-//    auto thermoForce2 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
-//                                                            thermodynamicForce2.getForce().data);
-//
-//    for (idx_t binNum = 0; binNum < numBins; binNum++)
-//    {
-//        EXPECT_FLOAT_EQ(grid1(binNum), grid2(binNum));
-//        for (idx_t forceNum = 0; forceNum < numForces; forceNum++)
-//        {
-//            EXPECT_FLOAT_EQ(thermoForce1(binNum, forceNum), thermoForce2(binNum, forceNum));
-//        }
-//    }
-//}
+TEST(ThermoForce, dumpMultipleForces)
+{
+    idx_t numBins = 100;
+    idx_t numForces = 5;
+    data::Subdomain subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
+    const std::vector<real_t> targetDensities(numForces, 1_r);
+    const std::vector<real_t> forceModulations(numForces, 1_r);
+
+    auto thermodynamicForce1 =
+        createThermoForce(numBins, numForces, subdomain, targetDensities, forceModulations);
+
+    dumpThermoForce("dummyMultipleForces.txt", thermodynamicForce1);
+
+    auto thermodynamicForce2 =
+        restoreThermoForce("dummyMultipleForces.txt", subdomain, targetDensities, forceModulations);
+
+    auto grid1 = thermodynamicForce1.getForce().createGrid();
+    auto grid2 = thermodynamicForce2.getForce().createGrid();
+    auto thermoForce1 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+                                                            thermodynamicForce1.getForce().data);
+    auto thermoForce2 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+                                                            thermodynamicForce2.getForce().data);
+
+    for (idx_t binNum = 0; binNum < numBins; binNum++)
+    {
+        EXPECT_FLOAT_EQ(grid1(binNum), grid2(binNum));
+        for (idx_t forceNum = 0; forceNum < numForces; forceNum++)
+        {
+            EXPECT_FLOAT_EQ(thermoForce1(binNum, forceNum), thermoForce2(binNum, forceNum));
+        }
+    }
+}
 }  // namespace io
 }  // namespace mrmd

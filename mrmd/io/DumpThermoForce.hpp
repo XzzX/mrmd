@@ -31,7 +31,8 @@ void dumpThermoForce(const std::string& filename,
     DumpProfile dumpThermoForce;
     auto numBins = thermodynamicForce.getForce().createGrid().size();
     ScalarView::HostMirror forceView("forceView", numBins);
-    auto thermoForce = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), thermodynamicForce.getForce(typeId));
+    auto thermoForce = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+                                                           thermodynamicForce.getForce(typeId));
     for (idx_t idx = 0; idx < numBins; ++idx)
     {
         forceView(idx) = thermoForce(idx);
@@ -39,24 +40,25 @@ void dumpThermoForce(const std::string& filename,
 
     dumpThermoForce.dump(filename, thermodynamicForce.getForce().createGrid(), forceView);
 }
-//void dumpThermoForce(const std::string& filename, const action::ThermodynamicForce& thermoForce)
-//{
-//    DumpProfile dumpThermoForce;
-//    dumpThermoForce.open(filename, thermoForce.getForce().createGrid());
-//    auto numBins = thermoForce.getForce().createGrid().size();
-//
-//    for (idx_t typeId = 0; typeId < thermoForce.getForce().numHistograms; typeId++)
-//    {
-//        ScalarView forceView("forceTest", numBins);
-//
-//        for (idx_t idx = 0; idx < numBins; ++idx)
-//        {
-//            forceView(idx) = thermoForce.getForce(typeId)(idx);
-//        }
-//
-//        dumpThermoForce.dumpStep(forceView);
-//    }
-//    dumpThermoForce.close();
-//}
+void dumpThermoForce(const std::string& filename,
+                     const action::ThermodynamicForce& thermodynamicForce)
+{
+    DumpProfile dumpThermoForce;
+    auto numBins = thermodynamicForce.getForce().createGrid().size();
+
+    dumpThermoForce.open(filename, thermodynamicForce.getForce().createGrid());
+    for (idx_t typeId = 0; typeId < thermodynamicForce.getForce().numHistograms; typeId++)
+    {
+        ScalarView::HostMirror forceView("forceTest", numBins);
+        auto thermoForce = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
+                                                               thermodynamicForce.getForce(typeId));
+        for (idx_t idx = 0; idx < numBins; ++idx)
+        {
+            forceView(idx) = thermoForce(idx);
+        }
+        dumpThermoForce.dumpStep(forceView);
+    }
+    dumpThermoForce.close();
+}
 }  // namespace io
 }  // namespace mrmd
