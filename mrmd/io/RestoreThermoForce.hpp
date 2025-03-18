@@ -29,8 +29,7 @@ action::ThermodynamicForce restoreThermoForce(
     const std::vector<real_t>& thermodynamicForceModulations = {1_r},
     const bool enforceSymmetry = false,
     const bool usePeriodicity = false,
-    const idx_t maxNumForces = 10
-    )
+    const idx_t maxNumForces = 10)
 {
     std::string line;
     std::string word;
@@ -55,8 +54,8 @@ action::ThermodynamicForce restoreThermoForce(
         binNum++;
     }
     real_t binWidth = grid1 - grid0;
-    
-    MultiView::HostMirror h_forcesRead("h_forcesRead", binNum, maxNumForces); 
+
+    MultiView::HostMirror h_forcesRead("h_forcesRead", binNum, maxNumForces);
 
     while (std::getline(fileThermoForce, line))
     {
@@ -84,7 +83,7 @@ action::ThermodynamicForce restoreThermoForce(
                                                   thermodynamicForceModulations,
                                                   enforceSymmetry,
                                                   usePeriodicity);
-    
+
     thermodynamicForce.setForce(d_forces);
 
     return thermodynamicForce;
