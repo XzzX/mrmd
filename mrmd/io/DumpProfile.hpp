@@ -40,7 +40,8 @@ public:
 
     void close() { fileProfile_.close(); }
 
-    void dumpStep(const ScalarView::HostMirror& dataProfile, const real_t& normalizationFactor = 1_r)
+    void dumpStep(const ScalarView::HostMirror& dataProfile,
+                  const real_t& normalizationFactor = 1_r)
     {
         for (auto i = 0; i < dataProfile.extent(0); ++i)
         {
