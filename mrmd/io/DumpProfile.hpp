@@ -50,18 +50,19 @@ public:
         fileProfile_ << std::endl;
     }
 
-    void dump(const std::string& filename,
-              const ScalarView::HostMirror& grid,
-              const ScalarView::HostMirror& dataProfile,
-              const real_t& normalizationFactor = 1_r)
-    {
-        open(filename, grid);
-        dumpStep(dataProfile, normalizationFactor);
-        close();
-    }
-
 private:
     std::ofstream fileProfile_;
 };
+
+void dumpSingleProfile(const std::string& filename,
+                       const ScalarView::HostMirror& grid,
+                       const ScalarView::HostMirror& dataProfile,
+                       const real_t& normalizationFactor = 1_r)
+{
+    DumpProfile dumpProfile;
+    dumpProfile.open(filename, grid);
+    dumpProfile.dumpStep(dataProfile, normalizationFactor);
+    dumpProfile.close();
+}
 }  // namespace io
 }  // namespace mrmd
