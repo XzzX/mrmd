@@ -109,13 +109,15 @@ void RestoreH5MDParallel::restore(const std::string& filename,
     std::vector<real_t> pos;
     if (restorePos)
     {
-        readParallel(fileId, "/particles/" + particleSubGroupName_ + "/" + posDataset + "/value", pos);
+        readParallel(
+            fileId, "/particles/" + particleSubGroupName_ + "/" + posDataset + "/value", pos);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, pos.size());
     }
     std::vector<real_t> vel;
     if (restoreVel)
     {
-        readParallel(fileId, "/particles/" + particleSubGroupName_ + "/" + velDataset + "/value", vel);
+        readParallel(
+            fileId, "/particles/" + particleSubGroupName_ + "/" + velDataset + "/value", vel);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, vel.size());
     }
     std::vector<real_t> force;
