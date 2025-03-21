@@ -29,11 +29,10 @@ public:
     {
         fileProfile_.open(filename);
 
-        auto gridMirror = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), grid);
         for (auto i = 0; i < grid.extent(0); ++i)
         {
-            std::string separator = (i < gridMirror.extent(0) - 1) ? " " : "";
-            fileProfile_ << gridMirror(i) << separator;
+            std::string separator = (i < grid.extent(0) - 1) ? " " : "";
+            fileProfile_ << grid(i) << separator;
         }
         fileProfile_ << std::endl;
     }
