@@ -33,8 +33,8 @@ action::ThermodynamicForce restoreThermoForce(
     std::string word;
     int binNum = 0;
     int histNum = 0;
-    real_t grid0;
-    real_t grid1;
+    real_t grid0 = 0;
+    real_t grid1 = 0;
 
     std::ifstream fileThermoForce(filename);
     std::getline(fileThermoForce, line);
@@ -51,6 +51,7 @@ action::ThermodynamicForce restoreThermoForce(
         }
         binNum++;
     }
+    MRMD_HOST_ASSERT_GREATER(binNum, 1);
     real_t binWidth = grid1 - grid0;
 
     MultiView::HostMirror h_forcesRead("h_forcesRead", binNum, maxNumForces);
