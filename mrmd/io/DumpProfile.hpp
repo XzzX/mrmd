@@ -25,22 +25,14 @@ namespace io
 class DumpProfile
 {
 public:
-    void open(const std::string& filename) { fileProfile_.open(filename); }
+    void open(const std::string& filename);
 
-    void close() { fileProfile_.close(); }
+    void close();
 
-    void dumpGrid(const ScalarView::HostMirror& grid) { dumpStep(grid); }
+    void dumpGrid(const ScalarView::HostMirror& grid);
 
     void dumpStep(const ScalarView::HostMirror& dataProfile,
-                  const real_t& normalizationFactor = 1_r)
-    {
-        for (auto i = 0; i < dataProfile.extent(0); ++i)
-        {
-            std::string separator = (i < dataProfile.extent(0) - 1) ? " " : "";
-            fileProfile_ << dataProfile(i) * normalizationFactor << separator;
-        }
-        fileProfile_ << std::endl;
-    }
+                  const real_t& normalizationFactor = 1_r);
 
 private:
     std::ofstream fileProfile_;
@@ -49,13 +41,6 @@ private:
 void dumpSingleProfile(const std::string& filename,
                        const ScalarView::HostMirror& grid,
                        const ScalarView::HostMirror& dataProfile,
-                       const real_t& normalizationFactor = 1_r)
-{
-    DumpProfile dumpProfile;
-    dumpProfile.open(filename);
-    dumpProfile.dumpGrid(grid);
-    dumpProfile.dumpStep(dataProfile, normalizationFactor);
-    dumpProfile.close();
-}
+                       const real_t& normalizationFactor = 1_r);
 }  // namespace io
 }  // namespace mrmd
