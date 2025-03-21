@@ -97,7 +97,7 @@ void RestoreH5MDParallel::restore(const std::string& filename,
 
     auto fileId = CHECK_HDF5(H5Fopen(filename.c_str(), H5F_ACC_RDONLY, plist));
 
-    std::string groupName = "/particles/" + particleGroupName_ + "/box";
+    std::string groupName = "/particles/" + particleSubGroupName_ + "/box";
     CHECK_HDF5(H5LTget_attribute_double(
         fileId, groupName.c_str(), "minCorner", subdomain.minCorner.data()));
     CHECK_HDF5(H5LTget_attribute_double(
@@ -109,48 +109,48 @@ void RestoreH5MDParallel::restore(const std::string& filename,
     std::vector<real_t> pos;
     if (restorePos)
     {
-        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + posDataset + "/value", pos);
+        readParallel(fileId, "/particles/" + particleSubGroupName_ + "/" + posDataset + "/value", pos);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, pos.size());
     }
     std::vector<real_t> vel;
     if (restoreVel)
     {
-        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + velDataset + "/value", vel);
+        readParallel(fileId, "/particles/" + particleSubGroupName_ + "/" + velDataset + "/value", vel);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, vel.size());
     }
     std::vector<real_t> force;
     if (restoreForce)
     {
         readParallel(
-            fileId, "/particles/" + particleGroupName_ + "/" + forceDataset + "/value", force);
+            fileId, "/particles/" + particleSubGroupName_ + "/" + forceDataset + "/value", force);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, force.size());
     }
     std::vector<idx_t> type;
     if (restoreType)
     {
         readParallel(
-            fileId, "/particles/" + particleGroupName_ + "/" + typeDataset + "/value", type);
+            fileId, "/particles/" + particleSubGroupName_ + "/" + typeDataset + "/value", type);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, type.size());
     }
     std::vector<real_t> mass;
     if (restoreMass)
     {
         readParallel(
-            fileId, "/particles/" + particleGroupName_ + "/" + massDataset + "/value", mass);
+            fileId, "/particles/" + particleSubGroupName_ + "/" + massDataset + "/value", mass);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, mass.size());
     }
     std::vector<real_t> charge;
     if (restoreCharge)
     {
         readParallel(
-            fileId, "/particles/" + particleGroupName_ + "/" + chargeDataset + "/value", charge);
+            fileId, "/particles/" + particleSubGroupName_ + "/" + chargeDataset + "/value", charge);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, charge.size());
     }
     std::vector<real_t> relativeMass;
     if (restoreRelativeMass)
     {
         readParallel(fileId,
-                     "/particles/" + particleGroupName_ + "/" + relativeMassDataset + "/value",
+                     "/particles/" + particleSubGroupName_ + "/" + relativeMassDataset + "/value",
                      relativeMass);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, relativeMass.size());
     }

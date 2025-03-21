@@ -31,7 +31,7 @@ class RestoreH5MDParallel
 public:
     RestoreH5MDParallel(const std::shared_ptr<data::MPIInfo>& mpiInfo,
                         const std::string& particleSubGroupName = "atoms")
-        : mpiInfo_(mpiInfo), particleGroupName_(particleSubGroupName)
+        : mpiInfo_(mpiInfo), particleSubGroupName_(particleSubGroupName)
     {
     }
 
@@ -58,7 +58,7 @@ private:
     void readParallel(hid_t fileId, const std::string& dataset, std::vector<T>& data);
 
     std::shared_ptr<data::MPIInfo> mpiInfo_;
-    std::string particleGroupName_;
+    std::string particleSubGroupName_;
 };
 
 }  // namespace mrmd::io
