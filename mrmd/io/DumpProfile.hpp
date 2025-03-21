@@ -25,19 +25,11 @@ namespace io
 class DumpProfile
 {
 public:
-    void open(const std::string& filename, const ScalarView::HostMirror& grid)
-    {
-        fileProfile_.open(filename);
-
-        for (auto i = 0; i < grid.extent(0); ++i)
-        {
-            std::string separator = (i < grid.extent(0) - 1) ? " " : "";
-            fileProfile_ << grid(i) << separator;
-        }
-        fileProfile_ << std::endl;
-    }
+    void open(const std::string& filename) { fileProfile_.open(filename); }
 
     void close() { fileProfile_.close(); }
+
+    void dumpGrid(const ScalarView::HostMirror& grid) { dumpStep(grid); }
 
     void dumpStep(const ScalarView::HostMirror& dataProfile,
                   const real_t& normalizationFactor = 1_r)
@@ -60,7 +52,8 @@ void dumpSingleProfile(const std::string& filename,
                        const real_t& normalizationFactor = 1_r)
 {
     DumpProfile dumpProfile;
-    dumpProfile.open(filename, grid);
+    dumpProfile.open(filename);
+    dumpProfile.dumpGrid(grid);
     dumpProfile.dumpStep(dataProfile, normalizationFactor);
     dumpProfile.close();
 }

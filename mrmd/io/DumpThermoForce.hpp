@@ -45,7 +45,8 @@ void dumpThermoForce(const std::string& filename,
     DumpProfile dumpThermoForce;
     auto numBins = thermodynamicForce.getForce().createGrid().size();
 
-    dumpThermoForce.open(filename, thermodynamicForce.getForce().createGrid());
+    dumpThermoForce.open(filename);
+    dumpThermoForce.dumpGrid(thermodynamicForce.getForce().createGrid());
     for (idx_t typeId = 0; typeId < thermodynamicForce.getForce().numHistograms; typeId++)
     {
         ScalarView::HostMirror forceView("forceTest", numBins);
