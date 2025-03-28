@@ -103,7 +103,7 @@ void RestoreH5MDParallel::restore(const std::string& filename,
     CHECK_HDF5(H5LTget_attribute_double(
         fileId, groupName.c_str(), "maxCorner", subdomain.maxCorner.data()));
     CHECK_HDF5(H5LTget_attribute_double(
-        fileId, groupName.c_str(), "ghostLayerThickness", &subdomain.ghostLayerThickness));
+        fileId, groupName.c_str(), "ghostLayerThickness", subdomain.ghostLayerThickness.data()));
     subdomain =
         data::Subdomain(subdomain.minCorner, subdomain.maxCorner, subdomain.ghostLayerThickness);
     std::vector<real_t> pos;
