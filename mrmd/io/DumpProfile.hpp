@@ -29,10 +29,8 @@ public:
 
     void close();
 
-    void dumpGrid(const ScalarView::HostMirror& grid);
-
-    void dumpStep(const ScalarView::HostMirror& dataProfile,
-                  const real_t& normalizationFactor = 1_r);
+    void dumpScalarView(const ScalarView::HostMirror& dataProfile,
+                        const real_t& normalizationFactor = 1_r);
 
 private:
     std::ofstream fileProfile_;

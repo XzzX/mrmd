@@ -22,10 +22,8 @@ void DumpProfile::open(const std::string& filename) { fileProfile_.open(filename
 
 void DumpProfile::close() { fileProfile_.close(); }
 
-void DumpProfile::dumpGrid(const ScalarView::HostMirror& grid) { dumpStep(grid); }
-
-void DumpProfile::dumpStep(const ScalarView::HostMirror& dataProfile,
-                           const real_t& normalizationFactor)
+void DumpProfile::dumpScalarView(const ScalarView::HostMirror& dataProfile,
+                                 const real_t& normalizationFactor)
 {
     for (size_t idx = 0; idx < dataProfile.extent(0); ++idx)
     {
@@ -42,8 +40,8 @@ void dumpSingleProfile(const std::string& filename,
 {
     DumpProfile dumpProfile;
     dumpProfile.open(filename);
-    dumpProfile.dumpGrid(grid);
-    dumpProfile.dumpStep(dataProfile, normalizationFactor);
+    dumpProfile.dumpScalarView(grid);
+    dumpProfile.dumpScalarView(dataProfile, normalizationFactor);
     dumpProfile.close();
 }
 }  // namespace io
