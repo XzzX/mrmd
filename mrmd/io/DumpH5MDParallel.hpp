@@ -33,7 +33,7 @@ public:
         : mpiInfo(mpiInfoArg), author(authorArg), particleSubGroupName(particleSubGroupNameArg)
     {
     }
-    void open(const std::string& filename, const data::Atoms& atoms);
+    void open(const std::string& filename, const data::Subdomain& subdomain, const data::Atoms& atoms);
 
     void dumpStep(const data::Subdomain& subdomain,
                   const data::Atoms& atoms,

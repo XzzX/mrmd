@@ -39,7 +39,7 @@ class DumpH5MDParallelImpl
 public:
     explicit DumpH5MDParallelImpl(DumpH5MDParallel& config) : config_(config) {}
 
-    void open(const std::string& filename, const data::Atoms& atoms);
+    void open(const std::string& filename, const data::Subdomain& subdomain, const data::Atoms& atoms);
     void dumpStep(const data::Subdomain& subdomain,
                   const data::Atoms& atoms,
                   const idx_t step,
@@ -55,7 +55,7 @@ private:
     void closeFile(const hid_t& fileId) const;
     hid_t createGroup(const hid_t& parentElementId, const std::string& groupName) const;
     void closeGroup(const hid_t& groupId) const;
-    void openBox() const;
+    void openBox(const data::Subdomain& subdomain) const;
     hid_t createChunkedDataset(const hid_t& groupId,
                                const std::vector<hsize_t>& dims,
                                const std::string& name,
@@ -108,7 +108,7 @@ private:
     int64_t particleOffset = -1;
 };
 
-void DumpH5MDParallelImpl::open(const std::string& filename, const data::Atoms& atoms)
+void DumpH5MDParallelImpl::open(const std::string& filename, const data::Subdomain& subdomain, const data::Atoms& atoms)
 {
     MPI_Info info = MPI_INFO_NULL;
 
@@ -122,7 +122,7 @@ void DumpH5MDParallelImpl::open(const std::string& filename, const data::Atoms& 
     config_.particleGroupId = createGroup(config_.fileId, "particles");
     config_.particleSubGroupId = createGroup(config_.particleGroupId, config_.particleSubGroupName);
     writeHeader(config_.fileId);
-    openBox();
+    openBox(subdomain);
 
     config_.chargesGroupId = createGroup(config_.particleSubGroupId, "charge");
     config_.chargesStepSetId = createChunkedDataset(
@@ -243,13 +243,29 @@ void DumpH5MDParallelImpl::close() const
     closeFile(config_.fileId);
 }
 
-void DumpH5MDParallelImpl::openBox() const
+void DumpH5MDParallelImpl::openBox(const data::Subdomain& subdomain) const
 {
     config_.boxGroupId = createGroup(config_.particleSubGroupId, "box");
 
     std::vector<int> dims = {3};
     CHECK_HDF5(H5LTset_attribute_int(
         config_.particleSubGroupId, "box", "dimension", dims.data(), dims.size()));
+    CHECK_HDF5(H5LTset_attribute_double(config_.particleSubGroupId,
+        "box",
+        "minCorner",
+        subdomain.minCorner.data(),
+        subdomain.minCorner.size()));
+    CHECK_HDF5(H5LTset_attribute_double(config_.particleSubGroupId,
+        "box",
+        "maxCorner",
+        subdomain.maxCorner.data(),
+        subdomain.maxCorner.size()));
+    CHECK_HDF5(H5LTset_attribute_double(config_.particleSubGroupId,
+        "box",
+        "ghostLayerThickness",
+        &subdomain.ghostLayerThickness,
+        1));
+    
 
     auto boundaryType = H5Tcopy(H5T_C_S1);
     CHECK_HDF5(H5Tset_size(boundaryType, 8));
@@ -971,10 +987,10 @@ void DumpH5MDParallelImpl::dump(const std::string& filename,
 }
 }  // namespace impl
 
-void DumpH5MDParallel::open(const std::string& filename, const data::Atoms& atoms)
+void DumpH5MDParallel::open(const std::string& filename, const data::Subdomain& subdomain, const data::Atoms& atoms)
 {
     impl::DumpH5MDParallelImpl helper(*this);
-    helper.open(filename, atoms);
+    helper.open(filename, subdomain, atoms);
 }
 
 void DumpH5MDParallel::dumpStep(const data::Subdomain& subdomain,
@@ -1000,7 +1016,7 @@ void DumpH5MDParallel::dump(const std::string& filename,
     helper.dump(filename, subdomain, atoms);
 }
 #else
-void DumpH5MDParallel::open(const std::string& /*filename*/, const data::Atoms& /*atoms*/)
+void DumpH5MDParallel::open(const std::string& /*filename*/, const data::Subdomain& /*subdomain*/, const data::Atoms& /*atoms*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 Support not available!");
     exit(EXIT_FAILURE);
