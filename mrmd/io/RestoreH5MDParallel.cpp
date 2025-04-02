@@ -210,7 +210,8 @@ void RestoreH5MDParallel::restore(const std::string& filename,
 template <typename T>
 void RestoreH5MDParallel::readParallel(hid_t /*fileId*/,
                                        const std::string& /*dataset*/,
-                                       std::vector<T>& /*data*/)
+                                       std::vector<T>& /*data*/,
+                                       const idx_t& /*saveCount*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 support not available!");
     exit(EXIT_FAILURE);
