@@ -112,43 +112,55 @@ void RestoreH5MDParallel::restore(const std::string& filename,
     std::vector<real_t> pos;
     if (restorePos)
     {
-        readParallel(
-            fileId, "/particles/" + particleSubGroupName_ + "/" + posDataset + "/value", pos, saveCount);
+        readParallel(fileId,
+                     "/particles/" + particleSubGroupName_ + "/" + posDataset + "/value",
+                     pos,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, pos.size());
     }
     std::vector<real_t> vel;
     if (restoreVel)
     {
-        readParallel(
-            fileId, "/particles/" + particleSubGroupName_ + "/" + velDataset + "/value", vel, saveCount);
+        readParallel(fileId,
+                     "/particles/" + particleSubGroupName_ + "/" + velDataset + "/value",
+                     vel,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, vel.size());
     }
     std::vector<real_t> force;
     if (restoreForce)
     {
-        readParallel(
-            fileId, "/particles/" + particleSubGroupName_ + "/" + forceDataset + "/value", force, saveCount);
+        readParallel(fileId,
+                     "/particles/" + particleSubGroupName_ + "/" + forceDataset + "/value",
+                     force,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, force.size());
     }
     std::vector<idx_t> type;
     if (restoreType)
     {
-        readParallel(
-            fileId, "/particles/" + particleSubGroupName_ + "/" + typeDataset + "/value", type, saveCount);
+        readParallel(fileId,
+                     "/particles/" + particleSubGroupName_ + "/" + typeDataset + "/value",
+                     type,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, type.size());
     }
     std::vector<real_t> mass;
     if (restoreMass)
     {
-        readParallel(
-            fileId, "/particles/" + particleSubGroupName_ + "/" + massDataset + "/value", mass, saveCount);
+        readParallel(fileId,
+                     "/particles/" + particleSubGroupName_ + "/" + massDataset + "/value",
+                     mass,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, mass.size());
     }
     std::vector<real_t> charge;
     if (restoreCharge)
     {
-        readParallel(
-            fileId, "/particles/" + particleSubGroupName_ + "/" + chargeDataset + "/value", charge, saveCount);
+        readParallel(fileId,
+                     "/particles/" + particleSubGroupName_ + "/" + chargeDataset + "/value",
+                     charge,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, charge.size());
     }
     std::vector<real_t> relativeMass;
@@ -156,7 +168,8 @@ void RestoreH5MDParallel::restore(const std::string& filename,
     {
         readParallel(fileId,
                      "/particles/" + particleSubGroupName_ + "/" + relativeMassDataset + "/value",
-                     relativeMass, saveCount);
+                     relativeMass,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, relativeMass.size());
     }
 

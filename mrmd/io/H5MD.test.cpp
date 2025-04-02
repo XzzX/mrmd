@@ -97,8 +97,10 @@ void shuffleAtoms(data::Subdomain& subdomain, data::Atoms& atoms, const idx_t& s
     Kokkos::fence();
 }
 
-void compareSystems(const data::Subdomain& subdomain1, const data::Atoms& atoms1,
-                    const data::Subdomain& subdomain2, const data::Atoms& atoms2)
+void compareSystems(const data::Subdomain& subdomain1,
+                    const data::Atoms& atoms1,
+                    const data::Subdomain& subdomain2,
+                    const data::Atoms& atoms2)
 {
     EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[0], subdomain2.ghostLayerThickness[0]);
     EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[1], subdomain2.ghostLayerThickness[1]);

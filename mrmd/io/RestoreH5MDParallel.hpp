@@ -35,7 +35,10 @@ public:
     {
     }
 
-    void restore(const std::string& filename, data::Subdomain& subdomain, data::Atoms& atoms, const idx_t& saveCount = 0);
+    void restore(const std::string& filename,
+                 data::Subdomain& subdomain,
+                 data::Atoms& atoms,
+                 const idx_t& saveCount = 0);
 
     bool restorePos = true;
     bool restoreVel = true;
@@ -55,7 +58,10 @@ public:
 
 private:
     template <typename T>
-    void readParallel(hid_t fileId, const std::string& dataset, std::vector<T>& data, const idx_t& saveCount);
+    void readParallel(hid_t fileId,
+                      const std::string& dataset,
+                      std::vector<T>& data,
+                      const idx_t& saveCount);
 
     std::shared_ptr<data::MPIInfo> mpiInfo_;
     std::string particleSubGroupName_;
