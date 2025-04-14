@@ -39,7 +39,7 @@ struct Subdomain
 
     Subdomain(const Point3D& minCornerArg,
               const Point3D& maxCornerArg,
-              const Point3D& ghostLayerThicknessArg)
+              const Vector3D& ghostLayerThicknessArg)
         : minCorner(minCornerArg),
           maxCorner(maxCornerArg),
           ghostLayerThickness(ghostLayerThicknessArg)
@@ -62,9 +62,10 @@ struct Subdomain
     Subdomain(const Point3D& minCornerArg,
               const Point3D& maxCornerArg,
               real_t ghostLayerThicknessArg)
-        : Subdomain(minCornerArg,
-                    maxCornerArg,
-                    Point3D{ghostLayerThicknessArg, ghostLayerThicknessArg, ghostLayerThicknessArg})
+        : Subdomain(
+              minCornerArg,
+              maxCornerArg,
+              Vector3D{ghostLayerThicknessArg, ghostLayerThicknessArg, ghostLayerThicknessArg})
     {
     }
 
