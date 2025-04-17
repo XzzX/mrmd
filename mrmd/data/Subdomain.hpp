@@ -36,27 +36,37 @@ namespace data
 struct Subdomain
 {
     Subdomain() = default;
+
     Subdomain(const Point3D& minCornerArg,
               const Point3D& maxCornerArg,
-              real_t ghostLayerThicknessArg)
+              const Vector3D& ghostLayerThicknessArg)
         : minCorner(minCornerArg),
           maxCorner(maxCornerArg),
           ghostLayerThickness(ghostLayerThicknessArg)
     {
-        MRMD_HOST_CHECK_GREATEREQUAL(ghostLayerThicknessArg, 0_r);
-
         for (auto dim = 0; dim < 3; ++dim)
         {
-            minGhostCorner[dim] = minCorner[dim] - ghostLayerThickness;
-            maxGhostCorner[dim] = maxCorner[dim] + ghostLayerThickness;
+            MRMD_HOST_CHECK_GREATEREQUAL(ghostLayerThicknessArg[dim], 0_r);
 
-            minInnerCorner[dim] = minCorner[dim] + ghostLayerThickness;
-            maxInnerCorner[dim] = maxCorner[dim] - ghostLayerThickness;
+            minGhostCorner[dim] = minCorner[dim] - ghostLayerThickness[dim];
+            maxGhostCorner[dim] = maxCorner[dim] + ghostLayerThickness[dim];
+
+            minInnerCorner[dim] = minCorner[dim] + ghostLayerThickness[dim];
+            maxInnerCorner[dim] = maxCorner[dim] - ghostLayerThickness[dim];
 
             diameter[dim] = maxCorner[dim] - minCorner[dim];
             diameterWithGhostLayer[dim] =
-                maxCorner[dim] - minCorner[dim] + 2_r * ghostLayerThickness;
+                maxCorner[dim] - minCorner[dim] + 2_r * ghostLayerThickness[dim];
         }
+    }
+    Subdomain(const Point3D& minCornerArg,
+              const Point3D& maxCornerArg,
+              real_t ghostLayerThicknessArg)
+        : Subdomain(
+              minCornerArg,
+              maxCornerArg,
+              Vector3D{ghostLayerThicknessArg, ghostLayerThicknessArg, ghostLayerThicknessArg})
+    {
     }
 
     void scaleDim(const real_t& scalingFactor, const idx_t& dim);
@@ -69,7 +79,9 @@ struct Subdomain
                          std::numeric_limits<real_t>::signaling_NaN(),
                          std::numeric_limits<real_t>::signaling_NaN()};  // namespace data
 
-    real_t ghostLayerThickness = std::numeric_limits<real_t>::signaling_NaN();
+    Point3D ghostLayerThickness = {std::numeric_limits<real_t>::signaling_NaN(),
+                                   std::numeric_limits<real_t>::signaling_NaN(),
+                                   std::numeric_limits<real_t>::signaling_NaN()};
 
     Point3D minGhostCorner = {std::numeric_limits<real_t>::signaling_NaN(),
                               std::numeric_limits<real_t>::signaling_NaN(),

@@ -81,7 +81,9 @@ TEST(H5MD, dump)
     auto restore = RestoreH5MDParallel(mpiInfo);
     restore.restore("dummy.h5md", subdomain2, atoms2);
 
-    EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness, subdomain2.ghostLayerThickness);
+    EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[0], subdomain2.ghostLayerThickness[0]);
+    EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[1], subdomain2.ghostLayerThickness[1]);
+    EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[2], subdomain2.ghostLayerThickness[2]);
 
     EXPECT_FLOAT_EQ(subdomain1.minCorner[0], subdomain2.minCorner[0]);
     EXPECT_FLOAT_EQ(subdomain1.minCorner[1], subdomain2.minCorner[1]);

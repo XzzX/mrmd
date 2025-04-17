@@ -184,8 +184,11 @@ void DumpH5MDParallelImpl::writeBox(hid_t fileId, const data::Subdomain& subdoma
                                         "maxCorner",
                                         subdomain.maxCorner.data(),
                                         subdomain.maxCorner.size()));
-    CHECK_HDF5(H5LTset_attribute_double(
-        fileId, groupName.c_str(), "ghostLayerThickness", &subdomain.ghostLayerThickness, 1));
+    CHECK_HDF5(H5LTset_attribute_double(fileId,
+                                        groupName.c_str(),
+                                        "ghostLayerThickness",
+                                        subdomain.ghostLayerThickness.data(),
+                                        subdomain.ghostLayerThickness.size()));
 
     CHECK_HDF5(H5Gclose(group));
 }
