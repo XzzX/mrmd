@@ -265,11 +265,10 @@ void DumpH5MDParallelImpl::openBox(const data::Subdomain& subdomain) const
                                         subdomain.maxCorner.data(),
                                         subdomain.maxCorner.size()));
     CHECK_HDF5(H5LTset_attribute_double(config_.particleSubGroupId,
-        "box",
-        "ghostLayerThickness",
-        subdomain.ghostLayerThickness.data(),
-        subdomain.ghostLayerThickness.size()));
-    
+                                        "box",
+                                        "ghostLayerThickness",
+                                        subdomain.ghostLayerThickness.data(),
+                                        subdomain.ghostLayerThickness.size()));
 
     auto boundaryType = H5Tcopy(H5T_C_S1);
     CHECK_HDF5(H5Tset_size(boundaryType, 8));
