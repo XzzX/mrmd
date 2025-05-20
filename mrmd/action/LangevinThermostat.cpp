@@ -51,7 +51,7 @@ void LangevinThermostat::apply(data::Atoms& atoms)
 }
 
 void LangevinThermostat::apply(data::Atoms& atoms, const util::ApplicationRegion& applicationRegion)
-    {
+{
     auto RNG = randPool_;
     auto pos = atoms.getPos();
     auto vel = atoms.getVel();
@@ -63,9 +63,7 @@ void LangevinThermostat::apply(data::Atoms& atoms, const util::ApplicationRegion
     auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
-        if (!applicationRegion.isInApplicationRegion(
-            pos(idx, 0), pos(idx, 1), pos(idx, 2)))
-        return;
+        if (!applicationRegion.isInApplicationRegion(pos(idx, 0), pos(idx, 1), pos(idx, 2))) return;
 
         const real_t m = mass(idx);
         const real_t mSqrt = std::sqrt(m);
@@ -83,8 +81,7 @@ void LangevinThermostat::apply(data::Atoms& atoms, const util::ApplicationRegion
     Kokkos::parallel_for("LangevinThermostat::applyThermostat", policy, kernel);
 
     Kokkos::fence();
-    }
-
+}
 
 }  // namespace action
 }  // namespace mrmd

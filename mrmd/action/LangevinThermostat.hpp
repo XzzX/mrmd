@@ -18,8 +18,8 @@
 
 #include "data/Atoms.hpp"
 #include "datatypes.hpp"
-#include "util/Random.hpp"
 #include "util/ApplicationRegion.hpp"
+#include "util/Random.hpp"
 
 namespace mrmd
 {
