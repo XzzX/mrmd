@@ -43,7 +43,10 @@ public:
     }
 
     real_t preForceIntegrate(data::Atoms& atoms, const real_t dt);
-    std::tuple<real_t, idx_t, idx_t> preForceIntegrate(data::Atoms& atoms, const real_t dt, const real_t fluxBoundaryLeft, const real_t fluxBoundaryRight);
+    std::tuple<real_t, idx_t, idx_t> preForceIntegrate(data::Atoms& atoms,
+                                                       const real_t dt,
+                                                       const real_t fluxBoundaryLeft,
+                                                       const real_t fluxBoundaryRight);
     void postForceIntegrate(data::Atoms& atoms, const real_t dt);
 };
 }  // namespace action

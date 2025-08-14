@@ -83,7 +83,11 @@ real_t VelocityVerletLangevinThermostat::preForceIntegrate(data::Atoms& atoms, c
     return std::sqrt(maxDistSqr);
 }
 
-std::tuple<real_t, idx_t, idx_t> VelocityVerletLangevinThermostat::preForceIntegrate(data::Atoms& atoms, const real_t dt, const real_t fluxBoundaryLeft, const real_t fluxBoundaryRight)
+std::tuple<real_t, idx_t, idx_t> VelocityVerletLangevinThermostat::preForceIntegrate(
+    data::Atoms& atoms,
+    const real_t dt,
+    const real_t fluxBoundaryLeft,
+    const real_t fluxBoundaryRight)
 {
     auto RNG = randPool_;
     auto pos = atoms.getPos();
@@ -94,7 +98,8 @@ std::tuple<real_t, idx_t, idx_t> VelocityVerletLangevinThermostat::preForceInteg
     auto temperature = temperature_;
 
     auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
-    auto kernel = KOKKOS_LAMBDA(const idx_t& idx, real_t& maxDistSqr, idx_t& fluxLeft, idx_t& fluxRight)
+    auto kernel =
+        KOKKOS_LAMBDA(const idx_t& idx, real_t& maxDistSqr, idx_t& fluxLeft, idx_t& fluxRight)
     {
         real_t dx[3];
         dx[0] = pos(idx, 0);
@@ -165,7 +170,7 @@ std::tuple<real_t, idx_t, idx_t> VelocityVerletLangevinThermostat::preForceInteg
     Kokkos::parallel_reduce("VelocityVerletLangevinThermostat::preForceIntegrate",
                             policy,
                             kernel,
-                            Kokkos::Max<real_t>(maxDistSqr), 
+                            Kokkos::Max<real_t>(maxDistSqr),
                             Kokkos::Sum<idx_t>(fluxLeft),
                             Kokkos::Sum<idx_t>(fluxRight));
     Kokkos::fence();
@@ -174,7 +179,7 @@ std::tuple<real_t, idx_t, idx_t> VelocityVerletLangevinThermostat::preForceInteg
     std::get<0>(result) = std::sqrt(maxDistSqr);
     std::get<1>(result) = fluxLeft;
     std::get<2>(result) = fluxRight;
-    
+
     return result;
 }
 
