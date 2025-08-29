@@ -60,7 +60,7 @@ TEST(AxialDensityProfile, histogram)
     auto atoms = initAtoms();
 
     auto histogram = getAxialDensityProfile(
-        atoms.numLocalAtoms, atoms.getPos(), atoms.getType(), 2, 0_r, 10_r, 10, COORD_X);
+        atoms.numLocalAtoms, atoms.getPos(), atoms.getType(), 2, 0_r, 10_r, 10, 1_r, COORD_X);
     auto h_data = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogram.data);
 
     for (auto i = 0; i < 10; ++i)
@@ -69,5 +69,34 @@ TEST(AxialDensityProfile, histogram)
         EXPECT_FLOAT_EQ(h_data(i, 1), real_c(11 - (i + 1)));
     }
 }
+
+TEST(AxialDensityProfile, overlappingBins)
+{
+    auto atoms = initAtoms();
+
+    auto histogram = getAxialDensityProfile(
+        atoms.numLocalAtoms, atoms.getPos(), atoms.getType(), 2, 0_r, 10_r, 10, 3_r, COORD_X);
+    auto h_data = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogram.data);
+
+    for (auto i = 0; i < 10; ++i)
+    {
+        if (i == 0)
+        {
+            EXPECT_FLOAT_EQ(h_data(i, 0), (real_c(i) + real_c(i + 1) + real_c(i + 2)));
+            EXPECT_FLOAT_EQ(h_data(i, 1), (real_c(11 - (i + 1)) + real_c(11 - (i + 2))));
+            continue;
+        }
+        else if (i == 9)
+        {
+            EXPECT_FLOAT_EQ(h_data(i, 0), (real_c(i) + real_c(i + 1)));
+            EXPECT_FLOAT_EQ(h_data(i, 1), (real_c(11 - i) + real_c(11 - (i + 1))));
+            continue;
+        }
+        EXPECT_FLOAT_EQ(h_data(i, 0), (real_c(i) + real_c(i + 1) + real_c(i + 2)));
+        EXPECT_FLOAT_EQ(h_data(i, 1),
+                        (real_c(11 - i) + real_c(11 - (i + 1)) + real_c(11 - (i + 2))));
+    }
+}
+
 }  // namespace analysis
 }  // namespace mrmd

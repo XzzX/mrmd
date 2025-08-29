@@ -45,6 +45,12 @@ public:
           applicationRegionMax_(applicationRegionMax)
     {
     }
+
+    Point3D getCenter() const { return center_; }
+
+    real_t getApplicationRegionMin() const { return applicationRegionMin_; }
+
+    real_t getApplicationRegionMax() const { return applicationRegionMax_; }
 };
 }  // namespace util
 }  // namespace mrmd

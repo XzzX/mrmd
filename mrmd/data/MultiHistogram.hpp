@@ -31,18 +31,33 @@ struct MultiHistogram
                    const real_t minArg,
                    const real_t maxArg,
                    idx_t numBinsArg,
+                   real_t binSizeArg,
                    idx_t numHistogramsArg)
         : min(minArg),
           max(maxArg),
           numBins(numBinsArg),
           numHistograms(numHistogramsArg),
-          binSize((max - min) / real_c(numBins)),
+          binSize(binSizeArg),
           inverseBinSize(1_r / binSize),
           data(label, numBins, numHistograms)
     {
         MRMD_HOST_CHECK_GREATER(maxArg, minArg);
         MRMD_HOST_CHECK_GREATEREQUAL(numBinsArg, 0);
         MRMD_HOST_CHECK_GREATEREQUAL(numHistogramsArg, 0);
+    }
+
+    MultiHistogram(const std::string& label,
+                   const real_t minArg,
+                   const real_t maxArg,
+                   idx_t numBinsArg,
+                   idx_t numHistogramsArg)
+        : MultiHistogram(label,
+                         minArg,
+                         maxArg,
+                         numBinsArg,
+                         (maxArg - minArg) / real_c(numBinsArg),
+                         numHistogramsArg)
+    {
     }
 
     MultiHistogram(const std::string& label, const MultiHistogram& histogram)
