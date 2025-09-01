@@ -86,7 +86,7 @@ TEST(AxialDensityProfile, overlappingBins)
             EXPECT_FLOAT_EQ(h_data(i, 1), (real_c(11 - (i + 1)) + real_c(11 - (i + 2))));
             continue;
         }
-        else if (i == 9)
+        if (i == 9)
         {
             EXPECT_FLOAT_EQ(h_data(i, 0), (real_c(i) + real_c(i + 1)));
             EXPECT_FLOAT_EQ(h_data(i, 1), (real_c(11 - i) + real_c(11 - (i + 1))));
