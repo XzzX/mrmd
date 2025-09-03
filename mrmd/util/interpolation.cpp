@@ -53,13 +53,14 @@ data::MultiHistogram interpolate(const data::MultiHistogram& input, const Scalar
     return output;
 }
 
-data::MultiHistogram constrainToApplicationRegion(const data::MultiHistogram& input, const util::ApplicationRegion& applicationRegion)
+data::MultiHistogram constrainToApplicationRegion(const data::MultiHistogram& input,
+                                                  const util::ApplicationRegion& applicationRegion)
 {
     data::MultiHistogram constrainedProfile(
         "constrained-profile", input.min, input.max, input.numBins, input.numHistograms);
 
-    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>(
-        {idx_t(0), idx_t(0)}, {input.numBins, input.numHistograms});
+    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({idx_t(0), idx_t(0)},
+                                                         {input.numBins, input.numHistograms});
     auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histogramIdx)
     {
         if (!applicationRegion.isInApplicationRegion(input.getBinPosition(binIdx), 0_r, 0_r))
@@ -72,7 +73,7 @@ data::MultiHistogram constrainToApplicationRegion(const data::MultiHistogram& in
         }
     };
     Kokkos::parallel_for("MultiHistogram::constrainToApplicationRegion", policy, kernel);
-    Kokkos::fence();  
+    Kokkos::fence();
 
     return constrainedProfile;
 }

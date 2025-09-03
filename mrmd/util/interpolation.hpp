@@ -60,7 +60,8 @@ idx_t findRightBin(const ScalarView& grid, const real_t& value)
  */
 data::MultiHistogram interpolate(const data::MultiHistogram& input, const ScalarView& grid);
 
-data::MultiHistogram constrainToApplicationRegion(const data::MultiHistogram& input, const util::ApplicationRegion& applicationRegion);
+data::MultiHistogram constrainToApplicationRegion(const data::MultiHistogram& input,
+                                                  const util::ApplicationRegion& applicationRegion);
 
 }  // namespace util
 }  // namespace mrmd

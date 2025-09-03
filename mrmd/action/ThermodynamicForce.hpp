@@ -63,7 +63,9 @@ public:
 
     void sample(data::Atoms& atoms);
     void update(const real_t& smoothingSigma, const real_t& smoothingIntensity);
-    void update(const real_t& smoothingSigma, const real_t& smoothingIntensity, const util::ApplicationRegion& applicationRegion);
+    void update(const real_t& smoothingSigma,
+                const real_t& smoothingIntensity,
+                const util::ApplicationRegion& applicationRegion);
     void apply(const data::Atoms& atoms) const;
     void apply(const data::Atoms& atoms, const weighting_function::Slab& slab) const;
     void apply(const data::Atoms& atoms, const util::ApplicationRegion& applicationRegion) const;
