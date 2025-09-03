@@ -177,6 +177,32 @@ void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoo
     densityProfileSamples_ = 0;
 }
 
+void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoothingIntensity, const util::ApplicationRegion& applicationRegion)
+{
+    MRMD_HOST_CHECK_GREATER(densityProfileSamples_, 0);
+
+    if (enforceSymmetry_)
+    {
+        densityProfile_.makeSymmetric();
+    }
+
+    auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
+    densityProfile_.scale(normalizationFactor);
+
+    auto smoothedDensityProfile =
+        data::smoothen(densityProfile_, smoothingSigma, smoothingIntensity, usePeriodicity_);
+    auto smoothedDensityGradient = data::gradient(smoothedDensityProfile, usePeriodicity_);
+    smoothedDensityGradient.scale(forceFactor_);
+    
+    auto constrainedDensityGradient = util::constrainToApplicationRegion(smoothedDensityGradient, applicationRegion);
+
+    force_ -= util::interpolate(constrainedDensityGradient, force_.createGrid_d());
+
+    // reset sampling data
+    Kokkos::deep_copy(densityProfile_.data, 0_r);
+    densityProfileSamples_ = 0;
+}
+
 void ThermodynamicForce::apply(const data::Atoms& atoms) const
 {
     auto atomsPos = atoms.getPos();

@@ -88,6 +88,7 @@ struct MultiHistogram
     }
 
     ScalarView::HostMirror createGrid() const;
+    ScalarView createGrid_d() const;
 
     const real_t min;
     const real_t max;

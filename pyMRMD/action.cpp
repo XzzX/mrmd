@@ -85,7 +85,8 @@ void init_action(py::module_& m)
              static_cast<data::MultiHistogram (action::ThermodynamicForce::*)() const>(
                  &action::ThermodynamicForce::getDensityProfile))
         .def("sample", &action::ThermodynamicForce::sample)
-        .def("update", &action::ThermodynamicForce::update)
+        .def("update",
+             static_cast<void (action::ThermodynamicForce::*)(const real_t& smoothingSigma, const real_t& smoothingIntensity)>(&action::ThermodynamicForce::update))
         .def("apply",
              static_cast<void (action::ThermodynamicForce::*)(const data::Atoms&) const>(
                  &action::ThermodynamicForce::apply))
