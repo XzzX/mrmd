@@ -34,7 +34,7 @@ public:
         auto dx = x - center_[0];
         auto absDx = std::abs(dx);
 
-        return (absDx >= applicationRegionMin_ && absDx <= applicationRegionMax_);
+        return (absDx > applicationRegionMin_ && absDx < applicationRegionMax_);
     }
 
     ApplicationRegion(const Point3D& center,
