@@ -86,7 +86,7 @@ include(FetchContent)
 FetchContent_Declare(
     Kokkos
     GIT_REPOSITORY https://github.com/kokkos/kokkos.git
-    GIT_TAG 15dc143e5f39949eece972a798e175c4b463d4b8 #4.4.01
+    GIT_TAG b601b82d0f4b4491aeafb7b19cde557e92aa761d #4.7.1
     OVERRIDE_FIND_PACKAGE
     SYSTEM
 )
@@ -96,7 +96,7 @@ include(${kokkos_BINARY_DIR}/KokkosConfigCommon.cmake)
 FetchContent_Declare(
         CLI11
         GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
-        GIT_TAG 6c7b07a878ad834957b98d0f9ce1dbe0cb204fc9 #2.4.2
+        GIT_TAG bfffd37e1f804ca4fae1caae106935791696b6a9 #2.6.1
         SYSTEM
 )
 FetchContent_MakeAvailable(CLI11)
@@ -105,7 +105,7 @@ option(FMT_INSTALL "Enable install for fmt project" ON)
 FetchContent_Declare(
         FMT
         GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-        GIT_TAG 0c9fce2ffefecfdce794e1859584e25877b7b592 #11.0.2
+        GIT_TAG e424e3f2e607da02742f73db84873b8084fc714c #12.0.0
         SYSTEM
 )
 FetchContent_MakeAvailable(FMT)
@@ -113,7 +113,7 @@ FetchContent_MakeAvailable(FMT)
 FetchContent_Declare(
         YAML_CPP
         GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-        GIT_TAG f7320141120f720aecc4c32be25586e7da9eb978 #0.8.0
+        GIT_TAG a83cd31548b19d50f3f983b069dceb4f4d50756d #0.8.0+
         SYSTEM
 )
 FetchContent_MakeAvailable(YAML_CPP)
@@ -121,7 +121,7 @@ FetchContent_MakeAvailable(YAML_CPP)
 FetchContent_Declare(
         Cabana
         GIT_REPOSITORY https://github.com/ECP-copa/Cabana.git
-        GIT_TAG 25f7411a1fc7c46ee2fc07ee0c452d8f589ff178 #0.6.1
+        GIT_TAG 7914d28708b1c67b40d5743c1fbc09e221144dd3 #0.7
         SYSTEM
 )
 FetchContent_MakeAvailable(Cabana)
@@ -129,7 +129,7 @@ FetchContent_MakeAvailable(Cabana)
 FetchContent_Declare(
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG b514bdc898e2951020cbdca1304b75f5950d1f59 #1.15.2
+        GIT_TAG 52eb8108c5bdec04579160ae17225d66034bd723 #1.17.0
         SYSTEM
 )
 FetchContent_MakeAvailable(googletest)
