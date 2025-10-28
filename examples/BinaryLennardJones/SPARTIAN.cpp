@@ -209,6 +209,7 @@ void spartian(YAML::Node& config,
                                                  thermodynamicForce.getDensityProfile().min,
                                                  thermodynamicForce.getDensityProfile().max,
                                                  thermodynamicForce.getDensityProfile().numBins,
+                                                 thermodynamicForce.getDensityProfile().binSize,
                                                  COORD_X);
             densityProfile.scale(
                 1_r / (densityProfile.binSize * subdomain.diameter[1] * subdomain.diameter[2]));

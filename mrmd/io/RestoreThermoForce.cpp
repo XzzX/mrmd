@@ -27,43 +27,33 @@ action::ThermodynamicForce restoreThermoForce(
     const std::vector<real_t>& thermodynamicForceModulations,
     const bool enforceSymmetry,
     const bool usePeriodicity,
-    const idx_t maxNumForces)
+    const idx_t maxNumForces,
+    const real_t requestedDensityBinWidth)
 {
     std::string line;
     std::string word;
-    int binNum = 0;
+    int binNumForce = 0;
     int histNum = 0;
-    real_t grid0 = 0;
-    real_t grid1 = 0;
 
     std::ifstream fileThermoForce(filename);
     std::getline(fileThermoForce, line);
     std::stringstream gridLineStream(line);
     while (gridLineStream >> word)
     {
-        if (binNum == 0)
-        {
-            grid0 = std::stod(word);
-        }
-        if (binNum == 1)
-        {
-            grid1 = std::stod(word);
-        }
-        binNum++;
+        binNumForce++;
     }
-    MRMD_HOST_ASSERT_GREATER(binNum, 1);
-    real_t binWidth = grid1 - grid0;
+    MRMD_HOST_ASSERT_GREATER(binNumForce, 1);
 
-    MultiView::HostMirror h_forcesRead("h_forcesRead", binNum, maxNumForces);
+    MultiView::HostMirror h_forcesRead("h_forcesRead", binNumForce, maxNumForces);
 
     while (std::getline(fileThermoForce, line))
     {
-        binNum = 0;
+        binNumForce = 0;
         std::stringstream forceLineStream(line);
         while (forceLineStream >> word)
         {
-            h_forcesRead(binNum, histNum) = std::stod(word);
-            binNum++;
+            h_forcesRead(binNumForce, histNum) = std::stod(word);
+            binNumForce++;
         }
         histNum++;
 
@@ -71,14 +61,23 @@ action::ThermodynamicForce restoreThermoForce(
     }
     fileThermoForce.close();
 
-    auto h_forces =
-        Kokkos::subview(h_forcesRead, Kokkos::make_pair(0, binNum), Kokkos::make_pair(0, histNum));
-    MultiView d_forces("d_forces", binNum, histNum);
+    auto h_forces = Kokkos::subview(
+        h_forcesRead, Kokkos::make_pair(0, binNumForce), Kokkos::make_pair(0, histNum));
+    MultiView d_forces("d_forces", binNumForce, histNum);
     Kokkos::deep_copy(d_forces, h_forces);
+
+    auto forceBinNumber = idx_c(binNumForce);
+    real_t densityBinWidth = requestedDensityBinWidth;
+
+    if (requestedDensityBinWidth < 0_r)
+    {
+        densityBinWidth = (subdomain.diameter[0] / real_c(forceBinNumber));
+    }
 
     action::ThermodynamicForce thermodynamicForce(targetDensities,
                                                   subdomain,
-                                                  binWidth,
+                                                  forceBinNumber,
+                                                  densityBinWidth,
                                                   thermodynamicForceModulations,
                                                   enforceSymmetry,
                                                   usePeriodicity);

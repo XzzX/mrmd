@@ -28,9 +28,9 @@ action::ThermodynamicForce createThermoForce(const idx_t& numBins,
                                              const std::vector<real_t>& targetDensities,
                                              const std::vector<real_t>& forceModulations)
 {
-    real_t binWidth = (subdomain.maxCorner[0] - subdomain.minCorner[0]) / real_c(numBins);
+    real_t gridSpacing = (subdomain.maxCorner[0] - subdomain.minCorner[0]) / real_c(numBins);
     action::ThermodynamicForce thermodynamicForce(
-        targetDensities, subdomain, binWidth, forceModulations);
+        targetDensities, subdomain, gridSpacing, forceModulations);
 
     MultiView forces("thermoForce", numBins, numForces);
 

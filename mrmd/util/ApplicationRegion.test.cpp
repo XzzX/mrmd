@@ -27,15 +27,17 @@ TEST(ApplicationRegion, testRegion)
     const auto applicationRegionMax = 4_r;
     auto applicationRegion = ApplicationRegion(center, applicationRegionMin, applicationRegionMax);
 
-    EXPECT_TRUE(applicationRegion.isInApplicationRegion(4_r, 10_r, 10_r));
-    EXPECT_TRUE(applicationRegion.isInApplicationRegion(5.7_r, 10_r, 10_r));
-    EXPECT_TRUE(applicationRegion.isInApplicationRegion(6_r, 10_r, 10_r));
-    EXPECT_TRUE(applicationRegion.isInApplicationRegion(-2_r, 10_r, 10_r));
-    EXPECT_TRUE(applicationRegion.isInApplicationRegion(-1.2_r, 10_r, 10_r));
-    EXPECT_TRUE(applicationRegion.isInApplicationRegion(0_r, 10_r, 10_r));
-
+    EXPECT_FALSE(applicationRegion.isInApplicationRegion(4_r, 10_r, 10_r));
+    EXPECT_FALSE(applicationRegion.isInApplicationRegion(6_r, 10_r, 10_r));
+    EXPECT_FALSE(applicationRegion.isInApplicationRegion(0_r, 10_r, 10_r));
+    EXPECT_FALSE(applicationRegion.isInApplicationRegion(-2_r, 10_r, 10_r));
     EXPECT_FALSE(applicationRegion.isInApplicationRegion(3.1_r, 10_r, 10_r));
     EXPECT_FALSE(applicationRegion.isInApplicationRegion(-2.1_r, 10_r, 10_r));
+
+    EXPECT_TRUE(applicationRegion.isInApplicationRegion(5.7_r, 10_r, 10_r));
+    EXPECT_TRUE(applicationRegion.isInApplicationRegion(-1.2_r, 10_r, 10_r));
+    EXPECT_TRUE(applicationRegion.isInApplicationRegion(4.1_r, 10_r, 10_r));
+    EXPECT_TRUE(applicationRegion.isInApplicationRegion(-0.1_r, 10_r, 10_r));
 }
 
 }  // namespace util
