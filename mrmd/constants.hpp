@@ -14,8 +14,9 @@
 
 #pragma once
 
-#include "datatypes.hpp"
 #include <numbers>
+
+#include "datatypes.hpp"
 
 namespace mrmd
 {
