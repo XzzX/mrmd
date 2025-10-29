@@ -18,6 +18,7 @@
 #include <CLI/Config.hpp>
 #include <CLI/Formatter.hpp>
 #include <Kokkos_Core.hpp>
+#include <algorithm>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -243,7 +244,7 @@ void LJ(Config& config)
             if ((config.temperature > 0_r) && (step > 5000))
             {
                 config.temperature -= 7.8e-3_r;
-                if (config.temperature < 0_r) config.temperature = 0_r;
+                config.temperature = std::max(config.temperature, 0_r);
             }
 
             langevinThermostat.set(config.gamma, config.temperature * 0.5_r, config.dt);
