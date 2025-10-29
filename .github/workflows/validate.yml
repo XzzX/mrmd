@@ -187,6 +187,54 @@ jobs:
       - name: build
         run: cmake --build mrmd-build --target all --parallel 2
 
+  hipcc-debug-build:
+    strategy:
+      matrix:
+        CONTAINER: [ 'hipcc-7.0.2' ]
+
+    runs-on: ubuntu-latest
+    container: xzzx/devel:${{ matrix.CONTAINER }}
+    steps:
+      - name: versions
+        run: |
+          cat /etc/os-release
+          echo $PATH
+          git --version
+          cmake --version
+          $CC --version
+          $CXX --version
+
+      - uses: actions/checkout@v4
+        with:
+          path: 'mrmd'
+
+      - name: Configure
+        run: |
+          cmake \
+            -S mrmd \
+            -B mrmd-build \
+            -DCMAKE_C_COMPILER=hipcc \
+            -DCMAKE_CXX_COMPILER=hipcc \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DMRMD_VERBOSE_ASSERTS=ON \
+            -DMRMD_WERROR=ON \
+            -DKokkos_ENABLE_DEBUG=ON \
+            -DKokkos_ENABLE_DEBUG_BOUNDS_CHECK=ON \
+            -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
+            -DKokkos_ENABLE_HWLOC=ON \
+            -DKokkos_ENABLE_SERIAL=ON \
+            -DKokkos_ENABLE_OPENMP=ON \
+            -DKokkos_ENABLE_HIP=ON \
+            -DKokkos_ENABLE_ROCM=ON \
+            -DKokkos_ARCH_AMD_GFX942_APU=ON \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+
+      - name: build dependencies
+        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
+
+      - name: build
+        run: cmake --build mrmd-build --target all --parallel 2
+
   clang-tidy:
     runs-on: ubuntu-latest
     container: xzzx/devel:clang-18
