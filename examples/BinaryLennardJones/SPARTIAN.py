@@ -129,7 +129,7 @@ def spartian(config, subdomain, atoms, molecules):
                 thermodynamic_force.get_density_profile().min,
                 thermodynamic_force.get_density_profile().max,
                 thermodynamic_force.get_density_profile().numBins,
-                pyMRMD.COORD_X,
+                pyMRMD.AXIS_X,
             )
             density_profile.scale(
                 1

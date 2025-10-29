@@ -115,7 +115,7 @@ public:
     IndexView createGhostAtoms(data::Molecules& molecules,
                                data::Atoms& atoms,
                                const data::Subdomain& subdomain,
-                               const idx_t& dim);
+                               const AXIS& axis);
 
     IndexView createGhostAtomsXYZ(data::Molecules& molecules,
                                   data::Atoms& atoms,

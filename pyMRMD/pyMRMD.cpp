@@ -37,9 +37,9 @@ PYBIND11_MODULE(pyMRMD, m)
     m.def("initialize", py::overload_cast<>(&mrmd::initialize), "");
     m.def("finalize", &mrmd::finalize, "");
 
-    m.attr("COORD_X") = COORD_X;
-    m.attr("COORD_Y") = COORD_Y;
-    m.attr("COORD_Z") = COORD_Z;
+    m.attr("AXIS_X") = AXIS::X;
+    m.attr("AXIS_Y") = AXIS::Y;
+    m.attr("AXIS_Z") = AXIS::Z;
 
     py::class_<Point3D>(m, "Point3D", py::buffer_protocol())
         .def_buffer(

@@ -209,7 +209,7 @@ void spartian(YAML::Node& config,
                                                  thermodynamicForce.getDensityProfile().min,
                                                  thermodynamicForce.getDensityProfile().max,
                                                  thermodynamicForce.getDensityProfile().numBins,
-                                                 COORD_X);
+                                                 AXIS::X);
             densityProfile.scale(
                 1_r / (densityProfile.binSize * subdomain.diameter[1] * subdomain.diameter[2]));
             Xrho1 = analysis::getFluctuation(densityProfile, rhoA, 0);
