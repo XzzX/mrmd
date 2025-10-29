@@ -45,7 +45,7 @@ public:
         real_t prefac = 138.935458_r * q1 * q2;
         real_t expX2;
         auto erfc = util::approxErfc(alpha_ * r, expX2);
-        auto force = prefac * (erfc / r + 2_r * alpha_ / M_SQRTPI * expX2 + r * forceShift_);
+        auto force = prefac * (erfc / r + 2_r * alpha_ * inv_sqrtpi * expX2 + r * forceShift_);
         return force / distSqr;
     }
 
@@ -66,7 +66,7 @@ public:
     {
         real_t erfc = std::erfc(alpha_ * rc);
         real_t exp = std::exp(-alpha_ * alpha_ * rcSqr_);
-        forceShift_ = -(erfc / rcSqr_ + 2_r / M_SQRTPI * alpha_ * exp / rc);
+        forceShift_ = -(erfc / rcSqr_ + 2_r * inv_sqrtpi * alpha_ * exp / rc);
         energyShift_ = erfc / rc;
     }
 };

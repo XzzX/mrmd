@@ -15,14 +15,15 @@
 #pragma once
 
 #include "datatypes.hpp"
+#include <numbers>
 
 namespace mrmd
 {
 /// number of spatial dimensions
 constexpr static int DIMENSIONS = 3;
 
-constexpr real_t pi = 3.14159265358979323846;
-constexpr real_t M_SQRTPI = 1.77245385090551602729;  // sqrt(pi)
+constexpr auto pi = std::numbers::pi_v<real_t>;
+constexpr auto inv_sqrtpi = std::numbers::inv_sqrtpi_v<real_t>;
 
 namespace toSI
 {
