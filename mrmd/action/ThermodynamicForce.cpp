@@ -110,79 +110,16 @@ void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoo
 
 void ThermodynamicForce::apply(const data::Atoms& atoms) const
 {
-    auto atomsPos = atoms.getPos();
-    auto atomsForce = atoms.getForce();
-    auto atomsType = atoms.getType();
-
-    auto forceHistogram = force_;  // avoid capturing this pointer
-
-    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
-    {
-        auto xPos = atomsPos(idx, 0);
-        auto bin = forceHistogram.getBin(xPos);
-        if (bin != -1)
-        {
-            MRMD_DEVICE_ASSERT_LESS(atomsType(idx), forceHistogram.numHistograms);
-            MRMD_DEVICE_ASSERT(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
-            atomsForce(idx, 0) += forceHistogram.data(bin, atomsType(idx));
-        }
-    };
-    Kokkos::parallel_for("ThermodynamicForce::apply", policy, kernel);
-    Kokkos::fence();
+    apply_if(atoms, KOKKOS_LAMBDA(const real_t, const real_t, const real_t) { return true; });
 }
 
+[[deprecated("Use apply_if directly instead.")]]
 void ThermodynamicForce::apply(const data::Atoms& atoms, const weighting_function::Slab& slab) const
 {
-    auto atomsPos = atoms.getPos();
-    auto atomsForce = atoms.getForce();
-    auto atomsType = atoms.getType();
-
-    auto forceHistogram = force_;  // avoid capturing this pointer
-
-    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
-    {
-        auto xPos = atomsPos(idx, 0);
-        if (!slab.isInHYRegion(atomsPos(idx, 0), atomsPos(idx, 1), atomsPos(idx, 2))) return;
-        auto bin = forceHistogram.getBin(xPos);
-        if (bin != -1)
-        {
-            MRMD_DEVICE_ASSERT_LESS(atomsType(idx), forceHistogram.numHistograms);
-            MRMD_DEVICE_ASSERT(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
-            atomsForce(idx, 0) += forceHistogram.data(bin, atomsType(idx));
-        }
-    };
-    Kokkos::parallel_for("ThermodynamicForce::apply", policy, kernel);
-    Kokkos::fence();
-}
-
-void ThermodynamicForce::apply(const data::Atoms& atoms,
-                               const util::ApplicationRegion& applicationRegion) const
-{
-    auto atomsPos = atoms.getPos();
-    auto atomsForce = atoms.getForce();
-    auto atomsType = atoms.getType();
-
-    auto forceHistogram = force_;  // avoid capturing this pointer
-
-    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
-    {
-        auto xPos = atomsPos(idx, 0);
-        if (!applicationRegion.isInApplicationRegion(
-                atomsPos(idx, 0), atomsPos(idx, 1), atomsPos(idx, 2)))
-            return;
-        auto bin = forceHistogram.getBin(xPos);
-        if (bin != -1)
-        {
-            MRMD_DEVICE_ASSERT_LESS(atomsType(idx), forceHistogram.numHistograms);
-            MRMD_DEVICE_ASSERT(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
-            atomsForce(idx, 0) += forceHistogram.data(bin, atomsType(idx));
-        }
-    };
-    Kokkos::parallel_for("ThermodynamicForce::apply", policy, kernel);
-    Kokkos::fence();
+    apply_if(
+        atoms, KOKKOS_LAMBDA(const real_t x, const real_t y, const real_t z) {
+            return slab.isInHYRegion(x, y, z);
+        });
 }
 
 std::vector<real_t> ThermodynamicForce::getMuLeft() const
