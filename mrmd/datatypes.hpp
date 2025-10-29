@@ -97,12 +97,12 @@ using real_t = double;
 using Point3D = Kokkos::Array<real_t, 3>;
 using Vector3D = Kokkos::Array<real_t, 3>;
 
-KOKKOS_INLINE_FUNCTION constexpr real_t operator"" _r(const long double val)
+KOKKOS_INLINE_FUNCTION constexpr real_t operator""_r(const long double val)
 {
     return static_cast<real_t>(val);
 }
 
-KOKKOS_INLINE_FUNCTION constexpr real_t operator"" _r(const unsigned long long val)
+KOKKOS_INLINE_FUNCTION constexpr real_t operator""_r(const unsigned long long val)
 {
     return static_cast<real_t>(val);
 }
