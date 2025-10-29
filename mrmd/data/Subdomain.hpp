@@ -69,7 +69,7 @@ struct Subdomain
     {
     }
 
-    void scaleDim(const real_t& scalingFactor, const idx_t& dim);
+    void scaleDim(const real_t& scalingFactor, const AXIS& axis);
     void scale(const real_t& scalingFactor);
 
     Point3D minCorner = {std::numeric_limits<real_t>::signaling_NaN(),

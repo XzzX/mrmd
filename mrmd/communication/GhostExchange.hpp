@@ -42,7 +42,7 @@ private:
 public:
     IndexView createGhostAtoms(data::Atoms& atoms,
                                const data::Subdomain& subdomain,
-                               const idx_t& dim);
+                               const AXIS& axis);
 
     IndexView createGhostAtomsXYZ(data::Atoms& atoms, const data::Subdomain& subdomain);
 

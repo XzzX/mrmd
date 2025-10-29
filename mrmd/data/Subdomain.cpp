@@ -20,21 +20,21 @@ namespace mrmd
 {
 namespace data
 {
-void Subdomain::scaleDim(const real_t& scalingFactor, const idx_t& dim)
+void Subdomain::scaleDim(const real_t& scalingFactor, const AXIS& axis)
 {
     auto newMinCorner = minCorner;
     auto newMaxCorner = maxCorner;
-    newMinCorner[dim] *= scalingFactor;
-    newMaxCorner[dim] *= scalingFactor;
+    newMinCorner[to_underlying(axis)] *= scalingFactor;
+    newMaxCorner[to_underlying(axis)] *= scalingFactor;
     *this = Subdomain(newMinCorner, newMaxCorner, ghostLayerThickness);
     checkInvariants(*this);
 }
 
 void Subdomain::scale(const real_t& scalingFactor)
 {
-    scaleDim(scalingFactor, COORD_X);
-    scaleDim(scalingFactor, COORD_Y);
-    scaleDim(scalingFactor, COORD_Z);
+    scaleDim(scalingFactor, AXIS::X);
+    scaleDim(scalingFactor, AXIS::Y);
+    scaleDim(scalingFactor, AXIS::Z);
 }
 
 void checkInvariants([[maybe_unused]] const Subdomain& subdomain)

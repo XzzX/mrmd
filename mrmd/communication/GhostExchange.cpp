@@ -64,11 +64,8 @@ namespace mrmd::communication::impl
 {
 IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
                                           const data::Subdomain& subdomain,
-                                          const idx_t& dim)
+                                          const AXIS& axis)
 {
-    MRMD_HOST_CHECK_LESSEQUAL(0, dim);
-    MRMD_HOST_CHECK_LESS(dim, 3);
-
     auto pos = atoms.getPos();
 
     auto h_numberOfAtomsToCommunicate =
@@ -86,7 +83,7 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
         auto kernel =
             KOKKOS_CLASS_LAMBDA(const idx_t idx, PositiveNegativeCounter& update, const bool final)
         {
-            if (pos(idx, dim) < subdomain.minInnerCorner[dim])
+            if (pos(idx, to_underlying(axis)) < subdomain.minInnerCorner[to_underlying(axis)])
             {
                 if (final && (update.positive < idx_c(atomsToCommunicateAll_.extent(0))))
                 {
@@ -95,7 +92,7 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
                 update.positive += 1;
             }
 
-            if (pos(idx, dim) >= subdomain.maxInnerCorner[dim])
+            if (pos(idx, to_underlying(axis)) >= subdomain.maxInnerCorner[to_underlying(axis)])
             {
                 if (final && (update.negative < idx_c(atomsToCommunicateAll_.extent(0))))
                 {
@@ -110,7 +107,8 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
                 numberOfAtomsToCommunicate_(1) = update.negative;
             }
         };
-        Kokkos::parallel_scan(fmt::format("GhostExchange::selectAtoms_{}", dim), policy, kernel);
+        Kokkos::parallel_scan(
+            fmt::format("GhostExchange::selectAtoms_{}", to_underlying(axis)), policy, kernel);
         Kokkos::fence();
         Kokkos::deep_copy(h_numberOfAtomsToCommunicate, numberOfAtomsToCommunicate_);
         newAtoms = std::max(h_numberOfAtomsToCommunicate(0), h_numberOfAtomsToCommunicate(1));
@@ -132,9 +130,11 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
             {
                 auto newGhostIdx = atoms.numLocalAtoms + atoms.numGhostAtoms + idx;
                 atoms.copy(newGhostIdx, atomsToCommunicateAll_(idx, 0));
-                pos(newGhostIdx, dim) += subdomain.diameter[dim];
-                MRMD_DEVICE_ASSERT_GREATEREQUAL(pos(newGhostIdx, dim), subdomain.maxCorner[dim]);
-                MRMD_DEVICE_ASSERT_LESSEQUAL(pos(newGhostIdx, dim), subdomain.maxGhostCorner[dim]);
+                pos(newGhostIdx, to_underlying(axis)) += subdomain.diameter[to_underlying(axis)];
+                MRMD_DEVICE_ASSERT_GREATEREQUAL(pos(newGhostIdx, to_underlying(axis)),
+                                                subdomain.maxCorner[to_underlying(axis)]);
+                MRMD_DEVICE_ASSERT_LESSEQUAL(pos(newGhostIdx, to_underlying(axis)),
+                                             subdomain.maxGhostCorner[to_underlying(axis)]);
                 auto realIdx = atomsToCommunicateAll_(idx, 0);
                 while (correspondingRealAtom_(realIdx) != -1)
                 {
@@ -150,10 +150,11 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
                 auto newGhostIdx = atoms.numLocalAtoms + atoms.numGhostAtoms +
                                    numberOfAtomsToCommunicate_(0) + idx;
                 atoms.copy(newGhostIdx, atomsToCommunicateAll_(idx, 1));
-                pos(newGhostIdx, dim) -= subdomain.diameter[dim];
-                MRMD_DEVICE_ASSERT_LESSEQUAL(pos(newGhostIdx, dim), subdomain.minCorner[dim]);
-                MRMD_DEVICE_ASSERT_GREATEREQUAL(pos(newGhostIdx, dim),
-                                                subdomain.minGhostCorner[dim]);
+                pos(newGhostIdx, to_underlying(axis)) -= subdomain.diameter[to_underlying(axis)];
+                MRMD_DEVICE_ASSERT_LESSEQUAL(pos(newGhostIdx, to_underlying(axis)),
+                                             subdomain.minCorner[to_underlying(axis)]);
+                MRMD_DEVICE_ASSERT_GREATEREQUAL(pos(newGhostIdx, to_underlying(axis)),
+                                                subdomain.minGhostCorner[to_underlying(axis)]);
                 auto realIdx = atomsToCommunicateAll_(idx, 1);
                 while (correspondingRealAtom_(realIdx) != -1)
                 {
@@ -164,7 +165,8 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
                 correspondingRealAtom_(newGhostIdx) = realIdx;
             }
         };
-        Kokkos::parallel_for(fmt::format("GhostExchange::copyAtoms_{}", dim), policy, kernel);
+        Kokkos::parallel_for(
+            fmt::format("GhostExchange::copyAtoms_{}", to_underlying(axis)), policy, kernel);
         Kokkos::fence();
     }
     atoms.numGhostAtoms += h_numberOfAtomsToCommunicate(0) + h_numberOfAtomsToCommunicate(1);
@@ -177,9 +179,9 @@ IndexView GhostExchange::createGhostAtomsXYZ(data::Atoms& atoms, const data::Sub
     resetCorrespondingRealAtoms(atoms);
     atoms.numGhostAtoms = 0;
 
-    createGhostAtoms(atoms, subdomain, COORD_X);
-    createGhostAtoms(atoms, subdomain, COORD_Y);
-    createGhostAtoms(atoms, subdomain, COORD_Z);
+    createGhostAtoms(atoms, subdomain, AXIS::X);
+    createGhostAtoms(atoms, subdomain, AXIS::Y);
+    createGhostAtoms(atoms, subdomain, AXIS::Z);
 
     return correspondingRealAtom_;
 }

@@ -27,12 +27,10 @@ data::MultiHistogram getAxialDensityProfile(const idx_t numAtoms,
                                             const real_t min,
                                             const real_t max,
                                             const int64_t numBins,
-                                            const int64_t axis)
+                                            const AXIS axis)
 {
     MRMD_HOST_CHECK_GREATEREQUAL(max, min);
     MRMD_HOST_CHECK_GREATER(numTypes, 0);
-    MRMD_HOST_CHECK_GREATEREQUAL(axis, 0);
-    MRMD_HOST_CHECK_LESSEQUAL(axis, 3);
 
     data::MultiHistogram histogram("density-profile", min, max, numBins, numTypes);
     MultiScatterView scatter(histogram.data);
@@ -42,7 +40,7 @@ data::MultiHistogram getAxialDensityProfile(const idx_t numAtoms,
     {
         MRMD_DEVICE_ASSERT_GREATEREQUAL(types(idx), 0);
         MRMD_DEVICE_ASSERT_LESS(types(idx), numTypes);
-        auto bin = histogram.getBin(positions(idx, axis));
+        auto bin = histogram.getBin(positions(idx, to_underlying(axis)));
         if (bin == -1) return;
         auto access = scatter.access();
         access(bin, types(idx)) += 1_r;

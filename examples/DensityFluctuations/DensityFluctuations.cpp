@@ -247,7 +247,7 @@ void LJ(Config& config)
                                                                    subdomain.minCorner[0],
                                                                    subdomain.maxCorner[0],
                                                                    10,
-                                                                   COORD_X);
+                                                                   AXIS::X);
             densityProfile.scale(1_r / (densityProfile.binSize * config.Ly * config.Lz * 4));
             auto fluctuation = analysis::getFluctuation(densityProfile, rho, 0);
 
