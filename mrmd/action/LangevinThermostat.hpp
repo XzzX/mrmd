@@ -15,6 +15,7 @@
 #pragma once
 
 #include <Kokkos_Random.hpp>
+#include <concepts>
 
 #include "data/Atoms.hpp"
 #include "datatypes.hpp"
@@ -37,7 +38,9 @@ public:
     auto getPref2() const { return pref2; }
 
     void apply(data::Atoms& atoms);
-    void apply(data::Atoms& atoms, const util::ApplicationRegion& applicationRegion);
+
+    template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
+    void apply_if(data::Atoms& atoms, const UnaryPred& pred);
 
     void set(const real_t gamma, const real_t temperature, const real_t timestep)
     {
@@ -50,5 +53,39 @@ public:
         set(gamma, temperature, timestep);
     }
 };
+
+template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
+void LangevinThermostat::apply_if(data::Atoms& atoms, const UnaryPred& pred)
+{
+    auto RNG = randPool_;
+    auto pos = atoms.getPos();
+    auto vel = atoms.getVel();
+    auto force = atoms.getForce();
+    auto mass = atoms.getMass();
+    auto p1 = pref1;  // avoid capturing this pointer
+    auto p2 = pref2;  // avoid capturing this pointer
+
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
+    {
+        if (!pred(pos(idx, 0), pos(idx, 1), pos(idx, 2))) return;
+
+        const real_t m = mass(idx);
+        const real_t mSqrt = std::sqrt(m);
+
+        // Get a random number state from the pool for the active thread
+        auto randGen = RNG.get_state();
+
+        force(idx, 0) += p1 * vel(idx, 0) * m + p2 * (randGen.drand() - 0.5_r) * mSqrt;
+        force(idx, 1) += p1 * vel(idx, 1) * m + p2 * (randGen.drand() - 0.5_r) * mSqrt;
+        force(idx, 2) += p1 * vel(idx, 2) * m + p2 * (randGen.drand() - 0.5_r) * mSqrt;
+
+        // Give the state back, which will allow another thread to acquire it
+        RNG.free_state(randGen);
+    };
+    Kokkos::parallel_for("LangevinThermostat::applyThermostat", policy, kernel);
+
+    Kokkos::fence();
+}
 }  // namespace action
 }  // namespace mrmd
