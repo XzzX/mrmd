@@ -16,6 +16,8 @@
 
 #include <fmt/format.h>
 
+#include <algorithm>
+
 #include "action/BerendsenBarostat.hpp"
 #include "action/BerendsenThermostat.hpp"
 #include "action/LennardJones.hpp"
@@ -34,7 +36,7 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
     constexpr real_t cellRatio = 0.5_r;
     const real_t skin = config["LJ"]["skin"].as<real_t>();
     auto rcVec = config["LJ"]["cutoff"].as<std::vector<real_t>>();
-    const real_t rc = *std::max_element(rcVec.begin(), rcVec.end());
+    const real_t rc = std::ranges::max(rcVec);
     const real_t neighborCutoff = rc + skin;
     auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
 

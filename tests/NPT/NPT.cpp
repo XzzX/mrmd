@@ -117,24 +117,17 @@ protected:
     // void SetUp() override {}
     // void TearDown() override {}
 
-    data::Subdomain subdomain;
-    real_t volume;
-    data::Atoms atoms = data::Atoms(0);
-    real_t rho;
+    data::Subdomain subdomain = {{0_r, 0_r, 0_r}, {Config::Lx, Config::Lx, Config::Lx}, Config::neighborCutoff};
+    real_t volume = {subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]};
+    data::Atoms atoms = {fillDomainWithAtomsSC(subdomain, idx_c(Config::rho * volume), 1_r)};
+    real_t rho = {real_c(atoms.numLocalAtoms) / volume};
     communication::GhostLayer ghostLayer;
-    action::LennardJones LJ = action::LennardJones(0_r, 0_r, 0_r, 0_r);
+    action::LennardJones LJ = {Config::rc, Config::sigma, Config::epsilon, 0.7_r * Config::sigma};
 
     HalfVerletList verletList;
 
 public:
-    NPT()
-        : subdomain({0_r, 0_r, 0_r}, {Config::Lx, Config::Lx, Config::Lx}, Config::neighborCutoff),
-          volume(subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]),
-          atoms(fillDomainWithAtomsSC(subdomain, idx_c(Config::rho * volume), 1_r)),
-          rho(real_c(atoms.numLocalAtoms) / volume),
-          LJ(Config::rc, Config::sigma, Config::epsilon, 0.7_r * Config::sigma)
-    {
-    }
+    NPT() = default;
 };
 
 TEST_P(NPT, pressure)

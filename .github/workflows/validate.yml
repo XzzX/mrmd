@@ -189,7 +189,7 @@ jobs:
 
   clang-tidy:
     runs-on: ubuntu-latest
-    container: xzzx/devel:clang-18
+    container: xzzx/devel:clang-21
     steps:
       - name: versions
         run: |
@@ -225,7 +225,7 @@ jobs:
 
       - name: run clang-tidy
         working-directory: ./source
-        run: run-clang-tidy-18 -p ../build -header-filter 'source' -j 2 '^(?!.*_deps).*$' 
+        run: run-clang-tidy-21 -p ../build -header-filter 'source' -j 2 '^(?!.*_deps).*$' 
 
   clang-format:
     runs-on: ubuntu-latest

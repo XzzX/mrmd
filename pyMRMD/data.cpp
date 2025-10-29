@@ -29,7 +29,7 @@
 namespace py = pybind11;
 
 template <class SLICE_T>
-py::array_t<typename SLICE_T::value_type> getNPArray(const SLICE_T slice)
+py::array_t<typename SLICE_T::value_type> getNPArray(const SLICE_T& slice)
 {
     static_assert(slice.viewRank() == 2 || slice.viewRank() == 3, "Invalid view rank dimension");
 
