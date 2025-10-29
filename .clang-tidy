@@ -27,6 +27,7 @@ performance-*,
 -performance-enum-size,
 
 portability-*,
+-portability-avoid-pragma-once
 
 readability-*,
 -readability-avoid-const-params-in-decls,
