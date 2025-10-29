@@ -131,11 +131,12 @@ enum class AXIS : idx_t
     Y = 1,  ///< index of the y coordinate in vector views
     Z = 2   ///< index of the z coordinate in vector views
 };
+// same as C++23 std::to_underlying but with __host__ __device__ annotations
 template <class Enum>
-constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept
+KOKKOS_INLINE_FUNCTION constexpr std::underlying_type_t<Enum> to_underlying(Enum e) noexcept
 {
     return static_cast<std::underlying_type_t<Enum>>(e);
-}  // Can be replaced by std::to_underlying in C++23
+}
 
 using IndexView = Kokkos::View<idx_t*>;
 using IntView = Kokkos::View<idx_t*>;
