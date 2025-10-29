@@ -20,31 +20,50 @@ namespace mrmd
 {
 namespace util
 {
-class ApplicationRegion
+
+/**
+ * @brief Predicate to check if a point is inside a slab region along a given axis.
+ * 
+ * @tparam axis The axis along which the slab is defined, the slab is infinite in the other two axes.
+ */
+template <AXIS axis>
+class IsInSlab
 {
 private:
-    const Point3D center_;
-    const real_t applicationRegionMin_;
-    const real_t applicationRegionMax_;
+    const real_t min_;
+    const real_t max_;
 
 public:
-    KOKKOS_INLINE_FUNCTION
-    bool isInApplicationRegion(const real_t& x, const real_t& /*y*/, const real_t& /*z*/) const
-    {
-        auto dx = x - center_[0];
-        auto absDx = std::abs(dx);
 
-        return (absDx >= applicationRegionMin_ && absDx <= applicationRegionMax_);
+    KOKKOS_INLINE_FUNCTION
+    bool operator()(const real_t& x, const real_t& y, const real_t& z) const
+    {
+        if constexpr (axis == COORD::X)
+        {
+            return (x >= min_ && x < max_);
+        }
+        else if constexpr (axis == COORD::Y)
+        {
+            return (y >= min_ && y < max_);
+        }
+        else if constexpr (axis == COORD::Z)
+        {
+            return (z >= min_ && z < max_);
+        }
+        else
+        {
+            static_assert(false, "Ifs need to be exhaustive");
+            return false; // to suppress compiler warning
+        }
     }
 
-    ApplicationRegion(const Point3D& center,
-                      const real_t applicationRegionMin,
-                      const real_t applicationRegionMax)
-        : center_(center),
-          applicationRegionMin_(applicationRegionMin),
-          applicationRegionMax_(applicationRegionMax)
+    IsInSlab(const real_t min,
+             const real_t max)
+        : min_(min),
+          max_(max)
     {
     }
 };
+
 }  // namespace util
 }  // namespace mrmd
