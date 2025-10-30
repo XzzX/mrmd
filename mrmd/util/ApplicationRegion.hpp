@@ -20,7 +20,7 @@ namespace mrmd
 {
 namespace util
 {
-class ApplicationRegion
+class IsInApplicationRegion
 {
 private:
     const Point3D center_;
@@ -29,7 +29,7 @@ private:
 
 public:
     KOKKOS_INLINE_FUNCTION
-    bool isInApplicationRegion(const real_t& x, const real_t& /*y*/, const real_t& /*z*/) const
+    bool operator()(const real_t& x, const real_t& /*y*/, const real_t& /*z*/) const
     {
         auto dx = x - center_[0];
         auto absDx = std::abs(dx);
@@ -37,9 +37,9 @@ public:
         return (absDx >= applicationRegionMin_ && absDx <= applicationRegionMax_);
     }
 
-    ApplicationRegion(const Point3D& center,
-                      const real_t applicationRegionMin,
-                      const real_t applicationRegionMax)
+    IsInApplicationRegion(const Point3D& center,
+                          const real_t applicationRegionMin,
+                          const real_t applicationRegionMax)
         : center_(center),
           applicationRegionMin_(applicationRegionMin),
           applicationRegionMax_(applicationRegionMax)
