@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <algorithm>
+
 #include "LennardJones.hpp"
 #include "assert/assert.hpp"
 #include "data/Atoms.hpp"
@@ -351,7 +353,7 @@ public:
         MRMD_HOST_ASSERT_EQUAL(sigma.size(), numTypes * numTypes);
         MRMD_HOST_ASSERT_EQUAL(epsilon.size(), numTypes * numTypes);
 
-        auto maxRC = *std::max_element(rc.begin(), rc.end());
+        auto maxRC = std::ranges::max(rc);
         rcSqr_ = maxRC * maxRC;
     }
 };

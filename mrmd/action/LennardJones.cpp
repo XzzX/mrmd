@@ -14,6 +14,8 @@
 
 #include "LennardJones.hpp"
 
+#include <algorithm>
+
 namespace mrmd::action
 {
 void LennardJones::apply(data::Atoms& atoms, HalfVerletList& verletList)
@@ -46,7 +48,7 @@ LennardJones::LennardJones(const std::vector<real_t>& cappingDistance,
                            const bool isShifted)
     : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, isShifted), numTypes_(1)
 {
-    auto rcMax = *std::max_element(rc.begin(), rc.end());
+    auto rcMax = std::ranges::max(rc);
     rcSqr_ = rcMax * rcMax;
 }
 }  // namespace mrmd::action
