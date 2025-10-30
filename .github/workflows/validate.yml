@@ -8,7 +8,7 @@ jobs:
   debug-build:
     strategy:
       matrix:
-        CONTAINER: [ 'gcc-14', 'clang-18' ]
+        CONTAINER: [ 'gcc-13', 'clang-16' ]
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
