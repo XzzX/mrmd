@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fmt/format.h>
+#include <format>
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -239,7 +239,7 @@ void LJ(Config& config)
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
-            io::dumpCSV(fmt::format("atoms_{:0>6}.csv", step), atoms);
+            io::dumpCSV(std::format("atoms_{:0>6}.csv", step), atoms);
 
             for (auto i = 0; i < Fth.extent(0); ++i)
             {

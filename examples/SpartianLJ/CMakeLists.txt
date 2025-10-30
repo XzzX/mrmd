@@ -17,6 +17,6 @@ add_executable(SpartianLJ
         SpartianLJ.cpp
         )
 target_link_libraries(SpartianLJ
-        PRIVATE mrmd CLI11::CLI11 fmt::fmt
+        PRIVATE mrmd CLI11::CLI11
         )
 add_test(NAME Example.SpartianLJ COMMAND ./SpartianLJ --nsteps 10 --output 5)

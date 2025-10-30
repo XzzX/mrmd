@@ -14,8 +14,7 @@
 
 #include "DumpH5MDParallel.hpp"
 
-#include <fmt/format.h>
-
+#include <format>
 #include <numeric>
 
 #include "assert/assert.hpp"
@@ -95,7 +94,7 @@ void DumpH5MDParallelImpl::writeParallel(hid_t fileId,
     for (auto i = 0; i < int_c(globalDims.size()); ++i)
     {
         MRMD_HOST_CHECK_LESSEQUAL(
-            localDims[i] + offset[i], globalDims[i], fmt::format("i = {}", i));
+            localDims[i] + offset[i], globalDims[i], std::format("i = {}", i));
     }
     auto dstSpace = CHECK_HDF5(H5Dget_space(dataset));
     CHECK_HDF5(H5Sselect_hyperslab(

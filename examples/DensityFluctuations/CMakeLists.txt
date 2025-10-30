@@ -16,6 +16,6 @@ add_executable(DensityFluctuations
     DensityFluctuations.cpp
         )
     target_link_libraries(DensityFluctuations
-        PRIVATE mrmd CLI11::CLI11 fmt::fmt
+        PRIVATE mrmd CLI11::CLI11
         )
     add_test(NAME Example.DensityFluctuations COMMAND ./DensityFluctuations --nsteps 10)

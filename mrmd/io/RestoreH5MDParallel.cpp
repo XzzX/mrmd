@@ -14,7 +14,7 @@
 
 #include "RestoreH5MDParallel.hpp"
 
-#include <fmt/format.h>
+#include <format>
 
 #include "assert/assert.hpp"
 #include "cmake.hpp"
@@ -60,7 +60,7 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
     for (auto i = 0; i < int_c(globalDims.size()); ++i)
     {
         MRMD_HOST_CHECK_LESSEQUAL(
-            localDims[i] + offset[i], globalDims[i], fmt::format("i = {}", i));
+            localDims[i] + offset[i], globalDims[i], std::format("i = {}", i));
     }
     auto fileSpace = CHECK_HDF5(H5Dget_space(dset));
     CHECK_HDF5(H5Sselect_hyperslab(
