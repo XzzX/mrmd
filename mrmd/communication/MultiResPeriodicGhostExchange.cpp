@@ -14,7 +14,7 @@
 
 #include "MultiResPeriodicGhostExchange.hpp"
 
-#include <fmt/format.h>
+#include <format>
 
 #include "assert/assert.hpp"
 
@@ -127,7 +127,7 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
             }
         };
         Kokkos::parallel_scan(
-            fmt::format("MultiResPeriodicGhostExchange::selectAtoms_{}", to_underlying(axis)),
+            std::format("MultiResPeriodicGhostExchange::selectAtoms_{}", to_underlying(axis)),
             policy,
             kernel);
         Kokkos::fence();
@@ -245,7 +245,7 @@ IndexView MultiResPeriodicGhostExchange::createGhostAtoms(data::Molecules& molec
             }
         };
         Kokkos::parallel_for(
-            fmt::format("MultiResPeriodicGhostExchange::copyAtoms_{}", to_underlying(axis)),
+            std::format("MultiResPeriodicGhostExchange::copyAtoms_{}", to_underlying(axis)),
             policy,
             kernel);
         Kokkos::fence();

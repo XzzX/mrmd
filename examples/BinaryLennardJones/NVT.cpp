@@ -14,7 +14,7 @@
 
 #include "NVT.hpp"
 
-#include <fmt/format.h>
+#include <format>
 
 #include "action/BerendsenThermostat.hpp"
 #include "action/LennardJones.hpp"
@@ -140,7 +140,7 @@ void nvt(YAML::Node& config, data::Atoms& atoms, const data::Subdomain& subdomai
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
-            io::dumpCSV(fmt::format("NVT_{:0>6}.csv", step), atoms);
+            io::dumpCSV(std::format("NVT_{:0>6}.csv", step), atoms);
         }
     }
     if (config["enable_output"].as<bool>())

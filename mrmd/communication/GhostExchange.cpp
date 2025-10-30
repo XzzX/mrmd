@@ -14,7 +14,7 @@
 
 #include "GhostExchange.hpp"
 
-#include <fmt/format.h>
+#include <format>
 
 #include "assert/assert.hpp"
 
@@ -108,7 +108,7 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
             }
         };
         Kokkos::parallel_scan(
-            fmt::format("GhostExchange::selectAtoms_{}", to_underlying(axis)), policy, kernel);
+            std::format("GhostExchange::selectAtoms_{}", to_underlying(axis)), policy, kernel);
         Kokkos::fence();
         Kokkos::deep_copy(h_numberOfAtomsToCommunicate, numberOfAtomsToCommunicate_);
         newAtoms = std::max(h_numberOfAtomsToCommunicate(0), h_numberOfAtomsToCommunicate(1));
@@ -166,7 +166,7 @@ IndexView GhostExchange::createGhostAtoms(data::Atoms& atoms,
             }
         };
         Kokkos::parallel_for(
-            fmt::format("GhostExchange::copyAtoms_{}", to_underlying(axis)), policy, kernel);
+            std::format("GhostExchange::copyAtoms_{}", to_underlying(axis)), policy, kernel);
         Kokkos::fence();
     }
     atoms.numGhostAtoms += h_numberOfAtomsToCommunicate(0) + h_numberOfAtomsToCommunicate(1);

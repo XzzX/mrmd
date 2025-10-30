@@ -101,15 +101,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(CLI11)
 
-option(FMT_INSTALL "Enable install for fmt project" ON)
-FetchContent_Declare(
-        FMT
-        GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-        GIT_TAG e424e3f2e607da02742f73db84873b8084fc714c #12.0.0
-        SYSTEM
-)
-FetchContent_MakeAvailable(FMT)
-
 FetchContent_Declare(
         YAML_CPP
         GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git

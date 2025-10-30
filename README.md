@@ -18,7 +18,6 @@
 
 #### Integrated libraries
 * [CLI11](https://github.com/CLIUtils/CLI11.git)
-* [fmt](https://github.com/fmtlib/fmt.git)
 * [yaml-cpp](https://github.com/jbeder/yaml-cpp.git)
 * [Kokkos](https://github.com/kokkos/kokkos)
   You need to specify correct flags for the intended target architecture and backend.
