@@ -74,7 +74,7 @@ real_t VelocityVerletLangevinThermostat::preForceIntegrate(data::Atoms& atoms, c
         dx[2] -= pos(idx, 2);
 
         auto distSqr = util::dot3(dx, dx);
-        maxDistSqr = std::max(distSqr, maxDistSqr);
+        maxDistSqr = Kokkos::max(distSqr, maxDistSqr);
     };
     real_t maxDistSqr = 0_r;
     Kokkos::parallel_reduce("VelocityVerletLangevinThermostat::preForceIntegrate",

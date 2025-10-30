@@ -39,7 +39,7 @@ void mapIntoDomain(data::Atoms& atoms, const data::Subdomain& subdomain)
             if (subdomain.maxCorner[dim] <= x)
             {
                 x -= subdomain.diameter[dim];
-                x = std::max(x, subdomain.minCorner[dim]);
+                x = Kokkos::max(x, subdomain.minCorner[dim]);
             }
             if (x < subdomain.minCorner[dim])
             {

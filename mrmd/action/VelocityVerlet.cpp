@@ -44,7 +44,7 @@ real_t VelocityVerlet::preForceIntegrate(data::Atoms& atoms, const real_t dt)
         pos(idx, 2) += dz;
 
         auto distSqr = dx * dx + dy * dy + dz * dz;
-        maxDistSqr = std::max(distSqr, maxDistSqr);
+        maxDistSqr = Kokkos::max(distSqr, maxDistSqr);
     };
     real_t maxDistSqr = 0_r;
     Kokkos::parallel_reduce(
