@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fmt/format.h>
+#include <format>
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -208,7 +208,7 @@ void LJ(Config& config)
                   << E0 + Ek << " " << p << " " << msd << " " << atoms.numLocalAtoms << " "
                   << atoms.numGhostAtoms << " " << std::endl;
 
-            io::dumpGRO(fmt::format("argon_{:0>6}.gro", step),
+            io::dumpGRO(std::format("argon_{:0>6}.gro", step),
                         atoms,
                         subdomain,
                         step * config.dt,

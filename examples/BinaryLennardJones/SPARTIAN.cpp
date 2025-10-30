@@ -14,7 +14,7 @@
 
 #include "SPARTIAN.hpp"
 
-#include <fmt/format.h>
+#include <format>
 
 #include <fstream>
 
@@ -308,7 +308,7 @@ void spartian(YAML::Node& config,
             fDriftForceCompensation1 << std::endl;
             fDriftForceCompensation2 << std::endl;
 
-            // io::dumpCSV(fmt::format("spartian_{:0>6}.csv", step), atoms, false);
+            // io::dumpCSV(std::format("spartian_{:0>6}.csv", step), atoms, false);
         }
     }
     if (config["enable_output"].as<bool>())

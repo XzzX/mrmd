@@ -14,7 +14,7 @@
 
 #include "NPT.hpp"
 
-#include <fmt/format.h>
+#include <format>
 
 #include "action/BerendsenBarostat.hpp"
 #include "action/BerendsenThermostat.hpp"
@@ -155,7 +155,7 @@ void npt(YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdomain)
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
-            io::dumpCSV(fmt::format("NPT_{:0>6}.csv", step), atoms);
+            io::dumpCSV(std::format("NPT_{:0>6}.csv", step), atoms);
         }
     }
     if (config["enable_output"].as<bool>())

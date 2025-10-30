@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <fmt/format.h>
+#include <format>
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -283,7 +283,7 @@ void LJ(Config& config)
             }
             fDensityProfile << std::endl;
 
-            //            io::dumpCSV(fmt::format("atoms_{:0>6}.csv", step), atoms, false);
+            //            io::dumpCSV(std::format("atoms_{:0>6}.csv", step), atoms, false);
         }
 
         if (step % 1000 == 0)

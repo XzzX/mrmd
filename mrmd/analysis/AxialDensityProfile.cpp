@@ -14,8 +14,6 @@
 
 #include "AxialDensityProfile.hpp"
 
-#include <fmt/format.h>
-
 namespace mrmd
 {
 namespace analysis

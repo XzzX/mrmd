@@ -14,7 +14,7 @@
 
 #include "action/SPC.hpp"
 
-#include <fmt/format.h>
+#include <format>
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -362,8 +362,8 @@ void SPC(Config& config)
 
         if (config.bOutput && (step > config.nsteps - 5000) && (step % 100 == 0))
         {
-            io::dumpCSV(fmt::format("spc_{:0>6}.csv", step), atoms, false);
-            //io::dumpGRO(fmt::format("spc_{:0>6}.gro", step),
+            io::dumpCSV(std::format("spc_{:0>6}.csv", step), atoms, false);
+            //io::dumpGRO(std::format("spc_{:0>6}.gro", step),
             //            atoms,
             //            subdomain,
             //            step * config.dt,
@@ -374,8 +374,8 @@ void SPC(Config& config)
 
         if (config.bOutput && (step > config.nsteps - 500) && (step % 10 == 0))
         {
-            io::dumpCSV(fmt::format("spc_{:0>6}.csv", step), atoms, false);
-            //io::dumpGRO(fmt::format("spc_{:0>6}.gro", step),
+            io::dumpCSV(std::format("spc_{:0>6}.csv", step), atoms, false);
+            //io::dumpGRO(std::format("spc_{:0>6}.gro", step),
             //            atoms,
             //            subdomain,
             //            step * config.dt,
