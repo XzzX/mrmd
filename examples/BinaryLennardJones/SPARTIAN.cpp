@@ -16,6 +16,7 @@
 
 #include <format>
 
+#include <algorithm>
 #include <fstream>
 
 #include "action/ContributeMoleculeForceToAtoms.hpp"
@@ -44,7 +45,7 @@ void spartian(YAML::Node& config,
     constexpr real_t cellRatio = 0.5_r;
     const real_t skin = config["LJ"]["skin"].as<real_t>();
     auto rcVec = config["LJ"]["cutoff"].as<std::vector<real_t>>();
-    const real_t rc = *std::max_element(rcVec.begin(), rcVec.end());
+    const real_t rc = std::ranges::max(rcVec);
     const real_t neighborCutoff = rc + skin;
     auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
 

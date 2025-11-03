@@ -14,6 +14,8 @@
 
 #include "VelocityVerletLangevinThermostat.hpp"
 
+#include <algorithm>
+
 #include "util/math.hpp"
 
 namespace mrmd
@@ -72,7 +74,7 @@ real_t VelocityVerletLangevinThermostat::preForceIntegrate(data::Atoms& atoms, c
         dx[2] -= pos(idx, 2);
 
         auto distSqr = util::dot3(dx, dx);
-        if (distSqr > maxDistSqr) maxDistSqr = distSqr;
+        maxDistSqr = Kokkos::max(distSqr, maxDistSqr);
     };
     real_t maxDistSqr = 0_r;
     Kokkos::parallel_reduce("VelocityVerletLangevinThermostat::preForceIntegrate",

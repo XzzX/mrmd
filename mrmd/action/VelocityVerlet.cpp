@@ -14,6 +14,8 @@
 
 #include "VelocityVerlet.hpp"
 
+#include <algorithm>
+
 namespace mrmd
 {
 namespace action
@@ -42,7 +44,7 @@ real_t VelocityVerlet::preForceIntegrate(data::Atoms& atoms, const real_t dt)
         pos(idx, 2) += dz;
 
         auto distSqr = dx * dx + dy * dy + dz * dz;
-        if (distSqr > maxDistSqr) maxDistSqr = distSqr;
+        maxDistSqr = Kokkos::max(distSqr, maxDistSqr);
     };
     real_t maxDistSqr = 0_r;
     Kokkos::parallel_reduce(
