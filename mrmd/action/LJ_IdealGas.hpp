@@ -33,7 +33,7 @@ class LJ_IdealGas
 {
 private:
     idx_t numTypes_;
-    
+
     impl::CappedLennardJonesPotential LJ_;
     real_t rcSqr_ = 0_r;
 
