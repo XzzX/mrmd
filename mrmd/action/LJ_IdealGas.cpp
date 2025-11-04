@@ -282,10 +282,10 @@ LJ_IdealGas::LJ_IdealGas(const std::vector<real_t>& cappingDistance,
       meanCompensationEnergy_(
           "meanCompensationEnergy", 0_r, 1_r, COMPENSATION_ENERGY_BINS, numTypes)
 {
-    MRMD_HOST_ASSERT_EQUAL(cappingDistance.size(), numTypes * numTypes);
-    MRMD_HOST_ASSERT_EQUAL(rc.size(), numTypes * numTypes);
-    MRMD_HOST_ASSERT_EQUAL(sigma.size(), numTypes * numTypes);
-    MRMD_HOST_ASSERT_EQUAL(epsilon.size(), numTypes * numTypes);
+    MRMD_HOST_ASSERT_EQUAL(idx_c(cappingDistance.size()), numTypes * numTypes);
+    MRMD_HOST_ASSERT_EQUAL(idx_c(rc.size()), numTypes * numTypes);
+    MRMD_HOST_ASSERT_EQUAL(idx_c(sigma.size()), numTypes * numTypes);
+    MRMD_HOST_ASSERT_EQUAL(idx_c(epsilon.size()), numTypes * numTypes);
 
     auto maxRC = std::ranges::max(rc);
     rcSqr_ = maxRC * maxRC;
