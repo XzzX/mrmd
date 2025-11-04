@@ -24,6 +24,18 @@ namespace action
 {
 namespace impl
 {
+
+/**
+ * @class CoulombDSF
+ * @brief Implements the Coulomb potential with the Damped Shifted Force (DSF) method.
+ *
+ * This class provides methods to compute the force and energy between two charged particles
+ * using the DSF method. The DSF method modifies the Coulomb potential to include a damping
+ * factor and a force shift for improved computational efficiency and accuracy in simulations.
+ *
+ * References:
+ * - DOI: 10.1140/epjst/e2016-60151-6
+ */
 class CoulombDSF
 {
 private:
