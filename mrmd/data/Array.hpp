@@ -53,7 +53,7 @@ struct ArrayT
     }
 
     KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile ArrayT& src) volatile
+    void operator+=(const ArrayT& src)
     {
         for (int i = 0; i < N; i++)
         {

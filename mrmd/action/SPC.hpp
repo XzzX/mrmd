@@ -41,12 +41,6 @@ struct Energy
         coulomb += src.coulomb;
         return *this;
     }
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile Energy& src) volatile
-    {
-        LJ += src.LJ;
-        coulomb += src.coulomb;
-    }
 };
 }  // namespace mrmd::action::impl
 

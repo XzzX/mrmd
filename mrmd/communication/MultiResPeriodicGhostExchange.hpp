@@ -39,21 +39,7 @@ struct DoubleCounter
     DoubleCounter(const DoubleCounter& rhs) = default;
 
     KOKKOS_INLINE_FUNCTION
-    DoubleCounter(const volatile DoubleCounter& rhs)
-    {
-        atoms = rhs.atoms;
-        molecules = rhs.molecules;
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator=(const DoubleCounter& rhs) volatile
-    {
-        atoms = rhs.atoms;
-        molecules = rhs.molecules;
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator=(volatile const DoubleCounter& rhs) volatile
+    void operator=(const DoubleCounter& rhs)
     {
         atoms = rhs.atoms;
         molecules = rhs.molecules;

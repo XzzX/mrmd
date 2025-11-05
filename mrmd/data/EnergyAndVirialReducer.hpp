@@ -31,15 +31,9 @@ struct EnergyAndVirialReducer
     KOKKOS_INLINE_FUNCTION
     EnergyAndVirialReducer& operator+=(const EnergyAndVirialReducer& src)
     {
-        energy = energy + src.energy;
-        virial = virial + src.virial;
+        energy += src.energy;
+        virial += src.virial;
         return *this;
-    }
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile EnergyAndVirialReducer& src) volatile
-    {
-        energy = energy + src.energy;
-        virial = virial + src.virial;
     }
 };
 }  // namespace mrmd::data
