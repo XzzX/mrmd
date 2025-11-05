@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <algorithm>
+
 #include "LennardJones.hpp"
 #include "assert/assert.hpp"
 #include "data/Atoms.hpp"
