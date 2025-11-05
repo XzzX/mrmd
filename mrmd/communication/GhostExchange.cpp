@@ -39,12 +39,6 @@ struct PositiveNegativeCounter
         negative += src.negative;
         return *this;
     }
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile PositiveNegativeCounter& src) volatile
-    {
-        positive += src.positive;
-        negative += src.negative;
-    }
 };
 }  // namespace mrmd::communication::impl
 

@@ -178,6 +178,7 @@ jobs:
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
             -DKokkos_ENABLE_CUDA=ON \
+            -DKokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE=ON \
             -DKokkos_ARCH_AMPERE80=ON \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 

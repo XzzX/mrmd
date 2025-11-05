@@ -43,14 +43,6 @@ struct MoleculesAtomsCounter
         positiveMolecules += src.positiveMolecules;
         return *this;
     }
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile MoleculesAtomsCounter& src) volatile
-    {
-        negativeAtoms += src.negativeAtoms;
-        negativeMolecules += src.negativeMolecules;
-        positiveAtoms += src.positiveAtoms;
-        positiveMolecules += src.positiveMolecules;
-    }
 };
 }  // namespace mrmd::communication::impl
 
