@@ -122,7 +122,7 @@ TEST(Integration, LocalLangevinThermostat)
     real_t boxCenterZ = 0.5_r * (subdomain.maxCorner[2] + subdomain.minCorner[2]);
 
     auto applicationRegion =
-        util::ApplicationRegion({boxCenterX, boxCenterY, boxCenterZ}, 2.5_r, 5.0_r);
+        util::ApplicationRegion({boxCenterX, boxCenterY, boxCenterZ}, 0_r, 5.0_r);
 
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     for (auto step = 0; step < config.nsteps; ++step)
@@ -132,7 +132,7 @@ TEST(Integration, LocalLangevinThermostat)
         auto force = atoms.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        langevinThermostat.apply(atoms);
+        langevinThermostat.apply(atoms, applicationRegion);
 
         action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 
