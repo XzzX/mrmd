@@ -38,7 +38,7 @@ void init_action(py::module_& m)
         .def(py::init<real_t, real_t, real_t>())
         .def("get_pref1", &action::LangevinThermostat::getPref1)
         .def("get_pref2", &action::LangevinThermostat::getPref2)
-        .def("apply", &action::LangevinThermostat::apply)
+        .def("apply", static_cast<void (action::LangevinThermostat::*)(data::Atoms&)>(&action::LangevinThermostat::apply))
         .def("set", &action::LangevinThermostat::set);
 
     py::class_<action::LennardJones>(m, "LennardJones")
