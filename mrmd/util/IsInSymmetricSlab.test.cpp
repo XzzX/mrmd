@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ApplicationRegion.hpp"
+#include "IsInSymmetricSlab.hpp"
 
 #include <gtest/gtest.h>
 
@@ -20,23 +20,23 @@ namespace mrmd
 {
 namespace util
 {
-TEST(IsInApplicationRegion, testRegion)
+TEST(IsInSymmetricSlab, testRegion)
 {
     Point3D center = {2_r, 3_r, 4_r};
     const auto applicationRegionMin = 2_r;
     const auto applicationRegionMax = 4_r;
-    auto isInApplicationRegion =
-        IsInApplicationRegion(center, applicationRegionMin, applicationRegionMax);
+    auto isInSymmetricSlab =
+        IsInSymmetricSlab(center, applicationRegionMin, applicationRegionMax);
 
-    EXPECT_TRUE(isInApplicationRegion(4_r, 10_r, 10_r));
-    EXPECT_TRUE(isInApplicationRegion(5.7_r, 10_r, 10_r));
-    EXPECT_TRUE(isInApplicationRegion(6_r, 10_r, 10_r));
-    EXPECT_TRUE(isInApplicationRegion(-2_r, 10_r, 10_r));
-    EXPECT_TRUE(isInApplicationRegion(-1.2_r, 10_r, 10_r));
-    EXPECT_TRUE(isInApplicationRegion(0_r, 10_r, 10_r));
+    EXPECT_TRUE(isInSymmetricSlab(4_r, 10_r, 10_r));
+    EXPECT_TRUE(isInSymmetricSlab(5.7_r, 10_r, 10_r));
+    EXPECT_TRUE(isInSymmetricSlab(6_r, 10_r, 10_r));
+    EXPECT_TRUE(isInSymmetricSlab(-2_r, 10_r, 10_r));
+    EXPECT_TRUE(isInSymmetricSlab(-1.2_r, 10_r, 10_r));
+    EXPECT_TRUE(isInSymmetricSlab(0_r, 10_r, 10_r));
 
-    EXPECT_FALSE(isInApplicationRegion(3.1_r, 10_r, 10_r));
-    EXPECT_FALSE(isInApplicationRegion(-2.1_r, 10_r, 10_r));
+    EXPECT_FALSE(isInSymmetricSlab(3.1_r, 10_r, 10_r));
+    EXPECT_FALSE(isInSymmetricSlab(-2.1_r, 10_r, 10_r));
 }
 
 }  // namespace util

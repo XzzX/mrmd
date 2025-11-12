@@ -20,7 +20,7 @@ namespace mrmd
 {
 namespace util
 {
-class IsInApplicationRegion
+class IsInSymmetricSlab
 {
 private:
     const Point3D center_;
@@ -37,7 +37,7 @@ public:
         return (absDx >= applicationRegionMin_ && absDx <= applicationRegionMax_);
     }
 
-    IsInApplicationRegion(const Point3D& center,
+    IsInSymmetricSlab(const Point3D& center,
                           const real_t applicationRegionMin,
                           const real_t applicationRegionMax)
         : center_(center),
