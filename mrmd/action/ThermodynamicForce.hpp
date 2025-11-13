@@ -21,7 +21,6 @@
 #include "data/MultiHistogram.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
-#include "util/ApplicationRegion.hpp"
 #include "weighting_function/Slab.hpp"
 
 namespace mrmd
@@ -64,7 +63,6 @@ public:
     void sample(data::Atoms& atoms);
     void update(const real_t& smoothingSigma, const real_t& smoothingIntensity);
     void apply(const data::Atoms& atoms) const;
-    void apply(const data::Atoms& atoms, const weighting_function::Slab& slab) const;
 
     template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
     void apply_if(const data::Atoms& atoms, const UnaryPred& pred) const;
