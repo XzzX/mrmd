@@ -38,8 +38,8 @@ public:
     }
 
     IsInSymmetricSlab(const Point3D& center,
-                          const real_t applicationRegionMin,
-                          const real_t applicationRegionMax)
+                      const real_t applicationRegionMin,
+                      const real_t applicationRegionMax)
         : center_(center),
           applicationRegionMin_(applicationRegionMin),
           applicationRegionMax_(applicationRegionMax)
