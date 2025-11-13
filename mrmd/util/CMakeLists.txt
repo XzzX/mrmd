@@ -15,11 +15,11 @@
 mrmd_add_test(NAME test.util.angle
         FILES angle.test.cpp)
 
-mrmd_add_test(NAME test.util.ApplicationRegion
-        FILES ApplicationRegion.test.cpp)
-
 mrmd_add_test(NAME test.util.ExponentialMovingAverage
         FILES ExponentialMovingAverage.test.cpp)
+
+mrmd_add_test(NAME test.util.IsInSymmetricSlab
+        FILES IsInSymmetricSlab.test.cpp)
 
 mrmd_add_test(NAME test.util.math
         FILES math.test.cpp)

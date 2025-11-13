@@ -143,7 +143,7 @@ jobs:
   nvcc-debug-build:
     strategy:
       matrix:
-        CONTAINER: [ 'nvcc-12.6' ]
+        CONTAINER: [ 'nvcc-13' ]
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
