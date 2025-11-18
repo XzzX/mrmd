@@ -113,7 +113,6 @@ void ThermodynamicForce::apply(const data::Atoms& atoms) const
     apply_if(atoms, KOKKOS_LAMBDA(const real_t, const real_t, const real_t) { return true; });
 }
 
-[[deprecated("Use apply_if directly instead.")]]
 void ThermodynamicForce::apply(const data::Atoms& atoms, const weighting_function::Slab& slab) const
 {
     apply_if(
