@@ -89,10 +89,6 @@ void init_action(py::module_& m)
         .def("apply",
              static_cast<void (action::ThermodynamicForce::*)(const data::Atoms&) const>(
                  &action::ThermodynamicForce::apply))
-        .def("apply",
-             static_cast<void (action::ThermodynamicForce::*)(
-                 const data::Atoms&, const weighting_function::Slab&) const>(
-                 &action::ThermodynamicForce::apply))
         .def("get_mu_left", &action::ThermodynamicForce::getMuLeft)
         .def("get_mu_right", &action::ThermodynamicForce::getMuRight);
 
