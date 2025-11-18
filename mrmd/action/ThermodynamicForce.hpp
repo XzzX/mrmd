@@ -21,7 +21,6 @@
 #include "data/MultiHistogram.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
-#include "util/ApplicationRegion.hpp"
 #include "weighting_function/Slab.hpp"
 
 namespace mrmd
