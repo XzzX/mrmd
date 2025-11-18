@@ -22,7 +22,7 @@ namespace action
 {
 void LangevinThermostat::apply(data::Atoms& atoms)
 {
-    apply_if(atoms, [=](const real_t, const real_t, const real_t) { return true; });
+    apply_if(atoms, KOKKOS_LAMBDA(const real_t, const real_t, const real_t) { return true; });
 }
 
 }  // namespace action
