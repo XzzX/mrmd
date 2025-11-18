@@ -30,7 +30,7 @@ void CountingPlane::startCounting(data::Atoms& atoms)
     auto planeNormal = planeNormal_;
 
     auto pos = atoms.getPos();
-    util::grow(distanceToPlane_, atoms.size());
+    util::grow(distanceToPlane_, idx_c(atoms.size()));
     auto distanceToPlane = distanceToPlane_;
     Kokkos::parallel_for(
         "ComputeDistanceToPlane",
