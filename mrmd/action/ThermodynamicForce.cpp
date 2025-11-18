@@ -113,14 +113,6 @@ void ThermodynamicForce::apply(const data::Atoms& atoms) const
     apply_if(atoms, KOKKOS_LAMBDA(const real_t, const real_t, const real_t) { return true; });
 }
 
-void ThermodynamicForce::apply(const data::Atoms& atoms, const weighting_function::Slab& slab) const
-{
-    apply_if(
-        atoms, KOKKOS_LAMBDA(const real_t x, const real_t y, const real_t z) {
-            return slab.isInHYRegion(x, y, z);
-        });
-}
-
 std::vector<real_t> ThermodynamicForce::getMuLeft() const
 {
     auto Fth = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), getForce().data);
