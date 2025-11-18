@@ -19,15 +19,15 @@
 
 namespace mrmd::analysis
 {
+/// Counts particles that cross a defined plane between two time steps.
 class CountingPlane
 {
-private:
     Point3D pointOnPlane_;
     Vector3D planeNormal_;
     ScalarView distanceToPlane_;
 
 public:
-    CountingPlane(const Point3D &pointOnPlane, Vector3D planeNormal);
+    CountingPlane(const Point3D &pointOnPlane, const Vector3D &planeNormal);
 
     void startCounting(data::Atoms &atoms);
     int64_t stopCounting(data::Atoms &atoms);

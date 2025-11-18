@@ -19,7 +19,7 @@
 
 namespace mrmd::analysis
 {
-CountingPlane::CountingPlane(const Point3D& pointOnPlane, Vector3D planeNormal)
+CountingPlane::CountingPlane(const Point3D& pointOnPlane, const Vector3D& planeNormal)
     : pointOnPlane_(pointOnPlane), planeNormal_(planeNormal), distanceToPlane_("distanceToPlane", 0)
 {
 }
