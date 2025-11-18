@@ -27,7 +27,7 @@
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
-#include "util/ApplicationRegion.hpp"
+#include "util/IsInSymmetricSlab.hpp"
 
 using namespace mrmd;
 
@@ -121,8 +121,8 @@ TEST(Integration, LocalLangevinThermostat)
     real_t boxCenterY = 0.5_r * (subdomain.maxCorner[1] + subdomain.minCorner[1]);
     real_t boxCenterZ = 0.5_r * (subdomain.maxCorner[2] + subdomain.minCorner[2]);
 
-    auto applicationRegion =
-        util::ApplicationRegion({boxCenterX, boxCenterY, boxCenterZ}, 0_r, 5.0_r);
+    auto isInSymmetricSlab =
+        util::IsInSymmetricSlab({boxCenterX, boxCenterY, boxCenterZ}, 0_r, 5.0_r);
 
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     for (auto step = 0; step < config.nsteps; ++step)
@@ -132,7 +132,7 @@ TEST(Integration, LocalLangevinThermostat)
         auto force = atoms.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        langevinThermostat.apply(atoms, applicationRegion);
+        langevinThermostat.apply_if(atoms, isInSymmetricSlab);
 
         action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 

@@ -19,6 +19,7 @@
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "test/SingleAtom.hpp"
+#include "util/IsInSymmetricSlab.hpp"
 
 namespace mrmd
 {
@@ -62,10 +63,10 @@ TEST_F(LangevinThermostatTest, Local)
     real_t boxCenterY = 0.5_r * (subdomain.maxCorner[1] + subdomain.minCorner[1]);
     real_t boxCenterZ = 0.5_r * (subdomain.maxCorner[2] + subdomain.minCorner[2]);
 
-    auto applicationRegion =
-        util::ApplicationRegion({boxCenterX, boxCenterY, boxCenterZ}, 0_r, 1.5_r);
+    auto isInSymmetricSlab =
+        util::IsInSymmetricSlab({boxCenterX, boxCenterY, boxCenterZ}, 0_r, 1.5_r);
 
-    langevinThermostat.apply(atoms, applicationRegion);
+    langevinThermostat.apply_if(atoms, isInSymmetricSlab);
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
     auto force = Cabana::slice<data::Atoms::FORCE>(hAoSoA);
