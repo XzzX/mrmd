@@ -103,7 +103,6 @@ void updatePositions(data::Atoms& atoms)
 
 TEST_F(CountingPlaneTestX, ParticlesMovingInXDirection)
 {
-    // Create plane at x = 5.5, normal pointing in +x direction
     Point3D pointOnPlane = {4.9_r, 0.0_r, 0.0_r};
     Vector3D planeNormal = {1.0_r, 0.0_r, 0.0_r};
     CountingPlane plane(pointOnPlane, planeNormal);

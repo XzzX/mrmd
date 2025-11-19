@@ -29,7 +29,19 @@ class CountingPlane
 public:
     CountingPlane(const Point3D &pointOnPlane, const Vector3D &planeNormal);
 
+    /**
+     * @brief Records the current positions of all particles relative to the plane.
+     *
+     * This method should be called before tracking particle crossings.
+     */
     void startCounting(data::Atoms &atoms);
+
+    /**
+     * @brief Counts how many particles have crossed the plane since startCounting() was called.
+     *
+     * This method compares the current positions of the particles to their positions
+     * recorded by startCounting() and determines how many have crossed the plane.
+     */
     int64_t stopCounting(data::Atoms &atoms);
 };
 }  // namespace mrmd::analysis
