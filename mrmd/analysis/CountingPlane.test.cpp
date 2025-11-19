@@ -87,6 +87,20 @@ using CountingPlaneTestX = CountingPlaneTest<AXIS::X>;
 using CountingPlaneTestY = CountingPlaneTest<AXIS::Y>;
 using CountingPlaneTestZ = CountingPlaneTest<AXIS::Z>;
 
+void updatePositions(data::Atoms& atoms)
+{
+    auto pos = atoms.getPos();
+    auto vel = atoms.getVel();
+
+    Kokkos::parallel_for(
+        "MoveParticles", Kokkos::RangePolicy<>(0, atoms.numLocalAtoms), KOKKOS_LAMBDA(idx_t idx) {
+            pos(idx, 0) += vel(idx, 0);
+            pos(idx, 1) += vel(idx, 1);
+            pos(idx, 2) += vel(idx, 2);
+        });
+    Kokkos::fence();
+}
+
 TEST_F(CountingPlaneTestX, ParticlesMovingInXDirection)
 {
     // Create plane at x = 5.5, normal pointing in +x direction
@@ -96,16 +110,7 @@ TEST_F(CountingPlaneTestX, ParticlesMovingInXDirection)
 
     plane.startCounting(atoms);
 
-    auto pos = atoms.getPos();
-    auto vel = atoms.getVel();
-
-    Kokkos::parallel_for(
-        "MoveParticlesX", Kokkos::RangePolicy<>(0, atoms.numLocalAtoms), KOKKOS_LAMBDA(idx_t idx) {
-            pos(idx, 0) += vel(idx, 0);
-            pos(idx, 1) += vel(idx, 1);
-            pos(idx, 2) += vel(idx, 2);
-        });
-    Kokkos::fence();
+    updatePositions(atoms);
 
     int64_t count = plane.stopCounting(atoms);
 
@@ -120,16 +125,7 @@ TEST_F(CountingPlaneTestY, ParticlesMovingInYDirection)
 
     plane.startCounting(atoms);
 
-    auto pos = atoms.getPos();
-    auto vel = atoms.getVel();
-
-    Kokkos::parallel_for(
-        "MoveParticlesY", Kokkos::RangePolicy<>(0, atoms.numLocalAtoms), KOKKOS_LAMBDA(idx_t idx) {
-            pos(idx, 0) += vel(idx, 0);
-            pos(idx, 1) += vel(idx, 1);
-            pos(idx, 2) += vel(idx, 2);
-        });
-    Kokkos::fence();
+    updatePositions(atoms);
 
     int64_t count = plane.stopCounting(atoms);
 
@@ -144,16 +140,7 @@ TEST_F(CountingPlaneTestZ, ParticlesMovingInZDirection)
 
     plane.startCounting(atoms);
 
-    auto pos = atoms.getPos();
-    auto vel = atoms.getVel();
-
-    Kokkos::parallel_for(
-        "MoveParticlesZ", Kokkos::RangePolicy<>(0, atoms.numLocalAtoms), KOKKOS_LAMBDA(idx_t idx) {
-            pos(idx, 0) += vel(idx, 0);
-            pos(idx, 1) += vel(idx, 1);
-            pos(idx, 2) += vel(idx, 2);
-        });
-    Kokkos::fence();
+    updatePositions(atoms);
 
     int64_t count = plane.stopCounting(atoms);
 
