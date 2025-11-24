@@ -1,5 +1,6 @@
 ![Build Status](https://img.shields.io/github/actions/workflow/status/xzzx/mrmd/validate.yml?branch=main&label=main)
 ![GitHub License](https://img.shields.io/github/license/xzzx/mrmd)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17698862.svg)](https://doi.org/10.5281/zenodo.17698862)
 
 # MRMD
 
