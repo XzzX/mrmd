@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+title: Multi Resolution Molecular Dynamics
+message: 'If you use this software, please cite it as below.'
+type: software
+authors:
+  - given-names: Sebastian
+    family-names: Eibl
+    orcid: 'https://orcid.org/0000-0002-1069-2720'
+repository-code: 'https://github.com/XzzX/mrmd'
+keywords:
+  - molecular dynamics
+  - AdResS
+  - Kokkos
+license: Apache-2.0
