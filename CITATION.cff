@@ -7,6 +7,9 @@ authors:
     family-names: Eibl
     orcid: 'https://orcid.org/0000-0002-1069-2720'
 repository-code: 'https://github.com/XzzX/mrmd'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.17698862
 keywords:
   - molecular dynamics
   - AdResS
