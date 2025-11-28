@@ -9,7 +9,6 @@ authors:
   - given-names: Julian Friedrich
     family-names: Hille
     orcid: 'https://orcid.org/0009-0008-1005-9053'
-version: 1.0.0
 repository-code: 'https://github.com/XzzX/mrmd'
 identifiers:
   - type: doi
