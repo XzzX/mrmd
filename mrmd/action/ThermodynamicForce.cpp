@@ -65,8 +65,6 @@ ThermodynamicForce::ThermodynamicForce(const std::vector<real_t>& targetDensitie
     }
     Kokkos::deep_copy(forceFactor_, hForceFactor);
 
-    std::cout << "densGridSpacing: " << requestedDensityGridSpacing << std::endl;
-    std::cout << "densBinWidth: " << requestedDensityBinWidth << std::endl;
 }
 
 ThermodynamicForce::ThermodynamicForce(const std::vector<real_t>& targetDensities,
