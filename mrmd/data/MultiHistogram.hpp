@@ -90,6 +90,20 @@ struct MultiHistogram
     void scale(const real_t& scalingFactor);
     void scale(const ScalarView& scalingFactor);
     void makeSymmetric();
+    template <std::predicate<const real_t> UnaryPred>
+    void replace_if_bin_position(const UnaryPred& pred, real_t newValue)
+    {
+        auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {numBins, numHistograms});
+        auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histIdx)
+        {
+            if (pred(getBinPosition(binIdx)))
+            {
+                data(binIdx, histIdx) = newValue;
+            }
+        };
+        Kokkos::parallel_for("MultiHistogram::replace_if_bin_position", policy, kernel);
+        Kokkos::fence();
+    }
 };
 
 /**
