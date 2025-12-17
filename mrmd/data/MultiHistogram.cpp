@@ -28,12 +28,10 @@ ScalarView MultiHistogram::createGrid() const
     MRMD_HOST_CHECK_GREATEREQUAL(numBins, 0);
 
     ScalarView grid("grid", numBins);
-    const real_t min_ = min;
-    const real_t binSize_ = binSize;
     auto policy = Kokkos::RangePolicy<>(0, numBins);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx)
     {
-        grid[idx] = min_ + (real_c(idx) + 0.5_r) * binSize_;
+        grid[idx] = getBinPosition(idx);    
     };
     Kokkos::parallel_for("MultiHistogram::scale", policy, kernel);
     Kokkos::fence();
