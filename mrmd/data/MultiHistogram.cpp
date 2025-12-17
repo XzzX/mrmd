@@ -23,7 +23,7 @@ namespace mrmd
 namespace data
 {
 
-ScalarView MultiHistogram::createGrid_d() const
+ScalarView MultiHistogram::createGrid() const
 {
     MRMD_HOST_CHECK_GREATEREQUAL(numBins, 0);
 
