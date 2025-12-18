@@ -169,7 +169,8 @@ void transform(const MultiHistogram& input1,
 template <std::predicate<const real_t> UnaryPred>
 void replace_if_bin_position(MultiHistogram& hist, const UnaryPred& pred, real_t newValue)
 {
-    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {hist.numBins, hist.numHistograms});
+    auto policy =
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {hist.numBins, hist.numHistograms});
     auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histIdx)
     {
         if (pred(hist.getBinPosition(binIdx)))
