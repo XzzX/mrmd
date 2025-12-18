@@ -166,5 +166,34 @@ void transform(const MultiHistogram& input1,
     Kokkos::fence();
 }
 
+/**
+ * Replaces histogram values with a new value if the bin position satisfies a predicate.
+ *
+ * @tparam UnaryPred A unary predicate type that takes a real_t value and returns a boolean.
+ *                   Must satisfy std::predicate<const real_t> concept.
+ *
+ * @param hist The MultiHistogram object whose values will be conditionally replaced.
+ * @param pred A unary predicate function that is evaluated for each bin position.
+ *             If it returns true for a bin position, all histogram values at that bin
+ *             are replaced with newValue.
+ * @param newValue The value to assign to histogram entries whose bin position satisfies
+ *                 the predicate.
+ */
+template <std::predicate<const real_t> UnaryPred>
+void replace_if_bin_position(MultiHistogram& hist, const UnaryPred& pred, real_t newValue)
+{
+    auto policy =
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {hist.numBins, hist.numHistograms});
+    auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histIdx)
+    {
+        if (pred(hist.getBinPosition(binIdx)))
+        {
+            hist.data(binIdx, histIdx) = newValue;
+        }
+    };
+    Kokkos::parallel_for("replace_if_bin_position", policy, kernel);
+    Kokkos::fence();
+}
+
 }  // namespace data
 }  // namespace mrmd
