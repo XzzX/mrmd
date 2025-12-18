@@ -72,7 +72,7 @@ struct MultiHistogram
         return binPosition;
     }
 
-    ScalarView::HostMirror createGrid() const;
+    ScalarView createGrid() const;
 
     const real_t min;
     const real_t max;
