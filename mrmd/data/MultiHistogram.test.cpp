@@ -217,7 +217,7 @@ TEST(MultiHistogram, replace_if_bin_position)
             histogram.data(idx, 0) = real_c(idx);
         });
 
-    histogram.replace_if_bin_position([](const real_t pos) { return pos < 5_r; }, -1_r);
+    replace_if_bin_position(histogram, KOKKOS_LAMBDA(const real_t pos) { return pos < 5_r; }, -1_r);
 
     auto h_data = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogram.data);
     for (auto idx = 0; idx < 11; ++idx)
