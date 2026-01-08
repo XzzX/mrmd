@@ -208,5 +208,36 @@ void multiHistogramSmoothen_constant()
     }
 }
 TEST(MultiHistogram, smoothen_constant) { multiHistogramSmoothen_constant(); }
+
+void MultiHistogramReplace_if_bin_position()
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 11, 2);
+    Kokkos::parallel_for(
+        "init_histogram",
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {11, 2}),
+        KOKKOS_LAMBDA(const idx_t idx, const idx_t histIdx) {
+            histogram.data(idx, histIdx) = real_c(idx * 10 + histIdx);
+        });
+
+    replace_if_bin_position(histogram, KOKKOS_LAMBDA(const real_t pos) { return pos < 5_r; }, -1_r);
+
+    auto h_data = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogram.data);
+    for (auto idx = 0; idx < 11; ++idx)
+    {
+        if (histogram.getBinPosition(idx) < 5_r)
+        {
+            EXPECT_FLOAT_EQ(h_data(idx, 0), -1_r);
+            EXPECT_FLOAT_EQ(h_data(idx, 1), -1_r);
+        }
+        else
+        {
+            EXPECT_FLOAT_EQ(h_data(idx, 0), real_c(idx * 10 + 0));
+            EXPECT_FLOAT_EQ(h_data(idx, 1), real_c(idx * 10 + 1));
+        }
+    }
+}
+
+TEST(MultiHistogram, replace_if_bin_position) { MultiHistogramReplace_if_bin_position(); }
+
 }  // namespace data
 }  // namespace mrmd
