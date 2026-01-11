@@ -19,6 +19,11 @@ target_link_libraries(Argon
         PRIVATE mrmd CLI11::CLI11
         )
 add_test(NAME Example.Argon COMMAND ./Argon --nsteps 10)
+if (MRMD_ENABLE_PYTHON)
+    add_test(NAME Example.Argon.Python COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/argon.py --nsteps 10)
+    set_property(TEST Example.Argon.Python PROPERTY 
+        ENVIRONMENT_MODIFICATION "PYTHONPATH=path_list_prepend:${CMAKE_BUILD_DIR}/pyMRMD")
+endif()
 
 add_executable(MultiResArgon
         MultiResArgon.cpp
@@ -27,3 +32,8 @@ target_link_libraries(MultiResArgon
         PRIVATE mrmd CLI11::CLI11
         )
 add_test(NAME Example.MultiResArgon COMMAND ./MultiResArgon --nsteps 10)
+if (MRMD_ENABLE_PYTHON)
+    add_test(NAME Example.MultiResArgon.Python COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/multi_res_argon.py --nsteps 10)
+    set_property(TEST Example.MultiResArgon.Python PROPERTY 
+        ENVIRONMENT_MODIFICATION "PYTHONPATH=path_list_prepend:${CMAKE_BUILD_DIR}/pyMRMD")
+endif()

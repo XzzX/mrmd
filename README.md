@@ -20,7 +20,7 @@
 #### Integrated libraries
 * [CLI11](https://github.com/CLIUtils/CLI11.git)
 * [yaml-cpp](https://github.com/jbeder/yaml-cpp.git)
-* [Kokkos](https://github.com/kokkos/kokkos)
+* [Kokkos](https://github.com/kokkos/kokkos)  
   You need to specify correct flags for the intended target architecture and backend.
 * [Cabana](https://github.com/ECP-copa/Cabana.git)
 * [googletest](https://github.com/google/googletest.git)
@@ -62,7 +62,8 @@ cmake -S mrmd \
       -DKokkos_ARCH_NATIVE=ON
 cmake --build mrmd-build --parallel 8
 export PYTHONPATH=$(pwd)/mrmd-build/pyMRMD/:$PYTHONPATH
-cd mrmd-build/examples/Argon
-./Argon
-python argon.py
+
+./mrmd-build/examples/Argon/Argon --nsteps 1000 --output 100
+# OR
+python ./mrmd/examples/Argon/argon.py --nsteps 1000 --output 100
 ```
