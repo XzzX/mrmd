@@ -51,7 +51,7 @@ TEST(MultiHistogram, createGrid)
 {
     MultiHistogram histogram("histogram", 0_r, 10_r, 10, 2);
 
-    auto grid = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogram.createGrid());
+    auto grid = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), createGrid(histogram));
     EXPECT_EQ(grid[0], 0.5_r);
     EXPECT_EQ(grid[5], 5.5_r);
 }
@@ -60,7 +60,7 @@ TEST(MultiHistogram, consistencyCreateGridToGetBinPosition)
 {
     MultiHistogram histogram("histogram", 0_r, 10_r, 10, 2);
 
-    auto grid = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogram.createGrid());
+    auto grid = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), createGrid(histogram));
     EXPECT_EQ(grid[0], histogram.getBinPosition(0));
     EXPECT_EQ(grid[5], histogram.getBinPosition(5));
 }

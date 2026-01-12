@@ -72,8 +72,6 @@ struct MultiHistogram
         return binPosition;
     }
 
-    ScalarView createGrid() const;
-
     const real_t min;
     const real_t max;
     const idx_t numBins;
@@ -128,6 +126,8 @@ data::MultiHistogram smoothen(data::MultiHistogram& input,
                               const real_t& range,
                               const bool periodic = false);
 
+ScalarView createGrid(const MultiHistogram& input);
+
 /**
  * Applies a binary operation to corresponding elements of two input MultiHistograms and stores
  * the result in an output MultiHistogram.
@@ -165,6 +165,5 @@ void transform(const MultiHistogram& input1,
     Kokkos::parallel_for("MultiHistogram::transform", policy, kernel);
     Kokkos::fence();
 }
-
 }  // namespace data
 }  // namespace mrmd
