@@ -31,7 +31,7 @@ ScalarView MultiHistogram::createGrid() const
     auto self = *this;  // avoid capturing this pointer
     auto policy = Kokkos::RangePolicy<>(0, numBins);
     auto kernel = KOKKOS_LAMBDA(const idx_t idx) { grid[idx] = self.getBinPosition(idx); };
-    Kokkos::parallel_for("MultiHistogram::scale", policy, kernel);
+    Kokkos::parallel_for("MultiHistogram::createGrid", policy, kernel);
     Kokkos::fence();
 
     return grid;
