@@ -23,16 +23,6 @@ namespace mrmd
 namespace data
 {
 
-ScalarView::HostMirror MultiHistogram::createGrid() const
-{
-    ScalarView::HostMirror grid("grid", numBins);
-    for (idx_t i = 0; i < numBins; ++i)
-    {
-        grid[i] = getBinPosition(i);
-    }
-    return grid;
-}
-
 MultiHistogram& MultiHistogram::operator+=(const MultiHistogram& rhs)
 {
     transform(*this, rhs, *this, bin_op::Add());
@@ -220,5 +210,19 @@ data::MultiHistogram smoothen(data::MultiHistogram& input,
     return smoothenedDensityProfile;
 }
 
+ScalarView createGrid(const MultiHistogram& input)
+{
+    const idx_t numBins = input.numBins;
+
+    MRMD_HOST_CHECK_GREATEREQUAL(numBins, 0);
+
+    ScalarView grid("grid", numBins);
+    auto policy = Kokkos::RangePolicy<>(0, numBins);
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx) { grid[idx] = input.getBinPosition(idx); };
+    Kokkos::parallel_for("MultiHistogram::createGrid", policy, kernel);
+    Kokkos::fence();
+
+    return grid;
+}
 }  // namespace data
 }  // namespace mrmd

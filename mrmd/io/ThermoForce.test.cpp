@@ -61,8 +61,10 @@ TEST(ThermoForce, dumpSingleForce)
 
     auto thermodynamicForce2 = restoreThermoForce("dummySingleForce.txt", subdomain);
 
-    auto grid1 = thermodynamicForce1.getForce().createGrid();
-    auto grid2 = thermodynamicForce2.getForce().createGrid();
+    ScalarView::HostMirror grid1 = Kokkos::create_mirror_view_and_copy(
+        Kokkos::HostSpace(), createGrid(thermodynamicForce1.getForce()));
+    ScalarView::HostMirror grid2 = Kokkos::create_mirror_view_and_copy(
+        Kokkos::HostSpace(), createGrid(thermodynamicForce2.getForce()));
     auto thermoForce1 =
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), thermodynamicForce1.getForce(0));
     auto thermoForce2 =
@@ -90,8 +92,10 @@ TEST(ThermoForce, dumpMultipleForces)
     auto thermodynamicForce2 =
         restoreThermoForce("dummyMultipleForces.txt", subdomain, targetDensities, forceModulations);
 
-    auto grid1 = thermodynamicForce1.getForce().createGrid();
-    auto grid2 = thermodynamicForce2.getForce().createGrid();
+    ScalarView::HostMirror grid1 = Kokkos::create_mirror_view_and_copy(
+        Kokkos::HostSpace(), createGrid(thermodynamicForce1.getForce()));
+    ScalarView::HostMirror grid2 = Kokkos::create_mirror_view_and_copy(
+        Kokkos::HostSpace(), createGrid(thermodynamicForce2.getForce()));
     auto thermoForce1 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
                                                             thermodynamicForce1.getForce().data);
     auto thermoForce2 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),

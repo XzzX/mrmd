@@ -24,7 +24,8 @@ void dumpThermoForce(const std::string& filename,
                      const action::ThermodynamicForce& thermodynamicForce,
                      const idx_t& typeId)
 {
-    auto grid = thermodynamicForce.getForce().createGrid();
+    ScalarView::HostMirror grid = Kokkos::create_mirror_view_and_copy(
+        Kokkos::HostSpace(), createGrid(thermodynamicForce.getForce()));
     auto numBins = grid.size();
     ScalarView::HostMirror forceView("forceView", numBins);
     auto thermoForce = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
@@ -41,7 +42,8 @@ void dumpThermoForce(const std::string& filename,
                      const action::ThermodynamicForce& thermodynamicForce)
 {
     DumpProfile dumpThermoForce;
-    auto grid = thermodynamicForce.getForce().createGrid();
+    ScalarView::HostMirror grid = Kokkos::create_mirror_view_and_copy(
+        Kokkos::HostSpace(), createGrid(thermodynamicForce.getForce()));
     auto numBins = grid.size();
 
     dumpThermoForce.open(filename);
