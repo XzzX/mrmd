@@ -33,7 +33,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(MRMD_ENABLE_HDF5 "Enable HDF5 support." OFF)
 option(MRMD_ENABLE_MPI "Enable MPI support." OFF)
-option(MRMD_ENABLE_PYTHON "Enable Python support." OFF)
 option(MRMD_ENABLE_COVERAGE "Enable code coverage. (clang)" OFF)
 option(MRMD_ENABLE_TESTING "Build tests and add them to ctest." ON)
 option(MRMD_VEC_REPORT "Enable reporting of loop vectorization." OFF)
@@ -128,9 +127,5 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_subdirectory(mrmd)
-if (MRMD_ENABLE_PYTHON)
-    add_subdirectory(pyMRMD)
-endif()
-
 add_subdirectory(examples)
 add_subdirectory(tests)
