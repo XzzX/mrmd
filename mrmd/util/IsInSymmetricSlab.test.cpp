@@ -23,9 +23,9 @@ namespace util
 TEST(IsInSymmetricSlab, testRegion)
 {
     Point3D center = {2_r, 3_r, 4_r};
-    const auto applicationRegionMin = 2_r;
-    const auto applicationRegionMax = 4_r;
-    auto isInSymmetricSlab = IsInSymmetricSlab(center, applicationRegionMin, applicationRegionMax);
+    const auto slabMin = 2_r;
+    const auto slabMax = 4_r;
+    auto isInSymmetricSlab = IsInSymmetricSlab(center, slabMin, slabMax);
 
     EXPECT_TRUE(isInSymmetricSlab(4_r, 10_r, 10_r));
     EXPECT_TRUE(isInSymmetricSlab(5.7_r, 10_r, 10_r));
