@@ -24,5 +24,8 @@ mrmd_add_test(NAME test.util.IsInSymmetricSlab
 mrmd_add_test(NAME test.util.math
         FILES math.test.cpp)
 
+mrmd_add_test(NAME test.util.interpolation
+        FILES interpolation.test.cpp)
+
 mrmd_add_test(NAME test.util.Random
         FILES Random.test.cpp)
