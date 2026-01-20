@@ -61,7 +61,7 @@ idx_t findRightBin(const ScalarView& grid, const real_t& value)
 data::MultiHistogram interpolate(const data::MultiHistogram& input, const ScalarView& grid);
 
 data::MultiHistogram constrainToSymmetricSlab(const data::MultiHistogram& input,
-                                                  const util::IsInSymmetricSlab& applicationRegion);
+                                              const util::IsInSymmetricSlab& applicationRegion);
 
 }  // namespace util
 }  // namespace mrmd
