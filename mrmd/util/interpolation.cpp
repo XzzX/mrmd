@@ -22,7 +22,7 @@ data::MultiHistogram interpolate(const data::MultiHistogram& input, const Scalar
 {
     data::MultiHistogram output(
         "interpolated-profile", input.min, input.max, idx_c(grid.extent(0)), input.numHistograms);
-    const ScalarView& inputGrid = input.createGrid();
+    const ScalarView& inputGrid = createGrid(input);
 
     auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>(
         {idx_t(0), idx_t(0)}, {idx_c(grid.extent(0)), input.numHistograms});
