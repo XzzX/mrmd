@@ -54,7 +54,7 @@ data::MultiHistogram interpolate(const data::MultiHistogram& input, const Scalar
 }
 
 data::MultiHistogram constrainToSymmetricSlab(const data::MultiHistogram& input,
-                                                  const util::IsInSymmetricSlab& applicationRegion)
+                                              const util::IsInSymmetricSlab& applicationRegion)
 {
     data::MultiHistogram constrainedProfile(
         "constrained-profile", input.min, input.max, input.numBins, input.numHistograms);
@@ -72,7 +72,7 @@ data::MultiHistogram constrainToSymmetricSlab(const data::MultiHistogram& input,
             constrainedProfile.data(binIdx, histogramIdx) = input.data(binIdx, histogramIdx);
         }
     };
-    Kokkos::parallel_for("MultiHistogram::constrainToApplicationRegion", policy, kernel);
+    Kokkos::parallel_for("MultiHistogram::constrainToSymmetricSlab", policy, kernel);
     Kokkos::fence();
 
     return constrainedProfile;
