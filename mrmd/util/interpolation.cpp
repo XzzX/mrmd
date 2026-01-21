@@ -20,8 +20,21 @@ namespace util
 {
 data::MultiHistogram interpolate(const data::MultiHistogram& input, const ScalarView& grid)
 {
+    real_t gridSpacing = grid(1) - grid(0);
+    real_t gridMin = grid(0) - 0.5_r * gridSpacing;
+    real_t gridMax = grid(grid.extent(0) - 1) + 0.5_r * gridSpacing;
+
     data::MultiHistogram output(
-        "interpolated-profile", input.min, input.max, idx_c(grid.extent(0)), input.numHistograms);
+        "interpolated-profile", gridMin, gridMax, idx_c(grid.extent(0)), input.numHistograms);
+
+    const ScalarView& outputGrid = createGrid(output);
+
+    MRMD_HOST_ASSERT_EQUAL(outputGrid.extent(0), grid.extent(0), "Output grid size mismatch!");
+    for (idx_t idx = 0; idx < idx_c(outputGrid.extent(0)); ++idx)
+    {
+        MRMD_HOST_ASSERT_EQUAL(outputGrid(idx), grid(idx), "Output grid mismatch!");
+    }
+
     const ScalarView& inputGrid = createGrid(input);
 
     auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>(
