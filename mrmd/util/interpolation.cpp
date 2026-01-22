@@ -42,7 +42,7 @@ data::MultiHistogram interpolate(const data::MultiHistogram& input, const Scalar
     auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histogramIdx)
     {
         // find the two enclosing bins in the input histogram
-        real_t outputBinPosition = output.getBinPosition(binIdx);
+        real_t outputBinPosition = grid(binIdx);
         idx_t leftBinIdx = input.getBin(outputBinPosition - 0.5_r * input.binSize);
         idx_t rightBinIdx = leftBinIdx + 1;
 
