@@ -24,8 +24,8 @@ class IsInSymmetricSlab
 {
 private:
     const Point3D center_;
-    const real_t applicationRegionMin_;
-    const real_t applicationRegionMax_;
+    const real_t slabMin_;
+    const real_t slabMax_;
 
 public:
     KOKKOS_INLINE_FUNCTION
@@ -34,15 +34,11 @@ public:
         auto dx = x - center_[0];
         auto absDx = std::abs(dx);
 
-        return (absDx >= applicationRegionMin_ && absDx <= applicationRegionMax_);
+        return (absDx >= slabMin_ && absDx <= slabMax_);
     }
 
-    IsInSymmetricSlab(const Point3D& center,
-                      const real_t applicationRegionMin,
-                      const real_t applicationRegionMax)
-        : center_(center),
-          applicationRegionMin_(applicationRegionMin),
-          applicationRegionMax_(applicationRegionMax)
+    IsInSymmetricSlab(const Point3D& center, const real_t slabMin, const real_t slabMax)
+        : center_(center), slabMin_(slabMin), slabMax_(slabMax)
     {
     }
 };
