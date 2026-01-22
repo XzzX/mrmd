@@ -42,23 +42,26 @@ data::MultiHistogram interpolate(const data::MultiHistogram& input, const Scalar
     auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histogramIdx)
     {
         // find the two enclosing bins in the input histogram
-        auto rightBin = findRightBin(inputGrid, grid(binIdx));
-        auto leftBin = rightBin - 1;
+        real_t outputBinPosition = output.getBinPosition(binIdx);
+        idx_t inputBinIdx = input.getBin(outputBinPosition);
+        idx_t leftBinIdx =
+            inputBinIdx + idx_c(std::floor(outputBinPosition - input.getBinPosition(inputBinIdx)));
+        idx_t rightBinIdx = leftBinIdx + 1;
 
         // handle boundaries
-        if (leftBin < 0 || rightBin >= input.numBins)
+        if (leftBinIdx < 0 || rightBinIdx >= input.numBins)
         {
-            output.data(binIdx, histogramIdx) = 0.0_r;  // out of bounds, set to zero
+            output.data(binIdx, histogramIdx) = 0_r;  // out of bounds, set to zero
             return;
         }
 
-        auto inputDataLeft = input.data(leftBin, histogramIdx);
-        auto inputDataRight = input.data(rightBin, histogramIdx);
+        auto inputDataLeft = input.data(leftBinIdx, histogramIdx);
+        auto inputDataRight = input.data(rightBinIdx, histogramIdx);
 
         output.data(binIdx, histogramIdx) =
             lerp(inputDataLeft,
                  inputDataRight,
-                 (grid(binIdx) - inputGrid(leftBin)) * input.inverseBinSize);
+                 (outputBinPosition - inputGrid(leftBinIdx)) * input.inverseBinSize);
     };
     Kokkos::parallel_for("MultiHistogram::interpolate", policy, kernel);
     Kokkos::fence();

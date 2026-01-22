@@ -35,24 +35,6 @@ real_t lerp(const real_t& left, const real_t& right, const real_t& factor)
 }
 
 /**
- * Find the index of the first bin in the grid that has a position greater than or equal to the
- * value.
- * @param grid grid to search in
- * @param value value to find
- * @return index of the right-hand bin
- */
-KOKKOS_INLINE_FUNCTION
-idx_t findRightBin(const ScalarView& grid, const real_t& value)
-{
-    idx_t idx = 0;
-    for (; idx < idx_c(grid.extent(0)) && grid(idx) < value; ++idx)
-    {
-        // empty loop body
-    }
-    return idx;
-}
-
-/**
  * Interpolate data values of MultiHistogram to a new grid.
  * @param input input MultiHistogram
  * @param grid grid to interpolate to
