@@ -27,15 +27,11 @@ data::MultiHistogram interpolate(const data::MultiHistogram& input, const Scalar
     data::MultiHistogram output(
         "interpolated-profile", gridMin, gridMax, idx_c(grid.extent(0)), input.numHistograms);
 
-    const ScalarView& outputGrid = createGrid(output);
-
-    MRMD_HOST_ASSERT_EQUAL(outputGrid.extent(0), grid.extent(0), "Output grid size mismatch!");
-    for (idx_t idx = 0; idx < idx_c(outputGrid.extent(0)); ++idx)
+    MRMD_HOST_ASSERT_EQUAL(output.numBins, grid.extent(0), "Output grid size mismatch!");
+    for (idx_t idx = 0; idx < idx_c(output.numBins); ++idx)
     {
-        MRMD_HOST_ASSERT_EQUAL(outputGrid(idx), grid(idx), "Output grid mismatch!");
+        MRMD_HOST_ASSERT_EQUAL(output.getBinPosition(idx), grid(idx), "Output grid mismatch!");
     }
-
-    const ScalarView& inputGrid = createGrid(input);
 
     auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>(
         {idx_t(0), idx_t(0)}, {idx_c(grid.extent(0)), input.numHistograms});
@@ -59,7 +55,7 @@ data::MultiHistogram interpolate(const data::MultiHistogram& input, const Scalar
         output.data(binIdx, histogramIdx) =
             lerp(inputDataLeft,
                  inputDataRight,
-                 (outputBinPosition - inputGrid(leftBinIdx)) * input.inverseBinSize);
+                 (outputBinPosition - input.getBinPosition(leftBinIdx)) * input.inverseBinSize);
     };
     Kokkos::parallel_for("MultiHistogram::interpolate", policy, kernel);
     Kokkos::fence();
