@@ -43,9 +43,7 @@ data::MultiHistogram interpolate(const data::MultiHistogram& input, const Scalar
     {
         // find the two enclosing bins in the input histogram
         real_t outputBinPosition = output.getBinPosition(binIdx);
-        idx_t inputBinIdx = input.getBin(outputBinPosition);
-        idx_t leftBinIdx =
-            inputBinIdx + idx_c(std::floor(outputBinPosition - input.getBinPosition(inputBinIdx)));
+        idx_t leftBinIdx = input.getBin(outputBinPosition - 0.5_r * input.binSize);
         idx_t rightBinIdx = leftBinIdx + 1;
 
         // handle boundaries
