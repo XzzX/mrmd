@@ -43,8 +43,5 @@ real_t lerp(const real_t& left, const real_t& right, const real_t& factor)
  */
 data::MultiHistogram interpolate(const data::MultiHistogram& input, const ScalarView& grid);
 
-data::MultiHistogram constrainToSymmetricSlab(const data::MultiHistogram& input,
-                                              const util::IsInSymmetricSlab& applicationRegion);
-
 }  // namespace util
 }  // namespace mrmd

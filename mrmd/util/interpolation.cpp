@@ -63,29 +63,5 @@ data::MultiHistogram interpolate(const data::MultiHistogram& input, const Scalar
     return output;
 }
 
-data::MultiHistogram constrainToSymmetricSlab(const data::MultiHistogram& input,
-                                              const util::IsInSymmetricSlab& applicationRegion)
-{
-    data::MultiHistogram constrainedProfile(
-        "constrained-profile", input.min, input.max, input.numBins, input.numHistograms);
-
-    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>({idx_t(0), idx_t(0)},
-                                                         {input.numBins, input.numHistograms});
-    auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histogramIdx)
-    {
-        if (!applicationRegion(input.getBinPosition(binIdx), 0_r, 0_r))
-        {
-            constrainedProfile.data(binIdx, histogramIdx) = 0_r;
-        }
-        else
-        {
-            constrainedProfile.data(binIdx, histogramIdx) = input.data(binIdx, histogramIdx);
-        }
-    };
-    Kokkos::parallel_for("MultiHistogram::constrainToSymmetricSlab", policy, kernel);
-    Kokkos::fence();
-
-    return constrainedProfile;
-}
 }  // namespace util
 }  // namespace mrmd

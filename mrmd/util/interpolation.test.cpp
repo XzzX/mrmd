@@ -57,46 +57,5 @@ TEST(interpolate, testInterpolate)
     }
 }
 
-TEST(interpolate, testConstrainToSymmetricSlab)
-{
-    data::MultiHistogram histogramBare("histogram", 0_r, 10_r, 30, 3);
-
-    auto gridBare = createGrid(histogramBare);
-
-    auto h_dataBare = Kokkos::create_mirror_view(histogramBare.data);
-    for (auto idx = 0; idx < 30; ++idx)
-    {
-        h_dataBare(idx, 0) = 0_r;
-        h_dataBare(idx, 1) = 1_r;
-        h_dataBare(idx, 2) = histogramBare.getBinPosition(idx);
-    }
-    Kokkos::deep_copy(histogramBare.data, h_dataBare);
-
-    // constrain data to slab automatically in decive space
-    auto applicationRegion = util::IsInSymmetricSlab(Point3D{5_r, 0_r, 0_r}, 2_r, 4_r);
-    auto histogramConstr = constrainToSymmetricSlab(histogramBare, applicationRegion);
-    auto h_dataConstr =
-        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogramConstr.data);
-
-    // constrain data to slab manually in host space
-    for (auto idx = 0; idx < 30; ++idx)
-    {
-        real_t binPosition = gridBare(idx);
-        if (binPosition <= 1_r || (binPosition >= 3_r && binPosition <= 7_r) || binPosition >= 9_r)
-        {
-            h_dataBare(idx, 0) = 0_r;
-            h_dataBare(idx, 1) = 0_r;
-            h_dataBare(idx, 2) = 0_r;
-        }
-    }
-
-    for (auto idx = 0; idx < 30; ++idx)
-    {
-        EXPECT_FLOAT_EQ(h_dataBare(idx, 0), h_dataConstr(idx, 0));
-        EXPECT_FLOAT_EQ(h_dataBare(idx, 1), h_dataConstr(idx, 1));
-        EXPECT_FLOAT_EQ(h_dataBare(idx, 2), h_dataConstr(idx, 2));
-    }
-}
-
 }  // namespace util
 }  // namespace mrmd
