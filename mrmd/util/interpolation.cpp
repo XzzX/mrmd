@@ -27,7 +27,7 @@ data::MultiHistogram interpolate(const data::MultiHistogram& input, const Scalar
     data::MultiHistogram output(
         "interpolated-profile", gridMin, gridMax, idx_c(grid.extent(0)), input.numHistograms);
 
-    MRMD_HOST_ASSERT_EQUAL(output.numBins, grid.extent(0), "Output grid size mismatch!");
+    MRMD_HOST_ASSERT_EQUAL(output.numBins, idx_c(grid.extent(0)), "Output grid size mismatch!");
     for (idx_t idx = 0; idx < idx_c(output.numBins); ++idx)
     {
         MRMD_HOST_ASSERT_EQUAL(output.getBinPosition(idx), grid(idx), "Output grid mismatch!");
