@@ -41,7 +41,8 @@ real_t lerp(const real_t& left, const real_t& right, const real_t& factor)
  * @param inputFine MultiHistogram defining the grid to interpolate onto.
  * @return MultiHistogram containing interpolated data on given grid
  */
-data::MultiHistogram interpolate(const data::MultiHistogram& inputCoarse, const data::MultiHistogram& inputFine);
+data::MultiHistogram interpolate(const data::MultiHistogram& inputCoarse,
+                                 const data::MultiHistogram& inputFine);
 
 }  // namespace util
 }  // namespace mrmd

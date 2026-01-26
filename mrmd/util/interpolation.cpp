@@ -18,7 +18,8 @@ namespace mrmd
 {
 namespace util
 {
-data::MultiHistogram interpolate(const data::MultiHistogram& inputCoarse, const data::MultiHistogram& inputFine)
+data::MultiHistogram interpolate(const data::MultiHistogram& inputCoarse,
+                                 const data::MultiHistogram& inputFine)
 {
     MRMD_HOST_ASSERT_EQUAL(inputFine.numHistograms, inputCoarse.numHistograms);
 
@@ -46,7 +47,8 @@ data::MultiHistogram interpolate(const data::MultiHistogram& inputCoarse, const 
         output.data(binIdx, histogramIdx) =
             lerp(inputDataLeft,
                  inputDataRight,
-                 (outputBinPosition - inputCoarse.getBinPosition(leftBinIdx)) * inputCoarse.inverseBinSize);
+                 (outputBinPosition - inputCoarse.getBinPosition(leftBinIdx)) *
+                     inputCoarse.inverseBinSize);
     };
     Kokkos::parallel_for("MultiHistogram::interpolate", policy, kernel);
     Kokkos::fence();
