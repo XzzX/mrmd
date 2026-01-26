@@ -14,13 +14,13 @@
 
 #pragma once
 
-#include <concepts>
-
 #include "assert/assert.hpp"
 #include "data/Atoms.hpp"
 #include "data/MultiHistogram.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
+#include "util/ApplicationRegion.hpp"
+#include "util/interpolation.hpp"
 #include "weighting_function/Slab.hpp"
 
 namespace mrmd
@@ -34,8 +34,9 @@ private:
     data::MultiHistogram densityProfile_;
     idx_t densityProfileSamples_ = 0;
     real_t binVolume_;
-    const std::vector<real_t> targetDensity_;
-    const std::vector<real_t> thermodynamicForceModulation_;
+    const std::vector<real_t> targetDensities_;
+    const real_t densityBinWidth_;
+    const std::vector<real_t> thermodynamicForceModulations_;
     idx_t numTypes_;
 
     ScalarView forceFactor_;  ///< precalculated prefactor for force calculation
@@ -62,54 +63,44 @@ public:
 
     void sample(data::Atoms& atoms);
     void update(const real_t& smoothingSigma, const real_t& smoothingIntensity);
+    void update(const real_t& smoothingSigma,
+                const real_t& smoothingIntensity,
+                const util::ApplicationRegion& applicationRegion);
     void apply(const data::Atoms& atoms) const;
-
-    template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
-    void apply_if(const data::Atoms& atoms, const UnaryPred& pred) const;
-
+    void apply(const data::Atoms& atoms, const weighting_function::Slab& slab) const;
+    void apply(const data::Atoms& atoms, const util::ApplicationRegion& applicationRegion) const;
     std::vector<real_t> getMuLeft() const;
     std::vector<real_t> getMuRight() const;
 
-    ThermodynamicForce(const std::vector<real_t>& targetDensity,
+    ThermodynamicForce(const std::vector<real_t>& targetDensities,
                        const data::Subdomain& subdomain,
+                       const real_t& requestedDensityGridSpacing,
                        const real_t& requestedDensityBinWidth,
-                       const std::vector<real_t>& thermodynamicForceModulation,
+                       const std::vector<real_t>& thermodynamicForceModulations,
                        const bool enforceSymmetry = false,
                        const bool usePeriodicity = false);
 
-    ThermodynamicForce(const real_t targetDensity,
+    ThermodynamicForce(const std::vector<real_t>& targetDensities,
                        const data::Subdomain& subdomain,
+                       const real_t& requestedDensityGridSpacing,
+                       const std::vector<real_t>& thermodynamicForceModulations,
+                       const bool enforceSymmetry = false,
+                       const bool usePeriodicity = false);
+
+    ThermodynamicForce(const real_t& targetDensity,
+                       const data::Subdomain& subdomain,
+                       const real_t& requestedDensityGridSpacing,
+                       const real_t& thermodynamicForceModulation,
+                       const bool enforceSymmetry = false,
+                       const bool usePeriodicity = false);
+
+    ThermodynamicForce(const std::vector<real_t>& targetDensities,
+                       const data::Subdomain& subdomain,
+                       const idx_t& requestedDensityBinNumber,
                        const real_t& requestedDensityBinWidth,
-                       const real_t thermodynamicForceModulation,
+                       const std::vector<real_t>& thermodynamicForceModulations,
                        const bool enforceSymmetry = false,
                        const bool usePeriodicity = false);
 };
-
-template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
-void ThermodynamicForce::apply_if(const data::Atoms& atoms, const UnaryPred& pred) const
-{
-    auto atomsPos = atoms.getPos();
-    auto atomsForce = atoms.getForce();
-    auto atomsType = atoms.getType();
-
-    auto forceHistogram = force_;  // avoid capturing this pointer
-
-    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
-    {
-        auto xPos = atomsPos(idx, 0);
-        if (!pred(atomsPos(idx, 0), atomsPos(idx, 1), atomsPos(idx, 2))) return;
-        auto bin = forceHistogram.getBin(xPos);
-        if (bin != -1)
-        {
-            MRMD_DEVICE_ASSERT_LESS(atomsType(idx), forceHistogram.numHistograms);
-            MRMD_DEVICE_ASSERT(!std::isnan(forceHistogram.data(bin, atomsType(idx))));
-            atomsForce(idx, 0) += forceHistogram.data(bin, atomsType(idx));
-        }
-    };
-    Kokkos::parallel_for("ThermodynamicForce::apply_if", policy, kernel);
-    Kokkos::fence();
-}
-
 }  // namespace action
 }  // namespace mrmd
