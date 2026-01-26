@@ -45,7 +45,7 @@ TEST(interpolate, testInterpolate)
     }
     Kokkos::deep_copy(histogramFine.data, h_dataFine);
 
-    auto histogramInterp = util::interpolate(histogramCoarse, createGrid(histogramFine));
+    auto histogramInterp = util::interpolate(histogramCoarse, histogramFine);
     auto h_dataInterp =
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogramInterp.data);
 

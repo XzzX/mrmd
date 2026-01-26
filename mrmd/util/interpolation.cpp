@@ -18,44 +18,35 @@ namespace mrmd
 {
 namespace util
 {
-data::MultiHistogram interpolate(const data::MultiHistogram& input, const ScalarView& grid)
+data::MultiHistogram interpolate(const data::MultiHistogram& inputCoarse, const data::MultiHistogram& inputFine)
 {
-    real_t gridSpacing = grid(1) - grid(0);
-    real_t gridMin = grid(0) - 0.5_r * gridSpacing;
-    real_t gridMax = grid(grid.extent(0) - 1) + 0.5_r * gridSpacing;
+    MRMD_HOST_ASSERT_EQUAL(inputFine.numHistograms, inputCoarse.numHistograms);
 
-    data::MultiHistogram output(
-        "interpolated-profile", gridMin, gridMax, idx_c(grid.extent(0)), input.numHistograms);
-
-    MRMD_HOST_ASSERT_EQUAL(output.numBins, idx_c(grid.extent(0)), "Output grid size mismatch!");
-    for (idx_t idx = 0; idx < idx_c(output.numBins); ++idx)
-    {
-        MRMD_HOST_ASSERT_EQUAL(output.getBinPosition(idx), grid(idx), "Output grid mismatch!");
-    }
+    data::MultiHistogram output("interpolated-profile", inputFine);
 
     auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>(
-        {idx_t(0), idx_t(0)}, {idx_c(grid.extent(0)), input.numHistograms});
+        {idx_t(0), idx_t(0)}, {output.numBins, inputCoarse.numHistograms});
     auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histogramIdx)
     {
         // find the two enclosing bins in the input histogram
-        real_t outputBinPosition = grid(binIdx);
-        idx_t leftBinIdx = input.getBin(outputBinPosition - 0.5_r * input.binSize);
+        real_t outputBinPosition = output.getBinPosition(binIdx);
+        idx_t leftBinIdx = inputCoarse.getBin(outputBinPosition - 0.5_r * inputCoarse.binSize);
         idx_t rightBinIdx = leftBinIdx + 1;
 
         // handle boundaries
-        if (leftBinIdx < 0 || rightBinIdx >= input.numBins)
+        if (leftBinIdx < 0 || rightBinIdx >= inputCoarse.numBins)
         {
             output.data(binIdx, histogramIdx) = 0_r;  // out of bounds, set to zero
             return;
         }
 
-        auto inputDataLeft = input.data(leftBinIdx, histogramIdx);
-        auto inputDataRight = input.data(rightBinIdx, histogramIdx);
+        auto inputDataLeft = inputCoarse.data(leftBinIdx, histogramIdx);
+        auto inputDataRight = inputCoarse.data(rightBinIdx, histogramIdx);
 
         output.data(binIdx, histogramIdx) =
             lerp(inputDataLeft,
                  inputDataRight,
-                 (outputBinPosition - input.getBinPosition(leftBinIdx)) * input.inverseBinSize);
+                 (outputBinPosition - inputCoarse.getBinPosition(leftBinIdx)) * inputCoarse.inverseBinSize);
     };
     Kokkos::parallel_for("MultiHistogram::interpolate", policy, kernel);
     Kokkos::fence();
