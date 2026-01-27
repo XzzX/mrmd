@@ -35,14 +35,14 @@ real_t lerp(const real_t& left, const real_t& right, const real_t& factor)
 }
 
 /**
- * Linear interpolation of data contained in input MultiHistogram onto given grid.
- * Data for grid points outside of the grid range of the input MultiHistogram are set to zero.
- * @param inputCoarse input MultiHistogram containing data to interpolate on coarse grid.
- * @param inputFine MultiHistogram defining the grid to interpolate onto.
- * @return MultiHistogram containing interpolated data on given grid
+ * Linear interpolation of data contained in input MultiHistogram onto grid of target histogram,
+ * updating the data of target. Data for grid points outside of the grid range of the input
+ * MultiHistogram are set to zero.
+ * @param input input MultiHistogram containing data to interpolate on coarse grid.
+ * @param target MultiHistogram defining the grid to interpolate onto and containing the data
+ * to be updated by interpolating the data from input.
  */
-data::MultiHistogram interpolate(const data::MultiHistogram& inputCoarse,
-                                 const data::MultiHistogram& inputFine);
+void updateInterpolate(const data::MultiHistogram& input, data::MultiHistogram& target);
 
 }  // namespace util
 }  // namespace mrmd

@@ -24,30 +24,30 @@ namespace util
 {
 TEST(interpolate, testInterpolate)
 {
-    data::MultiHistogram histogramCoarse("histogram", 0_r, 10_r, 10, 3);
-    data::MultiHistogram histogramFine("histogram", 0.5_r, 9.5_r, 30, 3);
+    data::MultiHistogram histogramData("histogramData", 0_r, 10_r, 10, 3);
+    data::MultiHistogram histogramTarget("histogramTarget", 0.5_r, 9.5_r, 30, 3);
 
-    auto h_dataCoarse = Kokkos::create_mirror_view(histogramCoarse.data);
+    auto h_dataCoarse = Kokkos::create_mirror_view(histogramData.data);
     for (auto idx = 0; idx < 10; ++idx)
     {
         h_dataCoarse(idx, 0) = 0_r;
         h_dataCoarse(idx, 1) = 1_r;
-        h_dataCoarse(idx, 2) = histogramCoarse.getBinPosition(idx);
+        h_dataCoarse(idx, 2) = histogramData.getBinPosition(idx);
     }
-    Kokkos::deep_copy(histogramCoarse.data, h_dataCoarse);
+    Kokkos::deep_copy(histogramData.data, h_dataCoarse);
 
-    auto h_dataFine = Kokkos::create_mirror_view(histogramFine.data);
+    auto h_dataFine = Kokkos::create_mirror_view(histogramTarget.data);
     for (auto idx = 0; idx < 30; ++idx)
     {
         h_dataFine(idx, 0) = 0_r;
         h_dataFine(idx, 1) = 1_r;
-        h_dataFine(idx, 2) = histogramFine.getBinPosition(idx);
+        h_dataFine(idx, 2) = histogramTarget.getBinPosition(idx);
     }
-    Kokkos::deep_copy(histogramFine.data, h_dataFine);
+    Kokkos::deep_copy(histogramTarget.data, h_dataFine);
 
-    auto histogramInterp = util::interpolate(histogramCoarse, histogramFine);
+    util::updateInterpolate(histogramData, histogramTarget);
     auto h_dataInterp =
-        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogramInterp.data);
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogramTarget.data);
 
     for (auto idx = 0; idx < 30; ++idx)
     {
