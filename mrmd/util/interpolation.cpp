@@ -48,8 +48,6 @@ void updateInterpolate(const data::MultiHistogram& inputData, data::MultiHistogr
     };
     Kokkos::parallel_for("MultiHistogram::updateInterpolate", policy, kernel);
     Kokkos::fence();
-
-    return;
 }
 
 }  // namespace util
