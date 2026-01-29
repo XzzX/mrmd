@@ -36,7 +36,6 @@ private:
     idx_t densityProfileSamples_ = 0;
     real_t binVolume_;
     const std::vector<real_t> targetDensities_;
-    const real_t densityBinWidth_;
     const std::vector<real_t> thermodynamicForceModulations_;
     idx_t numTypes_;
 
@@ -78,14 +77,6 @@ public:
     ThermodynamicForce(const std::vector<real_t>& targetDensities,
                        const data::Subdomain& subdomain,
                        const real_t& requestedDensityGridSpacing,
-                       const real_t& requestedDensityBinWidth,
-                       const std::vector<real_t>& thermodynamicForceModulations,
-                       const bool enforceSymmetry = false,
-                       const bool usePeriodicity = false);
-
-    ThermodynamicForce(const std::vector<real_t>& targetDensities,
-                       const data::Subdomain& subdomain,
-                       const real_t& requestedDensityGridSpacing,
                        const std::vector<real_t>& thermodynamicForceModulations,
                        const bool enforceSymmetry = false,
                        const bool usePeriodicity = false);
@@ -100,7 +91,6 @@ public:
     ThermodynamicForce(const std::vector<real_t>& targetDensities,
                        const data::Subdomain& subdomain,
                        const idx_t& requestedDensityBinNumber,
-                       const real_t& requestedDensityBinWidth,
                        const std::vector<real_t>& thermodynamicForceModulations,
                        const bool enforceSymmetry = false,
                        const bool usePeriodicity = false);
