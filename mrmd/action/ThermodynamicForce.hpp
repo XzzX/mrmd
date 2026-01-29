@@ -35,7 +35,6 @@ private:
     idx_t densityProfileSamples_ = 0;
     real_t binVolume_;
     const std::vector<real_t> targetDensities_;
-    const real_t densityBinWidth_;
     const std::vector<real_t> thermodynamicForceModulations_;
     idx_t numTypes_;
 
@@ -67,20 +66,12 @@ public:
                 const real_t& smoothingIntensity,
                 const util::IsInSymmetricSlab& applicationRegion);
     void apply(const data::Atoms& atoms) const;
-    
+
     template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
     void apply_if(const data::Atoms& atoms, const UnaryPred& pred) const;
 
     std::vector<real_t> getMuLeft() const;
     std::vector<real_t> getMuRight() const;
-
-    ThermodynamicForce(const std::vector<real_t>& targetDensities,
-                       const data::Subdomain& subdomain,
-                       const real_t& requestedDensityGridSpacing,
-                       const real_t& requestedDensityBinWidth,
-                       const std::vector<real_t>& thermodynamicForceModulations,
-                       const bool enforceSymmetry = false,
-                       const bool usePeriodicity = false);
 
     ThermodynamicForce(const std::vector<real_t>& targetDensities,
                        const data::Subdomain& subdomain,
@@ -99,7 +90,6 @@ public:
     ThermodynamicForce(const std::vector<real_t>& targetDensities,
                        const data::Subdomain& subdomain,
                        const idx_t& requestedDensityBinNumber,
-                       const real_t& requestedDensityBinWidth,
                        const std::vector<real_t>& thermodynamicForceModulations,
                        const bool enforceSymmetry = false,
                        const bool usePeriodicity = false);
