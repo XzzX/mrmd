@@ -66,21 +66,42 @@ data::Atoms getAtoms(const std::shared_ptr<data::MPIInfo>& mpiInfo)
 
     return atoms;
 }
-TEST(H5MD, dump)
+
+void shuffleAtoms(data::Subdomain& subdomain, data::Atoms& atoms, const idx_t& step)
 {
-    auto mpiInfo = std::make_shared<data::MPIInfo>(MPI_COMM_WORLD);
+    auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234 * step);
 
-    auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
-    auto atoms1 = getAtoms(mpiInfo);
+    auto pos = atoms.getPos();
+    auto vel = atoms.getVel();
+    auto force = atoms.getForce();
 
-    auto dump = DumpH5MDParallel(mpiInfo, "XzzX");
-    dump.dump("dummy.h5md", subdomain1, atoms1);
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
+    {
+        auto randGen = RNG.get_state();
+        pos(idx, 0) = randGen.drand() * subdomain.diameter[0] + subdomain.minCorner[0];
+        pos(idx, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
+        pos(idx, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
 
-    auto subdomain2 = data::Subdomain();
-    auto atoms2 = data::Atoms(0);
-    auto restore = RestoreH5MDParallel(mpiInfo);
-    restore.restore("dummy.h5md", subdomain2, atoms2);
+        vel(idx, 0) = (randGen.drand() - 0.5_r);
+        vel(idx, 1) = (randGen.drand() - 0.5_r);
+        vel(idx, 2) = (randGen.drand() - 0.5_r);
 
+        force(idx, 0) = (randGen.drand() - 0.5_r);
+        force(idx, 1) = (randGen.drand() - 0.5_r);
+        force(idx, 2) = (randGen.drand() - 0.5_r);
+
+        RNG.free_state(randGen);
+    };
+    Kokkos::parallel_for("shuffle-atoms", policy, kernel);
+    Kokkos::fence();
+}
+
+void compareSystems(const data::Subdomain& subdomain1,
+                    const data::Atoms& atoms1,
+                    const data::Subdomain& subdomain2,
+                    const data::Atoms& atoms2)
+{
     EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[0], subdomain2.ghostLayerThickness[0]);
     EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[1], subdomain2.ghostLayerThickness[1]);
     EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[2], subdomain2.ghostLayerThickness[2]);
@@ -117,5 +138,79 @@ TEST(H5MD, dump)
         EXPECT_FLOAT_EQ(h_atoms1.getRelativeMass()(idx), h_atoms2.getRelativeMass()(idx));
     }
 }
+
+TEST(H5MD, dump)
+{
+    auto mpiInfo = std::make_shared<data::MPIInfo>(MPI_COMM_WORLD);
+
+    auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
+    auto atoms1 = getAtoms(mpiInfo);
+
+    auto dump = DumpH5MDParallel(mpiInfo, "XzzX");
+    dump.dump("dummy.h5md", subdomain1, atoms1);
+
+    auto subdomain2 = data::Subdomain();
+    auto atoms2 = data::Atoms(0);
+    auto restore = RestoreH5MDParallel(mpiInfo);
+    restore.restore("dummy.h5md", subdomain2, atoms2);
+
+    compareSystems(subdomain1, atoms1, subdomain2, atoms2);
+}
+
+TEST(H5MD, dumpMultipleSteps)
+{
+    auto mpiInfo = std::make_shared<data::MPIInfo>(MPI_COMM_WORLD);
+
+    auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
+    auto atoms1 = getAtoms(mpiInfo);
+    real_t dt = 0.002_r;
+
+    auto dump = DumpH5MDParallel(mpiInfo, "J-Hizzle");
+
+    auto subdomain2 = data::Subdomain();
+    auto atoms2 = data::Atoms(0);
+    auto restore = RestoreH5MDParallel(mpiInfo);
+
+    dump.open("dummyMultipleSteps.h5md", subdomain1, atoms1);
+    dump.dumpStep(subdomain1, atoms1, 0, dt);
+    dump.close();
+
+    restore.restore("dummyMultipleSteps.h5md", subdomain2, atoms2, 0);
+    compareSystems(subdomain1, atoms1, subdomain2, atoms2);
+}
+
+TEST(H5MD, dumpConsistency)
+{
+    auto mpiInfo = std::make_shared<data::MPIInfo>(MPI_COMM_WORLD);
+
+    auto subdomain0 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
+    auto atoms0 = getAtoms(mpiInfo);
+    real_t dt = 0.002_r;
+
+    auto dump = DumpH5MDParallel(mpiInfo, "J-Hizzle");
+
+    auto subdomain1 = data::Subdomain();
+    auto atoms1 = data::Atoms(0);
+    auto subdomain2 = data::Subdomain();
+    auto atoms2 = data::Atoms(0);
+    auto restore = RestoreH5MDParallel(mpiInfo);
+
+    dump.open("dummyConsistencyMultipleSteps.h5md", subdomain0, atoms0);
+
+    for (idx_t step = 0; step < 5; ++step)
+    {
+        shuffleAtoms(subdomain0, atoms0, step);
+        dump.dumpStep(subdomain0, atoms0, step, dt);
+    }
+
+    dump.close();
+
+    dump.dump("dummyConsistencyFinalStep.h5md", subdomain0, atoms0);
+
+    restore.restore("dummyConsistencyMultipleSteps.h5md", subdomain1, atoms1, 4);
+    restore.restore("dummyConsistencyFinalStep.h5md", subdomain2, atoms2);
+    compareSystems(subdomain1, atoms1, subdomain2, atoms2);
+}
+
 }  // namespace io
 }  // namespace mrmd

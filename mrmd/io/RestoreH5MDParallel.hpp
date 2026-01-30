@@ -30,12 +30,15 @@ class RestoreH5MDParallel
 {
 public:
     RestoreH5MDParallel(const std::shared_ptr<data::MPIInfo>& mpiInfo,
-                        const std::string& particleGroupName = "atoms")
-        : mpiInfo_(mpiInfo), particleGroupName_(particleGroupName)
+                        const std::string& particleSubGroupName = "atoms")
+        : mpiInfo_(mpiInfo), particleSubGroupName_(particleSubGroupName)
     {
     }
 
-    void restore(const std::string& filename, data::Subdomain& subdomain, data::Atoms& atoms);
+    void restore(const std::string& filename,
+                 data::Subdomain& subdomain,
+                 data::Atoms& atoms,
+                 const idx_t& saveCount = 0);
 
     bool restorePos = true;
     bool restoreVel = true;
@@ -55,10 +58,13 @@ public:
 
 private:
     template <typename T>
-    void readParallel(hid_t fileId, const std::string& dataset, std::vector<T>& data);
+    void readParallel(hid_t fileId,
+                      const std::string& dataset,
+                      std::vector<T>& data,
+                      const idx_t& saveCount);
 
     std::shared_ptr<data::MPIInfo> mpiInfo_;
-    std::string particleGroupName_;
+    std::string particleSubGroupName_;
 };
 
 }  // namespace mrmd::io

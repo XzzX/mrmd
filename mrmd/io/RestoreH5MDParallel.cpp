@@ -26,7 +26,8 @@ namespace mrmd::io
 template <typename T>
 void RestoreH5MDParallel::readParallel(hid_t fileId,
                                        const std::string& dataset,
-                                       std::vector<T>& data)
+                                       std::vector<T>& data,
+                                       const idx_t& saveCount)
 {
     auto dset = CHECK_HDF5(H5Dopen(fileId, dataset.c_str(), H5P_DEFAULT));
     auto dspace = CHECK_HDF5(H5Dget_space(dset));
@@ -53,6 +54,7 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
 
     // set up local part of the input file
     std::vector<hsize_t> offset(globalDims.size(), 0);
+    offset[0] = saveCount;
     offset[1] = localOffset;
     std::vector<hsize_t> stride(globalDims.size(), 1);
     std::vector<hsize_t> count(globalDims.size(), 1);
@@ -88,7 +90,8 @@ void RestoreH5MDParallel::readParallel(hid_t fileId,
 
 void RestoreH5MDParallel::restore(const std::string& filename,
                                   data::Subdomain& subdomain,
-                                  data::Atoms& atoms)
+                                  data::Atoms& atoms,
+                                  const idx_t& saveCount)
 {
     MPI_Info info = MPI_INFO_NULL;
 
@@ -97,7 +100,7 @@ void RestoreH5MDParallel::restore(const std::string& filename,
 
     auto fileId = CHECK_HDF5(H5Fopen(filename.c_str(), H5F_ACC_RDONLY, plist));
 
-    std::string groupName = "/particles/" + particleGroupName_ + "/box";
+    std::string groupName = "/particles/" + particleSubGroupName_ + "/box";
     CHECK_HDF5(H5LTget_attribute_double(
         fileId, groupName.c_str(), "minCorner", subdomain.minCorner.data()));
     CHECK_HDF5(H5LTget_attribute_double(
@@ -109,49 +112,64 @@ void RestoreH5MDParallel::restore(const std::string& filename,
     std::vector<real_t> pos;
     if (restorePos)
     {
-        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + posDataset + "/value", pos);
+        readParallel(fileId,
+                     "/particles/" + particleSubGroupName_ + "/" + posDataset + "/value",
+                     pos,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, pos.size());
     }
     std::vector<real_t> vel;
     if (restoreVel)
     {
-        readParallel(fileId, "/particles/" + particleGroupName_ + "/" + velDataset + "/value", vel);
+        readParallel(fileId,
+                     "/particles/" + particleSubGroupName_ + "/" + velDataset + "/value",
+                     vel,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, vel.size());
     }
     std::vector<real_t> force;
     if (restoreForce)
     {
-        readParallel(
-            fileId, "/particles/" + particleGroupName_ + "/" + forceDataset + "/value", force);
+        readParallel(fileId,
+                     "/particles/" + particleSubGroupName_ + "/" + forceDataset + "/value",
+                     force,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, force.size());
     }
     std::vector<idx_t> type;
     if (restoreType)
     {
-        readParallel(
-            fileId, "/particles/" + particleGroupName_ + "/" + typeDataset + "/value", type);
+        readParallel(fileId,
+                     "/particles/" + particleSubGroupName_ + "/" + typeDataset + "/value",
+                     type,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, type.size());
     }
     std::vector<real_t> mass;
     if (restoreMass)
     {
-        readParallel(
-            fileId, "/particles/" + particleGroupName_ + "/" + massDataset + "/value", mass);
+        readParallel(fileId,
+                     "/particles/" + particleSubGroupName_ + "/" + massDataset + "/value",
+                     mass,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, mass.size());
     }
     std::vector<real_t> charge;
     if (restoreCharge)
     {
-        readParallel(
-            fileId, "/particles/" + particleGroupName_ + "/" + chargeDataset + "/value", charge);
+        readParallel(fileId,
+                     "/particles/" + particleSubGroupName_ + "/" + chargeDataset + "/value",
+                     charge,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, charge.size());
     }
     std::vector<real_t> relativeMass;
     if (restoreRelativeMass)
     {
         readParallel(fileId,
-                     "/particles/" + particleGroupName_ + "/" + relativeMassDataset + "/value",
-                     relativeMass);
+                     "/particles/" + particleSubGroupName_ + "/" + relativeMassDataset + "/value",
+                     relativeMass,
+                     saveCount);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, relativeMass.size());
     }
 
@@ -192,7 +210,8 @@ void RestoreH5MDParallel::restore(const std::string& filename,
 template <typename T>
 void RestoreH5MDParallel::readParallel(hid_t /*fileId*/,
                                        const std::string& /*dataset*/,
-                                       std::vector<T>& /*data*/)
+                                       std::vector<T>& /*data*/,
+                                       const idx_t& /*saveCount*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 support not available!");
     exit(EXIT_FAILURE);
@@ -200,7 +219,8 @@ void RestoreH5MDParallel::readParallel(hid_t /*fileId*/,
 
 void RestoreH5MDParallel::restore(const std::string& /*filename*/,
                                   data::Subdomain& /*subdomain*/,
-                                  data::Atoms& /*atoms*/)
+                                  data::Atoms& /*atoms*/,
+                                  const idx_t& /*step*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 support not available!");
     exit(EXIT_FAILURE);
