@@ -23,7 +23,6 @@
 #include <iostream>
 
 #include "Cabana_NeighborList.hpp"
-#include "action/BerendsenThermostat.hpp"
 #include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
 #include "action/LimitAcceleration.hpp"
@@ -186,8 +185,8 @@ void runSimulation(Config& config)
             auto systemMomentum = analysis::getSystemMomentum(atoms);
             auto T = (2_r / 3_r) * Ek;
             auto p = analysis::getPressure(atoms, subdomain);
-            msd =
-                meanSquareDisplacement.calc(atoms, subdomain) / (config.outputInterval * config.dt);
+            msd = meanSquareDisplacement.calc(atoms, subdomain) /
+                  (real_c(config.outputInterval) * config.dt);
             meanSquareDisplacement.reset(atoms);
 
             // print statistics to console
