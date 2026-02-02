@@ -93,6 +93,14 @@ public:
 
     void apply(data::Atoms& atoms, HalfVerletList& verletList);
 
+    template <std::predicate<const real_t,
+                             const real_t,
+                             const real_t,
+                             const real_t,
+                             const real_t,
+                             const real_t> BinaryPred>
+    void apply_if(data::Atoms& atoms, HalfVerletList& verletList, const BinaryPred& pred);
+
     LennardJones(const real_t rc,
                  const real_t& sigma,
                  const real_t& epsilon,
