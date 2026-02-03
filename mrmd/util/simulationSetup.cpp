@@ -19,9 +19,9 @@ namespace mrmd
 namespace util
 {
 data::Atoms fillDomainWithAtoms(const data::Subdomain& subdomain,
-                                  const idx_t& numAtoms,
-                                  const real_t& maxVelocity,
-                                  const real_t& inputMass)
+                                const idx_t& numAtoms,
+                                const real_t& maxVelocity,
+                                const real_t& inputMass)
 {
     auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
 
