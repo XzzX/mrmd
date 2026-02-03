@@ -12,13 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(01_Argon_NVE)
-add_subdirectory(Argon)
-add_subdirectory(BinaryLennardJones)
-add_subdirectory(ComplexAtomics)
-add_subdirectory(DensityFluctuations)
-add_subdirectory(IdealGas)
-add_subdirectory(LennardJones)
-add_subdirectory(SPC)
-add_subdirectory(SpartianLJ)
-add_subdirectory(Vectorization)
+add_executable(01_Argon_NVE
+        01_Argon_NVE.cpp
+        )
+target_link_libraries(01_Argon_NVE
+        PRIVATE mrmd CLI11::CLI11
+        )
+add_test(NAME Example.01_Argon_NVE COMMAND ./01_Argon_NVE --nsteps 10)
