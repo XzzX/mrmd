@@ -22,60 +22,13 @@ namespace mrmd::action
 {
 void LennardJones::apply(data::Atoms& atoms, HalfVerletList& verletList)
 {
-    energyAndVirial_ = data::EnergyAndVirialReducer();
-
-    pos_ = atoms.getPos();
-    force_ = atoms.getForce();
-    type_ = atoms.getType();
-    verletList_ = verletList;
-
-    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
-    Kokkos::parallel_reduce("LennardJones::applyForces", policy, *this, energyAndVirial_);
-    Kokkos::fence();
-}
-
-KOKKOS_FUNCTION
-void LennardJones::operator()(const idx_t& idx, data::EnergyAndVirialReducer& energyAndVirial) const
-{
-    real_t posTmp[3];
-    posTmp[0] = pos_(idx, 0);
-    posTmp[1] = pos_(idx, 1);
-    posTmp[2] = pos_(idx, 2);
-
-    real_t forceTmp[3] = {0_r, 0_r, 0_r};
-
-    const auto numNeighbors = idx_c(HalfNeighborList::numNeighbor(verletList_, idx));
-    for (idx_t n = 0; n < numNeighbors; ++n)
-    {
-        idx_t jdx = idx_c(HalfNeighborList::getNeighbor(verletList_, idx, n));
-        assert(0 <= jdx);
-
-        auto dx = posTmp[0] - pos_(jdx, 0);
-        auto dy = posTmp[1] - pos_(jdx, 1);
-        auto dz = posTmp[2] - pos_(jdx, 2);
-
-        auto distSqr = dx * dx + dy * dy + dz * dz;
-
-        if (distSqr > rcSqr_) continue;
-
-        auto typeIdx = type_(idx) * numTypes_ + type_(jdx);
-        auto forceAndEnergy = LJ_.computeForceAndEnergy(distSqr, typeIdx);
-        assert(!std::isnan(forceAndEnergy.forceFactor));
-        energyAndVirial.energy += forceAndEnergy.energy;
-        energyAndVirial.virial -= 0.5_r * forceAndEnergy.forceFactor * distSqr;
-
-        forceTmp[0] += dx * forceAndEnergy.forceFactor;
-        forceTmp[1] += dy * forceAndEnergy.forceFactor;
-        forceTmp[2] += dz * forceAndEnergy.forceFactor;
-
-        force_(jdx, 0) -= dx * forceAndEnergy.forceFactor;
-        force_(jdx, 1) -= dy * forceAndEnergy.forceFactor;
-        force_(jdx, 2) -= dz * forceAndEnergy.forceFactor;
-    }
-
-    force_(idx, 0) += forceTmp[0];
-    force_(idx, 1) += forceTmp[1];
-    force_(idx, 2) += forceTmp[2];
+    apply_if(
+        atoms,
+        verletList,
+        KOKKOS_LAMBDA(
+            const real_t, const real_t, const real_t, const real_t, const real_t, const real_t) {
+            return true;
+        });
 }
 
 real_t LennardJones::getEnergy() const { return energyAndVirial_.energy; }

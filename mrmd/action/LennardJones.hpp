@@ -85,13 +85,20 @@ private:
     data::EnergyAndVirialReducer energyAndVirial_;
 
 public:
-    KOKKOS_FUNCTION
-    void operator()(const idx_t& idx, data::EnergyAndVirialReducer& energyAndVirial) const;
-
     real_t getEnergy() const;
     real_t getVirial() const;
 
     void apply(data::Atoms& atoms, HalfVerletList& verletList);
+
+    template <std::predicate<const real_t,
+                             const real_t,
+                             const real_t,
+                             const real_t,
+                             const real_t,
+                             const real_t> BinaryPred>
+    void apply_if(const data::Atoms& atoms,
+                  const HalfVerletList& verletList,
+                  const BinaryPred& pred);
 
     LennardJones(const real_t rc,
                  const real_t& sigma,
@@ -105,4 +112,83 @@ public:
                  const idx_t& numTypes,
                  const bool isShifted);
 };
+
+template <std::predicate<const real_t,
+                         const real_t,
+                         const real_t,
+                         const real_t,
+                         const real_t,
+                         const real_t> BinaryPred>
+void LennardJones::apply_if(const data::Atoms& atoms,
+                            const HalfVerletList& verletList,
+                            const BinaryPred& pred)
+{
+    energyAndVirial_ = data::EnergyAndVirialReducer();
+    pos_ = atoms.getPos();
+    force_ = atoms.getForce();
+    type_ = atoms.getType();
+    verletList_ = verletList;
+
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+
+    // avoid capturing this pointer
+    auto pos = pos_;
+    auto force = force_;
+    auto type = type_;
+    auto verletListLocal = verletList_;
+    auto rcSqr = rcSqr_;
+    auto LJ = LJ_;
+    auto numTypes = numTypes_;
+    auto predLocal = pred;
+
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx, data::EnergyAndVirialReducer& energyAndVirial)
+    {
+        real_t posTmp[3];
+        posTmp[0] = pos(idx, 0);
+        posTmp[1] = pos(idx, 1);
+        posTmp[2] = pos(idx, 2);
+
+        real_t forceTmp[3] = {0_r, 0_r, 0_r};
+
+        const auto numNeighbors = idx_c(HalfNeighborList::numNeighbor(verletListLocal, idx));
+        for (idx_t n = 0; n < numNeighbors; ++n)
+        {
+            idx_t jdx = idx_c(HalfNeighborList::getNeighbor(verletListLocal, idx, n));
+            assert(0 <= jdx);
+
+            if (!predLocal(posTmp[0], posTmp[1], posTmp[2], pos(jdx, 0), pos(jdx, 1), pos(jdx, 2)))
+                continue;
+
+            auto dx = posTmp[0] - pos(jdx, 0);
+            auto dy = posTmp[1] - pos(jdx, 1);
+            auto dz = posTmp[2] - pos(jdx, 2);
+
+            auto distSqr = dx * dx + dy * dy + dz * dz;
+
+            if (distSqr > rcSqr) continue;
+
+            auto typeIdx = type(idx) * numTypes + type(jdx);
+            auto forceAndEnergy = LJ.computeForceAndEnergy(distSqr, typeIdx);
+            assert(!std::isnan(forceAndEnergy.forceFactor));
+            energyAndVirial.energy += forceAndEnergy.energy;
+            energyAndVirial.virial -= 0.5_r * forceAndEnergy.forceFactor * distSqr;
+
+            forceTmp[0] += dx * forceAndEnergy.forceFactor;
+            forceTmp[1] += dy * forceAndEnergy.forceFactor;
+            forceTmp[2] += dz * forceAndEnergy.forceFactor;
+
+            force(jdx, 0) -= dx * forceAndEnergy.forceFactor;
+            force(jdx, 1) -= dy * forceAndEnergy.forceFactor;
+            force(jdx, 2) -= dz * forceAndEnergy.forceFactor;
+        }
+
+        force(idx, 0) += forceTmp[0];
+        force(idx, 1) += forceTmp[1];
+        force(idx, 2) += forceTmp[2];
+    };
+
+    Kokkos::parallel_reduce("LennardJones::apply_if", policy, kernel, energyAndVirial_);
+    Kokkos::fence();
+}
+
 }  // namespace mrmd::action
