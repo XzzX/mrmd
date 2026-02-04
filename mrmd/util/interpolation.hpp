@@ -42,7 +42,7 @@ real_t lerp(const real_t& left, const real_t& right, const real_t& factor)
  * @param target MultiHistogram defining the grid to interpolate onto and containing the data
  * to be updated by interpolating the data from input.
  */
-void updateInterpolate(const data::MultiHistogram& input, data::MultiHistogram& target);
+void updateInterpolate(const data::MultiHistogram& target, const data::MultiHistogram& input);
 
 }  // namespace util
 }  // namespace mrmd
