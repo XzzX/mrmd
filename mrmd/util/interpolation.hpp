@@ -46,9 +46,9 @@ bool isFloatEQ(const real_t& a,
 
 /**
  * Linear interpolation of data contained in input MultiHistogram onto grid of target histogram,
- * updating the data of target. Data for grid points outside of the grid range of the input
- * MultiHistogram are set to zero.
- * @param input input MultiHistogram containing data to interpolate on coarse grid.
+ * adding the interpolated data to the data already contained in target. Data for target grid points
+ * outside of the grid range of the input MultiHistogram is not updated.
+ * @param input MultiHistogram containing data to interpolate on coarse grid.
  * @param target MultiHistogram defining the grid to interpolate onto and containing the data
  * to be updated by interpolating the data from input.
  */
