@@ -31,20 +31,25 @@ void updateInterpolate(const data::MultiHistogram& target, const data::MultiHist
         idx_t leftBinIdx = input.getBin(outputBinPosition - 0.5_r * input.binSize);
         idx_t rightBinIdx = leftBinIdx + 1;
 
-        // handle boundaries
-        if (leftBinIdx < 0 || rightBinIdx >= input.numBins)
+        // only update if within bounds of input histogram or exactly at boundary
+        if (leftBinIdx >= 0 && rightBinIdx < input.numBins)
         {
-            target.data(binIdx, histogramIdx) += 0_r;  // out of bounds, set to zero
-            return;
+            auto inputLeft = input.data(leftBinIdx, histogramIdx);
+            auto inputRight = input.data(rightBinIdx, histogramIdx);
+
+            target.data(binIdx, histogramIdx) +=
+                lerp(inputLeft,
+                     inputRight,
+                     (outputBinPosition - input.getBinPosition(leftBinIdx)) * input.inverseBinSize);
         }
-
-        auto inputLeft = input.data(leftBinIdx, histogramIdx);
-        auto inputRight = input.data(rightBinIdx, histogramIdx);
-
-        target.data(binIdx, histogramIdx) +=
-            lerp(inputLeft,
-                 inputRight,
-                 (outputBinPosition - input.getBinPosition(leftBinIdx)) * input.inverseBinSize);
+        else if (isFloatEQ(outputBinPosition, input.getBinPosition(0)))
+        {
+            target.data(binIdx, histogramIdx) += input.data(0, histogramIdx);
+        }
+        else if (isFloatEQ(outputBinPosition, input.getBinPosition(input.numBins - 1)))
+        {
+            target.data(binIdx, histogramIdx) += input.data(input.numBins - 1, histogramIdx);
+        }
     };
     Kokkos::parallel_for("MultiHistogram::updateInterpolate", policy, kernel);
     Kokkos::fence();

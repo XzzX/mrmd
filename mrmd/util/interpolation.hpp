@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <limits>
+
 #include "data/MultiHistogram.hpp"
 #include "util/IsInSymmetricSlab.hpp"
 
@@ -32,6 +34,14 @@ KOKKOS_INLINE_FUNCTION
 real_t lerp(const real_t& left, const real_t& right, const real_t& factor)
 {
     return left + (right - left) * factor;
+}
+
+KOKKOS_INLINE_FUNCTION
+bool isFloatEQ(const real_t& a,
+               const real_t& b,
+               const real_t& epsilon = std::numeric_limits<real_t>::epsilon())
+{
+    return std::abs(a - b) <= epsilon;
 }
 
 /**
