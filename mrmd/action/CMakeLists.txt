@@ -50,3 +50,6 @@ mrmd_add_test(NAME test.action.UpdateMolecules
 
 mrmd_add_test(NAME test.action.VelocityVerlet
         FILES VelocityVerlet.test.cpp)
+
+mrmd_add_test(NAME test.action.VelocityVerletLangevinThermostat
+        FILES VelocityVerletLangevinThermostat.test.cpp)

@@ -18,6 +18,7 @@
 
 #include "data/Atoms.hpp"
 #include "datatypes.hpp"
+#include "util/math.hpp"
 
 namespace mrmd
 {
@@ -44,6 +45,76 @@ public:
 
     real_t preForceIntegrate(data::Atoms& atoms, const real_t dt);
     void postForceIntegrate(data::Atoms& atoms, const real_t dt);
+
+    template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
+    real_t preForceIntegrate_apply_if(data::Atoms& atoms, const real_t dt, const UnaryPred& pred);
 };
+
+template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
+real_t VelocityVerletLangevinThermostat::preForceIntegrate_apply_if(data::Atoms& atoms, const real_t dt, const UnaryPred& pred)
+{
+    auto RNG = randPool_;
+    auto pos = atoms.getPos();
+    auto vel = atoms.getVel();
+    auto force = atoms.getForce();
+    auto mass = atoms.getMass();
+    auto zeta = zeta_;
+    auto temperature = temperature_;
+
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t& idx, real_t& maxDistSqr)
+    {
+        real_t dx[3];
+        dx[0] = pos(idx, 0);
+        dx[1] = pos(idx, 1);
+        dx[2] = pos(idx, 2);
+
+        auto dtm = dt / mass(idx);
+        vel(idx, 0) += 0.5_r * dtm * force(idx, 0);
+        vel(idx, 1) += 0.5_r * dtm * force(idx, 1);
+        vel(idx, 2) += 0.5_r * dtm * force(idx, 2);
+
+        pos(idx, 0) += 0.5_r * dt * vel(idx, 0);
+        pos(idx, 1) += 0.5_r * dt * vel(idx, 1);
+        pos(idx, 2) += 0.5_r * dt * vel(idx, 2);
+
+        if (pred(pos(idx, 0), pos(idx, 1), pos(idx, 2)))
+        {
+            auto damping = std::exp(-zeta * dtm);
+            vel(idx, 0) *= damping;
+            vel(idx, 1) *= damping;
+            vel(idx, 2) *= damping;
+
+            auto sigma = std::sqrt(temperature / mass(idx) * (1_r - std::exp(-2_r * zeta * dtm)));
+            // Get a random number state from the pool for the active thread
+            auto randGen = RNG.get_state();
+
+            vel(idx, 0) += sigma * randGen.normal();
+            vel(idx, 1) += sigma * randGen.normal();
+            vel(idx, 2) += sigma * randGen.normal();
+
+            // Give the state back, which will allow another thread to acquire it
+            RNG.free_state(randGen);
+        }
+        pos(idx, 0) += 0.5_r * dt * vel(idx, 0);
+        pos(idx, 1) += 0.5_r * dt * vel(idx, 1);
+        pos(idx, 2) += 0.5_r * dt * vel(idx, 2);
+
+        dx[0] -= pos(idx, 0);
+        dx[1] -= pos(idx, 1);
+        dx[2] -= pos(idx, 2);
+
+        auto distSqr = util::dot3(dx, dx);
+        maxDistSqr = Kokkos::max(distSqr, maxDistSqr);
+    };
+    real_t maxDistSqr = 0_r;
+    Kokkos::parallel_reduce("VelocityVerletLangevinThermostat::preForceIntegrate",
+                            policy,
+                            kernel,
+                            Kokkos::Max<real_t>(maxDistSqr));
+    Kokkos::fence();
+    return std::sqrt(maxDistSqr);
+}
+
 }  // namespace action
 }  // namespace mrmd

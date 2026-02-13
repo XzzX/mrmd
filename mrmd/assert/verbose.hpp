@@ -93,9 +93,9 @@ std::string generateAssertionMessage(const T& lhs,
     }
 
 template <typename FLOAT>
-bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
+bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs, const FLOAT& epsilon = std::numeric_limits<FLOAT>::epsilon())
 {
-    return std::abs(lhs - rhs) < FLOAT(1e-10);
+    return std::abs(lhs - rhs) < epsilon;
 }
 
 // macro overloading (-> https://stackoverflow.com/a/24028231)
