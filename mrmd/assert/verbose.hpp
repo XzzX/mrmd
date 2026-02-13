@@ -93,7 +93,9 @@ std::string generateAssertionMessage(const T& lhs,
     }
 
 template <typename FLOAT>
-bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs, const FLOAT& epsilon = std::numeric_limits<FLOAT>::epsilon())
+bool isFloatEqual(const FLOAT& lhs,
+                  const FLOAT& rhs,
+                  const FLOAT& epsilon = std::numeric_limits<FLOAT>::epsilon())
 {
     return std::abs(lhs - rhs) < epsilon;
 }
