@@ -28,20 +28,6 @@ class VelocityVerlet
 public:
     static real_t preForceIntegrate(data::Atoms& atoms, const real_t dt);
     static void postForceIntegrate(data::Atoms& atoms, const real_t dt);
-    static void stepKick(real_t& vel_x,
-                         real_t& vel_y,
-                         real_t& vel_z,
-                         const real_t& force_x,
-                         const real_t& force_y,
-                         const real_t& force_z,
-                         const real_t& updateFactor);
-    static real_t stepDrift(real_t& pos_x,
-                            real_t& pos_y,
-                            real_t& pos_z,
-                            const real_t& vel_x,
-                            const real_t& vel_y,
-                            const real_t& vel_z,
-                            const real_t& updateFactor);
 };
 }  // namespace action
 }  // namespace mrmd
