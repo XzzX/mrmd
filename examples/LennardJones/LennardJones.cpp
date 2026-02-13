@@ -1,11 +1,11 @@
 // Copyright 2024 Sebastian Eibl
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,8 +23,8 @@
 #include <iostream>
 
 #include "Cabana_NeighborList.hpp"
-#include "action/LangevinThermostat.hpp"
 #include "action/VelocityVerlet.hpp"
+#include "action/VelocityVerletLangevinThermostat.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/Pressure.hpp"
 #include "analysis/SystemMomentum.hpp"
@@ -118,7 +118,7 @@ void LJ(Config& config)
 
     communication::GhostLayer ghostLayer;
     action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
-    action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
+    action::VelocityVerletLangevinThermostat langevinIntegrator(config.gamma, config.temperature);
     HalfVerletList verletList;
     Kokkos::Timer timer;
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
@@ -127,7 +127,14 @@ void LJ(Config& config)
     util::printTableSep("step", "time", "T", "Ek", "E0", "E", "p", "p2", "Nlocal", "Nghost");
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
+        if (!(config.temperature >= 0) && (step < 10000))
+        {
+            maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
+        }
+        else
+        {
+            maxAtomDisplacement += langevinIntegrator.preForceIntegrate(atoms, config.dt);
+        }
 
         if (maxAtomDisplacement >= config.skin * 0.5_r)
         {
@@ -189,11 +196,6 @@ void LJ(Config& config)
                              atoms.numGhostAtoms);
 
             io::dumpCSV("lj_" + std::to_string(step) + ".csv", atoms);
-        }
-
-        if ((config.temperature >= 0) && (step < 10000))
-        {
-            langevinThermostat.apply(atoms);
         }
 
         ghostLayer.contributeBackGhostToReal(atoms);

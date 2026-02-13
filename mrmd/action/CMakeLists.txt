@@ -24,9 +24,6 @@ mrmd_add_test(NAME test.action.ContributeMoleculeForceToAtoms
 mrmd_add_test(NAME test.action.CoulombDSF
         FILES CoulombDSF.test.cpp)
 
-mrmd_add_test(NAME test.action.LangevinThermostat
-        FILES LangevinThermostat.test.cpp)
-
 mrmd_add_test(NAME test.action.LennardJones
         FILES LennardJones.test.cpp)
 

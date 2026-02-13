@@ -1,11 +1,11 @@
 // Copyright 2024 Sebastian Eibl
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,7 +21,6 @@
 
 #include "Cabana_NeighborList.hpp"
 #include "action/BerendsenThermostat.hpp"
-#include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
@@ -102,12 +101,13 @@ protected:
     // void SetUp() override {}
     // void TearDown() override {}
 
-    data::Subdomain subdomain = { {0_r, 0_r, 0_r}, {Config::Lx, Config::Lx, Config::Lx}, Config::neighborCutoff };
-    real_t volume = { subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2] };
-    data::Atoms atoms = { fillDomainWithAtomsSC(subdomain, idx_c(Config::rho * volume), 1_r) };
-    real_t rho = { real_c(atoms.numLocalAtoms) / volume };
+    data::Subdomain subdomain = {
+        {0_r, 0_r, 0_r}, {Config::Lx, Config::Lx, Config::Lx}, Config::neighborCutoff};
+    real_t volume = {subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]};
+    data::Atoms atoms = {fillDomainWithAtomsSC(subdomain, idx_c(Config::rho* volume), 1_r)};
+    real_t rho = {real_c(atoms.numLocalAtoms) / volume};
     communication::GhostLayer ghostLayer;
-    action::LennardJones LJ = { Config::rc, Config::sigma, Config::epsilon, 0.7_r * Config::sigma };
+    action::LennardJones LJ = {Config::rc, Config::sigma, Config::epsilon, 0.7_r * Config::sigma};
 
     HalfVerletList verletList;
 

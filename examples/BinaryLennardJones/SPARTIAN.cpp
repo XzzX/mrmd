@@ -14,17 +14,16 @@
 
 #include "SPARTIAN.hpp"
 
-#include <format>
-
 #include <algorithm>
+#include <format>
 #include <fstream>
 
 #include "action/ContributeMoleculeForceToAtoms.hpp"
 #include "action/LJ_IdealGas.hpp"
-#include "action/LangevinThermostat.hpp"
 #include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
 #include "action/VelocityVerlet.hpp"
+#include "action/VelocityVerletLangevinThermostat.hpp"
 #include "analysis/AxialDensityProfile.hpp"
 #include "analysis/Fluctuation.hpp"
 #include "analysis/KineticEnergy.hpp"
@@ -61,9 +60,9 @@ void spartian(YAML::Node& config,
     LJ.setCompensationEnergyUpdateInterval(
         config["compensation_energy_update_interval"].as<idx_t>());
     HalfVerletList verletList;
-    action::LangevinThermostat thermostat(config["temperature_relaxation_coefficient"].as<real_t>(),
-                                          config["target_temperature"].as<real_t>(),
-                                          config["dt"].as<real_t>());
+    action::VelocityVerletLangevinThermostat langevinIntegrator(
+        config["temperature_relaxation_coefficient"].as<real_t>(),
+        config["target_temperature"].as<real_t>());
 
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     util::ExponentialMovingAverage currentPressure(
@@ -144,8 +143,16 @@ void spartian(YAML::Node& config,
         assert(atoms.numLocalAtoms == molecules.numLocalMolecules);
         assert(atoms.numGhostAtoms == molecules.numGhostMolecules);
 
-        maxAtomDisplacement +=
-            action::VelocityVerlet::preForceIntegrate(atoms, config["dt"].as<real_t>());
+        if (step % config["thermostat_interval"].as<int64_t>() != 0)
+        {
+            maxAtomDisplacement +=
+                action::VelocityVerlet::preForceIntegrate(atoms, config["dt"].as<real_t>());
+        }
+        else
+        {
+            maxAtomDisplacement +=
+                langevinIntegrator.preForceIntegrate(atoms, config["dt"].as<real_t>());
+        }
 
         // update molecule positions
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
@@ -187,11 +194,6 @@ void spartian(YAML::Node& config,
         Cabana::deep_copy(atomsForce, 0_r);
         auto moleculesForce = molecules.getForce();
         Cabana::deep_copy(moleculesForce, 0_r);
-
-        if (step % config["thermostat_interval"].as<int64_t>() == 0)
-        {
-            thermostat.apply(atoms);
-        }
 
         if ((step > config["density_start"].as<idx_t>()) &&
             (step % config["density_sampling_interval"].as<idx_t>() == 0))
