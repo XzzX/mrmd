@@ -18,9 +18,7 @@
 
 #include "assert/verbose.hpp"
 #include "data/Atoms.hpp"
-#include "data/Subdomain.hpp"
 #include "test/SingleAtom.hpp"
-#include "util/IsInSymmetricSlab.hpp"
 
 namespace mrmd
 {
