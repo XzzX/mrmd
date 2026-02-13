@@ -33,17 +33,16 @@ real_t VelocityVerlet::preForceIntegrate(data::Atoms& atoms, const real_t dt)
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx, real_t& maxDistSqr)
     {
         auto dtfm = dtf / mass(idx);
-        vel(idx, 0) += dtfm * force(idx, 0);
-        vel(idx, 1) += dtfm * force(idx, 1);
-        vel(idx, 2) += dtfm * force(idx, 2);
-        auto dx = dtv * vel(idx, 0);
-        auto dy = dtv * vel(idx, 1);
-        auto dz = dtv * vel(idx, 2);
-        pos(idx, 0) += dx;
-        pos(idx, 1) += dy;
-        pos(idx, 2) += dz;
+        stepKick(vel(idx, 0),
+                 vel(idx, 1),
+                 vel(idx, 2),
+                 force(idx, 0),
+                 force(idx, 1),
+                 force(idx, 2),
+                 dtfm);
 
-        auto distSqr = dx * dx + dy * dy + dz * dz;
+        auto distSqr = stepDrift(
+            pos(idx, 0), pos(idx, 1), pos(idx, 2), vel(idx, 0), vel(idx, 1), vel(idx, 2), dtv);
         maxDistSqr = Kokkos::max(distSqr, maxDistSqr);
     };
     real_t maxDistSqr = 0_r;
@@ -64,12 +63,50 @@ void VelocityVerlet::postForceIntegrate(data::Atoms& atoms, const real_t dt)
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
         auto dtfm = dtf / mass(idx);
-        vel(idx, 0) += dtfm * force(idx, 0);
-        vel(idx, 1) += dtfm * force(idx, 1);
-        vel(idx, 2) += dtfm * force(idx, 2);
+        stepKick(vel(idx, 0),
+                 vel(idx, 1),
+                 vel(idx, 2),
+                 force(idx, 0),
+                 force(idx, 1),
+                 force(idx, 2),
+                 dtfm);
     };
     Kokkos::parallel_for("VelocityVerlet::postForceIntegrate", policy, kernel);
     Kokkos::fence();
+}
+
+KOKKOS_INLINE_FUNCTION
+void VelocityVerlet::stepKick(real_t& vel_x,
+                              real_t& vel_y,
+                              real_t& vel_z,
+                              const real_t& force_x,
+                              const real_t& force_y,
+                              const real_t& force_z,
+                              const real_t& updateFactor)
+{
+    vel_x += updateFactor * force_x;
+    vel_y += updateFactor * force_y;
+    vel_z += updateFactor * force_z;
+}
+
+KOKKOS_INLINE_FUNCTION
+real_t VelocityVerlet::stepDrift(real_t& pos_x,
+                                 real_t& pos_y,
+                                 real_t& pos_z,
+                                 const real_t& vel_x,
+                                 const real_t& vel_y,
+                                 const real_t& vel_z,
+                                 const real_t& updateFactor)
+{
+    auto dx = updateFactor * vel_x;
+    auto dy = updateFactor * vel_y;
+    auto dz = updateFactor * vel_z;
+    pos_x += dx;
+    pos_y += dy;
+    pos_z += dz;
+
+    auto distSqr = dx * dx + dy * dy + dz * dz;
+    return distSqr;
 }
 
 }  // namespace action
