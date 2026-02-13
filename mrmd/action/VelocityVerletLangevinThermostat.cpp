@@ -22,7 +22,8 @@ namespace action
 {
 real_t VelocityVerletLangevinThermostat::preForceIntegrate(data::Atoms& atoms, const real_t dt)
 {
-    return preForceIntegrate_apply_if(atoms, dt, KOKKOS_LAMBDA(const real_t, const real_t, const real_t) { return true; });
+    return preForceIntegrate_apply_if(
+        atoms, dt, KOKKOS_LAMBDA(const real_t, const real_t, const real_t) { return true; });
 }
 
 void VelocityVerletLangevinThermostat::postForceIntegrate(data::Atoms& atoms, const real_t dt)

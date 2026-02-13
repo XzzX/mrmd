@@ -16,11 +16,11 @@
 
 #include <gtest/gtest.h>
 
+#include "assert/verbose.hpp"
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "test/SingleAtom.hpp"
 #include "util/IsInSymmetricSlab.hpp"
-#include "assert/verbose.hpp"
 
 namespace mrmd
 {
@@ -43,14 +43,19 @@ TEST_F(LangevinThermostatTest, Simple)
     EXPECT_FLOAT_EQ(force(0, 2), 8_r);
 
     const real_t epsilon = 1e-6_r;
-    EXPECT_FALSE(assumption::isFloatEqual(vel(0, 0), 19_r, epsilon) && assumption::isFloatEqual(vel(0, 1), 14.333333_r, epsilon) && assumption::isFloatEqual(vel(0, 2), 13.666667_r, epsilon));
-    EXPECT_FALSE(assumption::isFloatEqual(pos(0, 0), 78_r, epsilon) && assumption::isFloatEqual(pos(0, 1), 60.333332_r, epsilon) && assumption::isFloatEqual(pos(0, 2), 58.666668_r, epsilon));
+    EXPECT_FALSE(assumption::isFloatEqual(vel(0, 0), 19_r, epsilon) &&
+                 assumption::isFloatEqual(vel(0, 1), 14.333333_r, epsilon) &&
+                 assumption::isFloatEqual(vel(0, 2), 13.666667_r, epsilon));
+    EXPECT_FALSE(assumption::isFloatEqual(pos(0, 0), 78_r, epsilon) &&
+                 assumption::isFloatEqual(pos(0, 1), 60.333332_r, epsilon) &&
+                 assumption::isFloatEqual(pos(0, 2), 58.666668_r, epsilon));
 }
 
 TEST_F(LangevinThermostatTest, NoThermostat)
 {
     VelocityVerletLangevinThermostat langevinIntegrator(0.5_r, 0.5_r);
-    langevinIntegrator.preForceIntegrate_apply_if(atoms, 4_r, KOKKOS_LAMBDA(const real_t, const real_t, const real_t) { return false; });
+    langevinIntegrator.preForceIntegrate_apply_if(
+        atoms, 4_r, KOKKOS_LAMBDA(const real_t, const real_t, const real_t) { return false; });
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
     auto pos = Cabana::slice<data::Atoms::POS>(hAoSoA);
@@ -68,7 +73,7 @@ TEST_F(LangevinThermostatTest, NoThermostat)
     EXPECT_FLOAT_EQ(pos(0, 0), 78_r);
     EXPECT_FLOAT_EQ(pos(0, 1), 60.333332_r);
     EXPECT_FLOAT_EQ(pos(0, 2), 58.666668_r);
-}   
+}
 
 TEST_F(LangevinThermostatTest, LocalThermostat)
 {
@@ -96,8 +101,12 @@ TEST_F(LangevinThermostatTest, LocalThermostat)
     langevinIntegrator.preForceIntegrate_apply_if(atoms, 4_r, pred);
 
     const real_t epsilon = 1e-6_r;
-    EXPECT_FALSE(assumption::isFloatEqual(vel(0, 0), 31_r, epsilon) && assumption::isFloatEqual(vel(0, 1), 23.666667_r, epsilon) && assumption::isFloatEqual(vel(0, 2), 24.333333_r, epsilon));
-    EXPECT_FALSE(assumption::isFloatEqual(pos(0, 0), 202_r, epsilon) && assumption::isFloatEqual(pos(0, 1), 155_r, epsilon) && assumption::isFloatEqual(pos(0, 2), 156_r, epsilon));
+    EXPECT_FALSE(assumption::isFloatEqual(vel(0, 0), 31_r, epsilon) &&
+                 assumption::isFloatEqual(vel(0, 1), 23.666667_r, epsilon) &&
+                 assumption::isFloatEqual(vel(0, 2), 24.333333_r, epsilon));
+    EXPECT_FALSE(assumption::isFloatEqual(pos(0, 0), 202_r, epsilon) &&
+                 assumption::isFloatEqual(pos(0, 1), 155_r, epsilon) &&
+                 assumption::isFloatEqual(pos(0, 2), 156_r, epsilon));
 }
 
 }  // namespace action

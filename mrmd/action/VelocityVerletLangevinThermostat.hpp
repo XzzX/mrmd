@@ -51,7 +51,9 @@ public:
 };
 
 template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
-real_t VelocityVerletLangevinThermostat::preForceIntegrate_apply_if(data::Atoms& atoms, const real_t dt, const UnaryPred& pred)
+real_t VelocityVerletLangevinThermostat::preForceIntegrate_apply_if(data::Atoms& atoms,
+                                                                    const real_t dt,
+                                                                    const UnaryPred& pred)
 {
     auto RNG = randPool_;
     auto pos = atoms.getPos();
