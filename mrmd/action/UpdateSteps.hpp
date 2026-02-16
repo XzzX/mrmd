@@ -23,37 +23,59 @@ namespace mrmd
 namespace action
 {
 KOKKOS_INLINE_FUNCTION
-void stepKick(real_t& vel_x,
-              real_t& vel_y,
-              real_t& vel_z,
-              const real_t& force_x,
-              const real_t& force_y,
-              const real_t& force_z,
-              const real_t& updateFactor)
+void updateKick(real_t& vel_x,
+                real_t& vel_y,
+                real_t& vel_z,
+                const real_t& force_x,
+                const real_t& force_y,
+                const real_t& force_z,
+                const real_t& dt,
+                const real_t& mass)
+
 {
-    vel_x += updateFactor * force_x;
-    vel_y += updateFactor * force_y;
-    vel_z += updateFactor * force_z;
+    auto dtfm = dt / mass;
+    vel_x += dtfm * force_x;
+    vel_y += dtfm * force_y;
+    vel_z += dtfm * force_z;
 }
 
 KOKKOS_INLINE_FUNCTION
-real_t stepDrift(real_t& pos_x,
+void updateDrift(real_t& pos_x,
                  real_t& pos_y,
                  real_t& pos_z,
                  const real_t& vel_x,
                  const real_t& vel_y,
                  const real_t& vel_z,
-                 const real_t& updateFactor)
+                 const real_t& dt)
 {
-    auto dx = updateFactor * vel_x;
-    auto dy = updateFactor * vel_y;
-    auto dz = updateFactor * vel_z;
-    pos_x += dx;
-    pos_y += dy;
-    pos_z += dz;
+    pos_x += dt * vel_x;
+    pos_y += dt * vel_y;
+    pos_z += dt * vel_z;
+}
 
-    auto distSqr = dx * dx + dy * dy + dz * dz;
-    return distSqr;
+KOKKOS_INLINE_FUNCTION
+void updateOrnsteinUhlenbeck(real_t& vel_x,
+                             real_t& vel_y,
+                             real_t& vel_z,
+                             const real_t& dt,
+                             const real_t& mass,
+                             const real_t& zeta,
+                             const real_t& temperature,
+                             const real_t& rand_x,
+                             const real_t& rand_y,
+                             const real_t& rand_z)
+{
+    auto dtm = dt / mass;
+    auto damping = std::exp(-zeta * dtm);
+    auto sigma = std::sqrt(temperature / mass * (1_r - std::exp(-2_r * zeta * dtm)));
+
+    vel_x *= damping;
+    vel_y *= damping;
+    vel_z *= damping;
+
+    vel_x += sigma * rand_x;
+    vel_y += sigma * rand_y;
+    vel_z += sigma * rand_z;
 }
 
 }  // namespace action
