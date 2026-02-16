@@ -26,6 +26,22 @@ namespace action
 {
 using LangevinThermostatTest = test::SingleAtom;
 
+struct NoThermostatPred
+{
+    KOKKOS_FUNCTION bool operator()(const real_t x, const real_t, const real_t) const
+    {
+        return false;
+    }
+};
+
+struct LocalThermostatPred
+{
+    KOKKOS_FUNCTION bool operator()(const real_t x, const real_t, const real_t) const
+    {
+        return (x > 78_r);
+    }
+};
+
 TEST_F(LangevinThermostatTest, Simple)
 {
     VelocityVerletLangevinThermostat langevinIntegrator(0.5_r, 0.5_r);
@@ -52,8 +68,7 @@ TEST_F(LangevinThermostatTest, Simple)
 TEST_F(LangevinThermostatTest, NoThermostat)
 {
     VelocityVerletLangevinThermostat langevinIntegrator(0.5_r, 0.5_r);
-    langevinIntegrator.preForceIntegrate_apply_if(
-        atoms, 4_r, KOKKOS_LAMBDA(const real_t, const real_t, const real_t) { return false; });
+    langevinIntegrator.preForceIntegrate_apply_if(atoms, 4_r, NoThermostatPred());
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
     auto pos = Cabana::slice<data::Atoms::POS>(hAoSoA);
@@ -76,8 +91,7 @@ TEST_F(LangevinThermostatTest, NoThermostat)
 TEST_F(LangevinThermostatTest, LocalThermostat)
 {
     VelocityVerletLangevinThermostat langevinIntegrator(0.5_r, 0.5_r);
-    langevinIntegrator.preForceIntegrate_apply_if(
-        atoms, 4_r, KOKKOS_LAMBDA(const real_t x, const real_t, const real_t) { return x > 78_r; });
+    langevinIntegrator.preForceIntegrate_apply_if(atoms, 4_r, LocalThermostatPred());
 
     auto hAoSoA = Cabana::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getAoSoA());
     auto pos = Cabana::slice<data::Atoms::POS>(hAoSoA);
@@ -96,8 +110,7 @@ TEST_F(LangevinThermostatTest, LocalThermostat)
     EXPECT_FLOAT_EQ(pos(0, 1), 60.333332_r);
     EXPECT_FLOAT_EQ(pos(0, 2), 58.666668_r);
 
-    langevinIntegrator.preForceIntegrate_apply_if(
-        atoms, 4_r, KOKKOS_LAMBDA(const real_t x, const real_t, const real_t) { return x > 78_r; });
+    langevinIntegrator.preForceIntegrate_apply_if(atoms, 4_r, LocalThermostatPred());
 
     const real_t epsilon = 1e-6_r;
     EXPECT_FALSE(assumption::isFloatEqual(vel(0, 0), 31_r, epsilon) &&
