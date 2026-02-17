@@ -1,11 +1,11 @@
 // Copyright 2024 Sebastian Eibl
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,22 +31,22 @@ using namespace mrmd;
  */
 struct Config
 {
-    idx_t nsteps = 2001; ///< number of steps to simulate
-    real_t dt = 0.005;  ///< time step size in reduced units
+    idx_t nsteps = 2001;  ///< number of steps to simulate
+    real_t dt = 0.005;    ///< time step size in reduced units
 };
 
 void runIdealGas(const Config& config)
 {
     // initialize simulation domain
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {100_r, 100_r, 100_r}, 1_r);
-    
+
     // initialize atoms randomly in the domain
     auto atoms = util::fillDomainWithAtoms(subdomain, 100000, 1_r, 1_r);
 
     // set up ghost layer for periodic boundary conditions
     communication::GhostLayer ghostLayer;
 
-    // set up timer for runtime measurement 
+    // set up timer for runtime measurement
     Kokkos::Timer timer;
 
     // main simulation loop
@@ -58,7 +58,7 @@ void runIdealGas(const Config& config)
         // reinsert atoms that left the domain according to periodic boundary conditions
         ghostLayer.exchangeRealAtoms(atoms, subdomain);
 
-        // finish integrating equations of motion   
+        // finish integrating equations of motion
         action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 
         // handle output
