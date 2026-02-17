@@ -87,7 +87,7 @@ struct Config
     const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
 };
 
-void runSimulation(Config& config)
+void runLennardJones(Config& config)
 {
     // initialize simulation domain
     auto subdomain =
@@ -113,7 +113,7 @@ void runSimulation(Config& config)
     idx_t rebuildCounter = 0;
 
     // set up interaction potential and force calculation and application
-    action::LennardJones LJ(config.r_cut, config.sigma, config.epsilon, config.r_cap);
+    action::LennardJones lennardJones(config.r_cut, config.sigma, config.epsilon, config.r_cap);
 
     // set up thermostat for temperature control during equilibration
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
@@ -136,7 +136,7 @@ void runSimulation(Config& config)
     // main simulation loop
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        // integrate equations of motion - first half step (drift)
+        // integrate equations of motion before force calculation
         maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
         // reinsert atoms that left the domain according to periodic boundary conditions
@@ -171,16 +171,26 @@ void runSimulation(Config& config)
         Cabana::deep_copy(force, 0_r);
 
         // compute and apply forces
-        LJ.apply(atoms, verletList);
+        lennardJones.apply(atoms, verletList);
 
         // contribute forces calculated on ghost atoms back to real atoms
         ghostLayer.contributeBackGhostToReal(atoms);
+
+        // check if still during equilibration phase
+        if (step <= config.nstepsEq)
+        {
+            // apply Langevin thermostat for temperature control during equilibration
+            langevinThermostat.apply(atoms);
+        }
+
+        // integrate equations of motion after force calculation
+        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
 
         // handle output and statistics
         if (config.bOutput && (step % config.outputInterval == 0))
         {
             // calculate statistics
-            auto E0 = LJ.getEnergy() / real_c(atoms.numLocalAtoms);
+            auto E0 = lennardJones.getEnergy() / real_c(atoms.numLocalAtoms);
             auto Ek = analysis::getMeanKineticEnergy(atoms);
             auto systemMomentum = analysis::getSystemMomentum(atoms);
             auto T = (2_r / 3_r) * Ek;
@@ -206,16 +216,6 @@ void runSimulation(Config& config)
                   << E0 + Ek << " " << p << " " << msd << " " << atoms.numLocalAtoms << " "
                   << atoms.numGhostAtoms << " " << std::endl;
         }
-
-        // check if still during equilibration phase
-        if (step <= config.nstepsEq)
-        {
-            // apply Langevin thermostat for temperature control during equilibration
-            langevinThermostat.apply(atoms);
-        }
-
-        // integrate equations of motion - second half step (kick)
-        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
     }
 
     // close statistics file
@@ -233,8 +233,8 @@ void runSimulation(Config& config)
 
 int main(int argc, char* argv[])  // NOLINT
 {
-    // initialize Kokkos and MPI environment
-    initialize(argc, argv);
+    // initialize Kokkos environment
+    Kokkos::ScopeGuard scope_guard(argc, argv);
 
     // print Kokkos execution space
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
@@ -256,10 +256,7 @@ int main(int argc, char* argv[])  // NOLINT
     if (config.outputInterval < 0) config.bOutput = false;
 
     // set up, equilibrate in NVT and run production in NVE
-    runSimulation(config);
-
-    // finalize Kokkos and MPI environment
-    finalize();
+    runLennardJones(config);
 
     return EXIT_SUCCESS;
 }
