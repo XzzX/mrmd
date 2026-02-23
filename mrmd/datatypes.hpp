@@ -125,6 +125,15 @@ KOKKOS_INLINE_FUNCTION constexpr float float_c(const T& val)
     return static_cast<float>(val);
 }
 
+template <typename FLOAT>
+KOKKOS_INLINE_FUNCTION bool isFloatEqual(
+    const FLOAT& lhs,
+    const FLOAT& rhs,
+    const FLOAT& epsilon = std::numeric_limits<FLOAT>::epsilon())
+{
+    return std::abs(lhs - rhs) < epsilon;
+}
+
 enum class AXIS : idx_t
 {
     X = 0,  ///< index of the x coordinate in vector views

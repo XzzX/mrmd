@@ -42,11 +42,11 @@ void updateInterpolate(const data::MultiHistogram& target, const data::MultiHist
                      inputRight,
                      (outputBinPosition - input.getBinPosition(leftBinIdx)) * input.inverseBinSize);
         }
-        else if (isFloatEQ(outputBinPosition, input.getBinPosition(0)))
+        else if (isFloatEqual(outputBinPosition, input.getBinPosition(0)))
         {
             target.data(binIdx, histogramIdx) += input.data(0, histogramIdx);
         }
-        else if (isFloatEQ(outputBinPosition, input.getBinPosition(input.numBins - 1)))
+        else if (isFloatEqual(outputBinPosition, input.getBinPosition(input.numBins - 1)))
         {
             target.data(binIdx, histogramIdx) += input.data(input.numBins - 1, histogramIdx);
         }
