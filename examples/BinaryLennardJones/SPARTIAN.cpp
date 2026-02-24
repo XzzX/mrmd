@@ -14,9 +14,8 @@
 
 #include "SPARTIAN.hpp"
 
-#include <format>
-
 #include <algorithm>
+#include <format>
 #include <fstream>
 
 #include "action/ContributeMoleculeForceToAtoms.hpp"
