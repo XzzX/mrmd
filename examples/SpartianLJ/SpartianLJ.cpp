@@ -12,23 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <format>
-
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
 #include <CLI/Formatter.hpp>
 #include <Kokkos_Core.hpp>
+#include <format>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 
 #include "action/ContributeMoleculeForceToAtoms.hpp"
 #include "action/LJ_IdealGas.hpp"
-#include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
 #include "action/ThermodynamicForce.hpp"
 #include "action/UpdateMolecules.hpp"
-#include "action/VelocityVerlet.hpp"
+#include "action/VelocityVerletLangevinThermostat.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "analysis/SystemMomentum.hpp"
 #include "communication/MultiResGhostLayer.hpp"
@@ -127,7 +125,7 @@ void LJ(Config& config)
     action::LJ_IdealGas LJ(0.1_r, config.rc, config.sigma, config.epsilon, true);
     action::ThermodynamicForce thermodynamicForce(
         config.rho, subdomain, config.densityBinWidth, config.thermodynamicForceModulation);
-    action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
+    action::VelocityVerletLangevinThermostat langevinIntegrator(config.gamma, config.temperature);
     communication::MultiResGhostLayer ghostLayer;
 
     util::printTable(
@@ -138,7 +136,7 @@ void LJ(Config& config)
     {
         assert(atoms.numLocalAtoms == molecules.numLocalMolecules);
         assert(atoms.numGhostAtoms == molecules.numGhostMolecules);
-        maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
+        maxAtomDisplacement += langevinIntegrator.preForceIntegrate(atoms, config.dt);
 
         // update molecule positions
         action::UpdateMolecules::update(molecules, atoms, weightingFunction);
@@ -199,13 +197,10 @@ void LJ(Config& config)
             });
         auto E0 = LJ.run(molecules, moleculesVerletList, atoms);
         action::ContributeMoleculeForceToAtoms::update(molecules, atoms);
-        if (config.temperature >= 0)
-        {
-            langevinThermostat.apply(atoms);
-        }
+
         ghostLayer.contributeBackGhostToReal(atoms);
 
-        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
+        langevinIntegrator.postForceIntegrate(atoms, config.dt);
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {

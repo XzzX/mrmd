@@ -1,35 +1,33 @@
 // Copyright 2024 Sebastian Eibl
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <format>
-
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
 #include <CLI/Formatter.hpp>
 #include <Kokkos_Core.hpp>
+#include <format>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 
 #include "Cabana_NeighborList.hpp"
 #include "action/BerendsenThermostat.hpp"
-#include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
 #include "action/LimitAcceleration.hpp"
 #include "action/LimitVelocity.hpp"
 #include "action/ThermodynamicForce.hpp"
-#include "action/VelocityVerlet.hpp"
+#include "action/VelocityVerletLangevinThermostat.hpp"
 #include "analysis/AxialDensityProfile.hpp"
 #include "analysis/Fluctuation.hpp"
 #include "analysis/KineticEnergy.hpp"
@@ -86,7 +84,7 @@ struct Config
     // thermodynamic force parameters
     real_t thermodynamicForceModulation = 2.0_r;
 
-    const std::string resName = "Argon"; 
+    const std::string resName = "Argon";
     const std::vector<std::string> typeNames = {"Ar"};
 };
 
@@ -138,11 +136,18 @@ void LJ(Config& config)
     auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
-    io::dumpGRO("atoms_initial.gro", atoms, subdomain, 0_r, "Argon", config.resName, config.typeNames, false);
+    io::dumpGRO("atoms_initial.gro",
+                atoms,
+                subdomain,
+                0_r,
+                "Argon",
+                config.resName,
+                config.typeNames,
+                false);
 
     communication::GhostLayer ghostLayer;
     action::LennardJones LJ(config.rc, config.sigma, config.epsilon, 0.7_r * config.sigma);
-    action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
+    action::VelocityVerletLangevinThermostat langevinIntegrator(config.gamma, config.temperature);
     action::ThermodynamicForce thermodynamicForce(
         rho, subdomain, config.densityBinWidth, config.thermodynamicForceModulation);
     analysis::MeanSquareDisplacement meanSquareDisplacement;
@@ -161,7 +166,7 @@ void LJ(Config& config)
     std::ofstream fStat("statistics.txt");
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
+        maxAtomDisplacement += langevinIntegrator.preForceIntegrate(atoms, config.dt);
 
         if (maxAtomDisplacement >= config.skin * 0.5_r)
         {
@@ -292,9 +297,7 @@ void LJ(Config& config)
             meanSquareDisplacement.reset(atoms);
         }
 
-        langevinThermostat.apply(atoms);
-
-        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
+        langevinIntegrator.postForceIntegrate(atoms, config.dt);
     }
     auto time = timer.seconds();
     std::cout << time << std::endl;
