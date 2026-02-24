@@ -1,11 +1,11 @@
 // Copyright 2024 Sebastian Eibl
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,11 +15,6 @@
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
 #include <CLI/Formatter.hpp>
-#include <Kokkos_Core.hpp>
-#include <Kokkos_Random.hpp>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
 
 #include "action/VelocityVerlet.hpp"
 #include "communication/GhostLayer.hpp"
@@ -27,80 +22,72 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "io/DumpCSV.hpp"
+#include "util/simulationSetup.hpp"
 
 using namespace mrmd;
 
+/**
+ * Configuration for the ideal gas example simulation in NVE ensemble.
+ */
 struct Config
 {
-    idx_t nsteps = 2001;
-    real_t dt = 0.005;
+    idx_t nsteps = 2001;  ///< number of steps to simulate
+    real_t dt = 0.005;    ///< time step size in reduced units
 };
 
-data::Atoms initAtoms()
+void runIdealGas(const Config& config)
 {
-    auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
-    auto atoms = data::Atoms(1000000);
-    auto pos = atoms.getPos();
-    auto vel = atoms.getVel();
-    auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<3>>({0, 0, 0}, {100, 100, 100});
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx, const idx_t idy, const idx_t idz)
-    {
-        auto i = idx + idy * 100 + idz * 10000;
-        pos(i, 0) = real_c(idx) + 0.5_r;
-        pos(i, 1) = real_c(idy) + 0.5_r;
-        pos(i, 2) = real_c(idz) + 0.5_r;
-
-        auto randGen = RNG.get_state();
-
-        vel(idx, 0) = (randGen.drand() - 0.5_r) * 2_r;
-        vel(idx, 1) = (randGen.drand() - 0.5_r) * 2_r;
-        vel(idx, 2) = (randGen.drand() - 0.5_r) * 2_r;
-
-        // Give the state back, which will allow another thread to acquire it
-        RNG.free_state(randGen);
-    };
-    Kokkos::parallel_for("initAtoms", policy, kernel);
-    atoms.numLocalAtoms = 1000000;
-    atoms.numGhostAtoms = 0;
-    return atoms;
-}
-
-void IdealGas(const Config& config)
-{
+    // initialize simulation domain
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {100_r, 100_r, 100_r}, 1_r);
-    auto atoms = initAtoms();
 
+    // initialize atoms randomly in the domain
+    auto atoms = util::fillDomainWithAtoms(subdomain, 100000, 1_r, 1_r);
+
+    // set up ghost layer for periodic boundary conditions
     communication::GhostLayer ghostLayer;
+
+    // set up timer for runtime measurement
     Kokkos::Timer timer;
+
+    // main simulation loop
     for (auto i = 0; i < config.nsteps; ++i)
     {
+        // integrate equations of motion before (potentially) calculating forces
         action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
+        // reinsert atoms that left the domain according to periodic boundary conditions
         ghostLayer.exchangeRealAtoms(atoms, subdomain);
 
+        // finish integrating equations of motion
+        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
+
+        // handle output
         if (i % 100 == 0)
         {
             io::dumpCSV("atoms_" + std::to_string(i) + ".csv", atoms);
         }
-
-        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
     }
+    // print performance data
     auto time = timer.seconds();
     std::cout << time << std::endl;
 }
 
 int main(int argc, char* argv[])  // NOLINT
 {
+    // initialize Kokkos environment
     Kokkos::ScopeGuard scope_guard(argc, argv);
 
+    // print Kokkos execution space
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
 
+    // initialize simulation configuration with command line interface
     Config config;
     CLI::App app{"ideal gas benchmark application"};
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
     CLI11_PARSE(app, argc, argv);
 
-    IdealGas(config);
+    // run simulation of the ideal gas
+    runIdealGas(config);
 
     return EXIT_SUCCESS;
 }
