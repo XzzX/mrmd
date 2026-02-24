@@ -30,6 +30,7 @@ data::Atoms fillRectangularDomainWithAtoms(const data::Subdomain& subdomain,
     auto pos = atoms.getPos();
     auto vel = atoms.getVel();
     auto mass = atoms.getMass();
+    auto relativeMass = atoms.getRelativeMass();
     auto type = atoms.getType();
     auto charge = atoms.getCharge();
 
@@ -47,6 +48,7 @@ data::Atoms fillRectangularDomainWithAtoms(const data::Subdomain& subdomain,
         RNG.free_state(randGen);
 
         mass(idx) = inputMass;
+        relativeMass(idx) = 1_r;
         type(idx) = 0;
         charge(idx) = 0_r;
     };
