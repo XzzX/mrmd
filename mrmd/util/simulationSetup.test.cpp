@@ -23,7 +23,7 @@ namespace util
 TEST(simulationSetup, testFillDomain)
 {
     data::Subdomain subdomain({1, 2, 3}, {3, 6, 9}, 0.5_r);
-    data::Atoms atoms = fillDomainWithAtoms(subdomain, 100, 1_r, 1_r);
+    data::Atoms atoms = fillRectangularDomainWithAtoms(subdomain, 100, 1_r, 1_r);
 
     EXPECT_EQ(atoms.size(), 100);
 

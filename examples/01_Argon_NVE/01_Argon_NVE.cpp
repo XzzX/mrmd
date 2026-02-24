@@ -97,8 +97,8 @@ void runLennardJones(Config& config)
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
 
     // initialize atoms randomly in the domain
-    auto atoms =
-        util::fillDomainWithAtoms(subdomain, config.numAtoms, config.maxVelocity, config.mass);
+    auto atoms = util::fillRectangularDomainWithAtoms(
+        subdomain, config.numAtoms, config.maxVelocity, config.mass);
 
     // calculate and print initial density
     auto rho = real_c(atoms.numLocalAtoms) / volume;

@@ -41,7 +41,7 @@ void runIdealGas(const Config& config)
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {100_r, 100_r, 100_r}, 1_r);
 
     // initialize atoms randomly in the domain
-    auto atoms = util::fillDomainWithAtoms(subdomain, 100000, 1_r, 1_r);
+    auto atoms = util::fillRectangularDomainWithAtoms(subdomain, 100000, 1_r, 1_r);
 
     // set up ghost layer for periodic boundary conditions
     communication::GhostLayer ghostLayer;

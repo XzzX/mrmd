@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(01_Argon_NVE)
 add_subdirectory(00_IdealGas_NVE)
+add_subdirectory(01_Argon_NVE)
 
 add_subdirectory(Argon)
 add_subdirectory(BinaryLennardJones)
