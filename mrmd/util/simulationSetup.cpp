@@ -50,7 +50,7 @@ data::Atoms fillRectangularDomainWithAtoms(const data::Subdomain& subdomain,
         type(idx) = 0;
         charge(idx) = 0_r;
     };
-    Kokkos::parallel_for("fillDomainWithAtoms", policy, kernel);
+    Kokkos::parallel_for("fillRectangularDomainWithAtoms", policy, kernel);
 
     atoms.numLocalAtoms = numAtoms;
     atoms.numGhostAtoms = 0;
@@ -96,7 +96,7 @@ data::Atoms fillRectDomainWithTwoAtomisticSpecies(const data::Subdomain& subdoma
 
         type(idx) = idx < numAtomsA ? 0 : 1;
     };
-    Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
+    Kokkos::parallel_for("fillRectDomainWithTwoAtomisticSpecies", policy, kernel);
 
     atoms.numLocalAtoms = numAtoms;
     atoms.numGhostAtoms = 0;

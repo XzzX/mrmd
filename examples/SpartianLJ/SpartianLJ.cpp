@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <format>
-
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
 #include <CLI/Formatter.hpp>
 #include <Kokkos_Core.hpp>
+#include <format>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
