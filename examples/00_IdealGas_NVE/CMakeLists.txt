@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_executable(IdealGas
-        IdealGas.cpp
+add_executable(00_IdealGas_NVE
+        00_IdealGas_NVE.cpp
         )
-target_link_libraries(IdealGas
+target_link_libraries(00_IdealGas_NVE
         PRIVATE mrmd CLI11::CLI11
         )
