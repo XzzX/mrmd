@@ -90,9 +90,9 @@ public:
 
     void apply(data::Atoms& atoms, HalfVerletList& verletList);
 
-    void apply_if(const data::Atoms& atoms,
-                  const HalfVerletList& verletList,
-                  const TwoPositionsPredicate auto& pred);
+    template <typename Pred>
+    void apply_if(const data::Atoms& atoms, const HalfVerletList& verletList, const Pred& pred)
+        requires TwoPositionsPredicate<Pred>;
 
     LennardJones(const real_t rc,
                  const real_t& sigma,
@@ -107,9 +107,11 @@ public:
                  const bool isShifted);
 };
 
+template <typename Pred>
 void LennardJones::apply_if(const data::Atoms& atoms,
                             const HalfVerletList& verletList,
-                            const TwoPositionsPredicate auto& pred)
+                            const Pred& pred)
+    requires TwoPositionsPredicate<Pred>
 {
     energyAndVirial_ = data::EnergyAndVirialReducer();
     pos_ = atoms.getPos();
