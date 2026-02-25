@@ -176,9 +176,8 @@ void transform(const MultiHistogram& input1,
  * @param newValue The value to assign to histogram entries whose bin position satisfies
  *                 the predicate.
  */
-template <typename Pred>
+template <OneCoordinatePredicate Pred>
 void replace_if_bin_position(MultiHistogram& hist, const Pred& pred, real_t newValue)
-    requires OneCoordinatePredicate<Pred>
 {
     auto policy =
         Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {hist.numBins, hist.numHistograms});
