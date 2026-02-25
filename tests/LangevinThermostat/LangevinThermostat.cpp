@@ -117,12 +117,10 @@ TEST(Integration, LocalLangevinThermostat)
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
     auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
 
-    real_t boxCenterX = 0.5_r * (subdomain.maxCorner[0] + subdomain.minCorner[0]);
-    real_t boxCenterY = 0.5_r * (subdomain.maxCorner[1] + subdomain.minCorner[1]);
-    real_t boxCenterZ = 0.5_r * (subdomain.maxCorner[2] + subdomain.minCorner[2]);
+    const auto boxCenter = subdomain.getCenter();
 
     auto isInSymmetricSlab =
-        util::IsInSymmetricSlab({boxCenterX, boxCenterY, boxCenterZ}, 0_r, 5.0_r);
+        util::IsInSymmetricSlab({boxCenter[0], boxCenter[1], boxCenter[2]}, 0_r, 5.0_r);
 
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     for (auto step = 0; step < config.nsteps; ++step)

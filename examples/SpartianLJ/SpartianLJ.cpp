@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <format>
-
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
 #include <CLI/Formatter.hpp>
 #include <Kokkos_Core.hpp>
+#include <format>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -98,7 +97,7 @@ void LJ(Config& config)
         {2.5038699752178008e+01, 8.3462332507260033e+00, 8.3462332507260033e+00},
         config.neighborCutoff);
 
-    const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
+    const auto volume = subdomain.getVolume();
     const idx_t numAtoms = idx_c(config.rho * volume);
     util::Random RNG;
     data::Atoms atoms(numAtoms * 2);
