@@ -13,6 +13,7 @@
 # limitations under the License.
 
 add_subdirectory(00_IdealGas_NVE)
+add_subdirectory(02_MultiResArgon_LocalCap)
 
 add_subdirectory(Argon)
 add_subdirectory(BinaryLennardJones)
