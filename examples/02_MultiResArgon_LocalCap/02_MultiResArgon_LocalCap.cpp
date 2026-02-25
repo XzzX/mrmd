@@ -40,6 +40,7 @@
 #include "util/EnvironmentVariables.hpp"
 #include "util/IsInSymmetricSlab.hpp"
 #include "util/PrintTable.hpp"
+#include "util/simulationSetup.hpp"
 
 using namespace mrmd;
 
@@ -76,6 +77,8 @@ struct Config
 
     // equilibration parameters
     idx_t nstepsEq = 100000;  ///< number of equilibration steps
+
+    // thermostat parameters
     real_t temperature =
         1.5_r;  ///< target temperature during equilibration for thermostat in reduced units
     static constexpr real_t gamma = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
@@ -87,55 +90,19 @@ struct Config
     const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
 };
 
-data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
-                                  const idx_t& numAtoms,
-                                  const real_t& maxVelocity)
-{
-    auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
-
-    data::Atoms atoms(numAtoms);
-
-    auto pos = atoms.getPos();
-    auto vel = atoms.getVel();
-    auto mass = atoms.getMass();
-    auto type = atoms.getType();
-    auto charge = atoms.getCharge();
-
-    auto policy = Kokkos::RangePolicy<>(0, numAtoms);
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
-    {
-        auto randGen = RNG.get_state();
-        pos(idx, 0) = randGen.drand() * subdomain.diameter[0] + subdomain.minCorner[0];
-        pos(idx, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
-        pos(idx, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
-
-        vel(idx, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
-        RNG.free_state(randGen);
-
-        mass(idx) = Config::mass;
-        type(idx) = 0;
-        charge(idx) = 0_r;
-    };
-    Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
-
-    atoms.numLocalAtoms = numAtoms;
-    atoms.numGhostAtoms = 0;
-    return atoms;
-}
-
-void runSimulation(Config& config)
+void runLennardJones_idealGas_localCap(Config& config)
 {
     // initialize simulation domain
-    auto subdomain =
-        data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
+    auto subdomain = data::Subdomain({0_r, 0_r, 0_r},
+                                     {config.Lx, config.Lx, config.Lx},
+                                     {0_r, config.neighborCutoff, config.neighborCutoff});
 
     // calculate volume of the simulation domain
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
 
     // initialize atoms randomly in the domain
-    auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.maxVelocity);
+    auto atoms =
+        util::fillDomainWithAtoms(subdomain, config.numAtoms, config.maxVelocity, config.mass);
 
     // calculate and print initial density
     auto rho = real_c(atoms.numLocalAtoms) / volume;
@@ -164,9 +131,9 @@ void runSimulation(Config& config)
 
     // set up different interaction regions for capped and bare LJ potential
     util::IsInSymmetricSlab isInCentralRegion(
-        {boxCenterX, boxCenterY, boxCenterZ}, 0_r, 20_r * config.sigma);
+        {boxCenterX, boxCenterY, boxCenterZ}, 0_r, 10_r * config.sigma);
     util::IsInSymmetricSlab isInCappingRegion(
-        {boxCenterX, boxCenterY, boxCenterZ}, 20_r * config.sigma, 25_r * config.sigma);
+        {boxCenterX, boxCenterY, boxCenterZ}, 10_r * config.sigma, 15_r * config.sigma);
 
     // set up thermostat for temperature control during equilibration
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
@@ -189,7 +156,7 @@ void runSimulation(Config& config)
     // main simulation loop
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        // integrate equations of motion - first half step (drift)
+        // integrate equations of motion before force calculation
         maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
         // reinsert atoms that left the domain according to periodic boundary conditions
@@ -259,6 +226,12 @@ void runSimulation(Config& config)
         // contribute forces calculated on ghost atoms back to real atoms
         ghostLayer.contributeBackGhostToReal(atoms);
 
+        // apply Langevin thermostat for temperature control
+        langevinThermostat.apply(atoms);
+
+        // integrate equations of motion after force calculation
+        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
+
         // handle output and statistics
         if (config.bOutput && (step % config.outputInterval == 0))
         {
@@ -290,16 +263,6 @@ void runSimulation(Config& config)
                   << E0 + Ek << " " << p << " " << msd << " " << atoms.numLocalAtoms << " "
                   << atoms.numGhostAtoms << " " << std::endl;
         }
-
-        // check if still during equilibration phase
-        if (step <= config.nstepsEq)
-        {
-            // apply Langevin thermostat for temperature control during equilibration
-            langevinThermostat.apply(atoms);
-        }
-
-        // integrate equations of motion - second half step (kick)
-        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
     }
 
     // close statistics file
@@ -317,8 +280,8 @@ void runSimulation(Config& config)
 
 int main(int argc, char* argv[])  // NOLINT
 {
-    // initialize Kokkos and MPI environment
-    initialize(argc, argv);
+    // initialize Kokkos
+    Kokkos::ScopeGuard scope_guard(argc, argv);
 
     // print Kokkos execution space
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
@@ -339,11 +302,8 @@ int main(int argc, char* argv[])  // NOLINT
     // reset output parameter if output interval is negative
     if (config.outputInterval < 0) config.bOutput = false;
 
-    // set up, equilibrate in NVT and run production in NVE
-    runSimulation(config);
-
-    // finalize Kokkos and MPI environment
-    finalize();
+    // set up run simulation
+    runLennardJones_idealGas_localCap(config);
 
     return EXIT_SUCCESS;
 }
