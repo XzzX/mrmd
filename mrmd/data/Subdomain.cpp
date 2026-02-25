@@ -53,5 +53,17 @@ void checkInvariants([[maybe_unused]] const Subdomain& subdomain)
     }
 }
 
+real_t Subdomain::getVolume() const { return diameter[0] * diameter[1] * diameter[2]; }
+
+Point3D Subdomain::getCenter() const
+{
+    Point3D center;
+    for (auto dim = 0; dim < DIMENSIONS; ++dim)
+    {
+        center[dim] = (minCorner[dim] + maxCorner[dim]) / 2_r;
+    }
+    return center;
+}
+
 }  // namespace data
 }  // namespace mrmd
