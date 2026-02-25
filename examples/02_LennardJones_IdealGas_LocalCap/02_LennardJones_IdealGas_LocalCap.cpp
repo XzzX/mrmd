@@ -98,7 +98,7 @@ void runLennardJones_idealGas_localCap(Config& config)
                                      {0_r, config.neighborCutoff, config.neighborCutoff});
 
     // calculate volume of the simulation domain
-    const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
+    const auto volume = subdomain.getVolume();
 
     // initialize atoms randomly in the domain
     auto atoms =
@@ -121,19 +121,17 @@ void runLennardJones_idealGas_localCap(Config& config)
     action::LennardJones lennardJonesCap(config.r_cut, config.sigma, config.epsilon, config.r_cap);
 
     // calculate and print box center coordinates
-    real_t boxCenterX = 0.5_r * (subdomain.maxCorner[0] + subdomain.minCorner[0]);
-    real_t boxCenterY = 0.5_r * (subdomain.maxCorner[1] + subdomain.minCorner[1]);
-    real_t boxCenterZ = 0.5_r * (subdomain.maxCorner[2] + subdomain.minCorner[2]);
+    const auto boxCenter = subdomain.getCenter();
 
-    std::cout << "x center: " << boxCenterX << std::endl;
-    std::cout << "y center: " << boxCenterY << std::endl;
-    std::cout << "z center: " << boxCenterZ << std::endl;
+    std::cout << "x center: " << boxCenter[0] << std::endl;
+    std::cout << "y center: " << boxCenter[1] << std::endl;
+    std::cout << "z center: " << boxCenter[2] << std::endl;
 
     // set up different interaction regions for capped and bare LJ potential
     util::IsInSymmetricSlab isInCentralRegion(
-        {boxCenterX, boxCenterY, boxCenterZ}, 0_r, 10_r * config.sigma);
+        {boxCenter[0], boxCenter[1], boxCenter[2]}, 0_r, 10_r * config.sigma);
     util::IsInSymmetricSlab isInCappingRegion(
-        {boxCenterX, boxCenterY, boxCenterZ}, 10_r * config.sigma, 15_r * config.sigma);
+        {boxCenter[0], boxCenter[1], boxCenter[2]}, 10_r * config.sigma, 15_r * config.sigma);
 
     // set up thermostat for temperature control during equilibration
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
