@@ -60,7 +60,7 @@ Point3D Subdomain::getCenter() const
     Point3D center;
     for (auto dim = 0; dim < DIMENSIONS; ++dim)
     {
-        center[dim] = (minCorner[dim] + maxCorner[dim]) / 2_r;
+        center[dim] = (minCorner[dim] + maxCorner[dim]) * 0.5_r;
     }
     return center;
 }
