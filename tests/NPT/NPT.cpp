@@ -37,6 +37,7 @@
 #include "util/EnvironmentVariables.hpp"
 #include "util/ExponentialMovingAverage.hpp"
 #include "util/PrintTable.hpp"
+#include "util/simulationSetup.hpp"
 
 using namespace mrmd;
 
@@ -64,40 +65,6 @@ struct Config
     static constexpr real_t weightingFactor = 0.02_r;
 };
 
-data::Atoms fillDomainWithAtomsSC(const data::Subdomain &subdomain,
-                                  const idx_t &numAtoms,
-                                  const real_t &maxVelocity)
-{
-    auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
-
-    data::Atoms atoms(numAtoms);
-
-    auto pos = atoms.getPos();
-    auto vel = atoms.getVel();
-    auto mass = atoms.getMass();
-
-    auto policy = Kokkos::RangePolicy<>(0, numAtoms);
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
-    {
-        auto randGen = RNG.get_state();
-        pos(idx, 0) = randGen.drand() * subdomain.diameter[0] + subdomain.minCorner[0];
-        pos(idx, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
-        pos(idx, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
-
-        vel(idx, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
-        RNG.free_state(randGen);
-
-        mass(idx) = 1_r;
-    };
-    Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
-
-    atoms.numLocalAtoms = numAtoms;
-    atoms.numGhostAtoms = 0;
-    return atoms;
-}
-
 struct Input
 {
     real_t targetTemperature;
@@ -119,7 +86,7 @@ protected:
 
     data::Subdomain subdomain = {{0_r, 0_r, 0_r}, {Config::Lx, Config::Lx, Config::Lx}, Config::neighborCutoff};
     real_t volume = {subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]};
-    data::Atoms atoms = {fillDomainWithAtomsSC(subdomain, idx_c(Config::rho * volume), 1_r)};
+    data::Atoms atoms = {util::fillRectangularDomainWithAtoms(subdomain, idx_c(Config::rho * volume), 1_r, 1_r)};
     real_t rho = {real_c(atoms.numLocalAtoms) / volume};
     communication::GhostLayer ghostLayer;
     action::LennardJones LJ = {Config::rc, Config::sigma, Config::epsilon, 0.7_r * Config::sigma};

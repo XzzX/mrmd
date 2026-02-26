@@ -28,6 +28,7 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "util/IsInSymmetricSlab.hpp"
+#include "util/simulationSetup.hpp"
 
 using namespace mrmd;
 
@@ -47,45 +48,11 @@ struct Config
     real_t initialMaxVelocity = 10_r;
 };
 
-data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
-                                  const idx_t& numAtoms,
-                                  const real_t& maxVelocity)
-{
-    auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
-
-    data::Atoms atoms(numAtoms);
-
-    auto pos = atoms.getPos();
-    auto vel = atoms.getVel();
-    auto mass = atoms.getMass();
-
-    auto policy = Kokkos::RangePolicy<>(0, numAtoms);
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
-    {
-        auto randGen = RNG.get_state();
-        pos(idx, 0) = randGen.drand() * subdomain.diameter[0] + subdomain.minCorner[0];
-        pos(idx, 1) = randGen.drand() * subdomain.diameter[1] + subdomain.minCorner[1];
-        pos(idx, 2) = randGen.drand() * subdomain.diameter[2] + subdomain.minCorner[2];
-
-        vel(idx, 0) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 1) = (randGen.drand() - 0.5_r) * maxVelocity;
-        vel(idx, 2) = (randGen.drand() - 0.5_r) * maxVelocity;
-        RNG.free_state(randGen);
-
-        mass(idx) = 1_r;
-    };
-    Kokkos::parallel_for("fillDomainWithAtomsSC", policy, kernel);
-
-    atoms.numLocalAtoms = numAtoms;
-    atoms.numGhostAtoms = 0;
-    return atoms;
-}
-
 TEST(Integration, LangevinThermostat)
 {
     Config config;
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
-    auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
+    auto atoms = util::fillRectangularDomainWithAtoms(subdomain, config.numAtoms, config.initialMaxVelocity, 1_r);
 
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     for (auto step = 0; step < config.nsteps; ++step)
@@ -115,7 +82,7 @@ TEST(Integration, LocalLangevinThermostat)
 {
     Config config;
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
-    auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
+    auto atoms = util::fillRectangularDomainWithAtoms(subdomain, config.numAtoms, config.initialMaxVelocity, 1_r);
 
     real_t boxCenterX = 0.5_r * (subdomain.maxCorner[0] + subdomain.minCorner[0]);
     real_t boxCenterY = 0.5_r * (subdomain.maxCorner[1] + subdomain.minCorner[1]);
@@ -152,7 +119,7 @@ TEST(Integration, VelocityVerletLangevinThermostat)
 {
     Config config;
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
-    auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
+    auto atoms = util::fillRectangularDomainWithAtoms(subdomain, config.numAtoms, config.initialMaxVelocity, 1_r);
 
     action::VelocityVerletLangevinThermostat vv(1e5_r, config.temperature);
     for (auto step = 0; step < config.nsteps; ++step)
