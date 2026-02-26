@@ -94,7 +94,7 @@ void runLennardJones_idealGas_localCap(Config& config)
 {
     // initialize simulation domain
     data::Subdomain subdomain(
-        {0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, config.neighborCutoff);
+        {0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, {2.6_r, 2.6_r, 2.6_r});
 
     // calculate volume of the simulation domain
     const auto volume = subdomain.getVolume();
