@@ -1,11 +1,11 @@
 // Copyright 2024 Sebastian Eibl
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -64,9 +64,9 @@ struct Config
     static constexpr real_t weightingFactor = 0.02_r;
 };
 
-data::Atoms fillDomainWithAtomsSC(const data::Subdomain &subdomain,
-                                  const idx_t &numAtoms,
-                                  const real_t &maxVelocity)
+data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
+                                  const idx_t& numAtoms,
+                                  const real_t& maxVelocity)
 {
     auto RNG = Kokkos::Random_XorShift1024_Pool<>(1234);
 
@@ -104,7 +104,7 @@ struct Input
     real_t targetPressure;
 };
 
-std::ostream &operator<<(std::ostream &os, const Input &input)
+std::ostream& operator<<(std::ostream& os, const Input& input)
 {
     os << "T: " << input.targetTemperature << " | "
        << "p: " << input.targetPressure;
@@ -117,9 +117,10 @@ protected:
     // void SetUp() override {}
     // void TearDown() override {}
 
-    data::Subdomain subdomain = {{0_r, 0_r, 0_r}, {Config::Lx, Config::Lx, Config::Lx}, Config::neighborCutoff};
-    real_t volume = {subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]};
-    data::Atoms atoms = {fillDomainWithAtomsSC(subdomain, idx_c(Config::rho * volume), 1_r)};
+    data::Subdomain subdomain = {
+        {0_r, 0_r, 0_r}, {Config::Lx, Config::Lx, Config::Lx}, Config::neighborCutoff};
+    real_t volume = {subdomain.getVolume()};
+    data::Atoms atoms = {fillDomainWithAtomsSC(subdomain, idx_c(Config::rho* volume), 1_r)};
     real_t rho = {real_c(atoms.numLocalAtoms) / volume};
     communication::GhostLayer ghostLayer;
     action::LennardJones LJ = {Config::rc, Config::sigma, Config::epsilon, 0.7_r * Config::sigma};
@@ -147,7 +148,7 @@ TEST_P(NPT, pressure)
         {
             action::BerendsenBarostat::apply(
                 atoms, p, targetPressure, Config::gamma * 0.1_r, subdomain);
-            volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
+            volume = subdomain.getVolume();
             maxAtomDisplacement = std::numeric_limits<real_t>::max();
         }
         action::BerendsenThermostat::apply(atoms, T, targetTemperature, Config::gamma);
@@ -218,7 +219,7 @@ INSTANTIATE_TEST_SUITE_P(Pressure,
                                            Input{2.5_r, 8.5_r},
                                            Input{2.0_r, 8.0_r}));
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);
     Kokkos::ScopeGuard scope_guard(argc, argv);

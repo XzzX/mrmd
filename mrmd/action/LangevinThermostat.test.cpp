@@ -61,8 +61,7 @@ TEST_F(LangevinThermostatTest, Local)
 
     const auto boxCenter = subdomain.getCenter();
 
-    auto isInSymmetricSlab =
-        util::IsInSymmetricSlab({boxCenter[0], boxCenter[1], boxCenter[2]}, 0_r, 1.5_r);
+    auto isInSymmetricSlab = util::IsInSymmetricSlab(boxCenter, 0_r, 1.5_r);
 
     langevinThermostat.apply_if(atoms, isInSymmetricSlab);
 

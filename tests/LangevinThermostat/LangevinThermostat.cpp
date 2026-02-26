@@ -119,8 +119,7 @@ TEST(Integration, LocalLangevinThermostat)
 
     const auto boxCenter = subdomain.getCenter();
 
-    auto isInSymmetricSlab =
-        util::IsInSymmetricSlab({boxCenter[0], boxCenter[1], boxCenter[2]}, 0_r, 5.0_r);
+    auto isInSymmetricSlab = util::IsInSymmetricSlab(boxCenter, 0_r, 5.0_r);
 
     action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
     for (auto step = 0; step < config.nsteps; ++step)

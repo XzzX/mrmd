@@ -1,11 +1,11 @@
 // Copyright 2024 Sebastian Eibl
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,9 +14,8 @@
 
 #include "NVT.hpp"
 
-#include <format>
-
 #include <algorithm>
+#include <format>
 
 #include "action/BerendsenThermostat.hpp"
 #include "action/LennardJones.hpp"
@@ -37,7 +36,7 @@ void nvt(YAML::Node& config, data::Atoms& atoms, const data::Subdomain& subdomai
     auto rcVec = config["LJ"]["cutoff"].as<std::vector<real_t>>();
     const real_t rc = std::ranges::max(rcVec);
     const real_t neighborCutoff = rc + skin;
-    auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
+    auto volume = subdomain.getVolume();
 
     communication::GhostLayer ghostLayer;
     auto LJ = action::LennardJones(config["LJ"]["capping"].as<std::vector<real_t>>(),
