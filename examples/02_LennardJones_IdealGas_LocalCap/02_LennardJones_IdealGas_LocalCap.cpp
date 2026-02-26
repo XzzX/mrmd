@@ -93,9 +93,9 @@ struct Config
 void runLennardJones_idealGas_localCap(Config& config)
 {
     // initialize simulation domain
-    auto subdomain = data::Subdomain({0_r, 0_r, 0_r},
-                                     {config.Lx, config.Lx, config.Lx},
-                                     {0_r, config.neighborCutoff, config.neighborCutoff});
+    data::Subdomain subdomain({0_r, 0_r, 0_r},
+                              {config.Lx, config.Lx, config.Lx},
+                              {0_r, config.neighborCutoff, config.neighborCutoff});
 
     // calculate volume of the simulation domain
     const auto volume = subdomain.getVolume();
