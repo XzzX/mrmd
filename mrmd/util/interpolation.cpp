@@ -20,17 +20,18 @@ namespace util
 {
 data::MultiHistogram interpolate(const data::MultiHistogram& input, const ScalarView& grid)
 {
-    real_t gridSpacing = grid(1) - grid(0);
-    real_t gridMin = grid(0) - 0.5_r * gridSpacing;
-    real_t gridMax = grid(grid.extent(0) - 1) + 0.5_r * gridSpacing;
+    auto h_grid = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), grid);
+    real_t gridSpacing = h_grid(1) - h_grid(0);
+    real_t gridMin = h_grid(0) - 0.5_r * gridSpacing;
+    real_t gridMax = h_grid(h_grid.extent(0) - 1) + 0.5_r * gridSpacing;
 
     data::MultiHistogram output(
-        "interpolated-profile", gridMin, gridMax, idx_c(grid.extent(0)), input.numHistograms);
+        "interpolated-profile", gridMin, gridMax, idx_c(h_grid.extent(0)), input.numHistograms);
 
-    MRMD_HOST_ASSERT_EQUAL(output.numBins, idx_c(grid.extent(0)), "Output grid size mismatch!");
+    MRMD_HOST_ASSERT_EQUAL(output.numBins, idx_c(h_grid.extent(0)), "Output grid size mismatch!");
     for (idx_t idx = 0; idx < idx_c(output.numBins); ++idx)
     {
-        MRMD_HOST_ASSERT_EQUAL(output.getBinPosition(idx), grid(idx), "Output grid mismatch!");
+        assert(assumption::isFloatEqual(output.getBinPosition(idx), h_grid(idx)));
     }
 
     auto policy = Kokkos::MDRangePolicy<Kokkos::Rank<2>>(
