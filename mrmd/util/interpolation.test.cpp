@@ -94,7 +94,7 @@ TEST(interpolate, nonZeroWithBoundary)
     for (auto idx = 0; idx < 30; ++idx)
     {
         if (histogramRef.getBinPosition(idx) >= histogramInput.getBinPosition(0) &&
-            histogramRef.getBinPosition(idx) <= histogramInput.getBinPosition(9))
+            histogramRef.getBinPosition(idx) < histogramInput.getBinPosition(9))
         {
             h_dataRef(idx, 0) = 1_r + 0_r;
             h_dataRef(idx, 1) = 1_r + 1_r;

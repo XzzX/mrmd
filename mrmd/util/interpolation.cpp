@@ -31,7 +31,7 @@ void updateInterpolate(const data::MultiHistogram& target, const data::MultiHist
         idx_t leftBinIdx = input.getBin(outputBinPosition - 0.5_r * input.binSize);
         idx_t rightBinIdx = leftBinIdx + 1;
 
-        // only update if within bounds of input histogram or exactly at boundary
+        // only update if within bounds of input histogram
         if (leftBinIdx >= 0 && rightBinIdx < input.numBins)
         {
             auto inputLeft = input.data(leftBinIdx, histogramIdx);
@@ -41,14 +41,6 @@ void updateInterpolate(const data::MultiHistogram& target, const data::MultiHist
                 lerp(inputLeft,
                      inputRight,
                      (outputBinPosition - input.getBinPosition(leftBinIdx)) * input.inverseBinSize);
-        }
-        else if (isFloatEqual(outputBinPosition, input.getBinPosition(0)))
-        {
-            target.data(binIdx, histogramIdx) += input.data(0, histogramIdx);
-        }
-        else if (isFloatEqual(outputBinPosition, input.getBinPosition(input.numBins - 1)))
-        {
-            target.data(binIdx, histogramIdx) += input.data(input.numBins - 1, histogramIdx);
         }
     };
     Kokkos::parallel_for("MultiHistogram::updateInterpolate", policy, kernel);
