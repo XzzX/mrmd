@@ -38,8 +38,8 @@ public:
 
     void apply(data::Atoms& atoms);
 
-    template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
-    void apply_if(data::Atoms& atoms, const UnaryPred& pred);
+    template <OnePositionPredicate Pred>
+    void apply_if(data::Atoms& atoms, const Pred& pred);
 
     void set(const real_t gamma, const real_t temperature, const real_t timestep)
     {
@@ -53,8 +53,8 @@ public:
     }
 };
 
-template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
-void LangevinThermostat::apply_if(data::Atoms& atoms, const UnaryPred& pred)
+template <OnePositionPredicate Pred>
+void LangevinThermostat::apply_if(data::Atoms& atoms, const Pred& pred)
 {
     auto RNG = randPool_;
     auto pos = atoms.getPos();

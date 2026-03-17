@@ -14,9 +14,8 @@
 
 #include "SPARTIAN.hpp"
 
-#include <format>
-
 #include <algorithm>
+#include <format>
 #include <fstream>
 
 #include "action/ContributeMoleculeForceToAtoms.hpp"
@@ -47,7 +46,7 @@ void spartian(YAML::Node& config,
     auto rcVec = config["LJ"]["cutoff"].as<std::vector<real_t>>();
     const real_t rc = std::ranges::max(rcVec);
     const real_t neighborCutoff = rc + skin;
-    auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
+    auto volume = subdomain.getVolume();
 
     communication::MultiResGhostLayer ghostLayer;
     auto LJ = action::LJ_IdealGas(config["LJ"]["capping"].as<std::vector<real_t>>(),
