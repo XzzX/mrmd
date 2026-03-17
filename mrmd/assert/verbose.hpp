@@ -92,12 +92,6 @@ std::string generateAssertionMessage(const T& lhs,
         assumption::log(ss.str()); \
     }
 
-template <typename FLOAT>
-bool isFloatEqual(const FLOAT& lhs, const FLOAT& rhs)
-{
-    return std::abs(lhs - rhs) < FLOAT(1e-10);
-}
-
 // macro overloading (-> https://stackoverflow.com/a/24028231)
 
 #define GLUE(x, y) x y
