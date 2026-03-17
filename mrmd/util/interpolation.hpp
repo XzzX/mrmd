@@ -14,6 +14,8 @@
 
 #pragma once
 
+#include <limits>
+
 #include "data/MultiHistogram.hpp"
 #include "util/IsInSymmetricSlab.hpp"
 
@@ -35,13 +37,14 @@ real_t lerp(const real_t& left, const real_t& right, const real_t& factor)
 }
 
 /**
- * Linear interpolation of data contained in input MultiHistogram onto given grid.
- * Data for grid points outside of the grid range of the input MultiHistogram are set to zero.
- * @param input input MultiHistogram containing data to interpolate
- * @param grid grid to interpolate data onto
- * @return MultiHistogram containing interpolated data on given grid
+ * Linear interpolation of data contained in input MultiHistogram onto grid of target histogram,
+ * adding the interpolated data to the data already contained in target. Data for target grid points
+ * outside of the grid range of the input MultiHistogram is not updated.
+ * @param input MultiHistogram containing data to interpolate on coarse grid.
+ * @param target MultiHistogram defining the grid to interpolate onto and containing the data
+ * to be updated by interpolating the data from input.
  */
-data::MultiHistogram interpolate(const data::MultiHistogram& input, const ScalarView& grid);
+void updateInterpolate(const data::MultiHistogram& target, const data::MultiHistogram& input);
 
 }  // namespace util
 }  // namespace mrmd
