@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+add_subdirectory(00_IdealGas_NVE)
+
 add_subdirectory(Argon)
 add_subdirectory(BinaryLennardJones)
 add_subdirectory(ComplexAtomics)
 add_subdirectory(DensityFluctuations)
-add_subdirectory(IdealGas)
 add_subdirectory(LennardJones)
 add_subdirectory(SPC)
 add_subdirectory(SpartianLJ)

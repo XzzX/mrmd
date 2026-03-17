@@ -67,8 +67,8 @@ public:
                 const util::IsInSymmetricSlab& applicationRegion);
     void apply(const data::Atoms& atoms) const;
 
-    template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
-    void apply_if(const data::Atoms& atoms, const UnaryPred& pred) const;
+    template <OnePositionPredicate Pred>
+    void apply_if(const data::Atoms& atoms, const Pred& pred) const;
 
     std::vector<real_t> getMuLeft() const;
     std::vector<real_t> getMuRight() const;
@@ -95,8 +95,8 @@ public:
                        const bool usePeriodicity = false);
 };
 
-template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
-void ThermodynamicForce::apply_if(const data::Atoms& atoms, const UnaryPred& pred) const
+template <OnePositionPredicate Pred>
+void ThermodynamicForce::apply_if(const data::Atoms& atoms, const Pred& pred) const
 {
     auto atomsPos = atoms.getPos();
     auto atomsForce = atoms.getForce();
