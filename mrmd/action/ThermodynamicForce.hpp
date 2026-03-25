@@ -76,6 +76,14 @@ public:
     ThermodynamicForce(const std::vector<real_t>& targetDensities,
                        const data::Subdomain& subdomain,
                        const real_t& requestedDensityGridSpacing,
+                       const real_t& requestedForceGridSpacing,
+                       const std::vector<real_t>& thermodynamicForceModulations,
+                       const bool enforceSymmetry = false,
+                       const bool usePeriodicity = false);
+
+    ThermodynamicForce(const std::vector<real_t>& targetDensities,
+                       const data::Subdomain& subdomain,
+                       const real_t& requestedDensityGridSpacing,
                        const std::vector<real_t>& thermodynamicForceModulations,
                        const bool enforceSymmetry = false,
                        const bool usePeriodicity = false);
