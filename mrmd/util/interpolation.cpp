@@ -37,7 +37,7 @@ void updateInterpolate(const data::MultiHistogram& target, const data::MultiHist
             auto inputLeft = input.data(leftBinIdx, histogramIdx);
             auto inputRight = input.data(rightBinIdx, histogramIdx);
 
-            target.data(binIdx, histogramIdx) +=
+            target.data(binIdx, histogramIdx) -=
                 lerp(inputLeft,
                      inputRight,
                      (outputBinPosition - input.getBinPosition(leftBinIdx)) * input.inverseBinSize);
