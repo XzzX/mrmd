@@ -49,9 +49,9 @@ TEST(interpolate, preZeroInner)
     auto h_dataRef = Kokkos::create_mirror_view(histogramRef.data);
     for (auto idx = 0; idx < 30; ++idx)
     {
-        h_dataRef(idx, 0) = 0_r;
-        h_dataRef(idx, 1) = 1_r;
-        h_dataRef(idx, 2) = histogramRef.getBinPosition(idx);
+        h_dataRef(idx, 0) = -0_r;
+        h_dataRef(idx, 1) = -1_r;
+        h_dataRef(idx, 2) = -histogramRef.getBinPosition(idx);
     }
     Kokkos::deep_copy(histogramRef.data, h_dataRef);
 
@@ -96,15 +96,15 @@ TEST(interpolate, nonZeroWithBoundary)
         if (histogramRef.getBinPosition(idx) >= histogramInput.getBinPosition(0) &&
             histogramRef.getBinPosition(idx) < histogramInput.getBinPosition(9))
         {
-            h_dataRef(idx, 0) = 1_r + 0_r;
-            h_dataRef(idx, 1) = 1_r + 1_r;
-            h_dataRef(idx, 2) = 1_r + histogramRef.getBinPosition(idx);
+            h_dataRef(idx, 0) = 1_r - 0_r;
+            h_dataRef(idx, 1) = 1_r - 1_r;
+            h_dataRef(idx, 2) = 1_r - histogramRef.getBinPosition(idx);
         }
         else
         {
-            h_dataRef(idx, 0) = 1_r + 0_r;
-            h_dataRef(idx, 1) = 1_r + 0_r;
-            h_dataRef(idx, 2) = 1_r + 0_r;
+            h_dataRef(idx, 0) = 1_r - 0_r;
+            h_dataRef(idx, 1) = 1_r - 0_r;
+            h_dataRef(idx, 2) = 1_r - 0_r;
         }
     }
     Kokkos::deep_copy(histogramRef.data, h_dataRef);
