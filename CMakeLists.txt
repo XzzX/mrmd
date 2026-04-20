@@ -85,7 +85,7 @@ include(FetchContent)
 FetchContent_Declare(
     Kokkos
     GIT_REPOSITORY https://github.com/kokkos/kokkos.git
-    GIT_TAG b601b82d0f4b4491aeafb7b19cde557e92aa761d #4.7.1
+    GIT_TAG 3ec81abe1816109f6f62ac48cef41921f91a4d00 #5.1.0
     OVERRIDE_FIND_PACKAGE
     SYSTEM
 )
@@ -95,7 +95,7 @@ include(${kokkos_BINARY_DIR}/KokkosConfigCommon.cmake)
 FetchContent_Declare(
         CLI11
         GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
-        GIT_TAG bfffd37e1f804ca4fae1caae106935791696b6a9 #2.6.1
+        GIT_TAG 37bb6edc5317e99af72ef48405e65d9ca5218861 #2.6.2
         SYSTEM
 )
 FetchContent_MakeAvailable(CLI11)
@@ -103,7 +103,7 @@ FetchContent_MakeAvailable(CLI11)
 FetchContent_Declare(
         YAML_CPP
         GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-        GIT_TAG a83cd31548b19d50f3f983b069dceb4f4d50756d #0.8.0+
+        GIT_TAG 56e3bb550c91fd7005566f19c079cb7a503223cf #0.9.0
         SYSTEM
 )
 FetchContent_MakeAvailable(YAML_CPP)
