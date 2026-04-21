@@ -1,11 +1,11 @@
 // Copyright 2024 Sebastian Eibl
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -24,9 +24,7 @@ namespace mrmd::io
 
 #ifdef MRMD_ENABLE_HDF5
 template <typename T>
-void RestoreH5MD::read(hid_t fileId,
-                               const std::string& dataset,
-                               std::vector<T>& data)
+void RestoreH5MD::read(hid_t fileId, const std::string& dataset, std::vector<T>& data)
 {
     auto dset = CHECK_HDF5(H5Dopen(fileId, dataset.c_str(), H5P_DEFAULT));
     auto dspace = CHECK_HDF5(H5Dget_space(dset));
@@ -36,8 +34,7 @@ void RestoreH5MD::read(hid_t fileId,
     std::vector<hsize_t> dims(ndims);
     CHECK_HDF5(H5Sget_simple_extent_dims(dspace, dims.data(), nullptr));
 
-    auto totalSize =
-        std::accumulate(dims.begin(), dims.end(), hsize_t(1), std::multiplies<>());
+    auto totalSize = std::accumulate(dims.begin(), dims.end(), hsize_t(1), std::multiplies<>());
     data.resize(totalSize);
 
     CHECK_HDF5(H5Dread(dset, typeToHDF5<T>(), H5S_ALL, H5S_ALL, H5P_DEFAULT, data.data()));
@@ -46,7 +43,9 @@ void RestoreH5MD::read(hid_t fileId,
     CHECK_HDF5(H5Dclose(dset));
 }
 
-void RestoreH5MD::restore(const std::string& filename, data::Subdomain& subdomain, data::Atoms& atoms)
+void RestoreH5MD::restore(const std::string& filename,
+                          data::Subdomain& subdomain,
+                          data::Atoms& atoms)
 {
     auto fileId = CHECK_HDF5(H5Fopen(filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT));
 
@@ -98,7 +97,9 @@ void RestoreH5MD::restore(const std::string& filename, data::Subdomain& subdomai
     std::vector<real_t> relativeMass;
     if (restoreRelativeMass)
     {
-        read(fileId, "/particles/" + particleGroupName_ + "/" + relativeMassDataset + "/value", relativeMass);
+        read(fileId,
+             "/particles/" + particleGroupName_ + "/" + relativeMassDataset + "/value",
+             relativeMass);
         MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, relativeMass.size());
     }
 
@@ -137,15 +138,15 @@ void RestoreH5MD::restore(const std::string& filename, data::Subdomain& subdomai
 }
 #else
 template <typename T>
-void RestoreH5MD::read(hid_t /*fileId*/,
-                               const std::string& /*dataset*/,
-                               std::vector<T>& /*data*/)
+void RestoreH5MD::read(hid_t /*fileId*/, const std::string& /*dataset*/, std::vector<T>& /*data*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 support not available!");
     exit(EXIT_FAILURE);
 }
 
-void RestoreH5MD::restore(const std::string& /*filename*/, data::Subdomain& /*subdomain*/, data::Atoms& /*atoms*/)
+void RestoreH5MD::restore(const std::string& /*filename*/,
+                          data::Subdomain& /*subdomain*/,
+                          data::Atoms& /*atoms*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 support not available!");
     exit(EXIT_FAILURE);

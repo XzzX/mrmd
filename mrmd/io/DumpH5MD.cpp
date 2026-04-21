@@ -1,11 +1,11 @@
 // Copyright 2024 Sebastian Eibl
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,10 +35,7 @@ namespace impl
 class DumpH5MDImpl
 {
 public:
-    explicit DumpH5MDImpl(DumpH5MD& config)
-        : config_(config)
-    {
-    }
+    explicit DumpH5MDImpl(DumpH5MD& config) : config_(config) {}
 
     void dump(const std::string& filename,
               const data::Subdomain& subdomain,
@@ -70,13 +67,12 @@ private:
 
 template <typename T>
 void DumpH5MDImpl::write(hid_t fileId,
-                                 const std::string& name,
-                                 const std::vector<hsize_t>& dims,
-                                 const std::vector<T>& data)
+                         const std::string& name,
+                         const std::vector<hsize_t>& dims,
+                         const std::vector<T>& data)
 {
     MRMD_HOST_CHECK_EQUAL(
-        data.size(),
-        std::accumulate(dims.begin(), dims.end(), hsize_t(1), std::multiplies<>()));
+        data.size(), std::accumulate(dims.begin(), dims.end(), hsize_t(1), std::multiplies<>()));
 
     auto dataspace = CHECK_HDF5(H5Screate_simple(int_c(dims.size()), dims.data(), nullptr));
     auto dataset = CHECK_HDF5(H5Dcreate(
@@ -129,16 +125,25 @@ void DumpH5MDImpl::writeBox(hid_t fileId, const data::Subdomain& subdomain) cons
     CHECK_HDF5(H5Tclose(boundaryType));
 
     std::string edgesGroupName = groupName + "/edges";
-    auto edgesGroup = H5Gcreate(fileId, edgesGroupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    auto edgesGroup =
+        H5Gcreate(fileId, edgesGroupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     std::vector<hsize_t> edgesStepDims = {1};
     std::vector<int64_t> step = {0};
     std::string edgesStepDataset = edgesGroupName + "/step";
-    CHECK_HDF5(H5LTmake_dataset(
-        fileId, edgesStepDataset.c_str(), 1, edgesStepDims.data(), typeToHDF5<int64_t>(), step.data()));
+    CHECK_HDF5(H5LTmake_dataset(fileId,
+                                edgesStepDataset.c_str(),
+                                1,
+                                edgesStepDims.data(),
+                                typeToHDF5<int64_t>(),
+                                step.data()));
     std::vector<hsize_t> edgesValueDims = {1, 3};
     std::string edgesValueDataset = edgesGroupName + "/value";
-    CHECK_HDF5(H5LTmake_dataset(
-        fileId, edgesValueDataset.c_str(), 2, edgesValueDims.data(), typeToHDF5<double>(), subdomain.diameter.data()));
+    CHECK_HDF5(H5LTmake_dataset(fileId,
+                                edgesValueDataset.c_str(),
+                                2,
+                                edgesValueDims.data(),
+                                typeToHDF5<double>(),
+                                subdomain.diameter.data()));
     CHECK_HDF5(H5Gclose(edgesGroup));
 
     CHECK_HDF5(H5LTset_attribute_double(fileId,
@@ -159,7 +164,6 @@ void DumpH5MDImpl::writeBox(hid_t fileId, const data::Subdomain& subdomain) cons
 
     CHECK_HDF5(H5Gclose(group));
 }
-
 
 void DumpH5MDImpl::writePos(hid_t fileId, const data::HostAtoms& atoms)
 {
@@ -370,7 +374,8 @@ void DumpH5MDImpl::writeRelativeMass(hid_t fileId, const data::HostAtoms& atoms)
     using Datatype = real_t;
     constexpr int64_t dimensions = 1;  ///< dimensions of the property
 
-    std::string groupName = "/particles/" + config_.particleGroupName + "/" + config_.relativeMassDataset;
+    std::string groupName =
+        "/particles/" + config_.particleGroupName + "/" + config_.relativeMassDataset;
     auto group = H5Gcreate(fileId, groupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
     std::vector<Datatype> data;
@@ -398,15 +403,14 @@ void DumpH5MDImpl::writeRelativeMass(hid_t fileId, const data::HostAtoms& atoms)
     CHECK_HDF5(H5Gclose(group));
 }
 
-
 void DumpH5MDImpl::updateCache(const data::HostAtoms& atoms)
 {
     numLocalParticles = atoms.numLocalAtoms;
 }
 
 void DumpH5MDImpl::dump(const std::string& filename,
-                                const data::Subdomain& subdomain,
-                                const data::Atoms& atoms)
+                        const data::Subdomain& subdomain,
+                        const data::Atoms& atoms)
 {
     data::HostAtoms h_atoms(atoms);  // NOLINT
 
@@ -436,19 +440,19 @@ void DumpH5MDImpl::dump(const std::string& filename,
     CHECK_HDF5(H5Fclose(file_id));
 }
 
-} // namespace impl
+}  // namespace impl
 
 void DumpH5MD::dump(const std::string& filename,
-                            const data::Subdomain& subdomain,
-                            const data::Atoms& atoms)
+                    const data::Subdomain& subdomain,
+                    const data::Atoms& atoms)
 {
     impl::DumpH5MDImpl helper(*this);
     helper.dump(filename, subdomain, atoms);
 }
 #else
 void DumpH5MD::dump(const std::string& /*filename*/,
-                            const data::Subdomain& /*subdomain*/,
-                            const data::Atoms& /*atoms*/)
+                    const data::Subdomain& /*subdomain*/,
+                    const data::Atoms& /*atoms*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 Support not available!");
     exit(EXIT_FAILURE);
