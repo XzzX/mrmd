@@ -28,8 +28,7 @@
 
 #### Optional libraries
 
-- MPI
-- parallel installation of [HDF5](https://www.hdfgroup.org/solutions/hdf5/)
+- [HDF5](https://www.hdfgroup.org/solutions/hdf5/)
 
 ## CMake configuration options
 
@@ -39,7 +38,6 @@
 | -------------------- | ------------------------------------------ | ------- |
 | MRMD_ENABLE_COVERAGE | Enable code coverage. (clang)"             | OFF     |
 | MRMD_ENABLE_HDF5     | Enable HDF5 support.                       | OFF     |
-| MRMD_ENABLE_MPI      | Enable MPI support.                        | OFF     |
 | MRMD_ENABLE_TESTING  | Build tests and add them to ctest.         | ON      |
 | MRMD_VEC_REPORT      | Enable reporting of loop vectorization.    | OFF     |
 | MRMD_VERBOSE_ASSERTS | Verbose asserts are only available on CPU! | OFF     |
