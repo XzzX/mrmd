@@ -14,8 +14,6 @@
 
 #include "DumpH5MDParallel.hpp"
 
-#include <format>
-
 #include <numeric>
 
 #include "assert/assert.hpp"
@@ -56,67 +54,32 @@ private:
     {%- endfor %}
 
     template <typename T>
-    void writeParallel(hid_t fileId,
-                       const std::string& name,
-                       const std::vector<hsize_t>& globalDims,
-                       const std::vector<hsize_t>& localDims,
-                       const std::vector<T>& data);
+    void write(hid_t fileId,
+               const std::string& name,
+               const std::vector<hsize_t>& dims,
+               const std::vector<T>& data);
 
     DumpH5MDParallel& config_;
 
     int64_t numLocalParticles = -1;
-    int64_t numTotalParticles = -1;
-    /// Offset of the local particle chunk in the global particle array.
-    int64_t particleOffset = -1;
 };
 
 template <typename T>
-void DumpH5MDParallelImpl::writeParallel(hid_t fileId,
-                                         const std::string& name,
-                                         const std::vector<hsize_t>& globalDims,
-                                         const std::vector<hsize_t>& localDims,
-                                         const std::vector<T>& data)
+void DumpH5MDParallelImpl::write(hid_t fileId,
+                                 const std::string& name,
+                                 const std::vector<hsize_t>& dims,
+                                 const std::vector<T>& data)
 {
-    MRMD_HOST_CHECK_EQUAL(globalDims.size(), localDims.size());
     MRMD_HOST_CHECK_EQUAL(
         data.size(),
-        std::accumulate(localDims.begin(), localDims.end(), hsize_t(1), std::multiplies<>()));
+        std::accumulate(dims.begin(), dims.end(), hsize_t(1), std::multiplies<>()));
 
-    auto dataspace =
-        CHECK_HDF5(H5Screate_simple(int_c(globalDims.size()), globalDims.data(), nullptr));
+    auto dataspace = CHECK_HDF5(H5Screate_simple(int_c(dims.size()), dims.data(), nullptr));
     auto dataset = CHECK_HDF5(H5Dcreate(
         fileId, name.c_str(), typeToHDF5<T>(), dataspace, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
 
-    std::vector<hsize_t> offset(globalDims.size(), 0);
-    offset[1] = particleOffset;
-    std::vector<hsize_t> stride(globalDims.size(), 1);
-    std::vector<hsize_t> count(globalDims.size(), 1);
-    for (auto i = 0; i < int_c(globalDims.size()); ++i)
-    {
-        MRMD_HOST_CHECK_LESSEQUAL(
-            localDims[i] + offset[i], globalDims[i], std::format("i = {}", i));
-    }
-    auto dstSpace = CHECK_HDF5(H5Dget_space(dataset));
-    CHECK_HDF5(H5Sselect_hyperslab(
-        dstSpace, H5S_SELECT_SET, offset.data(), stride.data(), count.data(), localDims.data()));
+    CHECK_HDF5(H5Dwrite(dataset, typeToHDF5<T>(), H5S_ALL, H5S_ALL, H5P_DEFAULT, data.data()));
 
-    std::vector<hsize_t> localOffset(globalDims.size(), 0);
-    auto srcSpace =
-        CHECK_HDF5(H5Screate_simple(int_c(localDims.size()), localDims.data(), nullptr));
-    CHECK_HDF5(H5Sselect_hyperslab(srcSpace,
-                                   H5S_SELECT_SET,
-                                   localOffset.data(),
-                                   stride.data(),
-                                   count.data(),
-                                   localDims.data()));
-
-    auto datawrite = CHECK_HDF5(H5Pcreate(H5P_DATASET_XFER));
-    CHECK_HDF5(H5Pset_dxpl_mpio(datawrite, H5FD_MPIO_COLLECTIVE));
-    CHECK_HDF5(H5Dwrite(dataset, typeToHDF5<T>(), srcSpace, dstSpace, datawrite, data.data()));
-
-    CHECK_HDF5(H5Pclose(datawrite));
-    CHECK_HDF5(H5Sclose(dstSpace));
-    CHECK_HDF5(H5Sclose(srcSpace));
     CHECK_HDF5(H5Dclose(dataset));
     CHECK_HDF5(H5Sclose(dataspace));
 }
@@ -216,11 +179,10 @@ void DumpH5MDParallelImpl::write{{prop.name | cap_first}}(hid_t fileId, const da
     }
     MRMD_HOST_CHECK_EQUAL(int64_c(data.size()), numLocalParticles * dimensions);
 
-    std::vector<hsize_t> localDims = {1, uint64_c(numLocalParticles), dimensions};
-    std::vector<hsize_t> globalDims = {1, uint64_c(numTotalParticles), dimensions};
+    std::vector<hsize_t> valueDims = {1, uint64_c(numLocalParticles), dimensions};
 
     std::string dataset_name = groupName + "/value";
-    writeParallel(fileId, dataset_name, globalDims, localDims, data);
+    write(fileId, dataset_name, valueDims, data);
 
     std::vector<hsize_t> dims = {1};
     std::vector<int64_t> step = {0};
@@ -238,15 +200,6 @@ void DumpH5MDParallelImpl::write{{prop.name | cap_first}}(hid_t fileId, const da
 void DumpH5MDParallelImpl::updateCache(const data::HostAtoms& atoms)
 {
     numLocalParticles = atoms.numLocalAtoms;
-    MPI_Allreduce(reinterpret_cast<const void*>(&numLocalParticles),
-                  reinterpret_cast<void*>(&numTotalParticles),
-                  1,
-                  MPI_INT64_T,
-                  MPI_SUM,
-                  config_.mpiInfo->comm);
-
-    MPI_Exscan(&numLocalParticles, &particleOffset, 1, MPI_INT64_T, MPI_SUM, config_.mpiInfo->comm);
-    if (config_.mpiInfo->rank == 0) particleOffset = 0;
 }
 
 void DumpH5MDParallelImpl::dump(const std::string& filename,
@@ -257,12 +210,7 @@ void DumpH5MDParallelImpl::dump(const std::string& filename,
 
     updateCache(h_atoms);
 
-    MPI_Info info = MPI_INFO_NULL;
-
-    auto plist = CHECK_HDF5(H5Pcreate(H5P_FILE_ACCESS));
-    CHECK_HDF5(H5Pset_fapl_mpio(plist, config_.mpiInfo->comm, info));
-
-    auto file_id = CHECK_HDF5(H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, plist));
+    auto file_id = CHECK_HDF5(H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT));
 
     auto group1 =
         CHECK_HDF5(H5Gcreate(file_id, "/particles", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));

@@ -14,12 +14,10 @@
 
 #pragma once
 
-#include <memory>
 #include <string>
 
 #include "cmake.hpp"
 #include "data/Atoms.hpp"
-#include "data/MPIInfo.hpp"
 #include "data/Subdomain.hpp"
 #include "hdf5.hpp"
 
@@ -29,10 +27,8 @@ namespace mrmd::io
 class RestoreH5MDParallel
 {
 public:
-    RestoreH5MDParallel(const std::shared_ptr<data::MPIInfo>& mpiInfo,
-                        const std::string& particleGroupName = "atoms")
-        : mpiInfo_(mpiInfo),
-          particleGroupName_(particleGroupName)
+    explicit RestoreH5MDParallel(const std::string& particleGroupName = "atoms")
+        : particleGroupName_(particleGroupName)
     {
     }
 
@@ -48,11 +44,10 @@ public:
 
 private:
     template <typename T>
-    void readParallel(hid_t fileId,
-                      const std::string& dataset,
-                      std::vector<T>& data);
+    void read(hid_t fileId,
+              const std::string& dataset,
+              std::vector<T>& data);
 
-    std::shared_ptr<data::MPIInfo> mpiInfo_;
     std::string particleGroupName_;
 };
 

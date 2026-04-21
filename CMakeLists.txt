@@ -65,13 +65,9 @@ endif()
 # FIND HDF5
 ########################################################################
 if (MRMD_ENABLE_HDF5)
-    set(HDF5_PREFER_PARALLEL ON)
     #set(HDF5_FIND_DEBUG ON)
     find_package(HDF5 REQUIRED COMPONENTS C HL)
     if (HDF5_FOUND)
-        if (NOT HDF5_IS_PARALLEL)
-            message(FATAL_ERROR "HDF5 with MPI support is required! Serial version detected.")
-        endif ()
         #need to avoid _FORTIFY_SOURCE=2 which causes trouble in debug builds
         set_target_properties(hdf5::hdf5 PROPERTIES INTERFACE_COMPILE_DEFINITIONS "")
     endif ()
