@@ -22,7 +22,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'mrmd'
 
@@ -71,7 +71,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'mrmd'
 
@@ -111,7 +111,7 @@ jobs:
           git --version
           cmake --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'mrmd'
 
@@ -155,7 +155,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'mrmd'
 
@@ -199,7 +199,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'source'
 
@@ -229,7 +229,7 @@ jobs:
     runs-on: ubuntu-latest
     container: xzzx/devel:clang-18
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: run formatter
         run: |
