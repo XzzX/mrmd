@@ -17,8 +17,8 @@
 
 #include <Kokkos_Core.hpp>
 
-#include "DumpH5MDParallel.hpp"
-#include "RestoreH5MDParallel.hpp"
+#include "DumpH5MD.hpp"
+#include "RestoreH5MD.hpp"
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 
@@ -26,7 +26,7 @@ namespace mrmd
 {
 namespace io
 {
-data::Atoms getAtoms(const std::shared_ptr<data::MPIInfo>& mpiInfo)
+data::Atoms getAtoms()
 {
     auto atoms = data::Atoms(10);
     auto pos = atoms.getPos();
@@ -37,22 +37,20 @@ data::Atoms getAtoms(const std::shared_ptr<data::MPIInfo>& mpiInfo)
     auto mass = atoms.getMass();
     auto relativeMass = atoms.getRelativeMass();
 
-    auto rank = mpiInfo->rank;
-
     auto policy = Kokkos::RangePolicy<>(0, 10);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
-        pos(idx, 0) = real_c(idx * rank);
-        pos(idx, 1) = real_c(idx * rank) + 0.1_r;
-        pos(idx, 2) = real_c(idx * rank) + 0.2_r;
+        pos(idx, 0) = real_c(idx);
+        pos(idx, 1) = real_c(idx) + 0.1_r;
+        pos(idx, 2) = real_c(idx) + 0.2_r;
 
-        vel(idx, 0) = real_c(idx * rank + 1);
-        vel(idx, 1) = real_c(idx * rank + 1) + 0.1_r;
-        vel(idx, 2) = real_c(idx * rank + 1) + 0.2_r;
+        vel(idx, 0) = real_c(idx + 1);
+        vel(idx, 1) = real_c(idx + 1) + 0.1_r;
+        vel(idx, 2) = real_c(idx + 1) + 0.2_r;
 
-        force(idx, 0) = real_c(idx * rank + 2);
-        force(idx, 1) = real_c(idx * rank + 2) + 0.1_r;
-        force(idx, 2) = real_c(idx * rank + 2) + 0.2_r;
+        force(idx, 0) = real_c(idx + 2);
+        force(idx, 1) = real_c(idx + 2) + 0.1_r;
+        force(idx, 2) = real_c(idx + 2) + 0.2_r;
 
         type(idx) = idx + 3;
         charge(idx) = real_c(idx) + 4.1_r;
@@ -69,17 +67,15 @@ data::Atoms getAtoms(const std::shared_ptr<data::MPIInfo>& mpiInfo)
 }
 TEST(H5MD, dump)
 {
-    auto mpiInfo = std::make_shared<data::MPIInfo>(MPI_COMM_WORLD);
-
     auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
-    auto atoms1 = getAtoms(mpiInfo);
+    auto atoms1 = getAtoms();
 
-    auto dump = DumpH5MDParallel(mpiInfo, "XzzX");
+    auto dump = DumpH5MD("XzzX");
     dump.dump("dummy.h5md", subdomain1, atoms1);
 
     auto subdomain2 = data::Subdomain();
     auto atoms2 = data::Atoms(0);
-    auto restore = RestoreH5MDParallel(mpiInfo);
+    auto restore = RestoreH5MD();
     restore.restore("dummy.h5md", subdomain2, atoms2);
 
     EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[0], subdomain2.ghostLayerThickness[0]);
