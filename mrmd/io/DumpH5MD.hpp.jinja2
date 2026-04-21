@@ -16,39 +16,33 @@
 
 #include <string>
 
-#include "cmake.hpp"
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
-#include "hdf5.hpp"
 
 namespace mrmd::io
 {
-
-class RestoreH5MDParallel
+class DumpH5MD
 {
 public:
-    explicit RestoreH5MDParallel(const std::string& particleGroupName = "atoms")
-        : particleGroupName_(particleGroupName)
+    DumpH5MD(const std::string& authorArg,
+                     const std::string& particleGroupNameArg = "atoms")
+        : author(authorArg),
+          particleGroupName(particleGroupNameArg)
     {
     }
 
-    void restore(const std::string& filename, data::Subdomain& subdomain, data::Atoms& atoms);
+    void dump(const std::string& filename, const data::Subdomain& subdomain, const data::Atoms& atoms);
 
     {% for prop in particle %}
-    bool restore{{prop.name | cap_first}} = {{prop.default}};
+    bool dump{{prop.name | cap_first}} = {{prop.default}};   
     {%- endfor %}
 
     {% for prop in particle %}
     std::string {{prop.name}}Dataset = "{{prop.dataset}}";
     {%- endfor %}
 
-private:
-    template <typename T>
-    void read(hid_t fileId,
-              const std::string& dataset,
-              std::vector<T>& data);
-
-    std::string particleGroupName_;
+    std::string author = "xxx";
+    std::string particleGroupName = "atoms";
 };
 
 }  // namespace mrmd::io

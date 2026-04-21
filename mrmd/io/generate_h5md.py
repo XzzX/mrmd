@@ -47,16 +47,16 @@ def generate_file(path, template, context=None, filename=None):
 
 
 def main():
-    with open("DumpH5MDParallel.json.jinja2", encoding="utf-8") as f:
+    with open("DumpH5MD.json.jinja2", encoding="utf-8") as f:
         context = json.load(f)
 
     pprint(context)
 
-    generate_file(".", "DumpH5MDParallel.cpp.jinja2", context)
-    generate_file(".", "DumpH5MDParallel.hpp.jinja2", context)
+    generate_file(".", "DumpH5MD.cpp.jinja2", context)
+    generate_file(".", "DumpH5MD.hpp.jinja2", context)
 
-    generate_file(".", "RestoreH5MDParallel.cpp.jinja2", context)
-    generate_file(".", "RestoreH5MDParallel.hpp.jinja2", context)
+    generate_file(".", "RestoreH5MD.cpp.jinja2", context)
+    generate_file(".", "RestoreH5MD.hpp.jinja2", context)
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "RestoreH5MDParallel.hpp"
+#include "RestoreH5MD.hpp"
 
 #include <numeric>
 
@@ -24,7 +24,7 @@ namespace mrmd::io
 
 #ifdef MRMD_ENABLE_HDF5
 template <typename T>
-void RestoreH5MDParallel::read(hid_t fileId,
+void RestoreH5MD::read(hid_t fileId,
                                const std::string& dataset,
                                std::vector<T>& data)
 {
@@ -46,7 +46,7 @@ void RestoreH5MDParallel::read(hid_t fileId,
     CHECK_HDF5(H5Dclose(dset));
 }
 
-void RestoreH5MDParallel::restore(const std::string& filename, data::Subdomain& subdomain, data::Atoms& atoms)
+void RestoreH5MD::restore(const std::string& filename, data::Subdomain& subdomain, data::Atoms& atoms)
 {
     auto fileId = CHECK_HDF5(H5Fopen(filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT));
 
@@ -59,15 +59,48 @@ void RestoreH5MDParallel::restore(const std::string& filename, data::Subdomain& 
         fileId, groupName.c_str(), "ghostLayerThickness", subdomain.ghostLayerThickness.data()));
     subdomain =
         data::Subdomain(subdomain.minCorner, subdomain.maxCorner, subdomain.ghostLayerThickness);
-
-    {%- for prop in particle %}
-    std::vector<{{prop.type}}> {{prop.name}};
-    if (restore{{prop.name | cap_first}})
+    std::vector<real_t> pos;
+    if (restorePos)
     {
-        read(fileId, "/particles/" + particleGroupName_ + "/" + {{prop.name}}Dataset + "/value", {{prop.name}});
-        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * {{prop.dim}}, {{prop.name}}.size());
+        read(fileId, "/particles/" + particleGroupName_ + "/" + posDataset + "/value", pos);
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, pos.size());
     }
-    {%- endfor %}
+    std::vector<real_t> vel;
+    if (restoreVel)
+    {
+        read(fileId, "/particles/" + particleGroupName_ + "/" + velDataset + "/value", vel);
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, vel.size());
+    }
+    std::vector<real_t> force;
+    if (restoreForce)
+    {
+        read(fileId, "/particles/" + particleGroupName_ + "/" + forceDataset + "/value", force);
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, force.size());
+    }
+    std::vector<idx_t> type;
+    if (restoreType)
+    {
+        read(fileId, "/particles/" + particleGroupName_ + "/" + typeDataset + "/value", type);
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, type.size());
+    }
+    std::vector<real_t> mass;
+    if (restoreMass)
+    {
+        read(fileId, "/particles/" + particleGroupName_ + "/" + massDataset + "/value", mass);
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, mass.size());
+    }
+    std::vector<real_t> charge;
+    if (restoreCharge)
+    {
+        read(fileId, "/particles/" + particleGroupName_ + "/" + chargeDataset + "/value", charge);
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, charge.size());
+    }
+    std::vector<real_t> relativeMass;
+    if (restoreRelativeMass)
+    {
+        read(fileId, "/particles/" + particleGroupName_ + "/" + relativeMassDataset + "/value", relativeMass);
+        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, relativeMass.size());
+    }
 
     idx_t numLocalAtoms = idx_c(pos.size() / 3);
     data::HostAtoms h_atoms(numLocalAtoms);
@@ -75,18 +108,28 @@ void RestoreH5MDParallel::restore(const std::string& filename, data::Subdomain& 
     h_atoms.numGhostAtoms = 0;
     for (idx_t idx = 0; idx < numLocalAtoms; ++idx)
     {
-        {%- for prop in particle %}
-        {%- if prop.dim == 1 %}
-        if (restore{{prop.name | cap_first}}) h_atoms.get{{prop.name | cap_first}}()(idx) = {{prop.name}}[idx];
-        {%- else %}
-        if (restore{{prop.name | cap_first}})
+        if (restorePos)
         {
-            {%- for i in range(prop.dim) %}
-            h_atoms.get{{prop.name | cap_first}}()(idx, {{i}}) = {{prop.name}}[idx * {{prop.dim}} + {{i}}];
-            {%- endfor %}
+            h_atoms.getPos()(idx, 0) = pos[idx * 3 + 0];
+            h_atoms.getPos()(idx, 1) = pos[idx * 3 + 1];
+            h_atoms.getPos()(idx, 2) = pos[idx * 3 + 2];
         }
-        {%- endif %}
-        {%- endfor %}
+        if (restoreVel)
+        {
+            h_atoms.getVel()(idx, 0) = vel[idx * 3 + 0];
+            h_atoms.getVel()(idx, 1) = vel[idx * 3 + 1];
+            h_atoms.getVel()(idx, 2) = vel[idx * 3 + 2];
+        }
+        if (restoreForce)
+        {
+            h_atoms.getForce()(idx, 0) = force[idx * 3 + 0];
+            h_atoms.getForce()(idx, 1) = force[idx * 3 + 1];
+            h_atoms.getForce()(idx, 2) = force[idx * 3 + 2];
+        }
+        if (restoreType) h_atoms.getType()(idx) = type[idx];
+        if (restoreMass) h_atoms.getMass()(idx) = mass[idx];
+        if (restoreCharge) h_atoms.getCharge()(idx) = charge[idx];
+        if (restoreRelativeMass) h_atoms.getRelativeMass()(idx) = relativeMass[idx];
     }
     data::deep_copy(atoms, h_atoms);
 
@@ -94,7 +137,7 @@ void RestoreH5MDParallel::restore(const std::string& filename, data::Subdomain& 
 }
 #else
 template <typename T>
-void RestoreH5MDParallel::read(hid_t /*fileId*/,
+void RestoreH5MD::read(hid_t /*fileId*/,
                                const std::string& /*dataset*/,
                                std::vector<T>& /*data*/)
 {
@@ -102,7 +145,7 @@ void RestoreH5MDParallel::read(hid_t /*fileId*/,
     exit(EXIT_FAILURE);
 }
 
-void RestoreH5MDParallel::restore(const std::string& /*filename*/, data::Subdomain& /*subdomain*/, data::Atoms& /*atoms*/)
+void RestoreH5MD::restore(const std::string& /*filename*/, data::Subdomain& /*subdomain*/, data::Atoms& /*atoms*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 support not available!");
     exit(EXIT_FAILURE);

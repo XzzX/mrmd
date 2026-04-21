@@ -16,8 +16,8 @@
 
 #include <Kokkos_Core.hpp>
 
-#include "DumpH5MDParallel.hpp"
-#include "RestoreH5MDParallel.hpp"
+#include "DumpH5MD.hpp"
+#include "RestoreH5MD.hpp"
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 
@@ -69,12 +69,12 @@ TEST(H5MD, dump)
     auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
     auto atoms1 = getAtoms();
 
-    auto dump = DumpH5MDParallel("XzzX");
+    auto dump = DumpH5MD("XzzX");
     dump.dump("dummy.h5md", subdomain1, atoms1);
 
     auto subdomain2 = data::Subdomain();
     auto atoms2 = data::Atoms(0);
-    auto restore = RestoreH5MDParallel();
+    auto restore = RestoreH5MD();
     restore.restore("dummy.h5md", subdomain2, atoms2);
 
     EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[0], subdomain2.ghostLayerThickness[0]);

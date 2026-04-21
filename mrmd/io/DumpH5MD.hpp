@@ -16,32 +16,31 @@
 
 #include <string>
 
-#include "cmake.hpp"
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
-#include "hdf5.hpp"
 
 namespace mrmd::io
 {
-
-class RestoreH5MDParallel
+class DumpH5MD
 {
 public:
-    explicit RestoreH5MDParallel(const std::string& particleGroupName = "atoms")
-        : particleGroupName_(particleGroupName)
+    DumpH5MD(const std::string& authorArg,
+                     const std::string& particleGroupNameArg = "atoms")
+        : author(authorArg),
+          particleGroupName(particleGroupNameArg)
     {
     }
 
-    void restore(const std::string& filename, data::Subdomain& subdomain, data::Atoms& atoms);
+    void dump(const std::string& filename, const data::Subdomain& subdomain, const data::Atoms& atoms);
 
     
-    bool restorePos = true;
-    bool restoreVel = true;
-    bool restoreForce = true;
-    bool restoreType = true;
-    bool restoreMass = true;
-    bool restoreCharge = true;
-    bool restoreRelativeMass = true;
+    bool dumpPos = true;
+    bool dumpVel = true;
+    bool dumpForce = true;
+    bool dumpType = true;
+    bool dumpMass = true;
+    bool dumpCharge = true;
+    bool dumpRelativeMass = true;
 
     
     std::string posDataset = "position";
@@ -52,13 +51,8 @@ public:
     std::string chargeDataset = "charge";
     std::string relativeMassDataset = "relativeMass";
 
-private:
-    template <typename T>
-    void read(hid_t fileId,
-              const std::string& dataset,
-              std::vector<T>& data);
-
-    std::string particleGroupName_;
+    std::string author = "xxx";
+    std::string particleGroupName = "atoms";
 };
 
 }  // namespace mrmd::io

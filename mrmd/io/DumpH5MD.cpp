@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "DumpH5MDParallel.hpp"
+#include "DumpH5MD.hpp"
 
 #include <numeric>
 
@@ -32,10 +32,10 @@ namespace impl
  * This class collects everything needed for the HDF5 dump. If HDF5 is disabled,
  * this class can be skipped and all HDF5 dependencies are gone.
  */
-class DumpH5MDParallelImpl
+class DumpH5MDImpl
 {
 public:
-    explicit DumpH5MDParallelImpl(DumpH5MDParallel& config)
+    explicit DumpH5MDImpl(DumpH5MD& config)
         : config_(config)
     {
     }
@@ -63,13 +63,13 @@ private:
                const std::vector<hsize_t>& dims,
                const std::vector<T>& data);
 
-    DumpH5MDParallel& config_;
+    DumpH5MD& config_;
 
     int64_t numLocalParticles = -1;
 };
 
 template <typename T>
-void DumpH5MDParallelImpl::write(hid_t fileId,
+void DumpH5MDImpl::write(hid_t fileId,
                                  const std::string& name,
                                  const std::vector<hsize_t>& dims,
                                  const std::vector<T>& data)
@@ -88,7 +88,7 @@ void DumpH5MDParallelImpl::write(hid_t fileId,
     CHECK_HDF5(H5Sclose(dataspace));
 }
 
-void DumpH5MDParallelImpl::writeHeader(hid_t fileId) const
+void DumpH5MDImpl::writeHeader(hid_t fileId) const
 {
     auto group1 = CHECK_HDF5(H5Gcreate(fileId, "/h5md", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
     auto group2 =
@@ -108,7 +108,7 @@ void DumpH5MDParallelImpl::writeHeader(hid_t fileId) const
     CHECK_HDF5(H5LTset_attribute_string(fileId, "/h5md/creator", "version", MRMD_VERSION.c_str()));
 }
 
-void DumpH5MDParallelImpl::writeBox(hid_t fileId, const data::Subdomain& subdomain) const
+void DumpH5MDImpl::writeBox(hid_t fileId, const data::Subdomain& subdomain) const
 {
     std::string groupName = "/particles/" + config_.particleGroupName + "/box";
     auto group =
@@ -161,7 +161,7 @@ void DumpH5MDParallelImpl::writeBox(hid_t fileId, const data::Subdomain& subdoma
 }
 
 
-void DumpH5MDParallelImpl::writePos(hid_t fileId, const data::HostAtoms& atoms)
+void DumpH5MDImpl::writePos(hid_t fileId, const data::HostAtoms& atoms)
 {
     using Datatype = real_t;
     constexpr int64_t dimensions = 3;  ///< dimensions of the property
@@ -196,7 +196,7 @@ void DumpH5MDParallelImpl::writePos(hid_t fileId, const data::HostAtoms& atoms)
     CHECK_HDF5(H5Gclose(group));
 }
 
-void DumpH5MDParallelImpl::writeVel(hid_t fileId, const data::HostAtoms& atoms)
+void DumpH5MDImpl::writeVel(hid_t fileId, const data::HostAtoms& atoms)
 {
     using Datatype = real_t;
     constexpr int64_t dimensions = 3;  ///< dimensions of the property
@@ -231,7 +231,7 @@ void DumpH5MDParallelImpl::writeVel(hid_t fileId, const data::HostAtoms& atoms)
     CHECK_HDF5(H5Gclose(group));
 }
 
-void DumpH5MDParallelImpl::writeForce(hid_t fileId, const data::HostAtoms& atoms)
+void DumpH5MDImpl::writeForce(hid_t fileId, const data::HostAtoms& atoms)
 {
     using Datatype = real_t;
     constexpr int64_t dimensions = 3;  ///< dimensions of the property
@@ -266,7 +266,7 @@ void DumpH5MDParallelImpl::writeForce(hid_t fileId, const data::HostAtoms& atoms
     CHECK_HDF5(H5Gclose(group));
 }
 
-void DumpH5MDParallelImpl::writeType(hid_t fileId, const data::HostAtoms& atoms)
+void DumpH5MDImpl::writeType(hid_t fileId, const data::HostAtoms& atoms)
 {
     using Datatype = idx_t;
     constexpr int64_t dimensions = 1;  ///< dimensions of the property
@@ -299,7 +299,7 @@ void DumpH5MDParallelImpl::writeType(hid_t fileId, const data::HostAtoms& atoms)
     CHECK_HDF5(H5Gclose(group));
 }
 
-void DumpH5MDParallelImpl::writeMass(hid_t fileId, const data::HostAtoms& atoms)
+void DumpH5MDImpl::writeMass(hid_t fileId, const data::HostAtoms& atoms)
 {
     using Datatype = real_t;
     constexpr int64_t dimensions = 1;  ///< dimensions of the property
@@ -332,7 +332,7 @@ void DumpH5MDParallelImpl::writeMass(hid_t fileId, const data::HostAtoms& atoms)
     CHECK_HDF5(H5Gclose(group));
 }
 
-void DumpH5MDParallelImpl::writeCharge(hid_t fileId, const data::HostAtoms& atoms)
+void DumpH5MDImpl::writeCharge(hid_t fileId, const data::HostAtoms& atoms)
 {
     using Datatype = real_t;
     constexpr int64_t dimensions = 1;  ///< dimensions of the property
@@ -365,7 +365,7 @@ void DumpH5MDParallelImpl::writeCharge(hid_t fileId, const data::HostAtoms& atom
     CHECK_HDF5(H5Gclose(group));
 }
 
-void DumpH5MDParallelImpl::writeRelativeMass(hid_t fileId, const data::HostAtoms& atoms)
+void DumpH5MDImpl::writeRelativeMass(hid_t fileId, const data::HostAtoms& atoms)
 {
     using Datatype = real_t;
     constexpr int64_t dimensions = 1;  ///< dimensions of the property
@@ -399,12 +399,12 @@ void DumpH5MDParallelImpl::writeRelativeMass(hid_t fileId, const data::HostAtoms
 }
 
 
-void DumpH5MDParallelImpl::updateCache(const data::HostAtoms& atoms)
+void DumpH5MDImpl::updateCache(const data::HostAtoms& atoms)
 {
     numLocalParticles = atoms.numLocalAtoms;
 }
 
-void DumpH5MDParallelImpl::dump(const std::string& filename,
+void DumpH5MDImpl::dump(const std::string& filename,
                                 const data::Subdomain& subdomain,
                                 const data::Atoms& atoms)
 {
@@ -438,15 +438,15 @@ void DumpH5MDParallelImpl::dump(const std::string& filename,
 
 } // namespace impl
 
-void DumpH5MDParallel::dump(const std::string& filename,
+void DumpH5MD::dump(const std::string& filename,
                             const data::Subdomain& subdomain,
                             const data::Atoms& atoms)
 {
-    impl::DumpH5MDParallelImpl helper(*this);
+    impl::DumpH5MDImpl helper(*this);
     helper.dump(filename, subdomain, atoms);
 }
 #else
-void DumpH5MDParallel::dump(const std::string& /*filename*/,
+void DumpH5MD::dump(const std::string& /*filename*/,
                             const data::Subdomain& /*subdomain*/,
                             const data::Atoms& /*atoms*/)
 {
