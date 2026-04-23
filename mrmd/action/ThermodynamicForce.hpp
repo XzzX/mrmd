@@ -15,13 +15,13 @@
 
 #pragma once
 
-#include <concepts>
-
 #include "assert/assert.hpp"
 #include "data/Atoms.hpp"
 #include "data/MultiHistogram.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
+#include "util/IsInSymmetricSlab.hpp"
+#include "util/interpolation.hpp"
 #include "weighting_function/Slab.hpp"
 
 namespace mrmd
@@ -35,8 +35,8 @@ private:
     data::MultiHistogram densityProfile_;
     idx_t densityProfileSamples_ = 0;
     real_t binVolume_;
-    const std::vector<real_t> targetDensity_;
-    const std::vector<real_t> thermodynamicForceModulation_;
+    const std::vector<real_t> targetDensities_;
+    const std::vector<real_t> thermodynamicForceModulations_;
     idx_t numTypes_;
 
     ScalarView forceFactor_;  ///< precalculated prefactor for force calculation
@@ -63,6 +63,9 @@ public:
 
     void sample(data::Atoms& atoms);
     void update(const real_t& smoothingSigma, const real_t& smoothingIntensity);
+    void update(const real_t& smoothingSigma,
+                const real_t& smoothingIntensity,
+                const util::IsInSymmetricSlab& applicationRegion);
     void apply(const data::Atoms& atoms) const;
 
     template <OnePositionPredicate Pred>
@@ -71,17 +74,32 @@ public:
     std::vector<real_t> getMuLeft() const;
     std::vector<real_t> getMuRight() const;
 
-    ThermodynamicForce(const std::vector<real_t>& targetDensity,
+    ThermodynamicForce(const std::vector<real_t>& targetDensities,
                        const data::Subdomain& subdomain,
-                       const real_t& requestedDensityBinWidth,
-                       const std::vector<real_t>& thermodynamicForceModulation,
+                       const real_t& requestedDensityGridSpacing,
+                       const real_t& requestedForceGridSpacing,
+                       const std::vector<real_t>& thermodynamicForceModulations,
                        const bool enforceSymmetry = false,
                        const bool usePeriodicity = false);
 
-    ThermodynamicForce(const real_t targetDensity,
+    ThermodynamicForce(const std::vector<real_t>& targetDensities,
                        const data::Subdomain& subdomain,
-                       const real_t& requestedDensityBinWidth,
-                       const real_t thermodynamicForceModulation,
+                       const real_t& requestedDensityGridSpacing,
+                       const std::vector<real_t>& thermodynamicForceModulations,
+                       const bool enforceSymmetry = false,
+                       const bool usePeriodicity = false);
+
+    ThermodynamicForce(const real_t& targetDensity,
+                       const data::Subdomain& subdomain,
+                       const real_t& requestedDensityGridSpacing,
+                       const real_t& thermodynamicForceModulation,
+                       const bool enforceSymmetry = false,
+                       const bool usePeriodicity = false);
+
+    ThermodynamicForce(const std::vector<real_t>& targetDensities,
+                       const data::Subdomain& subdomain,
+                       const idx_t& requestedDensityBinNumber,
+                       const std::vector<real_t>& thermodynamicForceModulations,
                        const bool enforceSymmetry = false,
                        const bool usePeriodicity = false);
 };
