@@ -42,7 +42,6 @@ jobs:
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
@@ -88,7 +87,6 @@ jobs:
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
@@ -126,7 +124,6 @@ jobs:
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
@@ -176,9 +173,7 @@ jobs:
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
             -DKokkos_ENABLE_CUDA=ON \
-            -DKokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE=ON \
             -DKokkos_ARCH_AMPERE80=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
@@ -219,7 +214,6 @@ jobs:
             -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: run clang-tidy
         working-directory: ./source
