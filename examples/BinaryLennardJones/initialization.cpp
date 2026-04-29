@@ -17,8 +17,7 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
 
-#include "data/MPIInfo.hpp"
-#include "io/RestoreH5MDParallel.hpp"
+#include "io/RestoreH5MD.hpp"
 
 namespace mrmd
 {
@@ -76,8 +75,7 @@ void init(const YAML::Node& config, data::Atoms& atoms, data::Subdomain& subdoma
                                      config["box"][2].as<real_t>()},
                                     config["ghost_layer_thickness"].as<real_t>());
 
-        auto mpiInfo = std::make_shared<data::MPIInfo>();
-        auto io = io::RestoreH5MDParallel(mpiInfo);
+        auto io = io::RestoreH5MD();
         io.restore(config["restore_file"].as<std::string>(), subdomain, atoms);
         return;
     }

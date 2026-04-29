@@ -22,7 +22,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'mrmd'
 
@@ -42,7 +42,6 @@ jobs:
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
@@ -71,7 +70,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'mrmd'
 
@@ -88,7 +87,6 @@ jobs:
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
@@ -111,7 +109,7 @@ jobs:
           git --version
           cmake --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'mrmd'
 
@@ -126,7 +124,6 @@ jobs:
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
@@ -155,7 +152,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'mrmd'
 
@@ -176,9 +173,7 @@ jobs:
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
             -DKokkos_ENABLE_CUDA=ON \
-            -DKokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE=ON \
             -DKokkos_ARCH_AMPERE80=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
@@ -199,7 +194,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'source'
 
@@ -219,7 +214,6 @@ jobs:
             -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: run clang-tidy
         working-directory: ./source
@@ -229,7 +223,7 @@ jobs:
     runs-on: ubuntu-latest
     container: xzzx/devel:clang-18
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: run formatter
         run: |
