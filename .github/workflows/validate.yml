@@ -225,6 +225,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: print clang-format version
+        run: clang-format-18 --version || clang-format --version
+
       - name: run formatter
         run: |
           git config --global --add safe.directory /__w/mrmd/mrmd
