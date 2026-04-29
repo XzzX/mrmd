@@ -106,8 +106,7 @@ struct Input
 
 std::ostream& operator<<(std::ostream& os, const Input& input)
 {
-    os << "T: " << input.targetTemperature << " | "
-       << "p: " << input.targetPressure;
+    os << "T: " << input.targetTemperature << " | " << "p: " << input.targetPressure;
     return os;
 }
 
