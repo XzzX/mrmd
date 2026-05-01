@@ -15,7 +15,6 @@
 
 add_subdirectory(00_IdealGas_NVE)
 
-add_subdirectory(Argon)
 add_subdirectory(BinaryLennardJones)
 add_subdirectory(ComplexAtomics)
 add_subdirectory(DensityFluctuations)
