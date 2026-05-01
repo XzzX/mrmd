@@ -37,6 +37,7 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "initialization.hpp"
+#include "io/DumpH5MD.hpp"
 #include "util/EnvironmentVariables.hpp"
 #include "util/PrintTable.hpp"
 #include "util/simulationSetup.hpp"
@@ -85,9 +86,12 @@ struct Config
     idx_t outputInterval = -1;            ///< interval for data file output (-1: no output)
     const std::string resName = "Argon";  ///< residue name for output files
     const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
+
+    std::string fileOut = "lennardJonesNVT";  ///< base name for output files
+    std::string fileOutFinalH5MD = format("{0}_final.h5md", fileOut);
 };
 
-void runLennardJones(Config& config)
+void runLennardJonesNVT(Config& config)
 {
     // initialize simulation domain
     auto subdomain =
@@ -97,8 +101,8 @@ void runLennardJones(Config& config)
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
 
     // initialize atoms randomly in the domain
-    auto atoms = util::fillDomainWithAtoms(
-        subdomain, config.numAtoms, config.maxVelocity, config.mass);
+    auto atoms =
+        util::fillDomainWithAtoms(subdomain, config.numAtoms, config.maxVelocity, config.mass);
 
     // calculate and print initial density
     auto rho = real_c(atoms.numLocalAtoms) / volume;
@@ -132,6 +136,9 @@ void runLennardJones(Config& config)
 
     // open statistics file for writing simulation statistics
     std::ofstream fStat("statistics.txt");
+
+    // set up H5MD output
+    auto dumpH5MD = io::DumpH5MD("J-Hizzle");
 
     // main simulation loop
     for (auto step = 0; step < config.nsteps; ++step)
@@ -211,10 +218,16 @@ void runLennardJones(Config& config)
         }
     }
 
-    // close statistics file
-    fStat.close();
-    auto time = timer.seconds();
-    std::cout << time << std::endl;
+    if (config.bOutput)
+    {
+        // final microstates output
+        dumpH5MD.dump(config.fileOutFinalH5MD, subdomain, atoms);
+
+        // close statistics file
+        fStat.close();
+        auto time = timer.seconds();
+        std::cout << time << std::endl;
+    }
 
     // write performance data to file
     auto cores = util::getEnvironmentVariable("OMP_NUM_THREADS");
@@ -248,7 +261,7 @@ int main(int argc, char* argv[])  // NOLINT
     if (config.outputInterval < 0) config.bOutput = false;
 
     // set up, equilibrate in NVT and run production in NVE
-    runLennardJones(config);
+    runLennardJonesNVT(config);
 
     return EXIT_SUCCESS;
 }
