@@ -75,10 +75,8 @@ struct Config
     static constexpr idx_t numAtoms = 16 * 16 * 16;  ///< number of atoms in the simulation
     real_t Lx = 20_r * sigma;                        ///< box edge length
 
-    // equilibration parameters
-    idx_t nstepsEq = 100000;  ///< number of equilibration steps
-    real_t temperature =
-        1.5_r;  ///< target temperature during equilibration for thermostat in reduced units
+    // thermostat parameters
+    real_t temperature = 1.5_r;  ///< target temperature for thermostat in reduced units
     static constexpr real_t gamma = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
 
     // output parameters
@@ -119,7 +117,7 @@ void runLennardJonesNVT(Config& config)
     // set up interaction potential and force calculation and application
     action::LennardJones lennardJones(config.r_cut, config.sigma, config.epsilon, config.r_cap);
 
-    // set up thermostat for temperature control during equilibration
+    // set up thermostat for temperature control
     action::VelocityVerletLangevinThermostat integrator(config.gamma, config.temperature);
 
     // set up timer for runtime measurement
@@ -260,7 +258,7 @@ int main(int argc, char* argv[])  // NOLINT
     // reset output parameter if output interval is negative
     if (config.outputInterval < 0) config.bOutput = false;
 
-    // set up, equilibrate in NVT and run production in NVE
+    // run simulation in NVT
     runLennardJonesNVT(config);
 
     return EXIT_SUCCESS;
