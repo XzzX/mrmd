@@ -86,7 +86,7 @@ If you use MRMD in your research, please cite it using the metadata in [CITATION
 # Authors
 
 - Sebastian Eibl ([@XzzX](https://github.com/XzzX)) — [ORCID](https://orcid.org/0000-0002-1069-2720)
-- Julian Friedrich Hille — [ORCID](https://orcid.org/0009-0008-1005-9053)
+- Julian Friedrich Hille ([@J-Hizzle](https://github.com/J-Hizzle)) — [ORCID](https://orcid.org/0009-0008-1005-9053)
 
 # License
 
