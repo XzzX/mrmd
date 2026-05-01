@@ -37,8 +37,8 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "initialization.hpp"
-#include "io/RestoreH5MD.hpp"
 #include "io/DumpH5MD.hpp"
+#include "io/RestoreH5MD.hpp"
 #include "util/EnvironmentVariables.hpp"
 #include "util/PrintTable.hpp"
 
@@ -49,7 +49,7 @@ using namespace mrmd;
  */
 struct Config
 {
-    // input file parameters 
+    // input file parameters
     std::string fileRestoreH5MD = "lennardJonesNVT_final.h5md";
 
     // simulation time parameters
@@ -87,8 +87,7 @@ struct Config
 void runLennardJonesNVE(Config& config)
 {
     // initialize simulation domain
-    auto subdomain =
-        data::Subdomain({0_r, 0_r, 0_r}, {0_r, 0_r, 0_r}, config.neighborCutoff);
+    auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {0_r, 0_r, 0_r}, config.neighborCutoff);
 
     // initialize atoms
     auto atoms = data::Atoms(0);
