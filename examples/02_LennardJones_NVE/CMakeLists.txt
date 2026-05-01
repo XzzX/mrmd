@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+configure_file(lennardJonesNVT_final.h5md . COPYONLY)
+
 add_executable(02_LennardJones_NVE
         02_LennardJones_NVE.cpp
         )
