@@ -223,16 +223,18 @@ void runLennardJonesNVE(Config& config)
 
         // close statistics file
         fStat.close();
-        auto time = timer.seconds();
-        std::cout << time << std::endl;
+
+        // write performance data to file
+        auto cores = util::getEnvironmentVariable("OMP_NUM_THREADS");
+        std::ofstream fout("ecab.perf", std::ofstream::app);
+        fout << cores << ", " << time << ", " << atoms.numLocalAtoms << ", " << config.nsteps
+             << std::endl;
+        fout.close();
     }
 
-    // write performance data to file
-    auto cores = util::getEnvironmentVariable("OMP_NUM_THREADS");
-    std::ofstream fout("ecab.perf", std::ofstream::app);
-    fout << cores << ", " << time << ", " << atoms.numLocalAtoms << ", " << config.nsteps
-         << std::endl;
-    fout.close();
+    // print performance data
+    auto time = timer.seconds();
+    std::cout << time << std::endl;
 }
 
 int main(int argc, char* argv[])  // NOLINT
