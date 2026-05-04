@@ -14,7 +14,6 @@
 # limitations under the License.
 
 add_subdirectory(00_IdealGas_NVE)
-add_subdirectory(ComplexAtomics)
 add_subdirectory(DensityFluctuations)
 add_subdirectory(LennardJones)
 add_subdirectory(SpartianLJ)
