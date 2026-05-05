@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -157,12 +158,6 @@ void runLennardJones_idealGas_localCap(Config& config)
         // integrate equations of motion before force calculation
         maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
-        // reinsert atoms that left the domain according to periodic boundary conditions
-        ghostLayer.exchangeRealAtoms(atoms, subdomain);
-
-        // create ghost atoms in the ghost layer beyond the periodic boundaries
-        ghostLayer.createGhostAtoms(atoms, subdomain);
-
         // check if neighbor list needs to be rebuilt
         if (maxAtomDisplacement >=
             config.skin *
@@ -171,6 +166,12 @@ void runLennardJones_idealGas_localCap(Config& config)
         {
             // reset displacement
             maxAtomDisplacement = 0_r;
+
+            // reinsert atoms that left the domain according to periodic boundary conditions
+            ghostLayer.exchangeRealAtoms(atoms, subdomain);
+
+            // create ghost atoms in the ghost layer beyond the periodic boundaries
+            ghostLayer.createGhostAtoms(atoms, subdomain);
 
             // rebuild neighbor list
             verletList.build(atoms.getPos(),
@@ -182,6 +183,12 @@ void runLennardJones_idealGas_localCap(Config& config)
                              subdomain.maxGhostCorner.data(),
                              config.estimatedMaxNeighbors);
             ++rebuildCounter;
+        }
+        else
+        {
+            // update ghost atom positions in the ghost layer according to periodic boundary
+            // conditions
+            ghostLayer.updateGhostAtoms(atoms, subdomain);
         }
 
         // reset forces to zero
