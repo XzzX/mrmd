@@ -13,10 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_executable(02_LennardJones_IdealGas_LocalCap
-        02_LennardJones_IdealGas_LocalCap.cpp
+add_executable(04_LennardJones_IdealGas_LocalCap
+        04_LennardJones_IdealGas_LocalCap.cpp
         )
-target_link_libraries(02_LennardJones_IdealGas_LocalCap
+target_link_libraries(04_LennardJones_IdealGas_LocalCap
         PRIVATE mrmd CLI11::CLI11
         )
-add_test(NAME Example.02_LennardJones_IdealGas_LocalCap COMMAND ./02_LennardJones_IdealGas_LocalCap --nsteps 10)
+add_test(NAME Example.04_LennardJones_IdealGas_LocalCap COMMAND ./04_LennardJones_IdealGas_LocalCap --nsteps 10)
