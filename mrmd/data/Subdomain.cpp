@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -51,6 +52,18 @@ void checkInvariants([[maybe_unused]] const Subdomain& subdomain)
         assert(subdomain.diameter[dim] > subdomain.ghostLayerThickness[dim] &&
                "ghost layer to larger than subdomain");
     }
+}
+
+real_t Subdomain::getVolume() const { return diameter[0] * diameter[1] * diameter[2]; }
+
+Point3D Subdomain::getCenter() const
+{
+    Point3D center;
+    for (auto dim = 0; dim < DIMENSIONS; ++dim)
+    {
+        center[dim] = (minCorner[dim] + maxCorner[dim]) * 0.5_r;
+    }
+    return center;
 }
 
 }  // namespace data

@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -143,5 +144,14 @@ TEST(Subdomain, scale)
     EXPECT_FLOAT_EQ(subdomain.maxGhostCorner[0], 1.7_r);
     EXPECT_FLOAT_EQ(subdomain.maxGhostCorner[1], 3.2_r);
     EXPECT_FLOAT_EQ(subdomain.maxGhostCorner[2], 4.7_r);
+}
+TEST(Subdomain, getVolumeAndCenter)
+{
+    data::Subdomain subdomain({1, 2, 3}, {3, 6, 9}, 0.5_r);
+
+    EXPECT_FLOAT_EQ(subdomain.getVolume(), 48_r);
+    EXPECT_FLOAT_EQ(subdomain.getCenter()[0], 2_r);
+    EXPECT_FLOAT_EQ(subdomain.getCenter()[1], 4_r);
+    EXPECT_FLOAT_EQ(subdomain.getCenter()[2], 6_r);
 }
 }  // namespace mrmd

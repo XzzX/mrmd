@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -91,14 +92,6 @@ std::string generateAssertionMessage(const T& lhs,
         ss << msg;                 \
         assumption::log(ss.str()); \
     }
-
-template <typename FLOAT>
-bool isFloatEqual(const FLOAT& lhs,
-                  const FLOAT& rhs,
-                  const FLOAT& epsilon = std::numeric_limits<FLOAT>::epsilon())
-{
-    return std::abs(lhs - rhs) < epsilon;
-}
 
 // macro overloading (-> https://stackoverflow.com/a/24028231)
 

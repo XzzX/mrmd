@@ -103,7 +103,7 @@ protected:
 
     data::Subdomain subdomain = {
         {0_r, 0_r, 0_r}, {Config::Lx, Config::Lx, Config::Lx}, Config::neighborCutoff};
-    real_t volume = {subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2]};
+    real_t volume = {subdomain.getVolume()};
     data::Atoms atoms = {fillDomainWithAtomsSC(subdomain, idx_c(Config::rho* volume), 1_r)};
     real_t rho = {real_c(atoms.numLocalAtoms) / volume};
     communication::GhostLayer ghostLayer;

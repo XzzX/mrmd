@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -123,6 +124,15 @@ template <typename T>
 KOKKOS_INLINE_FUNCTION constexpr float float_c(const T& val)
 {
     return static_cast<float>(val);
+}
+
+template <typename FLOAT>
+KOKKOS_INLINE_FUNCTION bool isFloatEqual(
+    const FLOAT& lhs,
+    const FLOAT& rhs,
+    const FLOAT& epsilon = std::numeric_limits<FLOAT>::epsilon())
+{
+    return std::abs(lhs - rhs) < epsilon;
 }
 
 enum class AXIS : idx_t

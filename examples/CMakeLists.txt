@@ -1,4 +1,5 @@
 # Copyright 2024 Sebastian Eibl
+# Copyright 2026 Julian Friedrich Hille
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,12 +14,3 @@
 # limitations under the License.
 
 add_subdirectory(00_IdealGas_NVE)
-
-add_subdirectory(Argon)
-add_subdirectory(BinaryLennardJones)
-add_subdirectory(ComplexAtomics)
-add_subdirectory(DensityFluctuations)
-add_subdirectory(LennardJones)
-add_subdirectory(SPC)
-add_subdirectory(SpartianLJ)
-add_subdirectory(Vectorization)

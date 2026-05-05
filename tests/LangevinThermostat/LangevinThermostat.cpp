@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -108,12 +109,9 @@ TEST(Integration, LocalLangevinThermostat)
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
     auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
 
-    real_t boxCenterX = 0.5_r * (subdomain.maxCorner[0] + subdomain.minCorner[0]);
-    real_t boxCenterY = 0.5_r * (subdomain.maxCorner[1] + subdomain.minCorner[1]);
-    real_t boxCenterZ = 0.5_r * (subdomain.maxCorner[2] + subdomain.minCorner[2]);
+    const auto boxCenter = subdomain.getCenter();
 
-    auto isInSymmetricSlab =
-        util::IsInSymmetricSlab({boxCenterX, boxCenterY, boxCenterZ}, 0_r, 5.0_r);
+    auto isInSymmetricSlab = util::IsInSymmetricSlab(boxCenter, 0_r, 5.0_r);
 
     action::VelocityVerletLangevinThermostat vv(1e5_r, config.temperature);
     for (auto step = 0; step < config.nsteps; ++step)
