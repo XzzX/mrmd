@@ -37,7 +37,7 @@
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
 #include "initialization.hpp"
-#include "io/DumpH5MD.hpp"
+#include "io/DumpGRO.hpp"
 #include "util/EnvironmentVariables.hpp"
 #include "util/PrintTable.hpp"
 #include "util/simulationSetup.hpp"
@@ -86,7 +86,7 @@ struct Config
     const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
 
     std::string fileOut = "lennardJonesNVT";  ///< base name for output files
-    std::string fileOutFinalH5MD = format("{0}_final.h5md", fileOut);
+    std::string fileOutFinalGRO = format("{0}_final.gro", fileOut);
 };
 
 void runLennardJonesNVT(Config& config)
@@ -134,9 +134,6 @@ void runLennardJonesNVT(Config& config)
 
     // open statistics file for writing simulation statistics
     std::ofstream fStat("statistics.txt");
-
-    // set up H5MD output
-    auto dumpH5MD = io::DumpH5MD("J-Hizzle");
 
     // main simulation loop
     for (auto step = 0; step < config.nsteps; ++step)
@@ -219,7 +216,13 @@ void runLennardJonesNVT(Config& config)
     if (config.bOutput)
     {
         // final microstates output
-        dumpH5MD.dump(config.fileOutFinalH5MD, subdomain, atoms);
+        io::dumpGRO(config.fileOutFinalGRO,
+                    atoms,
+                    subdomain,
+                    config.nsteps,
+                    config.fileOutFinalGRO,
+                    config.resName,
+                    config.typeNames);
 
         // close statistics file
         fStat.close();
