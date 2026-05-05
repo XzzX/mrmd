@@ -13,5 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(00_IdealGas_NVE)
-add_subdirectory(02_LennardJones_NVE)
+configure_file(lennardJonesNVT_final.h5md . COPYONLY)
+
+add_executable(02_LennardJones_NVE
+        02_LennardJones_NVE.cpp
+        )
+target_link_libraries(02_LennardJones_NVE
+        PRIVATE mrmd CLI11::CLI11
+        )
+add_test(NAME Example.02_LennardJones_NVE COMMAND ./02_LennardJones_NVE --nsteps 10)
