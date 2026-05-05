@@ -129,7 +129,7 @@ void runLennardJones_idealGas_localCap(Config& config)
     std::cout << "z center: " << boxCenter[2] << std::endl;
 
     // set up different interaction regions for capped and bare LJ potential
-    util::IsInSymmetricSlab isInCentralRegion(
+    util::IsInSymmetricSlab isInNoCapRegion(
         {boxCenter[0], boxCenter[1], boxCenter[2]}, 0_r, 10_r * config.sigma);
     util::IsInSymmetricSlab isInCappingRegion(
         {boxCenter[0], boxCenter[1], boxCenter[2]}, 10_r * config.sigma, 15_r * config.sigma);
@@ -213,7 +213,7 @@ void runLennardJones_idealGas_localCap(Config& config)
                               const real_t x2,
                               const real_t y2,
                               const real_t z2) {
-                    return isInCentralRegion(x1, y1, z1) || isInCentralRegion(x2, y2, z2);
+                    return isInNoCapRegion(x1, y1, z1) || isInNoCapRegion(x2, y2, z2);
                 });
             lennardJonesCap.apply_if(
                 atoms,
