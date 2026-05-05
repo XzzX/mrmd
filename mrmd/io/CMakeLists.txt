@@ -18,6 +18,8 @@ mrmd_add_test(NAME test.io.DumpCSV
 configure_file(DumpGRO.test.gro ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 mrmd_add_test(NAME test.io.DumpGRO
               FILES DumpGRO.test.cpp)
+mrmd_add_test(NAME test.io.RestoreGRO
+              FILES RestoreGRO.test.cpp)
 mrmd_add_test(NAME test.io.ThermoForce
               FILES ThermoForce.test.cpp)
 
