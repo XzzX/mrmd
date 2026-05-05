@@ -220,10 +220,10 @@ void runLennardJonesNVE(Config& config)
     {
         // final microstates output
         dumpH5MD.dump(config.fileOutFinalH5MD, subdomain, atoms);
-
-        // close statistics file
-        fStat.close();
     }
+
+    // close statistics file
+    fStat.close();
 
     // print performance data
     auto time = timer.seconds();
