@@ -13,11 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "RestoreGRO.hpp"
-
 #include <gtest/gtest.h>
 
+#include <fstream>
+#include <string>
+
 #include "DumpGRO.hpp"
+#include "RestoreGRO.hpp"
+#include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "util/simulationSetup.hpp"
 
@@ -25,7 +28,27 @@ namespace mrmd
 {
 namespace io
 {
-TEST(RestoreGRO, restoreGRO)
+
+void compareFiles(const std::string& filename1, const std::string& filename2)
+{
+    std::ifstream file1(filename1);
+    std::ifstream file2(filename2);
+
+    ASSERT_TRUE(file1.is_open());
+    ASSERT_TRUE(file2.is_open());
+
+    std::string line1 = "";
+    std::string line2 = "";
+    while (std::getline(file1, line1) && std::getline(file2, line2))
+    {
+        ASSERT_EQ(line1, line2);
+    }
+
+    file1.close();
+    file2.close();
+}
+
+TEST(GRO, restoreGRO)
 {
     data::Subdomain subdomain({0_r, 0_r, 0_r}, {10_r, 10_r, 10_r}, 0.5_r);
     auto atoms = util::fillDomainWithAtoms(subdomain, 1000, 1_r, 1_r);
@@ -52,5 +75,6 @@ TEST(RestoreGRO, restoreGRO)
         }
     }
 }
+
 }  // namespace io
 }  // namespace mrmd
