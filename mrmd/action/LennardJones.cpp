@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -57,35 +58,6 @@ LennardJones::LennardJones(const std::vector<real_t>& cappingDistance,
 
 namespace mrmd::action::impl
 {
-KOKKOS_FUNCTION
-CappedLennardJonesPotential::ForceAndEnergy CappedLennardJonesPotential::computeForceAndEnergy(
-    const real_t& distSqr, const idx_t& typeIdx) const
-{
-    ForceAndEnergy ret;
-    if (distSqr >= precomputedValues_(typeIdx).cappingDistanceSqr)
-    {
-        // normal LJ calculation
-        auto frac2 = 1_r / distSqr;
-        auto frac6 = frac2 * frac2 * frac2;
-        ret.forceFactor =
-            frac6 * (precomputedValues_(typeIdx).ff1 * frac6 - precomputedValues_(typeIdx).ff2) *
-            frac2;
-        ret.energy =
-            frac6 * (precomputedValues_(typeIdx).ef1 * frac6 - precomputedValues_(typeIdx).ef2) -
-            precomputedValues_(typeIdx).shift;
-        return ret;
-    }
-
-    // force capping
-    auto dist = std::sqrt(distSqr);
-    ret.forceFactor = precomputedValues_(typeIdx).cappingCoeff / dist;
-    ret.energy = precomputedValues_(typeIdx).energyAtCappingPoint -
-                 (dist - precomputedValues_(typeIdx).cappingDistance) *
-                     precomputedValues_(typeIdx).cappingCoeff -
-                 precomputedValues_(typeIdx).shift;
-    return ret;
-}
-
 KOKKOS_FUNCTION
 void CappedLennardJonesPotential::operator()(const idx_t& typeIdx) const
 {
