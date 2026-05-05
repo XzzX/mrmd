@@ -13,10 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "RestoreGRO.hpp"
+
 #include <gtest/gtest.h>
 
 #include "DumpGRO.hpp"
-#include "RestoreGRO.hpp"
 #include "data/Subdomain.hpp"
 #include "util/simulationSetup.hpp"
 
@@ -28,29 +29,28 @@ TEST(RestoreGRO, restoreGRO)
 {
     data::Subdomain subdomain({0_r, 0_r, 0_r}, {10_r, 10_r, 10_r}, 0.5_r);
     auto atoms = util::fillDomainWithAtoms(subdomain, 1000, 1_r, 1_r);
+    data::Atoms restoredAtoms(0);
 
     dumpGRO("test.gro", atoms, subdomain, 0_r, "test", "RES", {"A"}, false, true);
 
-//    auto restoredAtoms = restoreGRO("test.gro", subdomain);
-//
-//    EXPECT_EQ(atoms.numLocalAtoms, restoredAtoms.numLocalAtoms);
-//    EXPECT_EQ(atoms.numGhostAtoms, restoredAtoms.numGhostAtoms);
-//
-//    auto positions = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getPos());
-//    auto velocities = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), atoms.getVel());
-//    auto restoredPositions =
-//        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), restoredAtoms.getPos());
-//    auto restoredVelocities =
-//        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), restoredAtoms.getVel());
-//
-//    for (idx_t atomNum = 0; atomNum < atoms.numLocalAtoms; atomNum++)
-//    {
-//        for (idx_t dim = 0; dim < DIMENSIONS; dim++)
-//        {
-//            EXPECT_FLOAT_EQ(positions(atomNum, dim), restoredPositions(atomNum, dim));
-//            EXPECT_FLOAT_EQ(velocities(atomNum, dim), restoredVelocities(atomNum, dim));
-//        }
-//    }
+    restoreGRO("test.gro", subdomain, restoredAtoms);
+
+    EXPECT_EQ(atoms.numLocalAtoms, restoredAtoms.numLocalAtoms);
+    EXPECT_EQ(atoms.numGhostAtoms, restoredAtoms.numGhostAtoms);
+
+    auto positions = atoms.getPos();
+    auto velocities = atoms.getVel();
+    auto restoredPositions = restoredAtoms.getPos();
+    auto restoredVelocities = restoredAtoms.getVel();
+
+    for (idx_t atomIdx = 0; atomIdx < atoms.numLocalAtoms; atomIdx++)
+    {
+        for (idx_t dim = 0; dim < DIMENSIONS; dim++)
+        {
+            EXPECT_NEAR(positions(atomIdx, dim), restoredPositions(atomIdx, dim), 1e-3_r);
+            EXPECT_NEAR(velocities(atomIdx, dim), restoredVelocities(atomIdx, dim), 1e-4_r);
+        }
+    }
 }
 }  // namespace io
 }  // namespace mrmd

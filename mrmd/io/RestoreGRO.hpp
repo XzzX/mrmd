@@ -12,3 +12,15 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+#include "data/Atoms.hpp"
+#include "data/Subdomain.hpp"
+
+namespace mrmd::io
+{
+void restoreGRO(const std::string& filename,
+                data::Subdomain& subdomain,
+                data::Atoms& atoms,
+                const bool& containsGhostAtoms = false,
+                const bool& containsVelocities = true);
+}  // namespace mrmd::io
