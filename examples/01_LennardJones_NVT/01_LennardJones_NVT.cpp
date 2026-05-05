@@ -223,10 +223,10 @@ void runLennardJonesNVT(Config& config)
                     config.fileOutFinalGRO,
                     config.resName,
                     config.typeNames);
-
-        // close statistics file
-        fStat.close();
     }
+
+    // close statistics file
+    fStat.close();
 
     // print performance data
     auto time = timer.seconds();
