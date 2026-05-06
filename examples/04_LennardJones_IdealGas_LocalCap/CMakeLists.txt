@@ -13,5 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(00_IdealGas_NVE)
-add_subdirectory(04_LennardJones_IdealGas_LocalCap)
+add_executable(04_LennardJones_IdealGas_LocalCap
+        04_LennardJones_IdealGas_LocalCap.cpp
+        )
+target_link_libraries(04_LennardJones_IdealGas_LocalCap
+        PRIVATE mrmd CLI11::CLI11
+        )
+add_test(NAME Example.04_LennardJones_IdealGas_LocalCap COMMAND ./04_LennardJones_IdealGas_LocalCap --nsteps 10)
