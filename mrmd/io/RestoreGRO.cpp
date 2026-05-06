@@ -15,6 +15,7 @@
 
 #include "RestoreGRO.hpp"
 
+#include <cstdio>
 #include <fstream>
 #include <iostream>
 
@@ -118,6 +119,7 @@ void restoreGRO(const std::string& filename,
     Cabana::deep_copy(d_Atoms, h_Atoms);
     assert(idx == numAtoms);
     atoms.numLocalAtoms = idx;
+    atoms.numGhostAtoms = 0;
 
     auto force = atoms.getForce();
     Cabana::deep_copy(force, 0_r);
