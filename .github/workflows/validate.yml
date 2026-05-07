@@ -139,7 +139,7 @@ jobs:
     strategy:
       matrix:
         CONTAINER: [ 'nvcc-13' ]
-        USE_UVM: [ 'ON', 'OFF' ]
+        USE_SHARED_SPACE: [ 'ON', 'OFF' ]
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
@@ -174,7 +174,7 @@ jobs:
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
             -DKokkos_ENABLE_CUDA=ON \
-            -DKokkos_ENABLE_CUDA_UVM=${{ matrix.USE_UVM }} \
+            -DMRMD_USE_SHARED_SPACE=${{ matrix.USE_SHARED_SPACE }} \
             -DKokkos_ARCH_AMPERE80=ON
 
       - name: build dependencies

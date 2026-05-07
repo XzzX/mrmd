@@ -35,14 +35,15 @@ These are fetched and built automatically by CMake:
 
 ### MRMD specific options
 
-| Flag                 | Description                                | Default |
-| -------------------- | ------------------------------------------ | ------- |
-| MRMD_ENABLE_COVERAGE | Enable code coverage (clang only)          | OFF     |
-| MRMD_ENABLE_HDF5     | Enable HDF5 / H5MD support                 | OFF     |
-| MRMD_ENABLE_TESTING  | Build tests and add them to ctest          | ON      |
-| MRMD_VEC_REPORT      | Enable reporting of loop vectorization     | OFF     |
-| MRMD_VERBOSE_ASSERTS | Verbose asserts (CPU only)                 | OFF     |
-| MRMD_WERROR          | Treat warnings as errors                   | OFF     |
+| Flag                  | Description                                | Default |
+| --------------------- | ------------------------------------------ | ------- |
+| MRMD_ENABLE_COVERAGE  | Enable code coverage (clang only)          | OFF     |
+| MRMD_ENABLE_HDF5      | Enable HDF5 / H5MD support                 | OFF     |
+| MRMD_ENABLE_TESTING   | Build tests and add them to ctest          | ON      |
+| MRMD_USE_SHARED_SPACE | Use shared space for Kokkos.               | OFF     |
+| MRMD_VEC_REPORT       | Enable reporting of loop vectorization     | OFF     |
+| MRMD_VERBOSE_ASSERTS  | Verbose asserts (CPU only)                 | OFF     |
+| MRMD_WERROR           | Treat warnings as errors                   | OFF     |
 
 ### Kokkos specific options
 
