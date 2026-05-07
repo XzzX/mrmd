@@ -21,6 +21,7 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_ScatterView.hpp>
 #include <cstdint>
+
 #include "cmake.hpp"
 
 namespace mrmd
@@ -163,12 +164,11 @@ using VectorView = Kokkos::View<real_t* [3]>;
 using VectorScatterView = Kokkos::Experimental::ScatterView<real_t* [3]>;
 
 #ifdef MRMD_USE_SHARED_SPACE
-static_assert(Kokkos::has_shared_space, "MRMD_USE_SHARED_SPACE is defined but Kokkos does not have a shared space");
-using HostType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace,
-                                Kokkos::SharedSpace>;
+static_assert(Kokkos::has_shared_space,
+              "MRMD_USE_SHARED_SPACE is defined but Kokkos does not have a shared space");
+using HostType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace, Kokkos::SharedSpace>;
 
-using DeviceType =
-    Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::SharedSpace>;
+using DeviceType = Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::SharedSpace>;
 #else
 using HostType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace,
                                 Kokkos::DefaultHostExecutionSpace::memory_space>;
