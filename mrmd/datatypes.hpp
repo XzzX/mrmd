@@ -163,7 +163,7 @@ using VectorView = Kokkos::View<real_t* [3]>;
 using VectorScatterView = Kokkos::Experimental::ScatterView<real_t* [3]>;
 
 #ifdef MRMD_USE_SHARED_SPACE
-static_assert(Kokkos::has_shared_space(), "MRMD_USE_SHARED_SPACE is defined but Kokkos does not have a shared space");
+static_assert(Kokkos::has_shared_space, "MRMD_USE_SHARED_SPACE is defined but Kokkos does not have a shared space");
 using HostType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace,
                                 Kokkos::SharedSpace>;
 
