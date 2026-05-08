@@ -35,14 +35,15 @@ These are fetched and built automatically by CMake:
 
 ### MRMD specific options
 
-| Flag                 | Description                                | Default |
-| -------------------- | ------------------------------------------ | ------- |
-| MRMD_ENABLE_COVERAGE | Enable code coverage (clang only)          | OFF     |
-| MRMD_ENABLE_HDF5     | Enable HDF5 / H5MD support                 | OFF     |
-| MRMD_ENABLE_TESTING  | Build tests and add them to ctest          | ON      |
-| MRMD_VEC_REPORT      | Enable reporting of loop vectorization     | OFF     |
-| MRMD_VERBOSE_ASSERTS | Verbose asserts (CPU only)                 | OFF     |
-| MRMD_WERROR          | Treat warnings as errors                   | OFF     |
+| Flag                  | Description                                | Default |
+| --------------------- | ------------------------------------------ | ------- |
+| MRMD_ENABLE_COVERAGE  | Enable code coverage (clang only)          | OFF     |
+| MRMD_ENABLE_HDF5      | Enable HDF5 / H5MD support                 | OFF     |
+| MRMD_ENABLE_TESTING   | Build tests and add them to ctest          | ON      |
+| MRMD_USE_SHARED_SPACE | Use shared space for Kokkos.               | OFF     |
+| MRMD_VEC_REPORT       | Enable reporting of loop vectorization     | OFF     |
+| MRMD_VERBOSE_ASSERTS  | Verbose asserts (CPU only)                 | OFF     |
+| MRMD_WERROR           | Treat warnings as errors                   | OFF     |
 
 ### Kokkos specific options
 
@@ -86,7 +87,7 @@ If you use MRMD in your research, please cite it using the metadata in [CITATION
 # Authors
 
 - Sebastian Eibl ([@XzzX](https://github.com/XzzX)) — [ORCID](https://orcid.org/0000-0002-1069-2720)
-- Julian Friedrich Hille — [ORCID](https://orcid.org/0009-0008-1005-9053)
+- Julian Friedrich Hille ([@J-Hizzle](https://github.com/J-Hizzle)) — [ORCID](https://orcid.org/0009-0008-1005-9053)
 
 # License
 
