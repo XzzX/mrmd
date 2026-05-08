@@ -39,12 +39,9 @@ void restoreGRO(const std::string& filename,
     }
     if (containsGhostAtoms)
     {
-        std::cout << "Warning: The file " << filename
-                  << " contains ghost atoms. This is not supported by restoreGRO and will likely "
-                     "lead to unexpected behavior."
-                  << std::endl;
+        std::cout << "Reading a file with ghost atoms is not supported." << std::endl;
 
-        return;
+        exit(EXIT_FAILURE);
     }
     char buf[1024];
 
