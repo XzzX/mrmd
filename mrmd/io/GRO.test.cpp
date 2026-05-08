@@ -29,15 +29,15 @@ namespace mrmd
 namespace io
 {
 
-TEST(GRO, restoreGRO)
+TEST(GRO, withVelocities)
 {
     data::Subdomain subdomain({0_r, 0_r, 0_r}, {10_r, 10_r, 10_r}, 0.5_r);
     auto atoms = util::fillDomainWithAtoms(subdomain, 1000, 1_r, 1_r);
     data::Atoms restoredAtoms(0);
 
-    dumpGRO("test.gro", atoms, subdomain, 0_r, "test", "RES", {"A"}, false, true);
+    dumpGRO("testWithVelocities.gro", atoms, subdomain, 0_r, "test", "RES", {"A"}, false, true);
 
-    restoreGRO("test.gro", subdomain, restoredAtoms);
+    restoreGRO("testWithVelocities.gro", subdomain, restoredAtoms);
 
     EXPECT_EQ(atoms.numLocalAtoms, restoredAtoms.numLocalAtoms);
     EXPECT_EQ(atoms.numGhostAtoms, restoredAtoms.numGhostAtoms);
@@ -53,6 +53,34 @@ TEST(GRO, restoreGRO)
         {
             EXPECT_NEAR(positions(atomIdx, dim), restoredPositions(atomIdx, dim), 1e-3_r);
             EXPECT_NEAR(velocities(atomIdx, dim), restoredVelocities(atomIdx, dim), 1e-4_r);
+        }
+    }
+}
+
+TEST(GRO, withoutVelocities)
+{
+    data::Subdomain subdomain({0_r, 0_r, 0_r}, {10_r, 10_r, 10_r}, 0.5_r);
+    auto atoms = util::fillDomainWithAtoms(subdomain, 1000, 1_r, 1_r);
+    data::Atoms restoredAtoms(0);
+
+    dumpGRO("testWithoutVelocities.gro", atoms, subdomain, 0_r, "test", "RES", {"A"}, false, false);
+
+    restoreGRO("testWithoutVelocities.gro", subdomain, restoredAtoms);
+
+    EXPECT_EQ(atoms.numLocalAtoms, restoredAtoms.numLocalAtoms);
+    EXPECT_EQ(atoms.numGhostAtoms, restoredAtoms.numGhostAtoms);
+
+    auto positions = atoms.getPos();
+    auto velocities = atoms.getVel();
+    auto restoredPositions = restoredAtoms.getPos();
+    auto restoredVelocities = restoredAtoms.getVel();
+
+    for (idx_t atomIdx = 0; atomIdx < atoms.numLocalAtoms; atomIdx++)
+    {
+        for (idx_t dim = 0; dim < DIMENSIONS; dim++)
+        {
+            EXPECT_NEAR(positions(atomIdx, dim), restoredPositions(atomIdx, dim), 1e-3_r);
+            EXPECT_NEAR(0_r, restoredVelocities(atomIdx, dim), 1e-4_r);
         }
     }
 }
