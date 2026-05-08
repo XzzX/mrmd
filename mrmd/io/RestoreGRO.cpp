@@ -23,12 +23,12 @@ namespace mrmd::io
 void restoreGRO(const std::string& filename,
                 data::Subdomain& subdomain,
                 data::Atoms& atoms,
-                const bool& containsGhostAtoms,
-                const bool& containsVelocities)
+                const bool& containsGhostAtoms)
 {
     int tmpInt;
     char tmpChar[6];
     double tmpFloat[6];
+    bool warningNoVelocities = false;
 
     std::ifstream fin(filename);
     if (!fin.is_open())
@@ -41,15 +41,6 @@ void restoreGRO(const std::string& filename,
         std::cout << "Warning: The file " << filename
                   << " contains ghost atoms. This is not supported by restoreGRO and will likely "
                      "lead to unexpected behavior."
-                  << std::endl;
-
-        return;
-    }
-    if (!containsVelocities)
-    {
-        std::cout << "Warning: The file " << filename
-                  << " does not contain velocities. This is not supported by restoreGRO and will "
-                     "likely lead to unexpected behavior."
                   << std::endl;
 
         return;
@@ -76,25 +67,48 @@ void restoreGRO(const std::string& filename,
     while (idx < numAtoms && !fin.eof())
     {
         fin.getline(buf, 1024);
-        sscanf(buf,
-               "%5d%5s%5s%5d%8lf%8lf%8lf%8lf%8lf%8lf",
-               &tmpInt,
-               tmpChar,
-               tmpChar,
-               &tmpInt,
-               &tmpFloat[0],
-               &tmpFloat[1],
-               &tmpFloat[2],
-               &tmpFloat[3],
-               &tmpFloat[4],
-               &tmpFloat[5]);
+        const int parsedFields = sscanf(buf,
+                                        "%5d%5s%5s%5d%8lf%8lf%8lf%8lf%8lf%8lf",
+                                        &tmpInt,
+                                        tmpChar,
+                                        tmpChar,
+                                        &tmpInt,
+                                        &tmpFloat[0],
+                                        &tmpFloat[1],
+                                        &tmpFloat[2],
+                                        &tmpFloat[3],
+                                        &tmpFloat[4],
+                                        &tmpFloat[5]);
+
+        if (parsedFields != 10)
+        {
+            if (parsedFields != 7)
+            {
+                std::cerr << "Invalid GRO atom line in file " << filename
+                          << ": expected 7 fields for coordinates (or 10 fields including "
+                             "velocities), but parsed "
+                          << parsedFields << " fields from line: \"" << buf << "\"" << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            else
+            {
+                if (!warningNoVelocities) warningNoVelocities = true;
+
+                h_vel(idx, 0) = 0_r;
+                h_vel(idx, 1) = 0_r;
+                h_vel(idx, 2) = 0_r;
+            }
+        }
+        else
+        {
+            h_vel(idx, 0) = real_c(tmpFloat[3]);
+            h_vel(idx, 1) = real_c(tmpFloat[4]);
+            h_vel(idx, 2) = real_c(tmpFloat[5]);
+        }
 
         h_pos(idx, 0) = real_c(tmpFloat[0]);
         h_pos(idx, 1) = real_c(tmpFloat[1]);
         h_pos(idx, 2) = real_c(tmpFloat[2]);
-        h_vel(idx, 0) = real_c(tmpFloat[3]);
-        h_vel(idx, 1) = real_c(tmpFloat[4]);
-        h_vel(idx, 2) = real_c(tmpFloat[5]);
 
         h_mass(idx) = 1_r;
 
@@ -104,6 +118,14 @@ void restoreGRO(const std::string& filename,
     }
 
     fin >> subdomain.diameter[0] >> subdomain.diameter[1] >> subdomain.diameter[2];
+
+    if (warningNoVelocities)
+    {
+        std::cout << "Warning: Some lines in file " << filename
+                  << " do not contain velocities. Respective velocities have been set to zero, but "
+                     "this may lead to unexpected behavior."
+                  << std::endl;
+    }
 
     data::Subdomain tmpSubdomain(subdomain.minCorner,
                                  {subdomain.minCorner[0] + subdomain.diameter[0],

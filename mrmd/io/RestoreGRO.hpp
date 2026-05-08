@@ -21,6 +21,5 @@ namespace mrmd::io
 void restoreGRO(const std::string& filename,
                 data::Subdomain& subdomain,
                 data::Atoms& atoms,
-                const bool& containsGhostAtoms = false,
-                const bool& containsVelocities = true);
+                const bool& containsGhostAtoms = false);
 }  // namespace mrmd::io
