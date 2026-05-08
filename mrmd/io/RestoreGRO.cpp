@@ -24,7 +24,7 @@ namespace mrmd::io
 void restoreGRO(const std::string& filename,
                 data::Subdomain& subdomain,
                 data::Atoms& atoms,
-                const bool& containsGhostAtoms)
+                bool containsGhostAtoms)
 {
     int tmpInt;
     char tmpChar[6];
