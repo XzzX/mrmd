@@ -25,4 +25,5 @@ constexpr static int VECTOR_LENGTH = @MRMD_VECTOR_LENGTH@;
 #cmakedefine MRMD_ENABLE_MPI
 #cmakedefine MRMD_ENABLE_HDF5
 #cmakedefine MRMD_ENABLE_PYTHON
+#cmakedefine MRMD_USE_SHARED_SPACE
 }  // namespace mrmd
