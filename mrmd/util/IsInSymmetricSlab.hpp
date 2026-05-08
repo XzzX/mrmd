@@ -30,12 +30,15 @@ private:
 
 public:
     KOKKOS_INLINE_FUNCTION
-    bool operator()(const real_t& x, const real_t& /*y*/, const real_t& /*z*/) const
+    bool operator()(const real_t& x,
+                    const real_t& /*y*/,
+                    const real_t& /*z*/,
+                    const real_t tolerance = 0_r) const
     {
         auto dx = x - center_[0];
         auto absDx = std::abs(dx);
 
-        return (absDx >= slabMin_ && absDx <= slabMax_);
+        return (absDx >= slabMin_ - tolerance && absDx <= slabMax_ + tolerance);
     }
 
     IsInSymmetricSlab(const Point3D& center, const real_t slabMin, const real_t slabMax)
