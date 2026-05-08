@@ -57,7 +57,7 @@ TEST(interpolate, preZeroInner)
     Kokkos::deep_copy(histogramRef.data, h_dataRef);
 
     util::updateInterpolate(histogramTarget, histogramInput);
-    h_dataTarget = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogramTarget.data);
+    Kokkos::deep_copy(histogramTarget.data, h_dataTarget);
 
     for (auto idx = 0; idx < 30; ++idx)
     {
@@ -111,7 +111,7 @@ TEST(interpolate, nonZeroWithBoundary)
     Kokkos::deep_copy(histogramRef.data, h_dataRef);
 
     util::updateInterpolate(histogramTarget, histogramInput);
-    h_dataTarget = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogramTarget.data);
+    Kokkos::deep_copy(histogramTarget.data, h_dataTarget);
 
     for (auto idx = 0; idx < 30; ++idx)
     {

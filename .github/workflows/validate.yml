@@ -139,6 +139,7 @@ jobs:
     strategy:
       matrix:
         CONTAINER: [ 'nvcc-13' ]
+        USE_SHARED_SPACE: [ 'ON', 'OFF' ]
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
@@ -173,7 +174,8 @@ jobs:
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
             -DKokkos_ENABLE_CUDA=ON \
-            -DKokkos_ARCH_AMPERE80=ON \
+            -DMRMD_USE_SHARED_SPACE=${{ matrix.USE_SHARED_SPACE }} \
+            -DKokkos_ARCH_AMPERE80=ON
 
       - name: build dependencies
         run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
