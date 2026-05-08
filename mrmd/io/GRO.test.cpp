@@ -29,25 +29,6 @@ namespace mrmd
 namespace io
 {
 
-void compareFiles(const std::string& filename1, const std::string& filename2)
-{
-    std::ifstream file1(filename1);
-    std::ifstream file2(filename2);
-
-    ASSERT_TRUE(file1.is_open());
-    ASSERT_TRUE(file2.is_open());
-
-    std::string line1 = "";
-    std::string line2 = "";
-    while (std::getline(file1, line1) && std::getline(file2, line2))
-    {
-        ASSERT_EQ(line1, line2);
-    }
-
-    file1.close();
-    file2.close();
-}
-
 TEST(GRO, restoreGRO)
 {
     data::Subdomain subdomain({0_r, 0_r, 0_r}, {10_r, 10_r, 10_r}, 0.5_r);
