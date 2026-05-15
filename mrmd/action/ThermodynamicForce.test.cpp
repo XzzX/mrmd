@@ -24,7 +24,7 @@ namespace mrmd
 {
 namespace action
 {
-static data::Atoms getAtoms()
+data::Atoms getAtoms()
 {
     idx_t numAtoms = 100;
     data::Atoms atoms(numAtoms);
@@ -40,7 +40,7 @@ static data::Atoms getAtoms()
     return atoms;
 }
 
-static ThermodynamicForce getThermodynamicForce()
+ThermodynamicForce getThermodynamicForce()
 {
     data::Subdomain subdomain({0_r, 0_r, 0_r}, {10_r, 10_r, 10_r}, 1_r);
     ThermodynamicForce thermodynamicForce({1_r}, subdomain, 1_r, {1_r});
