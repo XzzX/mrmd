@@ -26,7 +26,7 @@ namespace action
 {
 class ThermodynamicForce_Test : public ::testing::Test
 {
-protected:
+public:
     static data::Atoms getAtoms()
     {
         idx_t numAtoms = 100;
