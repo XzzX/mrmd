@@ -24,48 +24,44 @@ namespace mrmd
 {
 namespace action
 {
-class ThermodynamicForce_Test : public ::testing::Test
+static data::Atoms getAtoms()
 {
-public:
-    static data::Atoms getAtoms()
-    {
-        idx_t numAtoms = 100;
-        data::Atoms atoms(numAtoms);
-        atoms.numLocalAtoms = numAtoms;
-        auto pos = atoms.getPos();
-        auto force = atoms.getForce();
-        auto type = atoms.getType();
+    idx_t numAtoms = 100;
+    data::Atoms atoms(numAtoms);
+    atoms.numLocalAtoms = numAtoms;
+    auto pos = atoms.getPos();
+    auto force = atoms.getForce();
+    auto type = atoms.getType();
 
-        auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
-        auto kernel = KOKKOS_LAMBDA(const idx_t& idx) { pos(idx, 0) = real_c(idx) / 10_r; };
-        Kokkos::parallel_for("getAtoms", policy, kernel);
-        Kokkos::fence();
-        return atoms;
-    }
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t& idx) { pos(idx, 0) = real_c(idx) / 10_r; };
+    Kokkos::parallel_for("getAtoms", policy, kernel);
+    Kokkos::fence();
+    return atoms;
+}
 
-    static ThermodynamicForce getThermodynamicForce()
-    {
-        data::Subdomain subdomain({0_r, 0_r, 0_r}, {10_r, 10_r, 10_r}, 1_r);
-        ThermodynamicForce thermodynamicForce({1_r}, subdomain, 1_r, {1_r});
-
-        auto forceHistogram = thermodynamicForce.getForce();
-        auto policyForce = Kokkos::RangePolicy<>(0, forceHistogram.numBins);
-        auto kernelForce = KOKKOS_LAMBDA(const idx_t& idx)
-        {
-            forceHistogram.data(idx, 0) = real_c(idx);
-        };
-        Kokkos::parallel_for("getThermodynamicForce", policyForce, kernelForce);
-        Kokkos::fence();
-        thermodynamicForce.setForce(forceHistogram.data);
-        return thermodynamicForce;
-    }
-
-    data::Atoms atoms = getAtoms();
-    ThermodynamicForce thermodynamicForce = getThermodynamicForce();
-};
-
-TEST_F(ThermodynamicForce_Test, apply)
+static ThermodynamicForce getThermodynamicForce()
 {
+    data::Subdomain subdomain({0_r, 0_r, 0_r}, {10_r, 10_r, 10_r}, 1_r);
+    ThermodynamicForce thermodynamicForce({1_r}, subdomain, 1_r, {1_r});
+
+    auto forceHistogram = thermodynamicForce.getForce();
+    auto policyForce = Kokkos::RangePolicy<>(0, forceHistogram.numBins);
+    auto kernelForce = KOKKOS_LAMBDA(const idx_t& idx)
+    {
+        forceHistogram.data(idx, 0) = real_c(idx);
+    };
+    Kokkos::parallel_for("getThermodynamicForce", policyForce, kernelForce);
+    Kokkos::fence();
+    thermodynamicForce.setForce(forceHistogram.data);
+    return thermodynamicForce;
+}
+
+TEST(ThermodynamicForce, apply)
+{
+    auto atoms = getAtoms();
+    auto thermodynamicForce = getThermodynamicForce();
+
     thermodynamicForce.apply(atoms);
 
     data::HostAtoms h_atoms(atoms);
@@ -77,8 +73,11 @@ TEST_F(ThermodynamicForce_Test, apply)
     }
 }
 
-TEST_F(ThermodynamicForce_Test, apply_if)
+TEST(ThermodynamicForce, apply_if)
 {
+    auto atoms = getAtoms();
+    auto thermodynamicForce = getThermodynamicForce();
+
     thermodynamicForce.apply_if(
         atoms, KOKKOS_LAMBDA(real_t x, real_t, real_t) { return x > 0.5_r && x < 4.5_r; });
 
@@ -98,8 +97,11 @@ TEST_F(ThermodynamicForce_Test, apply_if)
     }
 }
 
-TEST_F(ThermodynamicForce_Test, applyInterpolated_if)
+TEST(ThermodynamicForce, applyInterpolated_if)
 {
+    auto atoms = getAtoms();
+    auto thermodynamicForce = getThermodynamicForce();
+
     thermodynamicForce.applyInterpolated_if(
         atoms, KOKKOS_LAMBDA(real_t x, real_t, real_t) { return x > 0.5_r && x < 4.5_r; });
 
