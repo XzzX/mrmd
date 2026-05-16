@@ -24,6 +24,17 @@ namespace mrmd
 {
 namespace action
 {
+struct TestPredicate
+{
+    real_t lower;
+    real_t upper;
+
+    KOKKOS_INLINE_FUNCTION bool operator()(real_t x, real_t, real_t) const
+    {
+        return x > lower && x < upper;
+    }
+};
+
 data::Atoms getAtoms()
 {
     idx_t numAtoms = 100;
@@ -78,8 +89,7 @@ TEST(ThermodynamicForce, apply_if)
     auto atoms = getAtoms();
     auto thermodynamicForce = getThermodynamicForce();
 
-    thermodynamicForce.apply_if(
-        atoms, KOKKOS_LAMBDA(real_t x, real_t, real_t) { return x > 0.5_r && x < 4.5_r; });
+    thermodynamicForce.apply_if(atoms, TestPredicate{0.5_r, 4.5_r});
 
     data::HostAtoms h_atoms(atoms);
     auto h_pos = h_atoms.getPos();
@@ -102,8 +112,7 @@ TEST(ThermodynamicForce, applyInterpolated_if)
     auto atoms = getAtoms();
     auto thermodynamicForce = getThermodynamicForce();
 
-    thermodynamicForce.applyInterpolated_if(
-        atoms, KOKKOS_LAMBDA(real_t x, real_t, real_t) { return x > 0.5_r && x < 4.5_r; });
+    thermodynamicForce.applyInterpolated_if(atoms, TestPredicate{0.5_r, 4.5_r});
 
     data::HostAtoms h_atoms(atoms);
     auto h_pos = h_atoms.getPos();
