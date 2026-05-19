@@ -175,8 +175,8 @@ void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoo
 }
 
 void ThermodynamicForce::updateInterpolate(const real_t& smoothingSigma,
-                                const real_t& smoothingIntensity,
-                                const util::IsInSymmetricSlab& applicationRegion)
+                                           const real_t& smoothingIntensity,
+                                           const util::IsInSymmetricSlab& applicationRegion)
 {
     MRMD_HOST_CHECK_GREATER(densityProfileSamples_, 0);
 
