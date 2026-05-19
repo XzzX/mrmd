@@ -57,7 +57,7 @@ TEST(interpolate, preZeroInner)
     Kokkos::deep_copy(histogramRef.data, h_dataRef);
 
     util::updateInterpolate(histogramTarget, histogramInput);
-    Kokkos::deep_copy(histogramTarget.data, h_dataTarget);
+    Kokkos::deep_copy(h_dataTarget, histogramTarget.data);
 
     for (auto idx = 0; idx < 30; ++idx)
     {
@@ -111,7 +111,7 @@ TEST(interpolate, nonZeroWithBoundary)
     Kokkos::deep_copy(histogramRef.data, h_dataRef);
 
     util::updateInterpolate(histogramTarget, histogramInput);
-    Kokkos::deep_copy(histogramTarget.data, h_dataTarget);
+    Kokkos::deep_copy(h_dataTarget, histogramTarget.data);
 
     for (auto idx = 0; idx < 30; ++idx)
     {

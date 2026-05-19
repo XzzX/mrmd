@@ -19,7 +19,7 @@ namespace mrmd
 {
 namespace util
 {
-void updateInterpolate(const data::MultiHistogram& target, const data::MultiHistogram& input)
+void updateInterpolate(data::MultiHistogram& target, const data::MultiHistogram& input)
 {
     MRMD_HOST_ASSERT_EQUAL(target.numHistograms, input.numHistograms);
 
