@@ -64,8 +64,8 @@ public:
     void sample(data::Atoms& atoms);
     void update(const real_t& smoothingSigma, const real_t& smoothingIntensity);
     void updateInterpolate(const real_t& smoothingSigma,
-                const real_t& smoothingIntensity,
-                const util::IsInSymmetricSlab& applicationRegion);
+                           const real_t& smoothingIntensity,
+                           const util::IsInSymmetricSlab& applicationRegion);
     void apply(const data::Atoms& atoms) const;
 
     template <OnePositionPredicate Pred>
