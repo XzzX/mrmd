@@ -222,7 +222,9 @@ void runLennardJonesNVT(Config& config)
                     real_c(config.nsteps) * config.dt,
                     config.fileOutFinalGRO,
                     config.resName,
-                    config.typeNames);
+                    config.typeNames,
+                    false,
+                    true);
     }
 
     // close statistics file
