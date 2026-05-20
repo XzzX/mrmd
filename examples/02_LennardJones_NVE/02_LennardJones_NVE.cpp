@@ -38,7 +38,7 @@
 #include "datatypes.hpp"
 #include "initialization.hpp"
 #include "io/DumpH5MD.hpp"
-#include "io/RestoreH5MD.hpp"
+#include "io/RestoreGRO.hpp"
 #include "util/EnvironmentVariables.hpp"
 #include "util/PrintTable.hpp"
 
@@ -50,7 +50,7 @@ using namespace mrmd;
 struct Config
 {
     // input file parameters
-    std::string fileRestoreH5MD = "lennardJonesNVT_final.h5md";
+    std::string fileRestoreGRO = "lennardJonesNVT_final.gro";
 
     // simulation time parameters
     idx_t nsteps = 400001;               ///< number of steps to simulate
@@ -93,8 +93,7 @@ void runLennardJonesNVE(Config& config)
     auto atoms = data::Atoms(0);
 
     // restore initial phase point from file
-    auto io = io::RestoreH5MD();
-    io.restore(config.fileRestoreH5MD, subdomain, atoms);
+    io::restoreGRO(config.fileRestoreGRO, subdomain, atoms);
 
     // calculate volume of the simulation domain
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
@@ -218,7 +217,7 @@ void runLennardJonesNVE(Config& config)
 
     if (config.bOutput)
     {
-        // final microstates output
+        // final phase point output
         dumpH5MD.dump(config.fileOutFinalH5MD, subdomain, atoms);
     }
 
@@ -250,7 +249,7 @@ int main(int argc, char* argv[])  // NOLINT
     CLI::App app{"Lennard Jones Fluid NVE benchmark application"};
     app.add_option("-n,--nsteps", config.nsteps, "total number of simulation steps");
     app.add_option("-o,--output", config.outputInterval, "output interval");
-    app.add_option("-i,--inpfile", config.fileRestoreH5MD, "input file name");
+    app.add_option("-i,--inpfile", config.fileRestoreGRO, "input file name");
     CLI11_PARSE(app, argc, argv);
 
     // reset output parameter if output interval is negative
