@@ -92,12 +92,12 @@ void runLennardJonesNVE(Config& config)
     // initialize atoms
     auto atoms = data::Atoms(0);
 
-    // calculate volume of the simulation domain
-    const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
-
     // restore initial phase point from file
     auto io = io::RestoreH5MD();
     io.restore(config.fileRestoreH5MD, subdomain, atoms);
+
+    // calculate volume of the simulation domain
+    const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
 
     // calculate and print initial density
     auto rho = real_c(atoms.numLocalAtoms) / volume;
