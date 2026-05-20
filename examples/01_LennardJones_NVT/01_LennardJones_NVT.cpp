@@ -219,7 +219,7 @@ void runLennardJonesNVT(Config& config)
         io::dumpGRO(config.fileOutFinalGRO,
                     atoms,
                     subdomain,
-                    config.nsteps,
+                    real_c(config.nsteps) * config.dt,
                     config.fileOutFinalGRO,
                     config.resName,
                     config.typeNames);
