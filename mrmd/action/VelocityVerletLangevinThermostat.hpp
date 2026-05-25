@@ -21,6 +21,8 @@
 #include "datatypes.hpp"
 #include "util/math.hpp"
 
+#include "VelocityVerlet.hpp"
+
 namespace mrmd
 {
 namespace action
@@ -44,17 +46,25 @@ public:
         set(zeta, temperature);
     }
 
-    real_t preForceIntegrate(data::Atoms& atoms, const real_t dt);
-    void postForceIntegrate(data::Atoms& atoms, const real_t dt);
+    real_t preForceIntegrate(data::Atoms& atoms, const real_t dt)
+    {
+        return preForceIntegrate_apply_if(
+            atoms, dt, KOKKOS_LAMBDA(const real_t, const real_t, const real_t) { return true; });
+    }
 
-    template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
-    real_t preForceIntegrate_apply_if(data::Atoms& atoms, const real_t dt, const UnaryPred& pred);
+    void postForceIntegrate(data::Atoms& atoms, const real_t dt)
+    {
+        action::VelocityVerlet::postForceIntegrate(atoms, dt);
+    }
+
+    template <OnePositionPredicate Pred>
+    real_t preForceIntegrate_apply_if(data::Atoms& atoms, const real_t dt, const Pred& pred);
 };
 
-template <std::predicate<const real_t, const real_t, const real_t> UnaryPred>
+template <OnePositionPredicate Pred>
 real_t VelocityVerletLangevinThermostat::preForceIntegrate_apply_if(data::Atoms& atoms,
                                                                     const real_t dt,
-                                                                    const UnaryPred& pred)
+                                                                    const Pred& pred)
 {
     auto RNG = randPool_;
     auto dtHalf(0.5_r * dt);
