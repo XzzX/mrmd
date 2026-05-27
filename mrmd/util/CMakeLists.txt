@@ -30,3 +30,6 @@ mrmd_add_test(NAME test.util.interpolation
 
 mrmd_add_test(NAME test.util.Random
         FILES Random.test.cpp)
+
+mrmd_add_test(NAME test.util.IsInSymmetricInterval
+        FILES IsInSymmetricInterval.test.cpp)
