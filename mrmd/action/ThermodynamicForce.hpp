@@ -138,7 +138,7 @@ void ThermodynamicForce::update_if(const real_t& smoothingSigma,
     smoothedDensityGradient.scale(forceFactor_);
 
     data::replace_if_bin_position(
-        smoothedDensityGradient, [pred] KOKKOS_FUNCTION(real_t x) { return !pred(x); }, 0_r);
+        smoothedDensityGradient, [pred](real_t x) KOKKOS_FUNCTION { return !pred(x); }, 0_r);
 
     force_ -= smoothedDensityGradient;
 
