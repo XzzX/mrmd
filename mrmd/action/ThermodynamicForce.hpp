@@ -68,6 +68,11 @@ public:
     template <OnePositionPredicate Pred>
     void apply_if(const data::Atoms& atoms, const Pred& pred) const;
 
+    template <OnePositionPredicate Pred>
+    void update_if(const real_t& smoothingSigma,
+                   const real_t& smoothingIntensity,
+                   const Pred& pred);
+
     std::vector<real_t> getMuLeft() const;
     std::vector<real_t> getMuRight() const;
 
@@ -112,5 +117,31 @@ void ThermodynamicForce::apply_if(const data::Atoms& atoms, const Pred& pred) co
     Kokkos::fence();
 }
 
+template <OnePositionPredicate Pred>
+void ThermodynamicForce::update_if(const real_t& smoothingSigma,
+                                   const real_t& smoothingIntensity,
+                                   const Pred& pred)
+{
+    MRMD_HOST_CHECK_GREATER(densityProfileSamples_, 0);
+
+    if (enforceSymmetry_)
+    {
+        densityProfile_.makeSymmetric();
+    }
+
+    auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
+    densityProfile_.scale(normalizationFactor);
+
+    auto smoothedDensityProfile =
+        data::smoothen(densityProfile_, smoothingSigma, smoothingIntensity, usePeriodicity_);
+    auto smoothedDensityGradient = data::gradient(smoothedDensityProfile, usePeriodicity_);
+    smoothedDensityGradient.scale(forceFactor_);
+
+    force_ -= smoothedDensityGradient;
+
+    // reset sampling data
+    Kokkos::deep_copy(densityProfile_.data, 0_r);
+    densityProfileSamples_ = 0;
+}
 }  // namespace action
 }  // namespace mrmd
