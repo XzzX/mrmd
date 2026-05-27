@@ -68,7 +68,7 @@ public:
     template <OnePositionPredicate Pred>
     void apply_if(const data::Atoms& atoms, const Pred& pred) const;
 
-    template <OnePositionPredicate Pred>
+    template <OneCoordinatePredicate Pred>
     void update_if(const real_t& smoothingSigma,
                    const real_t& smoothingIntensity,
                    const Pred& pred);
@@ -117,7 +117,7 @@ void ThermodynamicForce::apply_if(const data::Atoms& atoms, const Pred& pred) co
     Kokkos::fence();
 }
 
-template <OnePositionPredicate Pred>
+template <OneCoordinatePredicate Pred>
 void ThermodynamicForce::update_if(const real_t& smoothingSigma,
                                    const real_t& smoothingIntensity,
                                    const Pred& pred)
@@ -136,6 +136,9 @@ void ThermodynamicForce::update_if(const real_t& smoothingSigma,
         data::smoothen(densityProfile_, smoothingSigma, smoothingIntensity, usePeriodicity_);
     auto smoothedDensityGradient = data::gradient(smoothedDensityProfile, usePeriodicity_);
     smoothedDensityGradient.scale(forceFactor_);
+
+    data::replace_if_bin_position(
+        smoothedDensityGradient, [pred] KOKKOS_FUNCTION(real_t x) { return !pred(x); }, 0_r);
 
     force_ -= smoothedDensityGradient;
 

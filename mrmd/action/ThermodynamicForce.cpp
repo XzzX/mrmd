@@ -87,10 +87,7 @@ void ThermodynamicForce::sample(data::Atoms& atoms)
 
 void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoothingIntensity)
 {
-    update_if(
-        smoothingSigma,
-        smoothingIntensity,
-        KOKKOS_LAMBDA(const real_t, const real_t, const real_t) { return true; });
+    update_if(smoothingSigma, smoothingIntensity, KOKKOS_LAMBDA(const real_t) { return true; });
 }
 
 void ThermodynamicForce::apply(const data::Atoms& atoms) const
