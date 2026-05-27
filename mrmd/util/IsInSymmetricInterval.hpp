@@ -27,19 +27,26 @@ private:
     const real_t center_;
     const real_t intervalMin_;
     const real_t intervalMax_;
+    const real_t tolerance_;
 
 public:
     KOKKOS_INLINE_FUNCTION
-    bool operator()(const real_t& x, const real_t tolerance = 0_r) const
+    bool operator()(const real_t& x) const
     {
         auto dx = x - center_;
         auto absDx = std::abs(dx);
 
-        return (absDx >= intervalMin_ - tolerance && absDx <= intervalMax_ + tolerance);
+        return (absDx >= intervalMin_ - tolerance_ && absDx <= intervalMax_ + tolerance_);
     }
 
-    IsInSymmetricInterval(const real_t center, const real_t intervalMin, const real_t intervalMax)
-        : center_(center), intervalMin_(intervalMin), intervalMax_(intervalMax)
+    IsInSymmetricInterval(const real_t center,
+                          const real_t intervalMin,
+                          const real_t intervalMax,
+                          const real_t tolerance = 0_r)
+        : center_(center),
+          intervalMin_(intervalMin),
+          intervalMax_(intervalMax),
+          tolerance_(tolerance)
     {
     }
 };
