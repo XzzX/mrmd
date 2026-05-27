@@ -16,12 +16,11 @@
 
 #include <Kokkos_Random.hpp>
 
+#include "VelocityVerlet.hpp"
 #include "action/UpdateSteps.hpp"
 #include "data/Atoms.hpp"
 #include "datatypes.hpp"
 #include "util/math.hpp"
-
-#include "VelocityVerlet.hpp"
 
 namespace mrmd
 {
