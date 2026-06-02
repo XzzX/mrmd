@@ -13,14 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-mrmd_add_test(NAME test.io.DumpCSV
-              FILES DumpCSV.test.cpp)
-mrmd_add_test(NAME test.io.GRO
-              FILES GRO.test.cpp)
-mrmd_add_test(NAME test.io.ThermoForce
-              FILES ThermoForce.test.cpp)
+configure_file(lennardJonesNVT_final.gro . COPYONLY)
 
-if (MRMD_ENABLE_HDF5)
-    mrmd_add_test(NAME test.io.H5MD
-                  FILES H5MD.test.cpp)
-endif()
+add_executable(02_LennardJones_NVE
+        02_LennardJones_NVE.cpp
+        )
+target_link_libraries(02_LennardJones_NVE
+        PRIVATE mrmd CLI11::CLI11
+        )
+add_test(NAME Example.02_LennardJones_NVE COMMAND ./02_LennardJones_NVE --nsteps 10)
