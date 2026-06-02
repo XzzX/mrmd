@@ -13,7 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(00_IdealGas_NVE)
-add_subdirectory(01_LennardJones_NVT)
-add_subdirectory(02_LennardJones_NVE)
-add_subdirectory(04_LennardJones_IdealGas_LocalCap)
+configure_file(lennardJonesNVT_final.gro . COPYONLY)
+
+add_executable(02_LennardJones_NVE
+        02_LennardJones_NVE.cpp
+        )
+target_link_libraries(02_LennardJones_NVE
+        PRIVATE mrmd CLI11::CLI11
+        )
+add_test(NAME Example.02_LennardJones_NVE COMMAND ./02_LennardJones_NVE --nsteps 10)
