@@ -15,6 +15,8 @@
 
 #include "ThermodynamicForce.hpp"
 
+#include <cmath>
+
 #include <gtest/gtest.h>
 
 #include "data/Atoms.hpp"
@@ -41,8 +43,6 @@ data::Atoms getAtoms()
     data::Atoms atoms(numAtoms);
     atoms.numLocalAtoms = numAtoms;
     auto pos = atoms.getPos();
-    auto force = atoms.getForce();
-    auto type = atoms.getType();
 
     auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx) { pos(idx, 0) = real_c(idx) / 10_r; };
@@ -80,7 +80,7 @@ TEST(ThermodynamicForce, apply)
     auto h_force = h_atoms.getForce();
     for (idx_t idx = 0; idx < h_atoms.numLocalAtoms; ++idx)
     {
-        EXPECT_FLOAT_EQ(h_force(idx, 0), floor(h_pos(idx, 0)));
+        EXPECT_FLOAT_EQ(h_force(idx, 0), std::floor(h_pos(idx, 0)));
     }
 }
 
@@ -98,7 +98,7 @@ TEST(ThermodynamicForce, apply_if)
     {
         if (h_pos(idx, 0) > 0.5_r && h_pos(idx, 0) < 4.5_r)
         {
-            EXPECT_FLOAT_EQ(h_force(idx, 0), floor(h_pos(idx, 0)));
+            EXPECT_FLOAT_EQ(h_force(idx, 0), std::floor(h_pos(idx, 0)));
         }
         else  // forces should not be updated due to predicate
         {
