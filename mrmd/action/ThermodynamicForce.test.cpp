@@ -15,9 +15,9 @@
 
 #include "ThermodynamicForce.hpp"
 
-#include <cmath>
-
 #include <gtest/gtest.h>
+
+#include <cmath>
 
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
