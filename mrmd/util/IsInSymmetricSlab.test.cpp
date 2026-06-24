@@ -61,5 +61,23 @@ TEST(IsInSymmetricSlab, testCustomAxisAndTolerance)
     EXPECT_FALSE(isInSymmetricSlab(-2.1_r, 10_r, 10_r));
 }
 
+TEST(IsInSymmetricSlab, testSymmetricInterval)
+{
+    Point3D center = {2_r, 3_r, 4_r};
+    const auto intervalMin = 2_r;
+    const auto intervalMax = 4_r;
+    auto isInSymmetricInterval = IsInSymmetricSlab(center, intervalMin, intervalMax);
+
+    EXPECT_TRUE(isInSymmetricInterval(4_r));
+    EXPECT_TRUE(isInSymmetricInterval(5.7_r));
+    EXPECT_TRUE(isInSymmetricInterval(6_r));
+    EXPECT_TRUE(isInSymmetricInterval(-2_r));
+    EXPECT_TRUE(isInSymmetricInterval(-1.2_r));
+    EXPECT_TRUE(isInSymmetricInterval(0_r));
+
+    EXPECT_FALSE(isInSymmetricInterval(3.1_r));
+    EXPECT_FALSE(isInSymmetricInterval(-2.1_r));
+}
+
 }  // namespace util
 }  // namespace mrmd

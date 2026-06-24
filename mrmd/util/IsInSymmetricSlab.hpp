@@ -24,7 +24,7 @@ namespace util
 class IsInSymmetricSlab
 {
 private:
-    const Point3D center_;
+    const real_t center_;
     const real_t slabMin_;
     const real_t slabMax_;
     const AXIS axis_;
@@ -34,7 +34,16 @@ public:
     KOKKOS_INLINE_FUNCTION
     bool operator()(const real_t& x, const real_t& y, const real_t& z) const
     {
-        auto dx = Point3D{x, y, z}[to_underlying(axis_)] - center_[to_underlying(axis_)];
+        auto dx = Point3D{x, y, z}[to_underlying(axis_)] - center_;
+        auto absDx = std::abs(dx);
+
+        return (absDx >= slabMin_ - tolerance_ && absDx <= slabMax_ + tolerance_);
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    bool operator()(const real_t& coord) const
+    {
+        auto dx = coord - center_;
         auto absDx = std::abs(dx);
 
         return (absDx >= slabMin_ - tolerance_ && absDx <= slabMax_ + tolerance_);
@@ -45,7 +54,11 @@ public:
                       const real_t slabMax,
                       const AXIS axis = AXIS::X,
                       const real_t tolerance = 0_r)
-        : center_(center), slabMin_(slabMin), slabMax_(slabMax), axis_(axis), tolerance_(tolerance)
+        : center_(center[to_underlying(axis)]),
+          slabMin_(slabMin),
+          slabMax_(slabMax),
+          axis_(axis),
+          tolerance_(tolerance)
     {
     }
 };
