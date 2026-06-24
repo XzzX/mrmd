@@ -22,6 +22,7 @@
 #include "data/MultiHistogram.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
+#include "util/interpolation.hpp"
 #include "weighting_function/Slab.hpp"
 
 namespace mrmd
@@ -68,6 +69,9 @@ public:
     template <OnePositionPredicate Pred>
     void apply_if(const data::Atoms& atoms, const Pred& pred) const;
 
+    template <OnePositionPredicate Pred>
+    void applyInterpolated_if(const data::Atoms& atoms, const Pred& pred) const;
+
     std::vector<real_t> getMuLeft() const;
     std::vector<real_t> getMuRight() const;
 
@@ -109,6 +113,70 @@ void ThermodynamicForce::apply_if(const data::Atoms& atoms, const Pred& pred) co
         }
     };
     Kokkos::parallel_for("ThermodynamicForce::apply_if", policy, kernel);
+    Kokkos::fence();
+}
+
+template <OnePositionPredicate Pred>
+void ThermodynamicForce::applyInterpolated_if(const data::Atoms& atoms, const Pred& pred) const
+{
+    auto atomsPos = atoms.getPos();
+    auto atomsForce = atoms.getForce();
+    auto atomsType = atoms.getType();
+
+    auto forceHistogram = force_;  // avoid capturing this pointer
+
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
+    {
+        auto xPos = atomsPos(idx, 0);
+        if (!pred(atomsPos(idx, 0), atomsPos(idx, 1), atomsPos(idx, 2))) return;
+        auto bin = forceHistogram.getBin(xPos);
+
+        if (bin != -1)
+        {
+            auto atomType = atomsType(idx);
+            MRMD_DEVICE_ASSERT_LESS(atomType, forceHistogram.numHistograms);
+
+            // centered interpolation: switch neighboring bins at the bin center
+            auto binStart = forceHistogram.min + real_c(bin) * forceHistogram.binSize;
+            auto fracInBin = (xPos - binStart) * forceHistogram.inverseBinSize;
+
+            idx_t leftBinIdx;
+            idx_t rightBinIdx;
+            real_t factor;
+
+            if (fracInBin < 0.5_r)
+            {
+                leftBinIdx = bin - 1;
+                rightBinIdx = bin;
+                factor = fracInBin + 0.5_r;
+            }
+            else
+            {
+                leftBinIdx = bin;
+                rightBinIdx = bin + 1;
+                factor = fracInBin - 0.5_r;
+            }
+
+            // interpolate if both neighbors are valid, otherwise clamp to the current bin
+            if (leftBinIdx >= 0 && rightBinIdx < forceHistogram.numBins)
+            {
+                auto inputLeft = forceHistogram.data(leftBinIdx, atomType);
+                auto inputRight = forceHistogram.data(rightBinIdx, atomType);
+                MRMD_DEVICE_ASSERT(!std::isnan(inputLeft));
+                MRMD_DEVICE_ASSERT(!std::isnan(inputRight));
+
+                atomsForce(idx, 0) += util::lerp(inputLeft, inputRight, factor);
+            }
+            else
+            {
+                auto input = forceHistogram.data(bin, atomType);
+                MRMD_DEVICE_ASSERT(!std::isnan(input));
+                atomsForce(idx, 0) += input;
+            }
+        }
+    };
+    Kokkos::parallel_for("ThermodynamicForce::applyInterpolated_if", policy, kernel);
     Kokkos::fence();
 }
 
