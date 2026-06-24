@@ -42,10 +42,12 @@ TEST(GRO, withVelocities)
     EXPECT_EQ(atoms.numLocalAtoms, restoredAtoms.numLocalAtoms);
     EXPECT_EQ(atoms.numGhostAtoms, restoredAtoms.numGhostAtoms);
 
-    auto positions = atoms.getPos();
-    auto velocities = atoms.getVel();
-    auto restoredPositions = restoredAtoms.getPos();
-    auto restoredVelocities = restoredAtoms.getVel();
+    data::HostAtoms h_atoms(atoms);
+    auto positions = h_atoms.getPos();
+    auto velocities = h_atoms.getVel();
+    data::HostAtoms h_restoredAtoms(restoredAtoms);
+    auto restoredPositions = h_restoredAtoms.getPos();
+    auto restoredVelocities = h_restoredAtoms.getVel();
 
     for (idx_t atomIdx = 0; atomIdx < atoms.numLocalAtoms; atomIdx++)
     {
@@ -70,10 +72,12 @@ TEST(GRO, withoutVelocities)
     EXPECT_EQ(atoms.numLocalAtoms, restoredAtoms.numLocalAtoms);
     EXPECT_EQ(atoms.numGhostAtoms, restoredAtoms.numGhostAtoms);
 
-    auto positions = atoms.getPos();
-    auto velocities = atoms.getVel();
-    auto restoredPositions = restoredAtoms.getPos();
-    auto restoredVelocities = restoredAtoms.getVel();
+    data::HostAtoms h_atoms(atoms);
+    auto positions = h_atoms.getPos();
+    auto velocities = h_atoms.getVel();
+    data::HostAtoms h_restoredAtoms(restoredAtoms);
+    auto restoredPositions = h_restoredAtoms.getPos();
+    auto restoredVelocities = h_restoredAtoms.getVel();
 
     for (idx_t atomIdx = 0; atomIdx < atoms.numLocalAtoms; atomIdx++)
     {
