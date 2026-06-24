@@ -81,7 +81,7 @@ include(FetchContent)
 FetchContent_Declare(
     Kokkos
     GIT_REPOSITORY https://github.com/kokkos/kokkos.git
-    GIT_TAG 3ec81abe1816109f6f62ac48cef41921f91a4d00 #5.1.0
+    GIT_TAG 267ebc25fc5c8b96bb321f34d78f97b1c30f8830 #5.1.1
     OVERRIDE_FIND_PACKAGE
     SYSTEM
 )
@@ -107,7 +107,7 @@ FetchContent_MakeAvailable(YAML_CPP)
 FetchContent_Declare(
         Cabana
         GIT_REPOSITORY https://github.com/ECP-copa/Cabana.git
-        GIT_TAG 7914d28708b1c67b40d5743c1fbc09e221144dd3 #0.7
+        GIT_TAG 44c43577c905626d1d38c257f89c305dad6e7e37 #0.8
         SYSTEM
 )
 FetchContent_MakeAvailable(Cabana)
