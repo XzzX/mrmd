@@ -22,7 +22,6 @@
 #include "Cabana_NeighborList.hpp"
 #include "action/BerendsenBarostat.hpp"
 #include "action/BerendsenThermostat.hpp"
-#include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"

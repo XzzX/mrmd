@@ -1,4 +1,5 @@
 # Copyright 2024 Sebastian Eibl
+# Copyright 2026 Julian Friedrich Hille
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,9 +25,6 @@ mrmd_add_test(NAME test.action.ContributeMoleculeForceToAtoms
 mrmd_add_test(NAME test.action.CoulombDSF
         FILES CoulombDSF.test.cpp)
 
-mrmd_add_test(NAME test.action.LangevinThermostat
-        FILES LangevinThermostat.test.cpp)
-
 mrmd_add_test(NAME test.action.LennardJones
         FILES LennardJones.test.cpp)
 
@@ -44,9 +42,15 @@ mrmd_add_test(NAME test.action.Shake
 
 mrmd_add_test(NAME test.action.SPC
         FILES SPC.test.cpp)
+        
+mrmd_add_test(NAME test.action.ThermodynamicForce
+        FILES ThermodynamicForce.test.cpp)
 
 mrmd_add_test(NAME test.action.UpdateMolecules
         FILES UpdateMolecules.test.cpp)
 
 mrmd_add_test(NAME test.action.VelocityVerlet
         FILES VelocityVerlet.test.cpp)
+
+mrmd_add_test(NAME test.action.VelocityVerletLangevinThermostat
+        FILES VelocityVerletLangevinThermostat.test.cpp)

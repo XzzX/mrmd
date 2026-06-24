@@ -13,8 +13,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "action/LangevinThermostat.hpp"
-
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
@@ -22,7 +20,6 @@
 #include <iomanip>
 #include <iostream>
 
-#include "action/VelocityVerlet.hpp"
 #include "action/VelocityVerletLangevinThermostat.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "data/Atoms.hpp"
@@ -82,23 +79,17 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
     return atoms;
 }
 
-TEST(Integration, LangevinThermostat)
+TEST(Integration, VelocityVerletLangevinThermostat)
 {
     Config config;
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
     auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
 
-    action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
+    action::VelocityVerletLangevinThermostat vv(1e5_r, config.temperature);
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
-
-        auto force = atoms.getForce();
-        Cabana::deep_copy(force, 0_r);
-
-        langevinThermostat.apply(atoms);
-
-        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
+        vv.preForceIntegrate(atoms, config.dt);
+        vv.postForceIntegrate(atoms, config.dt);
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
@@ -122,40 +113,14 @@ TEST(Integration, LocalLangevinThermostat)
 
     auto isInSymmetricSlab = util::IsInSymmetricSlab(boxCenter, 0_r, 5.0_r);
 
-    action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
+    action::VelocityVerletLangevinThermostat vv(1e5_r, config.temperature);
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
+        vv.preForceIntegrate_apply_if(atoms, config.dt, isInSymmetricSlab);
 
         auto force = atoms.getForce();
         Cabana::deep_copy(force, 0_r);
 
-        langevinThermostat.apply_if(atoms, isInSymmetricSlab);
-
-        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
-
-        if (config.bOutput && (step % config.outputInterval == 0))
-        {
-            auto Ek = analysis::getMeanKineticEnergy(atoms);
-            auto T = (2_r / 3_r) * Ek;
-            std::cout << "temperature: " << T << std::endl;
-        }
-    }
-    auto Ek = analysis::getMeanKineticEnergy(atoms);
-    auto T = (2_r / 3_r) * Ek;
-    EXPECT_NEAR(T, config.temperature, 0.01_r);
-}
-
-TEST(Integration, VelocityVerletLangevinThermostat)
-{
-    Config config;
-    auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
-    auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
-
-    action::VelocityVerletLangevinThermostat vv(1e5_r, config.temperature);
-    for (auto step = 0; step < config.nsteps; ++step)
-    {
-        vv.preForceIntegrate(atoms, config.dt);
         vv.postForceIntegrate(atoms, config.dt);
 
         if (config.bOutput && (step % config.outputInterval == 0))
