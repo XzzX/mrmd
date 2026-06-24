@@ -25,9 +25,6 @@ mrmd_add_test(NAME test.action.ContributeMoleculeForceToAtoms
 mrmd_add_test(NAME test.action.CoulombDSF
         FILES CoulombDSF.test.cpp)
 
-mrmd_add_test(NAME test.action.LangevinThermostat
-        FILES LangevinThermostat.test.cpp)
-
 mrmd_add_test(NAME test.action.LennardJones
         FILES LennardJones.test.cpp)
 
@@ -45,6 +42,9 @@ mrmd_add_test(NAME test.action.Shake
 
 mrmd_add_test(NAME test.action.SPC
         FILES SPC.test.cpp)
+        
+mrmd_add_test(NAME test.action.ThermodynamicForce
+        FILES ThermodynamicForce.test.cpp)
 
 mrmd_add_test(NAME test.action.UpdateMolecules
         FILES UpdateMolecules.test.cpp)
@@ -52,5 +52,5 @@ mrmd_add_test(NAME test.action.UpdateMolecules
 mrmd_add_test(NAME test.action.VelocityVerlet
         FILES VelocityVerlet.test.cpp)
 
-mrmd_add_test(NAME test.action.ThermodynamicForce
-        FILES ThermodynamicForce.test.cpp)
+mrmd_add_test(NAME test.action.VelocityVerletLangevinThermostat
+        FILES VelocityVerletLangevinThermostat.test.cpp)
