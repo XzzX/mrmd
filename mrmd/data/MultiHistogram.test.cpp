@@ -108,6 +108,30 @@ TEST(MultiHistogram, make_symmetric)
     }
 }
 
+TEST(MultiHistogram, gradient)
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 10, 3);
+    auto h_data = Kokkos::create_mirror_view(histogram.data);
+    for (auto idx = 0; idx < 10; ++idx)
+    {
+        h_data(idx, 0) = 1_r;
+        h_data(idx, 1) = real_c(idx);
+        h_data(idx, 2) = 10_r - real_c(idx);
+    }
+    Kokkos::deep_copy(histogram.data, h_data);
+
+    auto grad = gradient(histogram, false);
+
+    auto h_grad = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), grad.data);
+
+    for (auto idx = 0; idx < 10; ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_grad(idx, 0), 0_r);
+        EXPECT_FLOAT_EQ(h_grad(idx, 1), 1_r);
+        EXPECT_FLOAT_EQ(h_grad(idx, 2), -1_r);
+    }
+}
+
 TEST(MultiHistogram, op_plusequal)
 {
     MultiHistogram histogram("histogram", 0_r, 10_r, 11, 2);
