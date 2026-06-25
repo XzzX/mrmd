@@ -68,24 +68,24 @@ data::Atoms getAtoms()
 
 data::Atoms getAtomsNonuniform()
 {
-    idx_t numAtoms = 0;
-    data::Atoms atoms(1000);
-    auto pos = atoms.getPos();
+    data::HostAtoms h_atoms(45);
+    auto h_pos = h_atoms.getPos();
 
-    Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({0, 0}, {10, 100});
-    auto kernel = KOKKOS_LAMBDA(const idx_t& idx, const idx_t& jdx, idx_t& numAtoms)
+    idx_t numAtoms = 0;
+    for (idx_t idx = 0; idx < 10; ++idx)
     {
-        if (jdx < idx)
+        for (idx_t jdx = 0; jdx < idx; ++jdx)
         {
-            pos(numAtoms, 0) = real_c(idx) + 0.5_r;
+            h_pos(numAtoms, 0) = real_c(idx) + 0.5_r;
             ++numAtoms;
         }
-    };
-    Kokkos::parallel_reduce("getAtomsNonuniform", policy, kernel, numAtoms);
-    Kokkos::fence();
+    }
+    assert(numAtoms == 45);
+    h_atoms.numLocalAtoms = 45;
 
-    atoms.resize(numAtoms);
-    atoms.numLocalAtoms = numAtoms;
+    data::Atoms atoms(h_atoms);
+    data::deep_copy(atoms, h_atoms);
+
     return atoms;
 }
 
