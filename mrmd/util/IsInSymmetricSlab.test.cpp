@@ -21,7 +21,7 @@ namespace mrmd
 {
 namespace util
 {
-TEST(IsInSymmetricSlab, testRegion)
+TEST(IsInSymmetricSlab, testDefaultAxis)
 {
     Point3D center = {2_r, 3_r, 4_r};
     const auto slabMin = 2_r;
@@ -37,6 +37,46 @@ TEST(IsInSymmetricSlab, testRegion)
 
     EXPECT_FALSE(isInSymmetricSlab(3.1_r, 10_r, 10_r));
     EXPECT_FALSE(isInSymmetricSlab(-2.1_r, 10_r, 10_r));
+}
+
+TEST(IsInSymmetricSlab, testCustomAxisAndTolerance)
+{
+    Point3D center = {2_r, 3_r, 4_r};
+    const auto slabMin = 2_r;
+    const auto slabMax = 4_r;
+    const auto tolerance = 0.1_r;
+    const auto axis = AXIS::Y;
+    auto isInSymmetricSlab = IsInSymmetricSlab(center, slabMin, slabMax, axis, tolerance);
+
+    EXPECT_TRUE(isInSymmetricSlab(10_r, 7_r, 10_r));
+    EXPECT_TRUE(isInSymmetricSlab(10_r, -1_r, 10_r));
+    EXPECT_TRUE(isInSymmetricSlab(10_r, 5.7_r, 10_r));
+    EXPECT_TRUE(isInSymmetricSlab(10_r, 6_r, 10_r));
+    EXPECT_TRUE(isInSymmetricSlab(10_r, 0_r, 10_r));
+
+    EXPECT_FALSE(isInSymmetricSlab(10_r, -1.2_r, 10_r));
+    EXPECT_FALSE(isInSymmetricSlab(10_r, -2_r, 10_r));
+    EXPECT_FALSE(isInSymmetricSlab(10_r, 4_r, 10_r));
+    EXPECT_FALSE(isInSymmetricSlab(3.1_r, 10_r, 10_r));
+    EXPECT_FALSE(isInSymmetricSlab(-2.1_r, 10_r, 10_r));
+}
+
+TEST(IsInSymmetricSlab, testSymmetricInterval)
+{
+    Point3D center = {2_r, 3_r, 4_r};
+    const auto intervalMin = 2_r;
+    const auto intervalMax = 4_r;
+    auto isInSymmetricInterval = IsInSymmetricSlab(center, intervalMin, intervalMax);
+
+    EXPECT_TRUE(isInSymmetricInterval(4_r));
+    EXPECT_TRUE(isInSymmetricInterval(5.7_r));
+    EXPECT_TRUE(isInSymmetricInterval(6_r));
+    EXPECT_TRUE(isInSymmetricInterval(-2_r));
+    EXPECT_TRUE(isInSymmetricInterval(-1.2_r));
+    EXPECT_TRUE(isInSymmetricInterval(0_r));
+
+    EXPECT_FALSE(isInSymmetricInterval(3.1_r));
+    EXPECT_FALSE(isInSymmetricInterval(-2.1_r));
 }
 
 }  // namespace util
