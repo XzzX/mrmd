@@ -35,6 +35,21 @@ struct TestPredicate
     {
         return x > lower && x < upper;
     }
+
+    KOKKOS_INLINE_FUNCTION bool operator()(real_t x) const { return x > lower && x < upper; }
+};
+
+struct TestCoordPredicate
+{
+    real_t lower;
+    real_t upper;
+
+    KOKKOS_INLINE_FUNCTION bool operator()(real_t x) const { return x > lower && x < upper; }
+};
+
+struct TrueCoordPredicate
+{
+    KOKKOS_INLINE_FUNCTION bool operator()(real_t) const { return true; }
 };
 
 data::Atoms getAtoms()
@@ -51,9 +66,32 @@ data::Atoms getAtoms()
     return atoms;
 }
 
+data::Atoms getAtomsNonuniform()
+{
+    idx_t numAtoms = 0;
+    data::Atoms atoms(1000);
+    auto pos = atoms.getPos();
+
+    Kokkos::MDRangePolicy<Kokkos::Rank<2>> policy({0, 0}, {10, 100});
+    auto kernel = KOKKOS_LAMBDA(const idx_t& idx, const idx_t& jdx, idx_t& numAtoms)
+    {
+        if (jdx < idx)
+        {
+            pos(numAtoms, 0) = real_c(idx) + 0.5_r;
+            ++numAtoms;
+        }
+    };
+    Kokkos::parallel_reduce("getAtomsNonuniform", policy, kernel, numAtoms);
+    Kokkos::fence();
+
+    atoms.resize(numAtoms);
+    atoms.numLocalAtoms = numAtoms;
+    return atoms;
+}
+
 ThermodynamicForce getThermodynamicForce()
 {
-    data::Subdomain subdomain({0_r, 0_r, 0_r}, {10_r, 10_r, 10_r}, 1_r);
+    data::Subdomain subdomain({0_r, 0_r, 0_r}, {10_r, 1_r, 1_r}, 1_r);
     ThermodynamicForce thermodynamicForce({1_r}, subdomain, 1_r, {1_r});
 
     auto forceHistogram = thermodynamicForce.getForce();
@@ -66,6 +104,48 @@ ThermodynamicForce getThermodynamicForce()
     Kokkos::fence();
     thermodynamicForce.setForce(forceHistogram.data);
     return thermodynamicForce;
+}
+
+TEST(ThermodynamicForce, getGrid)
+{
+    auto thermodynamicForce = getThermodynamicForce();
+    auto h_grid = Kokkos::create_mirror_view_and_copy(
+        Kokkos::HostSpace(), createGrid(thermodynamicForce.getDensityProfile()));
+
+    for (idx_t idx = 0; idx < h_grid.extent(0); ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_grid(idx), real_c(idx) + 0.5_r);
+    };
+}
+
+TEST(ThermodynamicForce, sample)
+{
+    auto atoms = getAtoms();
+    auto thermodynamicForce = getThermodynamicForce();
+
+    thermodynamicForce.sample(atoms);
+
+    auto h_densityProfile = Kokkos::create_mirror_view_and_copy(
+        Kokkos::HostSpace(), thermodynamicForce.getDensityProfile(0));
+    for (idx_t idx = 0; idx < h_densityProfile.extent(0); ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_densityProfile(idx), 10_r);
+    };
+}
+
+TEST(ThermodynamicForce, sampleNonuniform)
+{
+    auto atoms = getAtomsNonuniform();
+    auto thermodynamicForce = getThermodynamicForce();
+
+    thermodynamicForce.sample(atoms);
+
+    auto h_densityProfile = Kokkos::create_mirror_view_and_copy(
+        Kokkos::HostSpace(), thermodynamicForce.getDensityProfile(0));
+    for (idx_t idx = 0; idx < h_densityProfile.extent(0); ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_densityProfile(idx), real_c(idx));
+    };
 }
 
 TEST(ThermodynamicForce, apply)
@@ -130,5 +210,51 @@ TEST(ThermodynamicForce, applyInterpolated_if)
     }
 }
 
+TEST(ThermodynamicForce, update)
+{
+    auto atoms = getAtomsNonuniform();
+    auto thermodynamicForce = getThermodynamicForce();
+
+    thermodynamicForce.sample(atoms);
+    thermodynamicForce.update(1_r, 0_r);
+
+    auto forceHistogram = thermodynamicForce.getForce();
+
+    auto h_force =
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), thermodynamicForce.getForce(0));
+    for (idx_t idx = 0; idx < forceHistogram.numBins; ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_force(idx), real_c(idx) - 1_r);
+    };
+}
+
+TEST(ThermodynamicForce, update_if)
+{
+    auto atoms = getAtomsNonuniform();
+    auto thermodynamicForce = getThermodynamicForce();
+
+    thermodynamicForce.sample(atoms);
+
+    thermodynamicForce.update_if(1_r, 0_r, TestPredicate{0.51_r, 4.49_r});
+
+    auto forceHistogram = thermodynamicForce.getForce();
+
+    auto h_force =
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), thermodynamicForce.getForce(0));
+    auto h_grid =
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), createGrid(forceHistogram));
+    for (idx_t idx = 0; idx < forceHistogram.numBins; ++idx)
+    {
+        if (h_grid(idx) > 0.51_r &&
+            h_grid(idx) < 4.49_r)  // only bins corresponding to the predicate should be updated
+        {
+            EXPECT_FLOAT_EQ(h_force(idx), real_c(idx) - 1_r);
+        }
+        else
+        {
+            EXPECT_FLOAT_EQ(h_force(idx), real_c(idx));
+        }
+    };
+}
 }  // namespace action
 }  // namespace mrmd
