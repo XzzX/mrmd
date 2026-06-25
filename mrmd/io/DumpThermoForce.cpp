@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,7 +25,8 @@ void dumpThermoForce(const std::string& filename,
                      const action::ThermodynamicForce& thermodynamicForce,
                      const idx_t& typeId)
 {
-    auto grid = thermodynamicForce.getForce().createGrid();
+    ScalarView::HostMirror grid = Kokkos::create_mirror_view_and_copy(
+        ScalarView::HostMirror::memory_space{}, createGrid(thermodynamicForce.getForce()));
     auto numBins = grid.size();
     ScalarView::HostMirror forceView("forceView", numBins);
     auto thermoForce = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
@@ -41,7 +43,8 @@ void dumpThermoForce(const std::string& filename,
                      const action::ThermodynamicForce& thermodynamicForce)
 {
     DumpProfile dumpThermoForce;
-    auto grid = thermodynamicForce.getForce().createGrid();
+    ScalarView::HostMirror grid = Kokkos::create_mirror_view_and_copy(
+        ScalarView::HostMirror::memory_space{}, createGrid(thermodynamicForce.getForce()));
     auto numBins = grid.size();
 
     dumpThermoForce.open(filename);

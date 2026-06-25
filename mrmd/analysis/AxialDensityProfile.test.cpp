@@ -60,7 +60,7 @@ TEST(AxialDensityProfile, histogram)
     auto atoms = initAtoms();
 
     auto histogram = getAxialDensityProfile(
-        atoms.numLocalAtoms, atoms.getPos(), atoms.getType(), 2, 0_r, 10_r, 10, COORD_X);
+        atoms.numLocalAtoms, atoms.getPos(), atoms.getType(), 2, 0_r, 10_r, 10, AXIS::X);
     auto h_data = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogram.data);
 
     for (auto i = 0; i < 10; ++i)

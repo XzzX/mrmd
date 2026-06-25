@@ -26,16 +26,16 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(TestFunctions)
 
 # set C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 
 option(MRMD_ENABLE_HDF5 "Enable HDF5 support." OFF)
 option(MRMD_ENABLE_MPI "Enable MPI support." OFF)
-option(MRMD_ENABLE_PYTHON "Enable Python support." OFF)
 option(MRMD_ENABLE_COVERAGE "Enable code coverage. (clang)" OFF)
 option(MRMD_ENABLE_TESTING "Build tests and add them to ctest." ON)
+option(MRMD_USE_SHARED_SPACE "Use shared space for Kokkos." OFF)
 option(MRMD_VEC_REPORT "Enable reporting of loop vectorization." OFF)
 option(MRMD_VERBOSE_ASSERTS "Verbose asserts are only available on CPU!" OFF)
 option(MRMD_WERROR "Treat warnings as errors." OFF)
@@ -66,13 +66,9 @@ endif()
 # FIND HDF5
 ########################################################################
 if (MRMD_ENABLE_HDF5)
-    set(HDF5_PREFER_PARALLEL ON)
     #set(HDF5_FIND_DEBUG ON)
     find_package(HDF5 REQUIRED COMPONENTS C HL)
     if (HDF5_FOUND)
-        if (NOT HDF5_IS_PARALLEL)
-            message(FATAL_ERROR "HDF5 with MPI support is required! Serial version detected.")
-        endif ()
         #need to avoid _FORTIFY_SOURCE=2 which causes trouble in debug builds
         set_target_properties(hdf5::hdf5 PROPERTIES INTERFACE_COMPILE_DEFINITIONS "")
     endif ()
@@ -86,7 +82,7 @@ include(FetchContent)
 FetchContent_Declare(
     Kokkos
     GIT_REPOSITORY https://github.com/kokkos/kokkos.git
-    GIT_TAG 15dc143e5f39949eece972a798e175c4b463d4b8 #4.4.01
+    GIT_TAG b601b82d0f4b4491aeafb7b19cde557e92aa761d #4.7.1
     OVERRIDE_FIND_PACKAGE
     SYSTEM
 )
@@ -96,24 +92,15 @@ include(${kokkos_BINARY_DIR}/KokkosConfigCommon.cmake)
 FetchContent_Declare(
         CLI11
         GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
-        GIT_TAG 6c7b07a878ad834957b98d0f9ce1dbe0cb204fc9 #2.4.2
+        GIT_TAG bfffd37e1f804ca4fae1caae106935791696b6a9 #2.6.1
         SYSTEM
 )
 FetchContent_MakeAvailable(CLI11)
 
-option(FMT_INSTALL "Enable install for fmt project" ON)
-FetchContent_Declare(
-        FMT
-        GIT_REPOSITORY https://github.com/fmtlib/fmt.git
-        GIT_TAG 0c9fce2ffefecfdce794e1859584e25877b7b592 #11.0.2
-        SYSTEM
-)
-FetchContent_MakeAvailable(FMT)
-
 FetchContent_Declare(
         YAML_CPP
         GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-        GIT_TAG f7320141120f720aecc4c32be25586e7da9eb978 #0.8.0
+        GIT_TAG a83cd31548b19d50f3f983b069dceb4f4d50756d #0.8.0+
         SYSTEM
 )
 FetchContent_MakeAvailable(YAML_CPP)
@@ -121,7 +108,7 @@ FetchContent_MakeAvailable(YAML_CPP)
 FetchContent_Declare(
         Cabana
         GIT_REPOSITORY https://github.com/ECP-copa/Cabana.git
-        GIT_TAG 25f7411a1fc7c46ee2fc07ee0c452d8f589ff178 #0.6.1
+        GIT_TAG 7914d28708b1c67b40d5743c1fbc09e221144dd3 #0.7
         SYSTEM
 )
 FetchContent_MakeAvailable(Cabana)
@@ -129,7 +116,7 @@ FetchContent_MakeAvailable(Cabana)
 FetchContent_Declare(
         googletest
         GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG b514bdc898e2951020cbdca1304b75f5950d1f59 #1.15.2
+        GIT_TAG 52eb8108c5bdec04579160ae17225d66034bd723 #1.17.0
         SYSTEM
 )
 FetchContent_MakeAvailable(googletest)
@@ -137,9 +124,5 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 
 add_subdirectory(mrmd)
-if (MRMD_ENABLE_PYTHON)
-    add_subdirectory(pyMRMD)
-endif()
-
 add_subdirectory(examples)
 add_subdirectory(tests)

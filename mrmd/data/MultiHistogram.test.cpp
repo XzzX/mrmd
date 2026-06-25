@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -35,6 +36,34 @@ TEST(MultiHistogram, getBinPosition)
     MultiHistogram histogram("histogram", 0_r, 10_r, 10, 2);
     EXPECT_FLOAT_EQ(histogram.getBinPosition(0), 0.5_r);
     EXPECT_FLOAT_EQ(histogram.getBinPosition(5), 5.5_r);
+}
+
+TEST(MultiHistogram, consistencyBinToPosition)
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 10, 2);
+
+    for (idx_t idx = 0; idx < histogram.numBins; ++idx)
+    {
+        EXPECT_FLOAT_EQ(histogram.getBin(histogram.getBinPosition(idx)), idx);
+    }
+}
+
+TEST(MultiHistogram, createGrid)
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 10, 2);
+
+    auto grid = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), createGrid(histogram));
+    EXPECT_EQ(grid[0], 0.5_r);
+    EXPECT_EQ(grid[5], 5.5_r);
+}
+
+TEST(MultiHistogram, consistencyCreateGridToGetBinPosition)
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 10, 2);
+
+    auto grid = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), createGrid(histogram));
+    EXPECT_EQ(grid[0], histogram.getBinPosition(0));
+    EXPECT_EQ(grid[5], histogram.getBinPosition(5));
 }
 
 TEST(MultiHistogram, scale)
@@ -208,5 +237,36 @@ void multiHistogramSmoothen_constant()
     }
 }
 TEST(MultiHistogram, smoothen_constant) { multiHistogramSmoothen_constant(); }
+
+void MultiHistogramReplace_if_bin_position()
+{
+    MultiHistogram histogram("histogram", 0_r, 10_r, 11, 2);
+    Kokkos::parallel_for(
+        "init_histogram",
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {11, 2}),
+        KOKKOS_LAMBDA(const idx_t idx, const idx_t histIdx) {
+            histogram.data(idx, histIdx) = real_c(idx * 10 + histIdx);
+        });
+
+    replace_if_bin_position(histogram, KOKKOS_LAMBDA(const real_t pos) { return pos < 5_r; }, -1_r);
+
+    auto h_data = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogram.data);
+    for (auto idx = 0; idx < 11; ++idx)
+    {
+        if (histogram.getBinPosition(idx) < 5_r)
+        {
+            EXPECT_FLOAT_EQ(h_data(idx, 0), -1_r);
+            EXPECT_FLOAT_EQ(h_data(idx, 1), -1_r);
+        }
+        else
+        {
+            EXPECT_FLOAT_EQ(h_data(idx, 0), real_c(idx * 10 + 0));
+            EXPECT_FLOAT_EQ(h_data(idx, 1), real_c(idx * 10 + 1));
+        }
+    }
+}
+
+TEST(MultiHistogram, replace_if_bin_position) { MultiHistogramReplace_if_bin_position(); }
+
 }  // namespace data
 }  // namespace mrmd

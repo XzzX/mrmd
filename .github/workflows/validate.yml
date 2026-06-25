@@ -22,7 +22,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'mrmd'
 
@@ -34,7 +34,6 @@ jobs:
             -DCMAKE_BUILD_TYPE=Debug \
             -DMRMD_ENABLE_HDF5=ON \
             -DMRMD_ENABLE_MPI=ON \
-            -DMRMD_ENABLE_PYTHON=ON \
             -DMRMD_VERBOSE_ASSERTS=ON \
             -DMRMD_WERROR=ON \
             -DKokkos_ENABLE_DEBUG=ON \
@@ -43,10 +42,9 @@ jobs:
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
-        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
+        run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
 
       - name: build
         run: cmake --build mrmd-build --target all --parallel 2
@@ -72,7 +70,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'mrmd'
 
@@ -84,16 +82,14 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DMRMD_ENABLE_HDF5=ON \
             -DMRMD_ENABLE_MPI=ON \
-            -DMRMD_ENABLE_PYTHON=ON \
             -DMRMD_VERBOSE_ASSERTS=ON \
             -DMRMD_WERROR=ON \
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
-        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
+        run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
 
       - name: build
         run: cmake --build mrmd-build --target all --parallel 2
@@ -113,7 +109,7 @@ jobs:
           git --version
           cmake --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'mrmd'
 
@@ -128,10 +124,9 @@ jobs:
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: build dependencies
-        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
+        run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
 
       - name: build
         run: cmake --build mrmd-build --target all --parallel 2
@@ -143,7 +138,8 @@ jobs:
   nvcc-debug-build:
     strategy:
       matrix:
-        CONTAINER: [ 'nvcc-12.6' ]
+        CONTAINER: [ 'nvcc-13' ]
+        USE_SHARED_SPACE: [ 'ON', 'OFF' ]
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
@@ -157,7 +153,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'mrmd'
 
@@ -178,11 +174,11 @@ jobs:
             -DKokkos_ENABLE_SERIAL=ON \
             -DKokkos_ENABLE_OPENMP=ON \
             -DKokkos_ENABLE_CUDA=ON \
-            -DKokkos_ARCH_AMPERE80=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+            -DMRMD_USE_SHARED_SPACE=${{ matrix.USE_SHARED_SPACE }} \
+            -DKokkos_ARCH_AMPERE80=ON
 
       - name: build dependencies
-        run: cmake --build mrmd-build --target fmt gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
+        run: cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
 
       - name: build
         run: cmake --build mrmd-build --target all --parallel 2
@@ -200,7 +196,7 @@ jobs:
           $CC --version
           $CXX --version
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: 'source'
 
@@ -213,7 +209,6 @@ jobs:
             -DCMAKE_BUILD_TYPE=Debug \
             -DMRMD_ENABLE_HDF5=ON \
             -DMRMD_ENABLE_MPI=ON \
-            -DMRMD_ENABLE_PYTHON=ON \
             -DMRMD_VERBOSE_ASSERTS=ON \
             -DMRMD_WERROR=ON \
             -DKokkos_ENABLE_DEBUG=ON \
@@ -221,7 +216,6 @@ jobs:
             -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
             -DKokkos_ENABLE_HWLOC=ON \
             -DKokkos_ENABLE_SERIAL=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
 
       - name: run clang-tidy
         working-directory: ./source
@@ -231,7 +225,10 @@ jobs:
     runs-on: ubuntu-latest
     container: xzzx/devel:clang-18
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
+
+      - name: print clang-format version
+        run: clang-format-18 --version || clang-format --version
 
       - name: run formatter
         run: |
@@ -241,49 +238,3 @@ jobs:
       - name: check formatting
         run: git diff --exit-code
 
-  black-format:
-    runs-on: ubuntu-latest
-    container: xzzx/devel:clang-18
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: run formatter
-        run: |
-          git config --global --add safe.directory /__w/mrmd/mrmd
-          black .
-
-      - name: check formatting
-        run: git diff --exit-code
-
-  pylint:
-    runs-on: ubuntu-latest
-    container: xzzx/devel:clang-18
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          path: 'mrmd'
-
-      - name: Configure
-        run: |
-          cmake \
-            -S mrmd \
-            -B mrmd-build \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DMRMD_ENABLE_HDF5=ON \
-            -DMRMD_ENABLE_MPI=ON \
-            -DMRMD_ENABLE_PYTHON=ON \
-            -DMRMD_VERBOSE_ASSERTS=ON \
-            -DMRMD_WERROR=ON \
-            -DKokkos_ENABLE_HWLOC=ON \
-            -DKokkos_ENABLE_SERIAL=ON \
-            -DKokkos_ENABLE_OPENMP=ON \
-            -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-
-      - name: build
-        run: cmake --build mrmd-build --target all --parallel 2
-
-      - name: run pylint
-        run: |
-          git config --global --add safe.directory /__w/mrmd/mrmd
-          export PYTHONPATH=$(pwd)/mrmd-build/pyMRMD
-          pylint -v --ignore=build --disable=R,C,I1101 mrmd

@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -61,7 +62,7 @@ struct Subdomain
     }
     Subdomain(const Point3D& minCornerArg,
               const Point3D& maxCornerArg,
-              real_t ghostLayerThicknessArg)
+              const real_t& ghostLayerThicknessArg)
         : Subdomain(
               minCornerArg,
               maxCornerArg,
@@ -69,8 +70,10 @@ struct Subdomain
     {
     }
 
-    void scaleDim(const real_t& scalingFactor, const idx_t& dim);
+    void scaleDim(const real_t& scalingFactor, const AXIS& axis);
     void scale(const real_t& scalingFactor);
+    real_t getVolume() const;
+    Point3D getCenter() const;
 
     Point3D minCorner = {std::numeric_limits<real_t>::signaling_NaN(),
                          std::numeric_limits<real_t>::signaling_NaN(),

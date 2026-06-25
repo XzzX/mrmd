@@ -25,11 +25,8 @@ add_library(mrmd ${MRMD_SOURCES})
 target_link_libraries(mrmd
     PUBLIC Kokkos::kokkos
     PUBLIC Cabana::Core
-    PRIVATE fmt::fmt
+    PRIVATE
     )
-if (MRMD_ENABLE_HDF5)
-target_link_libraries(mrmd PUBLIC MPI::MPI_C MPI::MPI_CXX)
-endif()
 if (MRMD_ENABLE_HDF5)
     target_link_libraries(mrmd PUBLIC hdf5::hdf5 hdf5::hdf5_hl)
 endif ()

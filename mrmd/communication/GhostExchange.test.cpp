@@ -92,13 +92,13 @@ protected:
     data::Atoms atoms = data::Atoms(200);
 };
 
-void selfExchange(const data::Subdomain& subdomain, data::Atoms& atoms, const idx_t& dimension)
+void selfExchange(const data::Subdomain& subdomain, data::Atoms& atoms, const AXIS& axis)
 {
     EXPECT_EQ(atoms.numGhostAtoms, 0);
     auto ghostExchange = GhostExchange();
     ghostExchange.resetCorrespondingRealAtoms(atoms);
     auto correspondingRealAtom = Kokkos::create_mirror_view_and_copy(
-        Kokkos::HostSpace(), ghostExchange.createGhostAtoms(atoms, subdomain, dimension));
+        Kokkos::HostSpace(), ghostExchange.createGhostAtoms(atoms, subdomain, axis));
     EXPECT_EQ(atoms.numGhostAtoms, 18);
     for (auto idx = 0; idx < atoms.numLocalAtoms + atoms.numGhostAtoms; ++idx)
     {
@@ -112,9 +112,9 @@ void selfExchange(const data::Subdomain& subdomain, data::Atoms& atoms, const id
         }
     }
 }
-TEST_F(GhostExchangeTest, SelfExchangeX) { selfExchange(subdomain, atoms, COORD_X); }
-TEST_F(GhostExchangeTest, SelfExchangeY) { selfExchange(subdomain, atoms, COORD_Y); }
-TEST_F(GhostExchangeTest, SelfExchangeZ) { selfExchange(subdomain, atoms, COORD_Z); }
+TEST_F(GhostExchangeTest, SelfExchangeX) { selfExchange(subdomain, atoms, AXIS::X); }
+TEST_F(GhostExchangeTest, SelfExchangeY) { selfExchange(subdomain, atoms, AXIS::Y); }
+TEST_F(GhostExchangeTest, SelfExchangeZ) { selfExchange(subdomain, atoms, AXIS::Z); }
 
 TEST_F(GhostExchangeTest, SelfExchangeXYZ)
 {

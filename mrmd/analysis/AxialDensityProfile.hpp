@@ -35,7 +35,7 @@ data::MultiHistogram getAxialDensityProfile(const idx_t numAtoms,
                                             const real_t min,
                                             const real_t max,
                                             const int64_t numBins,
-                                            const int64_t axis);
+                                            const AXIS axis);
 
 }  // namespace analysis
 }  // namespace mrmd

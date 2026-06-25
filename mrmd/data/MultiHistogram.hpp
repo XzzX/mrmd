@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -72,8 +73,6 @@ struct MultiHistogram
         return binPosition;
     }
 
-    ScalarView::HostMirror createGrid() const;
-
     const real_t min;
     const real_t max;
     const idx_t numBins;
@@ -128,6 +127,8 @@ data::MultiHistogram smoothen(data::MultiHistogram& input,
                               const real_t& range,
                               const bool periodic = false);
 
+ScalarView createGrid(const MultiHistogram& input);
+
 /**
  * Applies a binary operation to corresponding elements of two input MultiHistograms and stores
  * the result in an output MultiHistogram.
@@ -163,6 +164,32 @@ void transform(const MultiHistogram& input1,
         outputData(idx, jdx) = binary_op(input1Data(idx, jdx), input2Data(idx, jdx));
     };
     Kokkos::parallel_for("MultiHistogram::transform", policy, kernel);
+    Kokkos::fence();
+}
+
+/**
+ * Replaces histogram values with a new value if the bin position satisfies a predicate.
+ *
+ * @param hist The MultiHistogram object whose values will be conditionally replaced.
+ * @param pred A unary predicate function that is evaluated for each bin position.
+ *             If it returns true for a bin position, all histogram values at that bin
+ *             are replaced with newValue.
+ * @param newValue The value to assign to histogram entries whose bin position satisfies
+ *                 the predicate.
+ */
+template <OneCoordinatePredicate Pred>
+void replace_if_bin_position(MultiHistogram& hist, const Pred& pred, real_t newValue)
+{
+    auto policy =
+        Kokkos::MDRangePolicy<Kokkos::Rank<2>>({0, 0}, {hist.numBins, hist.numHistograms});
+    auto kernel = KOKKOS_LAMBDA(const idx_t binIdx, const idx_t histIdx)
+    {
+        if (pred(hist.getBinPosition(binIdx)))
+        {
+            hist.data(binIdx, histIdx) = newValue;
+        }
+    };
+    Kokkos::parallel_for("replace_if_bin_position", policy, kernel);
     Kokkos::fence();
 }
 

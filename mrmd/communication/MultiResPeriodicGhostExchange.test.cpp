@@ -25,31 +25,30 @@ using MultiResPeriodicGhostExchangeTest = test::GridFixture;
 void multiResPeriodicGhostExchangeTestCreateGhostAtoms(data::Molecules& molecules,
                                                        data::Atoms& atoms,
                                                        data::Subdomain& subdomain,
-                                                       idx_t dimension)
+                                                       AXIS axis)
 {
     EXPECT_EQ(molecules.numGhostMolecules, 0);
     EXPECT_EQ(atoms.numGhostAtoms, 0);
     auto ghostExchange = MultiResPeriodicGhostExchange();
     ghostExchange.resetCorrespondingRealAtoms(atoms);
     ghostExchange.resetCorrespondingRealMolecules(molecules);
-    auto correspondingRealAtom =
-        ghostExchange.createGhostAtoms(molecules, atoms, subdomain, dimension);
+    auto correspondingRealAtom = ghostExchange.createGhostAtoms(molecules, atoms, subdomain, axis);
     EXPECT_EQ(molecules.numGhostMolecules, 2 * 3 * 3);
     EXPECT_EQ(atoms.numGhostAtoms, 3 * 3 * 2 * 2);
 }
 TEST_F(MultiResPeriodicGhostExchangeTest, createGhostAtomsX)
 {
-    multiResPeriodicGhostExchangeTestCreateGhostAtoms(molecules, atoms, subdomain, COORD_X);
+    multiResPeriodicGhostExchangeTestCreateGhostAtoms(molecules, atoms, subdomain, AXIS::X);
 }
 
 TEST_F(MultiResPeriodicGhostExchangeTest, createGhostAtomsY)
 {
-    multiResPeriodicGhostExchangeTestCreateGhostAtoms(molecules, atoms, subdomain, COORD_Y);
+    multiResPeriodicGhostExchangeTestCreateGhostAtoms(molecules, atoms, subdomain, AXIS::Y);
 }
 
 TEST_F(MultiResPeriodicGhostExchangeTest, createGhostAtomsZ)
 {
-    multiResPeriodicGhostExchangeTestCreateGhostAtoms(molecules, atoms, subdomain, COORD_Z);
+    multiResPeriodicGhostExchangeTestCreateGhostAtoms(molecules, atoms, subdomain, AXIS::Z);
 }
 
 TEST_F(MultiResPeriodicGhostExchangeTest, createGhostAtomsXYZ)

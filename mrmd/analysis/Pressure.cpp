@@ -46,7 +46,7 @@ real_t getPressure(data::Atoms& atoms, const data::Subdomain& subdomain)
         sum += util::dot3(F, x);
     };
     Kokkos::parallel_reduce("getPressure", policy, kernel, pressure);
-    auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
+    auto volume = subdomain.getVolume();
     return pressure / (3_r * volume);
 }
 

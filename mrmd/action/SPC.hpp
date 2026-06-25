@@ -29,9 +29,7 @@ struct Energy
     real_t LJ = 0_r;
     real_t coulomb = 0_r;
 
-    KOKKOS_INLINE_FUNCTION
     Energy() = default;
-    KOKKOS_INLINE_FUNCTION
     Energy(const Energy& rhs) = default;
 
     KOKKOS_INLINE_FUNCTION
@@ -40,12 +38,6 @@ struct Energy
         LJ += src.LJ;
         coulomb += src.coulomb;
         return *this;
-    }
-    KOKKOS_INLINE_FUNCTION
-    void operator+=(const volatile Energy& src) volatile
-    {
-        LJ += src.LJ;
-        coulomb += src.coulomb;
     }
 };
 }  // namespace mrmd::action::impl

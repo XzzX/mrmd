@@ -31,29 +31,13 @@ struct DoubleCounter
     idx_t atoms = 0;
     idx_t molecules = 0;
 
-    KOKKOS_INLINE_FUNCTION
     DoubleCounter() = default;
     KOKKOS_INLINE_FUNCTION
     DoubleCounter(idx_t newAtoms, idx_t newMolecules) : atoms(newAtoms), molecules(newMolecules) {}
-    KOKKOS_INLINE_FUNCTION
     DoubleCounter(const DoubleCounter& rhs) = default;
 
     KOKKOS_INLINE_FUNCTION
-    DoubleCounter(const volatile DoubleCounter& rhs)
-    {
-        atoms = rhs.atoms;
-        molecules = rhs.molecules;
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator=(const DoubleCounter& rhs) volatile
-    {
-        atoms = rhs.atoms;
-        molecules = rhs.molecules;
-    }
-
-    KOKKOS_INLINE_FUNCTION
-    void operator=(volatile const DoubleCounter& rhs) volatile
+    void operator=(const DoubleCounter& rhs)
     {
         atoms = rhs.atoms;
         molecules = rhs.molecules;
@@ -115,7 +99,7 @@ public:
     IndexView createGhostAtoms(data::Molecules& molecules,
                                data::Atoms& atoms,
                                const data::Subdomain& subdomain,
-                               const idx_t& dim);
+                               const AXIS& axis);
 
     IndexView createGhostAtomsXYZ(data::Molecules& molecules,
                                   data::Atoms& atoms,

@@ -37,7 +37,7 @@ constexpr real_t coulombEnergyDSF(
     bracket += std::erfc(alpha * r) / r;
     bracket -= std::erfc(alpha * rc) / rc;
     bracket += (std::erfc(alpha * rc) / (rc * rc) +
-                2_r * alpha / M_SQRTPI * std::exp(-alpha * alpha * rc * rc) / rc) *
+                2_r * alpha * inv_sqrtpi * std::exp(-alpha * alpha * rc * rc) / rc) *
                (r - rc);
     return prefac * bracket;
 }
@@ -53,9 +53,9 @@ real_t coulombForceDSF(
     auto rcSqr = rc * rc;
     auto bracket = 0_r;
     bracket += std::erfc(alpha * r) / distSqr;
-    bracket += 2_r * alpha / M_SQRTPI * std::exp(-alpha * alpha * distSqr) / r;
+    bracket += 2_r * alpha * inv_sqrtpi * std::exp(-alpha * alpha * distSqr) / r;
     bracket -= std::erfc(alpha * rc) / rcSqr;
-    bracket -= 2_r * alpha / M_SQRTPI * std::exp(-alpha * alpha * rcSqr) / rc;
+    bracket -= 2_r * alpha * inv_sqrtpi * std::exp(-alpha * alpha * rcSqr) / rc;
     return prefac * bracket / r;
 }
 

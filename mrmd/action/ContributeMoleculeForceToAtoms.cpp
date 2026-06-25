@@ -18,8 +18,9 @@ namespace mrmd
 {
 namespace action
 {
-void ContributeMoleculeForceToAtoms::update(const data::Molecules& molecules,
-                                            const data::Atoms& atoms)
+namespace ContributeMoleculeForceToAtoms
+{
+void update(const data::Molecules& molecules, const data::Atoms& atoms)
 {
     auto moleculesForce = molecules.getForce();
     auto moleculesAtomsOffset = molecules.getAtomsOffset();
@@ -46,5 +47,6 @@ void ContributeMoleculeForceToAtoms::update(const data::Molecules& molecules,
     Kokkos::fence();
 }
 
+}  // namespace ContributeMoleculeForceToAtoms
 }  // namespace action
 }  // namespace mrmd

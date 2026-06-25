@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,21 +15,25 @@
 
 #include "LennardJones.hpp"
 
+#include <algorithm>
+#include <cassert>
+#include <cmath>
+
 namespace mrmd::action
 {
 void LennardJones::apply(data::Atoms& atoms, HalfVerletList& verletList)
 {
-    energyAndVirial_ = data::EnergyAndVirialReducer();
-
-    pos_ = atoms.getPos();
-    force_ = atoms.getForce();
-    type_ = atoms.getType();
-    verletList_ = verletList;
-
-    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
-    Kokkos::parallel_reduce("LennardJones::applyForces", policy, *this, energyAndVirial_);
-    Kokkos::fence();
+    apply_if(
+        atoms,
+        verletList,
+        KOKKOS_LAMBDA(
+            const real_t, const real_t, const real_t, const real_t, const real_t, const real_t) {
+            return true;
+        });
 }
+
+real_t LennardJones::getEnergy() const { return energyAndVirial_.energy; }
+real_t LennardJones::getVirial() const { return energyAndVirial_.virial; }
 
 LennardJones::LennardJones(const real_t rc,
                            const real_t& sigma,
@@ -46,7 +51,67 @@ LennardJones::LennardJones(const std::vector<real_t>& cappingDistance,
                            const bool isShifted)
     : LJ_(cappingDistance, rc, sigma, epsilon, numTypes, isShifted), numTypes_(1)
 {
-    auto rcMax = *std::max_element(rc.begin(), rc.end());
+    auto rcMax = std::ranges::max(rc);
     rcSqr_ = rcMax * rcMax;
 }
 }  // namespace mrmd::action
+
+namespace mrmd::action::impl
+{
+KOKKOS_FUNCTION
+void CappedLennardJonesPotential::operator()(const idx_t& typeIdx) const
+{
+    // reset capping distance to calculate capping factors with real functions
+    auto capDist = precomputedValues_(typeIdx).cappingDistance;
+    precomputedValues_(typeIdx).cappingDistance = 0_r;
+    precomputedValues_(typeIdx).cappingDistanceSqr = 0_r;
+    auto forceAndEnergy = computeForceAndEnergy(capDist * capDist, typeIdx);
+    precomputedValues_(typeIdx).cappingCoeff = forceAndEnergy.forceFactor * capDist;
+    precomputedValues_(typeIdx).energyAtCappingPoint = forceAndEnergy.energy;
+    precomputedValues_(typeIdx).cappingDistance = capDist;
+    precomputedValues_(typeIdx).cappingDistanceSqr = capDist * capDist;
+
+    if (isShifted_)
+    {
+        precomputedValues_(typeIdx).shift =
+            computeForceAndEnergy(precomputedValues_(typeIdx).rcSqr, typeIdx).energy;
+    }
+}
+
+CappedLennardJonesPotential::CappedLennardJonesPotential(const std::vector<real_t>& cappingDistance,
+                                                         const std::vector<real_t>& rc,
+                                                         const std::vector<real_t>& sigma,
+                                                         const std::vector<real_t>& epsilon,
+                                                         const idx_t& numTypes,
+                                                         const bool isShifted)
+    : isShifted_(isShifted)
+{
+    assert(idx_c(cappingDistance.size()) == numTypes * numTypes);
+    assert(idx_c(rc.size()) == numTypes * numTypes);
+    assert(idx_c(sigma.size()) == numTypes * numTypes);
+    assert(idx_c(epsilon.size()) == numTypes * numTypes);
+
+    precomputedValues_ = Kokkos::View<PrecomputedValues*>(
+        "CappedLennardJonesPotential::PrecomputedValues", numTypes * numTypes);
+    auto hPrecomputedValues = Kokkos::create_mirror_view(Kokkos::HostSpace(), precomputedValues_);
+
+    for (idx_t typeIdx = 0; typeIdx < numTypes * numTypes; ++typeIdx)
+    {
+        auto sig2 = sigma[typeIdx] * sigma[typeIdx];
+        auto sig6 = sig2 * sig2 * sig2;
+        hPrecomputedValues(typeIdx).ff1 = 48_r * epsilon[typeIdx] * sig6 * sig6;
+        hPrecomputedValues(typeIdx).ff2 = 24_r * epsilon[typeIdx] * sig6;
+        hPrecomputedValues(typeIdx).ef1 = 4_r * epsilon[typeIdx] * sig6 * sig6;
+        hPrecomputedValues(typeIdx).ef2 = 4_r * epsilon[typeIdx] * sig6;
+
+        hPrecomputedValues(typeIdx).rcSqr = rc[typeIdx] * rc[typeIdx];
+
+        hPrecomputedValues(typeIdx).cappingDistance = cappingDistance[typeIdx];
+    }
+    Kokkos::deep_copy(precomputedValues_, hPrecomputedValues);
+
+    auto policy = Kokkos::RangePolicy<>(0, numTypes * numTypes);
+    Kokkos::parallel_for(policy, *this);
+    Kokkos::fence();
+}
+}  // namespace mrmd::action::impl

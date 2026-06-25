@@ -22,10 +22,9 @@ namespace mrmd
 {
 namespace action
 {
-class ContributeMoleculeForceToAtoms
+namespace ContributeMoleculeForceToAtoms
 {
-public:
-    static void update(const data::Molecules& molecules, const data::Atoms& atoms);
-};
+void update(const data::Molecules& molecules, const data::Atoms& atoms);
+}  // namespace ContributeMoleculeForceToAtoms
 }  // namespace action
 }  // namespace mrmd

@@ -1,18 +1,17 @@
 // Copyright 2024 Sebastian Eibl
-// 
+// Copyright 2026 Julian Friedrich Hille
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 //     https://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
-#include "action/LangevinThermostat.hpp"
 
 #include <gtest/gtest.h>
 
@@ -21,12 +20,12 @@
 #include <iomanip>
 #include <iostream>
 
-#include "action/VelocityVerlet.hpp"
 #include "action/VelocityVerletLangevinThermostat.hpp"
 #include "analysis/KineticEnergy.hpp"
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
+#include "util/IsInSymmetricSlab.hpp"
 
 using namespace mrmd;
 
@@ -80,23 +79,17 @@ data::Atoms fillDomainWithAtomsSC(const data::Subdomain& subdomain,
     return atoms;
 }
 
-TEST(Integration, LangevinThermostat)
+TEST(Integration, VelocityVerletLangevinThermostat)
 {
     Config config;
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
     auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
 
-    action::LangevinThermostat langevinThermostat(config.gamma, config.temperature, config.dt);
+    action::VelocityVerletLangevinThermostat vv(1e5_r, config.temperature);
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
-
-        auto force = atoms.getForce();
-        Cabana::deep_copy(force, 0_r);
-
-        langevinThermostat.apply(atoms);
-
-        action::VelocityVerlet::postForceIntegrate(atoms, config.dt);
+        vv.preForceIntegrate(atoms, config.dt);
+        vv.postForceIntegrate(atoms, config.dt);
 
         if (config.bOutput && (step % config.outputInterval == 0))
         {
@@ -110,16 +103,24 @@ TEST(Integration, LangevinThermostat)
     EXPECT_NEAR(T, config.temperature, 0.01_r);
 }
 
-TEST(Integration, VelocityVerletLangevinThermostat)
+TEST(Integration, LocalLangevinThermostat)
 {
     Config config;
     auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Lx, config.Lx}, 1_r);
     auto atoms = fillDomainWithAtomsSC(subdomain, config.numAtoms, config.initialMaxVelocity);
 
+    const auto boxCenter = subdomain.getCenter();
+
+    auto isInSymmetricSlab = util::IsInSymmetricSlab(boxCenter, 0_r, 5.0_r);
+
     action::VelocityVerletLangevinThermostat vv(1e5_r, config.temperature);
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        vv.preForceIntegrate(atoms, config.dt);
+        vv.preForceIntegrate_apply_if(atoms, config.dt, isInSymmetricSlab);
+
+        auto force = atoms.getForce();
+        Cabana::deep_copy(force, 0_r);
+
         vv.postForceIntegrate(atoms, config.dt);
 
         if (config.bOutput && (step % config.outputInterval == 0))

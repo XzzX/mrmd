@@ -16,9 +16,7 @@
 
 #include <Kokkos_Core.hpp>
 
-namespace mrmd
-{
-namespace action
+namespace mrmd::action
 {
 void limitAccelerationPerComponent(data::Atoms& atoms, const real_t& maxAccelerationPerComponent)
 {
@@ -44,5 +42,4 @@ void limitAccelerationPerComponent(data::Atoms& atoms, const real_t& maxAccelera
     Kokkos::fence();
 }
 
-}  // namespace action
-}  // namespace mrmd
+}  // namespace mrmd::action
