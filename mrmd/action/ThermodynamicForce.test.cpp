@@ -39,19 +39,6 @@ struct TestPredicate
     KOKKOS_INLINE_FUNCTION bool operator()(real_t x) const { return x > lower && x < upper; }
 };
 
-struct TestCoordPredicate
-{
-    real_t lower;
-    real_t upper;
-
-    KOKKOS_INLINE_FUNCTION bool operator()(real_t x) const { return x > lower && x < upper; }
-};
-
-struct TrueCoordPredicate
-{
-    KOKKOS_INLINE_FUNCTION bool operator()(real_t) const { return true; }
-};
-
 data::Atoms getAtoms()
 {
     idx_t numAtoms = 100;
