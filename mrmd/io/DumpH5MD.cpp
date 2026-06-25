@@ -935,8 +935,8 @@ void DumpH5MD::open(const std::string& /*filename*/,
 
 void DumpH5MD::dumpStep(const data::Subdomain& /*subdomain*/,
                         const data::Atoms& /*atoms*/,
-                        const idx_t& /*step*/,
-                        const real_t& /*dt*/)
+                        const idx_t /*step*/,
+                        const real_t /*dt*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 Support not available!");
     exit(EXIT_FAILURE);
