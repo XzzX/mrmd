@@ -15,6 +15,7 @@
 
 #include "DumpH5MD.hpp"
 
+#include <algorithm>
 #include <numeric>
 
 #include "assert/assert.hpp"
@@ -483,6 +484,10 @@ hid_t DumpH5MDImpl::createChunkedDataset(const hid_t& groupId,
 {
     std::vector<hsize_t> max_dims = dims;
     max_dims[0] = H5S_UNLIMITED;
+    if (dims.size() == 3)
+    {
+        max_dims[1] = H5S_UNLIMITED;
+    }
 
     const hid_t fileSpace =
         CHECK_HDF5(H5Screate_simple(int_c(dims.size()), dims.data(), max_dims.data()));
@@ -731,11 +736,23 @@ void DumpH5MDImpl::appendData(const hid_t datasetId,
                               const std::vector<T>& data,
                               const std::vector<hsize_t>& dims) const
 {
-    std::vector<hsize_t> newSize = dims;
-    newSize[0] = config_.saveCount + 1;
-    H5Dset_extent(datasetId, newSize.data());
+    const hid_t currentSpace = CHECK_HDF5(H5Dget_space(datasetId));
+    const int rank = CHECK_HDF5(H5Sget_simple_extent_ndims(currentSpace));
+    MRMD_HOST_CHECK_EQUAL(rank, int_c(dims.size()));
 
-    const auto fileSpace = H5Dget_space(datasetId);
+    std::vector<hsize_t> currentSize(dims.size());
+    CHECK_HDF5(H5Sget_simple_extent_dims(currentSpace, currentSize.data(), nullptr));
+    CHECK_HDF5(H5Sclose(currentSpace));
+
+    std::vector<hsize_t> newSize = currentSize;
+    newSize[0] = config_.saveCount + 1;
+    for (size_t idx = 1; idx < dims.size(); ++idx)
+    {
+        newSize[idx] = std::max(newSize[idx], dims[idx]);
+    }
+    CHECK_HDF5(H5Dset_extent(datasetId, newSize.data()));
+
+    const hid_t fileSpace = CHECK_HDF5(H5Dget_space(datasetId));
 
     std::vector<hsize_t> offset(dims.size(), 0);
     offset[0] = config_.saveCount;
@@ -746,15 +763,16 @@ void DumpH5MDImpl::appendData(const hid_t datasetId,
         fileSpace, H5S_SELECT_SET, offset.data(), stride.data(), count.data(), dims.data()));
 
     std::vector<hsize_t> localOffset(dims.size(), 0);
-    const hid_t memorySpace = H5Screate_simple(int_c(dims.size()), dims.data(), nullptr);
+    const hid_t memorySpace =
+        CHECK_HDF5(H5Screate_simple(int_c(dims.size()), dims.data(), nullptr));
     CHECK_HDF5(H5Sselect_hyperslab(
         memorySpace, H5S_SELECT_SET, localOffset.data(), stride.data(), count.data(), dims.data()));
 
     CHECK_HDF5(
         H5Dwrite(datasetId, typeToHDF5<T>(), memorySpace, fileSpace, H5P_DEFAULT, data.data()));
 
-    H5Sclose(fileSpace);
-    H5Sclose(memorySpace);
+    CHECK_HDF5(H5Sclose(fileSpace));
+    CHECK_HDF5(H5Sclose(memorySpace));
 }
 
 void DumpH5MDImpl::appendEdges(const idx_t& step,
