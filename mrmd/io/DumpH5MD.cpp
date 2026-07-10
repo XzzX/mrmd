@@ -570,10 +570,11 @@ void DumpH5MDImpl::open(const std::string& filename,
             config_.chargesGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
         config_.chargesTimeSetId = createChunkedDataset(
             config_.chargesGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
-        config_.chargesValueSetId = createChunkedDataset(config_.chargesGroupId,
-                                                         std::vector<hsize_t>{1, atoms.size(), 1},
-                                                         "value",
-                                                         H5T_NATIVE_DOUBLE);
+        config_.chargesValueSetId =
+            createChunkedDataset(config_.chargesGroupId,
+                                 std::vector<hsize_t>{1, uint64_c(numLocalParticles), 1},
+                                 "value",
+                                 H5T_NATIVE_DOUBLE);
     }
 
     if (config_.dumpForce)
@@ -583,10 +584,11 @@ void DumpH5MDImpl::open(const std::string& filename,
             config_.forceGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
         config_.forceTimeSetId = createChunkedDataset(
             config_.forceGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
-        config_.forceValueSetId = createChunkedDataset(config_.forceGroupId,
-                                                       std::vector<hsize_t>{1, atoms.size(), 3},
-                                                       "value",
-                                                       H5T_NATIVE_DOUBLE);
+        config_.forceValueSetId =
+            createChunkedDataset(config_.forceGroupId,
+                                 std::vector<hsize_t>{1, uint64_c(numLocalParticles), 3},
+                                 "value",
+                                 H5T_NATIVE_DOUBLE);
     }
 
     if (config_.dumpMass)
@@ -596,10 +598,11 @@ void DumpH5MDImpl::open(const std::string& filename,
             config_.massGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
         config_.massTimeSetId = createChunkedDataset(
             config_.massGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
-        config_.massValueSetId = createChunkedDataset(config_.massGroupId,
-                                                      std::vector<hsize_t>{1, atoms.size(), 1},
-                                                      "value",
-                                                      H5T_NATIVE_DOUBLE);
+        config_.massValueSetId =
+            createChunkedDataset(config_.massGroupId,
+                                 std::vector<hsize_t>{1, uint64_c(numLocalParticles), 1},
+                                 "value",
+                                 H5T_NATIVE_DOUBLE);
     }
 
     if (config_.dumpPos)
@@ -609,10 +612,11 @@ void DumpH5MDImpl::open(const std::string& filename,
             config_.posGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
         config_.posTimeSetId = createChunkedDataset(
             config_.posGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
-        config_.posValueSetId = createChunkedDataset(config_.posGroupId,
-                                                     std::vector<hsize_t>{1, atoms.size(), 3},
-                                                     "value",
-                                                     H5T_NATIVE_DOUBLE);
+        config_.posValueSetId =
+            createChunkedDataset(config_.posGroupId,
+                                 std::vector<hsize_t>{1, uint64_c(numLocalParticles), 3},
+                                 "value",
+                                 H5T_NATIVE_DOUBLE);
     }
 
     if (config_.dumpRelativeMass)
@@ -625,7 +629,7 @@ void DumpH5MDImpl::open(const std::string& filename,
             config_.relativeMassGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
         config_.relativeMassValueSetId =
             createChunkedDataset(config_.relativeMassGroupId,
-                                 std::vector<hsize_t>{1, atoms.size(), 1},
+                                 std::vector<hsize_t>{1, uint64_c(numLocalParticles), 1},
                                  "value",
                                  H5T_NATIVE_DOUBLE);
     }
@@ -637,10 +641,11 @@ void DumpH5MDImpl::open(const std::string& filename,
             config_.typeGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
         config_.typeTimeSetId = createChunkedDataset(
             config_.typeGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
-        config_.typeValueSetId = createChunkedDataset(config_.typeGroupId,
-                                                      std::vector<hsize_t>{1, atoms.size(), 1},
-                                                      "value",
-                                                      H5T_NATIVE_INT64);
+        config_.typeValueSetId =
+            createChunkedDataset(config_.typeGroupId,
+                                 std::vector<hsize_t>{1, uint64_c(numLocalParticles), 1},
+                                 "value",
+                                 H5T_NATIVE_INT64);
     }
 
     if (config_.dumpVel)
@@ -650,10 +655,11 @@ void DumpH5MDImpl::open(const std::string& filename,
             config_.velGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
         config_.velTimeSetId = createChunkedDataset(
             config_.velGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
-        config_.velValueSetId = createChunkedDataset(config_.velGroupId,
-                                                     std::vector<hsize_t>{1, atoms.size(), 3},
-                                                     "value",
-                                                     H5T_NATIVE_DOUBLE);
+        config_.velValueSetId =
+            createChunkedDataset(config_.velGroupId,
+                                 std::vector<hsize_t>{1, uint64_c(numLocalParticles), 3},
+                                 "value",
+                                 H5T_NATIVE_DOUBLE);
     }
 }
 
