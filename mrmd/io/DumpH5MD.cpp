@@ -55,15 +55,15 @@ public:
 
 private:
     hid_t createFile(const std::string& filename) const;
-    void closeFile(const hid_t& fileId) const;
+    void closeFile(hid_t& fileId) const;
     hid_t createGroup(const hid_t& parentElementId, const std::string& groupName) const;
-    void closeGroup(const hid_t& groupId) const;
+    void closeGroup(hid_t& groupId) const;
     void openBox(const data::Subdomain& subdomain) const;
     hid_t createChunkedDataset(const hid_t& groupId,
                                const std::vector<hsize_t>& dims,
                                const std::string& name,
                                const hid_t& dtype) const;
-    void closeDataset(const hid_t& datasetId) const;
+    void closeDataset(hid_t& datasetId) const;
 
     template <typename T>
     void appendData(const hid_t datasetId,
@@ -448,7 +448,12 @@ hid_t DumpH5MDImpl::createFile(const std::string& filename) const
     return fileId;
 }
 
-void DumpH5MDImpl::closeFile(const hid_t& fileId) const { CHECK_HDF5(H5Fclose(fileId)); }
+void DumpH5MDImpl::closeFile(hid_t& fileId) const
+{
+    if (fileId < 0) return;
+    CHECK_HDF5(H5Fclose(fileId));
+    fileId = -1;
+}
 
 hid_t DumpH5MDImpl::createGroup(const hid_t& parentElementId, const std::string& groupName) const
 {
@@ -457,9 +462,19 @@ hid_t DumpH5MDImpl::createGroup(const hid_t& parentElementId, const std::string&
     return groupId;
 }
 
-void DumpH5MDImpl::closeGroup(const hid_t& groupId) const { CHECK_HDF5(H5Gclose(groupId)); }
+void DumpH5MDImpl::closeGroup(hid_t& groupId) const
+{
+    if (groupId < 0) return;
+    CHECK_HDF5(H5Gclose(groupId));
+    groupId = -1;
+}
 
-void DumpH5MDImpl::closeDataset(const hid_t& datasetId) const { H5Dclose(datasetId); }
+void DumpH5MDImpl::closeDataset(hid_t& datasetId) const
+{
+    if (datasetId < 0) return;
+    CHECK_HDF5(H5Dclose(datasetId));
+    datasetId = -1;
+}
 
 hid_t DumpH5MDImpl::createChunkedDataset(const hid_t& groupId,
                                          const std::vector<hsize_t>& dims,
@@ -531,6 +546,11 @@ void DumpH5MDImpl::open(const std::string& filename,
                         const data::Subdomain& subdomain,
                         const data::Atoms& atoms)
 {
+    if (config_.fileId >= 0)
+    {
+        close();
+    }
+
     data::HostAtoms h_atoms(atoms);  // NOLINT
 
     updateCache(h_atoms);
@@ -642,6 +662,7 @@ void DumpH5MDImpl::close() const
     closeGroup(config_.particleSubGroupId);
     closeGroup(config_.particleGroupId);
     closeFile(config_.fileId);
+    config_.saveCount = 0;
 }
 
 void DumpH5MDImpl::dumpStep(const data::Subdomain& subdomain,

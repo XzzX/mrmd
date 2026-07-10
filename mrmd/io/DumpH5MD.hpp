@@ -29,6 +29,11 @@ public:
         : author(authorArg), particleGroupName(particleGroupNameArg)
     {
     }
+    DumpH5MD(const DumpH5MD&) = delete;
+    DumpH5MD& operator=(const DumpH5MD&) = delete;
+    DumpH5MD(DumpH5MD&&) = delete;
+    DumpH5MD& operator=(DumpH5MD&&) = delete;
+
     void open(const std::string& filename,
               const data::Subdomain& subdomain,
               const data::Atoms& atoms);
@@ -63,42 +68,42 @@ public:
     std::string author = "xxx";
     std::string particleGroupName = "atoms";
 
-    int64_t fileId;
-    int64_t particleGroupId;
-    int64_t particleSubGroupId;
-    int64_t boxGroupId;
-    int64_t edgesGroupId;
-    int64_t edgesStepSetId;
-    int64_t edgesTimeSetId;
-    int64_t edgesValueSetId;
-    int64_t chargesGroupId;
-    int64_t chargesStepSetId;
-    int64_t chargesTimeSetId;
-    int64_t chargesValueSetId;
-    int64_t forceGroupId;
-    int64_t forceStepSetId;
-    int64_t forceTimeSetId;
-    int64_t forceValueSetId;
-    int64_t massGroupId;
-    int64_t massStepSetId;
-    int64_t massTimeSetId;
-    int64_t massValueSetId;
-    int64_t posGroupId;
-    int64_t posStepSetId;
-    int64_t posTimeSetId;
-    int64_t posValueSetId;
-    int64_t relativeMassGroupId;
-    int64_t relativeMassStepSetId;
-    int64_t relativeMassTimeSetId;
-    int64_t relativeMassValueSetId;
-    int64_t typeGroupId;
-    int64_t typeStepSetId;
-    int64_t typeTimeSetId;
-    int64_t typeValueSetId;
-    int64_t velGroupId;
-    int64_t velStepSetId;
-    int64_t velTimeSetId;
-    int64_t velValueSetId;
+    int64_t fileId = -1;
+    int64_t particleGroupId = -1;
+    int64_t particleSubGroupId = -1;
+    int64_t boxGroupId = -1;
+    int64_t edgesGroupId = -1;
+    int64_t edgesStepSetId = -1;
+    int64_t edgesTimeSetId = -1;
+    int64_t edgesValueSetId = -1;
+    int64_t chargesGroupId = -1;
+    int64_t chargesStepSetId = -1;
+    int64_t chargesTimeSetId = -1;
+    int64_t chargesValueSetId = -1;
+    int64_t forceGroupId = -1;
+    int64_t forceStepSetId = -1;
+    int64_t forceTimeSetId = -1;
+    int64_t forceValueSetId = -1;
+    int64_t massGroupId = -1;
+    int64_t massStepSetId = -1;
+    int64_t massTimeSetId = -1;
+    int64_t massValueSetId = -1;
+    int64_t posGroupId = -1;
+    int64_t posStepSetId = -1;
+    int64_t posTimeSetId = -1;
+    int64_t posValueSetId = -1;
+    int64_t relativeMassGroupId = -1;
+    int64_t relativeMassStepSetId = -1;
+    int64_t relativeMassTimeSetId = -1;
+    int64_t relativeMassValueSetId = -1;
+    int64_t typeGroupId = -1;
+    int64_t typeStepSetId = -1;
+    int64_t typeTimeSetId = -1;
+    int64_t typeValueSetId = -1;
+    int64_t velGroupId = -1;
+    int64_t velStepSetId = -1;
+    int64_t velTimeSetId = -1;
+    int64_t velValueSetId = -1;
 
     uint64_t saveCount = 0;
 };
