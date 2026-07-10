@@ -26,6 +26,10 @@
 
 namespace mrmd::io
 {
+DumpH5MD::DumpH5MD(const std::string& authorArg, const std::string& particleGroupNameArg)
+    : author(authorArg), particleGroupName(particleGroupNameArg)
+{
+}
 
 #ifdef MRMD_ENABLE_HDF5
 namespace impl
@@ -37,7 +41,7 @@ namespace impl
 class DumpH5MDImpl
 {
 public:
-    explicit DumpH5MDImpl(DumpH5MD& config) : config_(config) {}
+    explicit DumpH5MDImpl(DumpH5MD& config) : config_(config), state_(config.state_) {}
 
     void open(const std::string& filename,
               const data::Subdomain& subdomain,
@@ -85,14 +89,8 @@ private:
     void openParticleElement(const std::string& datasetName,
                              const std::vector<hsize_t>& valueDims,
                              const hid_t& valueType,
-                             hid_t& groupId,
-                             hid_t& stepSetId,
-                             hid_t& timeSetId,
-                             hid_t& valueSetId) const;
-    void closeParticleElement(hid_t& groupId,
-                              hid_t& stepSetId,
-                              hid_t& timeSetId,
-                              hid_t& valueSetId) const;
+                             DumpH5MD::ElementHandles& handles) const;
+    void closeParticleElement(DumpH5MD::ElementHandles& handles) const;
 
     template <typename T>
     void writeParticleElement(hid_t fileId,
@@ -133,6 +131,7 @@ private:
                const std::vector<T>& data);
 
     DumpH5MD& config_;
+    DumpH5MD::State& state_;
 
     int64_t numLocalParticles = -1;
 };
@@ -426,26 +425,22 @@ void DumpH5MDImpl::closeDataset(hid_t& datasetId) const
 void DumpH5MDImpl::openParticleElement(const std::string& datasetName,
                                        const std::vector<hsize_t>& valueDims,
                                        const hid_t& valueType,
-                                       hid_t& groupId,
-                                       hid_t& stepSetId,
-                                       hid_t& timeSetId,
-                                       hid_t& valueSetId) const
+                                       DumpH5MD::ElementHandles& handles) const
 {
-    groupId = createGroup(config_.particleSubGroupId, datasetName);
-    stepSetId = createChunkedDataset(groupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
-    timeSetId = createChunkedDataset(groupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
-    valueSetId = createChunkedDataset(groupId, valueDims, "value", valueType);
+    handles.group = createGroup(state_.particleSubGroupId, datasetName);
+    handles.step =
+        createChunkedDataset(handles.group, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
+    handles.time =
+        createChunkedDataset(handles.group, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
+    handles.value = createChunkedDataset(handles.group, valueDims, "value", valueType);
 }
 
-void DumpH5MDImpl::closeParticleElement(hid_t& groupId,
-                                        hid_t& stepSetId,
-                                        hid_t& timeSetId,
-                                        hid_t& valueSetId) const
+void DumpH5MDImpl::closeParticleElement(DumpH5MD::ElementHandles& handles) const
 {
-    closeDataset(valueSetId);
-    closeDataset(timeSetId);
-    closeDataset(stepSetId);
-    closeGroup(groupId);
+    closeDataset(handles.value);
+    closeDataset(handles.time);
+    closeDataset(handles.step);
+    closeGroup(handles.group);
 }
 
 hid_t DumpH5MDImpl::createChunkedDataset(const hid_t& groupId,
@@ -478,22 +473,22 @@ hid_t DumpH5MDImpl::createChunkedDataset(const hid_t& groupId,
 
 void DumpH5MDImpl::openBox(const data::Subdomain& subdomain) const
 {
-    config_.boxGroupId = createGroup(config_.particleSubGroupId, "box");
+    state_.boxGroupId = createGroup(state_.particleSubGroupId, "box");
 
     std::vector<int> dims = {3};
     CHECK_HDF5(H5LTset_attribute_int(
-        config_.particleSubGroupId, "box", "dimension", dims.data(), dims.size()));
-    CHECK_HDF5(H5LTset_attribute_double(config_.particleSubGroupId,
+        state_.particleSubGroupId, "box", "dimension", dims.data(), dims.size()));
+    CHECK_HDF5(H5LTset_attribute_double(state_.particleSubGroupId,
                                         "box",
                                         "minCorner",
                                         subdomain.minCorner.data(),
                                         subdomain.minCorner.size()));
-    CHECK_HDF5(H5LTset_attribute_double(config_.particleSubGroupId,
+    CHECK_HDF5(H5LTset_attribute_double(state_.particleSubGroupId,
                                         "box",
                                         "maxCorner",
                                         subdomain.maxCorner.data(),
                                         subdomain.maxCorner.size()));
-    CHECK_HDF5(H5LTset_attribute_double(config_.particleSubGroupId,
+    CHECK_HDF5(H5LTset_attribute_double(state_.particleSubGroupId,
                                         "box",
                                         "ghostLayerThickness",
                                         subdomain.ghostLayerThickness.data(),
@@ -505,26 +500,26 @@ void DumpH5MDImpl::openBox(const data::Subdomain& subdomain) const
     std::vector<hsize_t> boundaryDims = {3};
     auto space = H5Screate_simple(int_c(boundaryDims.size()), boundaryDims.data(), nullptr);
     auto att =
-        H5Acreate(config_.boxGroupId, "boundary", boundaryType, space, H5P_DEFAULT, H5P_DEFAULT);
+        H5Acreate(state_.boxGroupId, "boundary", boundaryType, space, H5P_DEFAULT, H5P_DEFAULT);
     CHECK_HDF5(H5Awrite(att, boundaryType, "periodicperiodicperiodic"));
     CHECK_HDF5(H5Aclose(att));
     CHECK_HDF5(H5Sclose(space));
     CHECK_HDF5(H5Tclose(boundaryType));
 
-    config_.edgesGroupId = createGroup(config_.boxGroupId, "edges");
-    config_.edgesStepSetId = createChunkedDataset(
-        config_.edgesGroupId, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
-    config_.edgesTimeSetId = createChunkedDataset(
-        config_.edgesGroupId, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
-    config_.edgesValueSetId = createChunkedDataset(
-        config_.edgesGroupId, std::vector<hsize_t>{1, 3}, "value", H5T_NATIVE_DOUBLE);
+    state_.edges.group = createGroup(state_.boxGroupId, "edges");
+    state_.edges.step =
+        createChunkedDataset(state_.edges.group, std::vector<hsize_t>{1}, "step", H5T_NATIVE_INT64);
+    state_.edges.time = createChunkedDataset(
+        state_.edges.group, std::vector<hsize_t>{1}, "time", H5T_NATIVE_DOUBLE);
+    state_.edges.value = createChunkedDataset(
+        state_.edges.group, std::vector<hsize_t>{1, 3}, "value", H5T_NATIVE_DOUBLE);
 }
 
 void DumpH5MDImpl::open(const std::string& filename,
                         const data::Subdomain& subdomain,
                         const data::Atoms& atoms)
 {
-    if (config_.fileId >= 0)
+    if (state_.fileId >= 0)
     {
         close();
     }
@@ -532,13 +527,13 @@ void DumpH5MDImpl::open(const std::string& filename,
     data::HostAtoms h_atoms(atoms);  // NOLINT
 
     updateCache(h_atoms);
-    config_.saveCount = 0;
+    state_.saveCount = 0;
 
-    config_.fileId = createFile(filename);
+    state_.fileId = createFile(filename);
 
-    config_.particleGroupId = createGroup(config_.fileId, "particles");
-    config_.particleSubGroupId = createGroup(config_.particleGroupId, config_.particleGroupName);
-    writeHeader(config_.fileId);
+    state_.particleGroupId = createGroup(state_.fileId, "particles");
+    state_.particleSubGroupId = createGroup(state_.particleGroupId, config_.particleGroupName);
+    writeHeader(state_.fileId);
     openBox(subdomain);
 
     if (config_.dumpCharge)
@@ -546,10 +541,7 @@ void DumpH5MDImpl::open(const std::string& filename,
         openParticleElement(config_.chargeDataset,
                             std::vector<hsize_t>{1, uint64_c(numLocalParticles), 1},
                             H5T_NATIVE_DOUBLE,
-                            config_.chargesGroupId,
-                            config_.chargesStepSetId,
-                            config_.chargesTimeSetId,
-                            config_.chargesValueSetId);
+                            state_.charges);
     }
 
     if (config_.dumpForce)
@@ -557,10 +549,7 @@ void DumpH5MDImpl::open(const std::string& filename,
         openParticleElement(config_.forceDataset,
                             std::vector<hsize_t>{1, uint64_c(numLocalParticles), 3},
                             H5T_NATIVE_DOUBLE,
-                            config_.forceGroupId,
-                            config_.forceStepSetId,
-                            config_.forceTimeSetId,
-                            config_.forceValueSetId);
+                            state_.force);
     }
 
     if (config_.dumpMass)
@@ -568,10 +557,7 @@ void DumpH5MDImpl::open(const std::string& filename,
         openParticleElement(config_.massDataset,
                             std::vector<hsize_t>{1, uint64_c(numLocalParticles), 1},
                             H5T_NATIVE_DOUBLE,
-                            config_.massGroupId,
-                            config_.massStepSetId,
-                            config_.massTimeSetId,
-                            config_.massValueSetId);
+                            state_.mass);
     }
 
     if (config_.dumpPos)
@@ -579,10 +565,7 @@ void DumpH5MDImpl::open(const std::string& filename,
         openParticleElement(config_.posDataset,
                             std::vector<hsize_t>{1, uint64_c(numLocalParticles), 3},
                             H5T_NATIVE_DOUBLE,
-                            config_.posGroupId,
-                            config_.posStepSetId,
-                            config_.posTimeSetId,
-                            config_.posValueSetId);
+                            state_.pos);
     }
 
     if (config_.dumpRelativeMass)
@@ -590,10 +573,7 @@ void DumpH5MDImpl::open(const std::string& filename,
         openParticleElement(config_.relativeMassDataset,
                             std::vector<hsize_t>{1, uint64_c(numLocalParticles), 1},
                             H5T_NATIVE_DOUBLE,
-                            config_.relativeMassGroupId,
-                            config_.relativeMassStepSetId,
-                            config_.relativeMassTimeSetId,
-                            config_.relativeMassValueSetId);
+                            state_.relativeMass);
     }
 
     if (config_.dumpType)
@@ -601,10 +581,7 @@ void DumpH5MDImpl::open(const std::string& filename,
         openParticleElement(config_.typeDataset,
                             std::vector<hsize_t>{1, uint64_c(numLocalParticles), 1},
                             H5T_NATIVE_INT64,
-                            config_.typeGroupId,
-                            config_.typeStepSetId,
-                            config_.typeTimeSetId,
-                            config_.typeValueSetId);
+                            state_.type);
     }
 
     if (config_.dumpVel)
@@ -612,44 +589,25 @@ void DumpH5MDImpl::open(const std::string& filename,
         openParticleElement(config_.velDataset,
                             std::vector<hsize_t>{1, uint64_c(numLocalParticles), 3},
                             H5T_NATIVE_DOUBLE,
-                            config_.velGroupId,
-                            config_.velStepSetId,
-                            config_.velTimeSetId,
-                            config_.velValueSetId);
+                            state_.vel);
     }
 }
 
 void DumpH5MDImpl::close() const
 {
-    closeParticleElement(
-        config_.velGroupId, config_.velStepSetId, config_.velTimeSetId, config_.velValueSetId);
-    closeParticleElement(
-        config_.typeGroupId, config_.typeStepSetId, config_.typeTimeSetId, config_.typeValueSetId);
-    closeParticleElement(config_.relativeMassGroupId,
-                         config_.relativeMassStepSetId,
-                         config_.relativeMassTimeSetId,
-                         config_.relativeMassValueSetId);
-    closeParticleElement(
-        config_.posGroupId, config_.posStepSetId, config_.posTimeSetId, config_.posValueSetId);
-    closeParticleElement(
-        config_.massGroupId, config_.massStepSetId, config_.massTimeSetId, config_.massValueSetId);
-    closeParticleElement(config_.chargesGroupId,
-                         config_.chargesStepSetId,
-                         config_.chargesTimeSetId,
-                         config_.chargesValueSetId);
-    closeParticleElement(config_.forceGroupId,
-                         config_.forceStepSetId,
-                         config_.forceTimeSetId,
-                         config_.forceValueSetId);
-    closeDataset(config_.edgesValueSetId);
-    closeDataset(config_.edgesTimeSetId);
-    closeDataset(config_.edgesStepSetId);
-    closeGroup(config_.edgesGroupId);
-    closeGroup(config_.boxGroupId);
-    closeGroup(config_.particleSubGroupId);
-    closeGroup(config_.particleGroupId);
-    closeFile(config_.fileId);
-    config_.saveCount = 0;
+    closeParticleElement(state_.vel);
+    closeParticleElement(state_.type);
+    closeParticleElement(state_.relativeMass);
+    closeParticleElement(state_.pos);
+    closeParticleElement(state_.mass);
+    closeParticleElement(state_.charges);
+    closeParticleElement(state_.force);
+    closeParticleElement(state_.edges);
+    closeGroup(state_.boxGroupId);
+    closeGroup(state_.particleSubGroupId);
+    closeGroup(state_.particleGroupId);
+    closeFile(state_.fileId);
+    state_.saveCount = 0;
 }
 
 void DumpH5MDImpl::dumpStep(const data::Subdomain& subdomain,
@@ -669,7 +627,7 @@ void DumpH5MDImpl::dumpStep(const data::Subdomain& subdomain,
     if (config_.dumpRelativeMass) appendRelativeMasses(step, dt, h_atoms);
     if (config_.dumpType) appendTypes(step, dt, h_atoms);
     if (config_.dumpVel) appendVelocities(step, dt, h_atoms);
-    config_.saveCount += 1;
+    state_.saveCount += 1;
 }
 
 template <typename T>
@@ -686,7 +644,7 @@ void DumpH5MDImpl::appendData(const hid_t datasetId,
     CHECK_HDF5(H5Sclose(currentSpace));
 
     std::vector<hsize_t> newSize = currentSize;
-    newSize[0] = config_.saveCount + 1;
+    newSize[0] = state_.saveCount + 1;
     for (size_t idx = 1; idx < dims.size(); ++idx)
     {
         newSize[idx] = std::max(newSize[idx], dims[idx]);
@@ -696,7 +654,7 @@ void DumpH5MDImpl::appendData(const hid_t datasetId,
     const hid_t fileSpace = CHECK_HDF5(H5Dget_space(datasetId));
 
     std::vector<hsize_t> offset(dims.size(), 0);
-    offset[0] = config_.saveCount;
+    offset[0] = state_.saveCount;
     std::vector<hsize_t> stride(dims.size(), 1);
     std::vector<hsize_t> count(dims.size(), 1);
 
@@ -720,11 +678,10 @@ void DumpH5MDImpl::appendEdges(const idx_t& step,
                                const real_t& dt,
                                const data::Subdomain& subdomain) const
 {
-    appendData(config_.edgesStepSetId, std::vector<idx_t>{step}, std::vector<hsize_t>{1});
+    appendData(state_.edges.step, std::vector<idx_t>{step}, std::vector<hsize_t>{1});
+    appendData(state_.edges.time, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
     appendData(
-        config_.edgesTimeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
-    appendData(
-        config_.edgesValueSetId,
+        state_.edges.value,
         std::vector<real_t>{subdomain.diameter[0], subdomain.diameter[1], subdomain.diameter[2]},
         std::vector<hsize_t>{1, 3});
 }
@@ -743,9 +700,9 @@ void DumpH5MDImpl::appendCharges(const idx_t& step,
                           dt,
                           charges,
                           std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          config_.chargesStepSetId,
-                          config_.chargesTimeSetId,
-                          config_.chargesValueSetId);
+                          state_.charges.step,
+                          state_.charges.time,
+                          state_.charges.value);
 }
 
 void DumpH5MDImpl::appendForces(const idx_t& step,
@@ -762,9 +719,9 @@ void DumpH5MDImpl::appendForces(const idx_t& step,
                           dt,
                           forces,
                           std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          config_.forceStepSetId,
-                          config_.forceTimeSetId,
-                          config_.forceValueSetId);
+                          state_.force.step,
+                          state_.force.time,
+                          state_.force.value);
 }
 
 void DumpH5MDImpl::appendMasses(const idx_t& step,
@@ -781,9 +738,9 @@ void DumpH5MDImpl::appendMasses(const idx_t& step,
                           dt,
                           masses,
                           std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          config_.massStepSetId,
-                          config_.massTimeSetId,
-                          config_.massValueSetId);
+                          state_.mass.step,
+                          state_.mass.time,
+                          state_.mass.value);
 }
 
 void DumpH5MDImpl::appendPositions(const idx_t& step,
@@ -800,9 +757,9 @@ void DumpH5MDImpl::appendPositions(const idx_t& step,
                           dt,
                           positions,
                           std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          config_.posStepSetId,
-                          config_.posTimeSetId,
-                          config_.posValueSetId);
+                          state_.pos.step,
+                          state_.pos.time,
+                          state_.pos.value);
 }
 
 void DumpH5MDImpl::appendRelativeMasses(const idx_t& step,
@@ -819,9 +776,9 @@ void DumpH5MDImpl::appendRelativeMasses(const idx_t& step,
                           dt,
                           relativeMasses,
                           std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          config_.relativeMassStepSetId,
-                          config_.relativeMassTimeSetId,
-                          config_.relativeMassValueSetId);
+                          state_.relativeMass.step,
+                          state_.relativeMass.time,
+                          state_.relativeMass.value);
 }
 
 void DumpH5MDImpl::appendTypes(const idx_t& step,
@@ -838,9 +795,9 @@ void DumpH5MDImpl::appendTypes(const idx_t& step,
                           dt,
                           types,
                           std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          config_.typeStepSetId,
-                          config_.typeTimeSetId,
-                          config_.typeValueSetId);
+                          state_.type.step,
+                          state_.type.time,
+                          state_.type.value);
 }
 
 void DumpH5MDImpl::appendVelocities(const idx_t& step,
@@ -857,9 +814,9 @@ void DumpH5MDImpl::appendVelocities(const idx_t& step,
                           dt,
                           velocities,
                           std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          config_.velStepSetId,
-                          config_.velTimeSetId,
-                          config_.velValueSetId);
+                          state_.vel.step,
+                          state_.vel.time,
+                          state_.vel.value);
 }
 
 void DumpH5MDImpl::updateCache(const data::HostAtoms& atoms)

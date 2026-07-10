@@ -22,13 +22,16 @@
 
 namespace mrmd::io
 {
+namespace impl
+{
+class DumpH5MDImpl;
+}
+
 class DumpH5MD
 {
 public:
-    DumpH5MD(const std::string& authorArg, const std::string& particleGroupNameArg = "atoms")
-        : author(authorArg), particleGroupName(particleGroupNameArg)
-    {
-    }
+    DumpH5MD(const std::string& authorArg, const std::string& particleGroupNameArg = "atoms");
+
     DumpH5MD(const DumpH5MD&) = delete;
     DumpH5MD& operator=(const DumpH5MD&) = delete;
     DumpH5MD(DumpH5MD&&) = delete;
@@ -68,44 +71,35 @@ public:
     std::string author = "xxx";
     std::string particleGroupName = "atoms";
 
-    int64_t fileId = -1;
-    int64_t particleGroupId = -1;
-    int64_t particleSubGroupId = -1;
-    int64_t boxGroupId = -1;
-    int64_t edgesGroupId = -1;
-    int64_t edgesStepSetId = -1;
-    int64_t edgesTimeSetId = -1;
-    int64_t edgesValueSetId = -1;
-    int64_t chargesGroupId = -1;
-    int64_t chargesStepSetId = -1;
-    int64_t chargesTimeSetId = -1;
-    int64_t chargesValueSetId = -1;
-    int64_t forceGroupId = -1;
-    int64_t forceStepSetId = -1;
-    int64_t forceTimeSetId = -1;
-    int64_t forceValueSetId = -1;
-    int64_t massGroupId = -1;
-    int64_t massStepSetId = -1;
-    int64_t massTimeSetId = -1;
-    int64_t massValueSetId = -1;
-    int64_t posGroupId = -1;
-    int64_t posStepSetId = -1;
-    int64_t posTimeSetId = -1;
-    int64_t posValueSetId = -1;
-    int64_t relativeMassGroupId = -1;
-    int64_t relativeMassStepSetId = -1;
-    int64_t relativeMassTimeSetId = -1;
-    int64_t relativeMassValueSetId = -1;
-    int64_t typeGroupId = -1;
-    int64_t typeStepSetId = -1;
-    int64_t typeTimeSetId = -1;
-    int64_t typeValueSetId = -1;
-    int64_t velGroupId = -1;
-    int64_t velStepSetId = -1;
-    int64_t velTimeSetId = -1;
-    int64_t velValueSetId = -1;
+private:
+    friend class impl::DumpH5MDImpl;
 
-    uint64_t saveCount = 0;
+    struct ElementHandles
+    {
+        int64_t group = -1;
+        int64_t step = -1;
+        int64_t time = -1;
+        int64_t value = -1;
+    };
+
+    struct State
+    {
+        int64_t fileId = -1;
+        int64_t particleGroupId = -1;
+        int64_t particleSubGroupId = -1;
+        int64_t boxGroupId = -1;
+        ElementHandles edges;
+        ElementHandles charges;
+        ElementHandles force;
+        ElementHandles mass;
+        ElementHandles pos;
+        ElementHandles relativeMass;
+        ElementHandles type;
+        ElementHandles vel;
+        uint64_t saveCount = 0;
+    };
+
+    State state_;
 };
 
 }  // namespace mrmd::io
