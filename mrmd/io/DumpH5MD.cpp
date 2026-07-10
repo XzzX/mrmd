@@ -76,15 +76,6 @@ private:
                     const std::vector<hsize_t>& dims) const;
 
     void appendEdges(const idx_t& step, const real_t& dt, const data::Subdomain& subdomain) const;
-    void appendCharges(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
-    void appendForces(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
-    void appendMasses(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
-    void appendPositions(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
-    void appendRelativeMasses(const idx_t& step,
-                              const real_t& dt,
-                              const data::HostAtoms& atoms) const;
-    void appendTypes(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
-    void appendVelocities(const idx_t& step, const real_t& dt, const data::HostAtoms& atoms) const;
 
     void openParticleElement(const std::string& datasetName,
                              const std::vector<hsize_t>& valueDims,
@@ -92,20 +83,20 @@ private:
                              DumpH5MD::ElementHandles& handles) const;
     void closeParticleElement(DumpH5MD::ElementHandles& handles) const;
 
-    template <typename T>
+    template <typename T, typename Extractor>
     void writeParticleElement(hid_t fileId,
                               const std::string& datasetName,
-                              const std::vector<T>& values,
-                              const std::vector<hsize_t>& valueDims);
+                              const data::HostAtoms& atoms,
+                              const int64_t dimensions,
+                              Extractor&& extractor);
 
-    template <typename T>
+    template <typename T, typename Extractor>
     void appendParticleElement(const idx_t& step,
                                const real_t& dt,
-                               const std::vector<T>& values,
-                               const std::vector<hsize_t>& valueDims,
-                               const hid_t stepSetId,
-                               const hid_t timeSetId,
-                               const hid_t valueSetId) const;
+                               const data::HostAtoms& atoms,
+                               const int64_t dimensions,
+                               Extractor&& extractor,
+                               const DumpH5MD::ElementHandles& handles) const;
 
     template <typename T, typename Extractor>
     std::vector<T> collectPropertyData(const data::HostAtoms& atoms,
@@ -116,14 +107,6 @@ private:
 
     void writeHeader(hid_t fileId) const;
     void writeBox(hid_t fileId, const data::Subdomain& subdomain) const;
-    void writePos(hid_t fileId, const data::HostAtoms& atoms);
-    void writeVel(hid_t fileId, const data::HostAtoms& atoms);
-    void writeForce(hid_t fileId, const data::HostAtoms& atoms);
-    void writeType(hid_t fileId, const data::HostAtoms& atoms);
-    void writeMass(hid_t fileId, const data::HostAtoms& atoms);
-    void writeCharge(hid_t fileId, const data::HostAtoms& atoms);
-    void writeRelativeMass(hid_t fileId, const data::HostAtoms& atoms);
-
     template <typename T>
     void write(hid_t fileId,
                const std::string& name,
@@ -173,16 +156,20 @@ std::vector<T> DumpH5MDImpl::collectPropertyData(const data::HostAtoms& atoms,
     return values;
 }
 
-template <typename T>
+template <typename T, typename Extractor>
 void DumpH5MDImpl::writeParticleElement(hid_t fileId,
                                         const std::string& datasetName,
-                                        const std::vector<T>& values,
-                                        const std::vector<hsize_t>& valueDims)
+                                        const data::HostAtoms& atoms,
+                                        const int64_t dimensions,
+                                        Extractor&& extractor)
 {
     const std::string groupName = "/particles/" + config_.particleGroupName + "/" + datasetName;
     const hid_t group =
         CHECK_HDF5(H5Gcreate(fileId, groupName.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
 
+    const auto values =
+        collectPropertyData<T>(atoms, dimensions, std::forward<Extractor>(extractor));
+    const std::vector<hsize_t> valueDims = {1, uint64_c(numLocalParticles), uint64_c(dimensions)};
     write(fileId, groupName + "/value", valueDims, values);
 
     std::vector<hsize_t> dims = {1};
@@ -195,18 +182,20 @@ void DumpH5MDImpl::writeParticleElement(hid_t fileId,
     CHECK_HDF5(H5Gclose(group));
 }
 
-template <typename T>
+template <typename T, typename Extractor>
 void DumpH5MDImpl::appendParticleElement(const idx_t& step,
                                          const real_t& dt,
-                                         const std::vector<T>& values,
-                                         const std::vector<hsize_t>& valueDims,
-                                         const hid_t stepSetId,
-                                         const hid_t timeSetId,
-                                         const hid_t valueSetId) const
+                                         const data::HostAtoms& atoms,
+                                         const int64_t dimensions,
+                                         Extractor&& extractor,
+                                         const DumpH5MD::ElementHandles& handles) const
 {
-    appendData(stepSetId, std::vector<idx_t>{step}, std::vector<hsize_t>{1});
-    appendData(timeSetId, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
-    appendData(valueSetId, values, valueDims);
+    const auto values =
+        collectPropertyData<T>(atoms, dimensions, std::forward<Extractor>(extractor));
+    const std::vector<hsize_t> valueDims = {1, uint64_c(atoms.numLocalAtoms), uint64_c(dimensions)};
+    appendData(handles.step, std::vector<idx_t>{step}, std::vector<hsize_t>{1});
+    appendData(handles.time, std::vector<real_t>{real_c(step) * dt}, std::vector<hsize_t>{1});
+    appendData(handles.value, values, valueDims);
 }
 
 void DumpH5MDImpl::writeHeader(hid_t fileId) const
@@ -288,104 +277,6 @@ void DumpH5MDImpl::writeBox(hid_t fileId, const data::Subdomain& subdomain) cons
                                         subdomain.ghostLayerThickness.size()));
 
     CHECK_HDF5(H5Gclose(group));
-}
-
-void DumpH5MDImpl::writePos(hid_t fileId, const data::HostAtoms& atoms)
-{
-    using Datatype = real_t;
-    constexpr int64_t dimensions = 3;  ///< dimensions of the property
-    const auto values = collectPropertyData<Datatype>(atoms,
-                                                      dimensions,
-                                                      [&](const idx_t idx, const int64_t dim)
-                                                      { return atoms.getPos()(idx, dim); });
-    writeParticleElement(fileId,
-                         config_.posDataset,
-                         values,
-                         std::vector<hsize_t>{1, uint64_c(numLocalParticles), dimensions});
-}
-
-void DumpH5MDImpl::writeVel(hid_t fileId, const data::HostAtoms& atoms)
-{
-    using Datatype = real_t;
-    constexpr int64_t dimensions = 3;  ///< dimensions of the property
-    const auto values = collectPropertyData<Datatype>(atoms,
-                                                      dimensions,
-                                                      [&](const idx_t idx, const int64_t dim)
-                                                      { return atoms.getVel()(idx, dim); });
-    writeParticleElement(fileId,
-                         config_.velDataset,
-                         values,
-                         std::vector<hsize_t>{1, uint64_c(numLocalParticles), dimensions});
-}
-
-void DumpH5MDImpl::writeForce(hid_t fileId, const data::HostAtoms& atoms)
-{
-    using Datatype = real_t;
-    constexpr int64_t dimensions = 3;  ///< dimensions of the property
-    const auto values = collectPropertyData<Datatype>(atoms,
-                                                      dimensions,
-                                                      [&](const idx_t idx, const int64_t dim)
-                                                      { return atoms.getForce()(idx, dim); });
-    writeParticleElement(fileId,
-                         config_.forceDataset,
-                         values,
-                         std::vector<hsize_t>{1, uint64_c(numLocalParticles), dimensions});
-}
-
-void DumpH5MDImpl::writeType(hid_t fileId, const data::HostAtoms& atoms)
-{
-    using Datatype = idx_t;
-    constexpr int64_t dimensions = 1;  ///< dimensions of the property
-    const auto values = collectPropertyData<Datatype>(atoms,
-                                                      dimensions,
-                                                      [&](const idx_t idx, const int64_t /*dim*/)
-                                                      { return atoms.getType()(idx); });
-    writeParticleElement(fileId,
-                         config_.typeDataset,
-                         values,
-                         std::vector<hsize_t>{1, uint64_c(numLocalParticles), dimensions});
-}
-
-void DumpH5MDImpl::writeMass(hid_t fileId, const data::HostAtoms& atoms)
-{
-    using Datatype = real_t;
-    constexpr int64_t dimensions = 1;  ///< dimensions of the property
-    const auto values = collectPropertyData<Datatype>(atoms,
-                                                      dimensions,
-                                                      [&](const idx_t idx, const int64_t /*dim*/)
-                                                      { return atoms.getMass()(idx); });
-    writeParticleElement(fileId,
-                         config_.massDataset,
-                         values,
-                         std::vector<hsize_t>{1, uint64_c(numLocalParticles), dimensions});
-}
-
-void DumpH5MDImpl::writeCharge(hid_t fileId, const data::HostAtoms& atoms)
-{
-    using Datatype = real_t;
-    constexpr int64_t dimensions = 1;  ///< dimensions of the property
-    const auto values = collectPropertyData<Datatype>(atoms,
-                                                      dimensions,
-                                                      [&](const idx_t idx, const int64_t /*dim*/)
-                                                      { return atoms.getCharge()(idx); });
-    writeParticleElement(fileId,
-                         config_.chargeDataset,
-                         values,
-                         std::vector<hsize_t>{1, uint64_c(numLocalParticles), dimensions});
-}
-
-void DumpH5MDImpl::writeRelativeMass(hid_t fileId, const data::HostAtoms& atoms)
-{
-    using Datatype = real_t;
-    constexpr int64_t dimensions = 1;  ///< dimensions of the property
-    const auto values = collectPropertyData<Datatype>(atoms,
-                                                      dimensions,
-                                                      [&](const idx_t idx, const int64_t /*dim*/)
-                                                      { return atoms.getRelativeMass()(idx); });
-    writeParticleElement(fileId,
-                         config_.relativeMassDataset,
-                         values,
-                         std::vector<hsize_t>{1, uint64_c(numLocalParticles), dimensions});
 }
 
 hid_t DumpH5MDImpl::createFile(const std::string& filename) const
@@ -620,13 +511,76 @@ void DumpH5MDImpl::dumpStep(const data::Subdomain& subdomain,
     updateCache(h_atoms);
 
     appendEdges(step, dt, subdomain);
-    if (config_.dumpCharge) appendCharges(step, dt, h_atoms);
-    if (config_.dumpForce) appendForces(step, dt, h_atoms);
-    if (config_.dumpMass) appendMasses(step, dt, h_atoms);
-    if (config_.dumpPos) appendPositions(step, dt, h_atoms);
-    if (config_.dumpRelativeMass) appendRelativeMasses(step, dt, h_atoms);
-    if (config_.dumpType) appendTypes(step, dt, h_atoms);
-    if (config_.dumpVel) appendVelocities(step, dt, h_atoms);
+    if (config_.dumpCharge)
+    {
+        appendParticleElement<real_t>(
+            step,
+            dt,
+            h_atoms,
+            1,
+            [&](const idx_t idx, const int64_t /*dim*/) { return h_atoms.getCharge()(idx); },
+            state_.charges);
+    }
+    if (config_.dumpForce)
+    {
+        appendParticleElement<real_t>(
+            step,
+            dt,
+            h_atoms,
+            3,
+            [&](const idx_t idx, const int64_t dim) { return h_atoms.getForce()(idx, dim); },
+            state_.force);
+    }
+    if (config_.dumpMass)
+    {
+        appendParticleElement<real_t>(
+            step,
+            dt,
+            h_atoms,
+            1,
+            [&](const idx_t idx, const int64_t /*dim*/) { return h_atoms.getMass()(idx); },
+            state_.mass);
+    }
+    if (config_.dumpPos)
+    {
+        appendParticleElement<real_t>(
+            step,
+            dt,
+            h_atoms,
+            3,
+            [&](const idx_t idx, const int64_t dim) { return h_atoms.getPos()(idx, dim); },
+            state_.pos);
+    }
+    if (config_.dumpRelativeMass)
+    {
+        appendParticleElement<real_t>(
+            step,
+            dt,
+            h_atoms,
+            1,
+            [&](const idx_t idx, const int64_t /*dim*/) { return h_atoms.getRelativeMass()(idx); },
+            state_.relativeMass);
+    }
+    if (config_.dumpType)
+    {
+        appendParticleElement<idx_t>(
+            step,
+            dt,
+            h_atoms,
+            1,
+            [&](const idx_t idx, const int64_t /*dim*/) { return h_atoms.getType()(idx); },
+            state_.type);
+    }
+    if (config_.dumpVel)
+    {
+        appendParticleElement<real_t>(
+            step,
+            dt,
+            h_atoms,
+            3,
+            [&](const idx_t idx, const int64_t dim) { return h_atoms.getVel()(idx, dim); },
+            state_.vel);
+    }
     state_.saveCount += 1;
 }
 
@@ -686,139 +640,6 @@ void DumpH5MDImpl::appendEdges(const idx_t& step,
         std::vector<hsize_t>{1, 3});
 }
 
-void DumpH5MDImpl::appendCharges(const idx_t& step,
-                                 const real_t& dt,
-                                 const data::HostAtoms& atoms) const
-{
-    hsize_t numberLocalAtoms = atoms.numLocalAtoms;
-    constexpr int64_t dimensions = 1;
-    const auto charges = collectPropertyData<real_t>(atoms,
-                                                     dimensions,
-                                                     [&](const idx_t idx, const int64_t /*dim*/)
-                                                     { return atoms.getCharge()(idx); });
-    appendParticleElement(step,
-                          dt,
-                          charges,
-                          std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          state_.charges.step,
-                          state_.charges.time,
-                          state_.charges.value);
-}
-
-void DumpH5MDImpl::appendForces(const idx_t& step,
-                                const real_t& dt,
-                                const data::HostAtoms& atoms) const
-{
-    hsize_t numberLocalAtoms = atoms.numLocalAtoms;
-    constexpr int64_t dimensions = 3;
-    const auto forces = collectPropertyData<real_t>(atoms,
-                                                    dimensions,
-                                                    [&](const idx_t idx, const int64_t dim)
-                                                    { return atoms.getForce()(idx, dim); });
-    appendParticleElement(step,
-                          dt,
-                          forces,
-                          std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          state_.force.step,
-                          state_.force.time,
-                          state_.force.value);
-}
-
-void DumpH5MDImpl::appendMasses(const idx_t& step,
-                                const real_t& dt,
-                                const data::HostAtoms& atoms) const
-{
-    hsize_t numberLocalAtoms = atoms.numLocalAtoms;
-    constexpr int64_t dimensions = 1;
-    const auto masses = collectPropertyData<real_t>(atoms,
-                                                    dimensions,
-                                                    [&](const idx_t idx, const int64_t /*dim*/)
-                                                    { return atoms.getMass()(idx); });
-    appendParticleElement(step,
-                          dt,
-                          masses,
-                          std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          state_.mass.step,
-                          state_.mass.time,
-                          state_.mass.value);
-}
-
-void DumpH5MDImpl::appendPositions(const idx_t& step,
-                                   const real_t& dt,
-                                   const data::HostAtoms& atoms) const
-{
-    hsize_t numberLocalAtoms = atoms.numLocalAtoms;
-    constexpr int64_t dimensions = 3;
-    const auto positions = collectPropertyData<real_t>(atoms,
-                                                       dimensions,
-                                                       [&](const idx_t idx, const int64_t dim)
-                                                       { return atoms.getPos()(idx, dim); });
-    appendParticleElement(step,
-                          dt,
-                          positions,
-                          std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          state_.pos.step,
-                          state_.pos.time,
-                          state_.pos.value);
-}
-
-void DumpH5MDImpl::appendRelativeMasses(const idx_t& step,
-                                        const real_t& dt,
-                                        const data::HostAtoms& atoms) const
-{
-    hsize_t numberLocalAtoms = atoms.numLocalAtoms;
-    constexpr int64_t dimensions = 1;
-    const auto relativeMasses = collectPropertyData<real_t>(
-        atoms,
-        dimensions,
-        [&](const idx_t idx, const int64_t /*dim*/) { return atoms.getRelativeMass()(idx); });
-    appendParticleElement(step,
-                          dt,
-                          relativeMasses,
-                          std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          state_.relativeMass.step,
-                          state_.relativeMass.time,
-                          state_.relativeMass.value);
-}
-
-void DumpH5MDImpl::appendTypes(const idx_t& step,
-                               const real_t& dt,
-                               const data::HostAtoms& atoms) const
-{
-    hsize_t numberLocalAtoms = atoms.numLocalAtoms;
-    constexpr int64_t dimensions = 1;
-    const auto types = collectPropertyData<idx_t>(atoms,
-                                                  dimensions,
-                                                  [&](const idx_t idx, const int64_t /*dim*/)
-                                                  { return atoms.getType()(idx); });
-    appendParticleElement(step,
-                          dt,
-                          types,
-                          std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          state_.type.step,
-                          state_.type.time,
-                          state_.type.value);
-}
-
-void DumpH5MDImpl::appendVelocities(const idx_t& step,
-                                    const real_t& dt,
-                                    const data::HostAtoms& atoms) const
-{
-    hsize_t numberLocalAtoms = atoms.numLocalAtoms;
-    constexpr int64_t dimensions = 3;
-    const auto velocities = collectPropertyData<real_t>(atoms,
-                                                        dimensions,
-                                                        [&](const idx_t idx, const int64_t dim)
-                                                        { return atoms.getVel()(idx, dim); });
-    appendParticleElement(step,
-                          dt,
-                          velocities,
-                          std::vector<hsize_t>{1, numberLocalAtoms, dimensions},
-                          state_.vel.step,
-                          state_.vel.time,
-                          state_.vel.value);
-}
-
 void DumpH5MDImpl::updateCache(const data::HostAtoms& atoms)
 {
     numLocalParticles = atoms.numLocalAtoms;
@@ -842,13 +663,69 @@ void DumpH5MDImpl::dump(const std::string& filename,
 
     writeHeader(file_id);
     writeBox(file_id, subdomain);
-    if (config_.dumpPos) writePos(file_id, h_atoms);
-    if (config_.dumpVel) writeVel(file_id, h_atoms);
-    if (config_.dumpForce) writeForce(file_id, h_atoms);
-    if (config_.dumpType) writeType(file_id, h_atoms);
-    if (config_.dumpMass) writeMass(file_id, h_atoms);
-    if (config_.dumpCharge) writeCharge(file_id, h_atoms);
-    if (config_.dumpRelativeMass) writeRelativeMass(file_id, h_atoms);
+    if (config_.dumpPos)
+    {
+        writeParticleElement<real_t>(file_id,
+                                     config_.posDataset,
+                                     h_atoms,
+                                     3,
+                                     [&](const idx_t idx, const int64_t dim)
+                                     { return h_atoms.getPos()(idx, dim); });
+    }
+    if (config_.dumpVel)
+    {
+        writeParticleElement<real_t>(file_id,
+                                     config_.velDataset,
+                                     h_atoms,
+                                     3,
+                                     [&](const idx_t idx, const int64_t dim)
+                                     { return h_atoms.getVel()(idx, dim); });
+    }
+    if (config_.dumpForce)
+    {
+        writeParticleElement<real_t>(file_id,
+                                     config_.forceDataset,
+                                     h_atoms,
+                                     3,
+                                     [&](const idx_t idx, const int64_t dim)
+                                     { return h_atoms.getForce()(idx, dim); });
+    }
+    if (config_.dumpType)
+    {
+        writeParticleElement<idx_t>(file_id,
+                                    config_.typeDataset,
+                                    h_atoms,
+                                    1,
+                                    [&](const idx_t idx, const int64_t /*dim*/)
+                                    { return h_atoms.getType()(idx); });
+    }
+    if (config_.dumpMass)
+    {
+        writeParticleElement<real_t>(file_id,
+                                     config_.massDataset,
+                                     h_atoms,
+                                     1,
+                                     [&](const idx_t idx, const int64_t /*dim*/)
+                                     { return h_atoms.getMass()(idx); });
+    }
+    if (config_.dumpCharge)
+    {
+        writeParticleElement<real_t>(file_id,
+                                     config_.chargeDataset,
+                                     h_atoms,
+                                     1,
+                                     [&](const idx_t idx, const int64_t /*dim*/)
+                                     { return h_atoms.getCharge()(idx); });
+    }
+    if (config_.dumpRelativeMass)
+    {
+        writeParticleElement<real_t>(file_id,
+                                     config_.relativeMassDataset,
+                                     h_atoms,
+                                     1,
+                                     [&](const idx_t idx, const int64_t /*dim*/)
+                                     { return h_atoms.getRelativeMass()(idx); });
+    }
 
     CHECK_HDF5(H5Gclose(group1));
     CHECK_HDF5(H5Gclose(group2));
