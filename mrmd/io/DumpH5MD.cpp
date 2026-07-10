@@ -483,17 +483,19 @@ hid_t DumpH5MDImpl::createChunkedDataset(const hid_t& groupId,
 {
     std::vector<hsize_t> max_dims = dims;
     max_dims[0] = H5S_UNLIMITED;
-    hid_t fileSpace = H5Screate_simple(int_c(dims.size()), dims.data(), max_dims.data());
 
-    hid_t plist = H5Pcreate(H5P_DATASET_CREATE);
-    H5Pset_layout(plist, H5D_CHUNKED);
-    H5Pset_chunk(plist, int_c(dims.size()), dims.data());
+    const hid_t fileSpace =
+        CHECK_HDF5(H5Screate_simple(int_c(dims.size()), dims.data(), max_dims.data()));
 
-    auto datasetId =
-        H5Dcreate(groupId, name.c_str(), dtype, fileSpace, H5P_DEFAULT, plist, H5P_DEFAULT);
+    const hid_t plist = CHECK_HDF5(H5Pcreate(H5P_DATASET_CREATE));
+    CHECK_HDF5(H5Pset_layout(plist, H5D_CHUNKED));
+    CHECK_HDF5(H5Pset_chunk(plist, int_c(dims.size()), dims.data()));
 
-    H5Pclose(plist);
-    H5Sclose(fileSpace);
+    const hid_t datasetId = CHECK_HDF5(
+        H5Dcreate(groupId, name.c_str(), dtype, fileSpace, H5P_DEFAULT, plist, H5P_DEFAULT));
+
+    CHECK_HDF5(H5Pclose(plist));
+    CHECK_HDF5(H5Sclose(fileSpace));
 
     return datasetId;
 }
