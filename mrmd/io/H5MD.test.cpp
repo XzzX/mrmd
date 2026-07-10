@@ -114,5 +114,119 @@ TEST(H5MD, dump)
         EXPECT_FLOAT_EQ(h_atoms1.getRelativeMass()(idx), h_atoms2.getRelativeMass()(idx));
     }
 }
+
+TEST(H5MD, dumpStepWithCustomDatasetsAndFlags)
+{
+    auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
+    auto atoms1 = getAtoms();
+
+    auto dump = DumpH5MD("XzzX");
+    dump.dumpVel = false;
+    dump.dumpForce = false;
+    dump.posDataset = "custom_position";
+    dump.typeDataset = "custom_type";
+    dump.massDataset = "custom_mass";
+    dump.chargeDataset = "custom_charge";
+    dump.relativeMassDataset = "custom_relative_mass";
+
+    dump.open("dummy_step.h5md", subdomain1, atoms1);
+    dump.dumpStep(subdomain1, atoms1, 0, 0.001_r);
+    dump.close();
+
+    auto subdomain2 = data::Subdomain();
+    auto atoms2 = data::Atoms(0);
+    auto restore = RestoreH5MD();
+    restore.restoreVel = false;
+    restore.restoreForce = false;
+    restore.posDataset = dump.posDataset;
+    restore.typeDataset = dump.typeDataset;
+    restore.massDataset = dump.massDataset;
+    restore.chargeDataset = dump.chargeDataset;
+    restore.relativeMassDataset = dump.relativeMassDataset;
+    restore.restore("dummy_step.h5md", subdomain2, atoms2);
+
+    EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[0], subdomain2.ghostLayerThickness[0]);
+    EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[1], subdomain2.ghostLayerThickness[1]);
+    EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[2], subdomain2.ghostLayerThickness[2]);
+
+    EXPECT_FLOAT_EQ(subdomain1.minCorner[0], subdomain2.minCorner[0]);
+    EXPECT_FLOAT_EQ(subdomain1.minCorner[1], subdomain2.minCorner[1]);
+    EXPECT_FLOAT_EQ(subdomain1.minCorner[2], subdomain2.minCorner[2]);
+
+    EXPECT_FLOAT_EQ(subdomain1.maxCorner[0], subdomain2.maxCorner[0]);
+    EXPECT_FLOAT_EQ(subdomain1.maxCorner[1], subdomain2.maxCorner[1]);
+    EXPECT_FLOAT_EQ(subdomain1.maxCorner[2], subdomain2.maxCorner[2]);
+
+    auto h_atoms1 = data::HostAtoms(atoms1);  // NOLINT
+    auto h_atoms2 = data::HostAtoms(atoms2);  // NOLINT
+    EXPECT_EQ(h_atoms1.numLocalAtoms, h_atoms2.numLocalAtoms);
+    EXPECT_EQ(h_atoms1.numGhostAtoms, h_atoms2.numGhostAtoms);
+    for (idx_t idx = 0; idx < h_atoms2.numLocalAtoms; ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 0), h_atoms2.getPos()(idx, 0));
+        EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 1), h_atoms2.getPos()(idx, 1));
+        EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 2), h_atoms2.getPos()(idx, 2));
+
+        EXPECT_EQ(h_atoms1.getType()(idx), h_atoms2.getType()(idx));
+        EXPECT_FLOAT_EQ(h_atoms1.getCharge()(idx), h_atoms2.getCharge()(idx));
+        EXPECT_FLOAT_EQ(h_atoms1.getMass()(idx), h_atoms2.getMass()(idx));
+        EXPECT_FLOAT_EQ(h_atoms1.getRelativeMass()(idx), h_atoms2.getRelativeMass()(idx));
+    }
+}
+
+TEST(H5MD, dumpStepRoundtripWithCustomDatasetNames)
+{
+    auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
+    auto atoms1 = getAtoms();
+
+    auto dump = DumpH5MD("XzzX");
+    dump.dumpVel = false;
+    dump.dumpForce = false;
+    dump.dumpType = false;
+    dump.dumpMass = false;
+    dump.dumpRelativeMass = false;
+    dump.posDataset = "pos_custom";
+    dump.chargeDataset = "charge_custom";
+
+    dump.open("dummy_stream.h5md", subdomain1, atoms1);
+    dump.dumpStep(subdomain1, atoms1, 17, 0.25_r);
+    dump.close();
+
+    auto subdomain2 = data::Subdomain();
+    auto atoms2 = data::Atoms(0);
+    auto restore = RestoreH5MD();
+    restore.restoreVel = false;
+    restore.restoreForce = false;
+    restore.restoreType = false;
+    restore.restoreMass = false;
+    restore.restoreRelativeMass = false;
+    restore.posDataset = "pos_custom";
+    restore.chargeDataset = "charge_custom";
+    restore.restore("dummy_stream.h5md", subdomain2, atoms2);
+
+    EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[0], subdomain2.ghostLayerThickness[0]);
+    EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[1], subdomain2.ghostLayerThickness[1]);
+    EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[2], subdomain2.ghostLayerThickness[2]);
+
+    EXPECT_FLOAT_EQ(subdomain1.minCorner[0], subdomain2.minCorner[0]);
+    EXPECT_FLOAT_EQ(subdomain1.minCorner[1], subdomain2.minCorner[1]);
+    EXPECT_FLOAT_EQ(subdomain1.minCorner[2], subdomain2.minCorner[2]);
+
+    EXPECT_FLOAT_EQ(subdomain1.maxCorner[0], subdomain2.maxCorner[0]);
+    EXPECT_FLOAT_EQ(subdomain1.maxCorner[1], subdomain2.maxCorner[1]);
+    EXPECT_FLOAT_EQ(subdomain1.maxCorner[2], subdomain2.maxCorner[2]);
+
+    auto h_atoms1 = data::HostAtoms(atoms1);  // NOLINT
+    auto h_atoms2 = data::HostAtoms(atoms2);  // NOLINT
+    EXPECT_EQ(h_atoms1.numLocalAtoms, h_atoms2.numLocalAtoms);
+    EXPECT_EQ(h_atoms1.numGhostAtoms, h_atoms2.numGhostAtoms);
+    for (idx_t idx = 0; idx < h_atoms2.numLocalAtoms; ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 0), h_atoms2.getPos()(idx, 0));
+        EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 1), h_atoms2.getPos()(idx, 1));
+        EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 2), h_atoms2.getPos()(idx, 2));
+        EXPECT_FLOAT_EQ(h_atoms1.getCharge()(idx), h_atoms2.getCharge()(idx));
+    }
+}
 }  // namespace io
 }  // namespace mrmd
