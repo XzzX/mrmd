@@ -16,6 +16,7 @@
 #include "DumpH5MD.hpp"
 
 #include <algorithm>
+#include <functional>
 #include <numeric>
 
 #include "assert/assert.hpp"
