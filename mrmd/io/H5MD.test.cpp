@@ -217,19 +217,18 @@ TEST(H5MD, dumpStepWithCustomDatasetsAndFlags)
 
     auto h_atoms1 = data::HostAtoms(atoms1);  // NOLINT
     auto h_atoms2 = data::HostAtoms(atoms2);  // NOLINT
-    EXPECT_EQ(2 * h_atoms1.numLocalAtoms, h_atoms2.numLocalAtoms);
+    EXPECT_EQ(h_atoms1.numLocalAtoms, h_atoms2.numLocalAtoms);
     EXPECT_EQ(h_atoms1.numGhostAtoms, h_atoms2.numGhostAtoms);
     for (idx_t idx = 0; idx < h_atoms2.numLocalAtoms; ++idx)
     {
-        const idx_t sourceIdx = idx % h_atoms1.numLocalAtoms;
-        EXPECT_FLOAT_EQ(h_atoms1.getPos()(sourceIdx, 0), h_atoms2.getPos()(idx, 0));
-        EXPECT_FLOAT_EQ(h_atoms1.getPos()(sourceIdx, 1), h_atoms2.getPos()(idx, 1));
-        EXPECT_FLOAT_EQ(h_atoms1.getPos()(sourceIdx, 2), h_atoms2.getPos()(idx, 2));
+        EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 0), h_atoms2.getPos()(idx, 0));
+        EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 1), h_atoms2.getPos()(idx, 1));
+        EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 2), h_atoms2.getPos()(idx, 2));
 
-        EXPECT_EQ(h_atoms1.getType()(sourceIdx), h_atoms2.getType()(idx));
-        EXPECT_FLOAT_EQ(h_atoms1.getCharge()(sourceIdx), h_atoms2.getCharge()(idx));
-        EXPECT_FLOAT_EQ(h_atoms1.getMass()(sourceIdx), h_atoms2.getMass()(idx));
-        EXPECT_FLOAT_EQ(h_atoms1.getRelativeMass()(sourceIdx), h_atoms2.getRelativeMass()(idx));
+        EXPECT_EQ(h_atoms1.getType()(idx), h_atoms2.getType()(idx));
+        EXPECT_FLOAT_EQ(h_atoms1.getCharge()(idx), h_atoms2.getCharge()(idx));
+        EXPECT_FLOAT_EQ(h_atoms1.getMass()(idx), h_atoms2.getMass()(idx));
+        EXPECT_FLOAT_EQ(h_atoms1.getRelativeMass()(idx), h_atoms2.getRelativeMass()(idx));
     }
 }
 
@@ -313,6 +312,86 @@ TEST(H5MD, dumpStepRoundtripWithCustomDatasetNames)
         EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 1), h_atoms2.getPos()(idx, 1));
         EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 2), h_atoms2.getPos()(idx, 2));
         EXPECT_FLOAT_EQ(h_atoms1.getCharge()(idx), h_atoms2.getCharge()(idx));
+    }
+}
+
+TEST(H5MD, restoreReadsSingleSelectedFrame)
+{
+    const std::string filename = "dummy_single_frame_restore.h5md";
+    auto subdomain = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
+    auto atomsFirstFrame = getAtoms();
+    auto atomsSecondFrame = getAtoms();
+
+    {
+        auto h_atoms = data::HostAtoms(atomsSecondFrame);  // NOLINT
+        for (idx_t idx = 0; idx < h_atoms.numLocalAtoms; ++idx)
+        {
+            h_atoms.getPos()(idx, 0) += 100._r;
+            h_atoms.getPos()(idx, 1) += 100._r;
+            h_atoms.getPos()(idx, 2) += 100._r;
+            h_atoms.getCharge()(idx) += 10._r;
+        }
+        data::deep_copy(atomsSecondFrame, h_atoms);
+    }
+
+    auto dump = DumpH5MD("XzzX");
+    dump.dumpVel = false;
+    dump.dumpForce = false;
+    dump.dumpType = false;
+    dump.dumpMass = false;
+    dump.dumpRelativeMass = false;
+    dump.posDataset = "pos_custom";
+    dump.chargeDataset = "charge_custom";
+
+    dump.open(filename, subdomain, atomsFirstFrame);
+    dump.dumpStep(subdomain, atomsFirstFrame, 10, 0.5_r);
+    dump.dumpStep(subdomain, atomsSecondFrame, 11, 0.5_r);
+    dump.close();
+
+    auto restoredSubdomainLast = data::Subdomain();
+    auto restoredAtomsLast = data::Atoms(0);
+    auto restoreLast = RestoreH5MD();
+    restoreLast.restoreVel = false;
+    restoreLast.restoreForce = false;
+    restoreLast.restoreType = false;
+    restoreLast.restoreMass = false;
+    restoreLast.restoreRelativeMass = false;
+    restoreLast.posDataset = dump.posDataset;
+    restoreLast.chargeDataset = dump.chargeDataset;
+    restoreLast.restore(filename, restoredSubdomainLast, restoredAtomsLast);
+
+    auto h_expectedLast = data::HostAtoms(atomsSecondFrame);   // NOLINT
+    auto h_restoredLast = data::HostAtoms(restoredAtomsLast);  // NOLINT
+    ASSERT_EQ(h_expectedLast.numLocalAtoms, h_restoredLast.numLocalAtoms);
+    for (idx_t idx = 0; idx < h_restoredLast.numLocalAtoms; ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_expectedLast.getPos()(idx, 0), h_restoredLast.getPos()(idx, 0));
+        EXPECT_FLOAT_EQ(h_expectedLast.getPos()(idx, 1), h_restoredLast.getPos()(idx, 1));
+        EXPECT_FLOAT_EQ(h_expectedLast.getPos()(idx, 2), h_restoredLast.getPos()(idx, 2));
+        EXPECT_FLOAT_EQ(h_expectedLast.getCharge()(idx), h_restoredLast.getCharge()(idx));
+    }
+
+    auto restoredSubdomainFirst = data::Subdomain();
+    auto restoredAtomsFirst = data::Atoms(0);
+    auto restoreFirst = RestoreH5MD();
+    restoreFirst.restoreVel = false;
+    restoreFirst.restoreForce = false;
+    restoreFirst.restoreType = false;
+    restoreFirst.restoreMass = false;
+    restoreFirst.restoreRelativeMass = false;
+    restoreFirst.posDataset = dump.posDataset;
+    restoreFirst.chargeDataset = dump.chargeDataset;
+    restoreFirst.restore(filename, restoredSubdomainFirst, restoredAtomsFirst, 0);
+
+    auto h_expectedFirst = data::HostAtoms(atomsFirstFrame);   // NOLINT
+    auto h_restoredFirst = data::HostAtoms(restoredAtomsFirst);  // NOLINT
+    ASSERT_EQ(h_expectedFirst.numLocalAtoms, h_restoredFirst.numLocalAtoms);
+    for (idx_t idx = 0; idx < h_restoredFirst.numLocalAtoms; ++idx)
+    {
+        EXPECT_FLOAT_EQ(h_expectedFirst.getPos()(idx, 0), h_restoredFirst.getPos()(idx, 0));
+        EXPECT_FLOAT_EQ(h_expectedFirst.getPos()(idx, 1), h_restoredFirst.getPos()(idx, 1));
+        EXPECT_FLOAT_EQ(h_expectedFirst.getPos()(idx, 2), h_restoredFirst.getPos()(idx, 2));
+        EXPECT_FLOAT_EQ(h_expectedFirst.getCharge()(idx), h_restoredFirst.getCharge()(idx));
     }
 }
 }  // namespace io

@@ -33,7 +33,10 @@ public:
     {
     }
 
-    void restore(const std::string& filename, data::Subdomain& subdomain, data::Atoms& atoms);
+    void restore(const std::string& filename,
+                 data::Subdomain& subdomain,
+                 data::Atoms& atoms,
+                 const idx_t frameIndex = -1);
 
     bool restorePos = true;
     bool restoreVel = true;
@@ -53,7 +56,10 @@ public:
 
 private:
     template <typename T>
-    void read(hid_t fileId, const std::string& dataset, std::vector<T>& data);
+    void read(hid_t fileId,
+              const std::string& dataset,
+              std::vector<T>& data,
+              const idx_t frameIndex);
 
     std::string particleGroupName_;
 };

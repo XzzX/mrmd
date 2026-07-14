@@ -25,7 +25,10 @@ namespace mrmd::io
 
 #ifdef MRMD_ENABLE_HDF5
 template <typename T>
-void RestoreH5MD::read(hid_t fileId, const std::string& dataset, std::vector<T>& data)
+void RestoreH5MD::read(hid_t fileId,
+                       const std::string& dataset,
+                       std::vector<T>& data,
+                       const idx_t frameIndex)
 {
     auto dset = CHECK_HDF5(H5Dopen(fileId, dataset.c_str(), H5P_DEFAULT));
     auto dspace = CHECK_HDF5(H5Dget_space(dset));
@@ -35,10 +38,39 @@ void RestoreH5MD::read(hid_t fileId, const std::string& dataset, std::vector<T>&
     std::vector<hsize_t> dims(ndims);
     CHECK_HDF5(H5Sget_simple_extent_dims(dspace, dims.data(), nullptr));
 
-    auto totalSize = std::accumulate(dims.begin(), dims.end(), hsize_t(1), std::multiplies<>());
-    data.resize(totalSize);
+    if (ndims == 1)
+    {
+        auto totalSize = std::accumulate(dims.begin(), dims.end(), hsize_t(1), std::multiplies<>());
+        data.resize(totalSize);
+        CHECK_HDF5(H5Dread(dset, typeToHDF5<T>(), H5S_ALL, H5S_ALL, H5P_DEFAULT, data.data()));
+    }
+    else
+    {
+        MRMD_HOST_CHECK_GREATER(dims[0], 0);
 
-    CHECK_HDF5(H5Dread(dset, typeToHDF5<T>(), H5S_ALL, H5S_ALL, H5P_DEFAULT, data.data()));
+        idx_t selectedFrame = frameIndex;
+        if (selectedFrame < 0)
+        {
+            selectedFrame = idx_c(dims[0] - 1);
+        }
+        MRMD_HOST_CHECK_GREATEREQUAL(selectedFrame, 0);
+        MRMD_HOST_CHECK_LESS(selectedFrame, idx_c(dims[0]));
+
+        std::vector<hsize_t> offset(ndims, 0);
+        std::vector<hsize_t> count = dims;
+        offset[0] = uint64_c(selectedFrame);
+        count[0] = 1;
+        CHECK_HDF5(H5Sselect_hyperslab(
+            dspace, H5S_SELECT_SET, offset.data(), nullptr, count.data(), nullptr));
+
+        std::vector<hsize_t> memDims(dims.begin() + 1, dims.end());
+        auto totalSize = std::accumulate(memDims.begin(), memDims.end(), hsize_t(1), std::multiplies<>());
+        data.resize(totalSize);
+        auto memSpace = CHECK_HDF5(H5Screate_simple(int_c(memDims.size()), memDims.data(), nullptr));
+
+        CHECK_HDF5(H5Dread(dset, typeToHDF5<T>(), memSpace, dspace, H5P_DEFAULT, data.data()));
+        CHECK_HDF5(H5Sclose(memSpace));
+    }
 
     CHECK_HDF5(H5Sclose(dspace));
     CHECK_HDF5(H5Dclose(dset));
@@ -46,7 +78,8 @@ void RestoreH5MD::read(hid_t fileId, const std::string& dataset, std::vector<T>&
 
 void RestoreH5MD::restore(const std::string& filename,
                           data::Subdomain& subdomain,
-                          data::Atoms& atoms)
+                          data::Atoms& atoms,
+                          const idx_t frameIndex)
 {
     auto fileId = CHECK_HDF5(H5Fopen(filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT));
 
@@ -60,51 +93,89 @@ void RestoreH5MD::restore(const std::string& filename,
     subdomain =
         data::Subdomain(subdomain.minCorner, subdomain.maxCorner, subdomain.ghostLayerThickness);
     std::vector<real_t> pos;
+    idx_t numLocalAtoms = -1;
+    auto setNumLocalAtoms = [&numLocalAtoms](const size_t size, const idx_t components)
+    {
+        MRMD_HOST_CHECK_EQUAL(size % uint64_c(components), 0);
+        const idx_t currentNumLocalAtoms = idx_c(size / uint64_c(components));
+        if (numLocalAtoms < 0)
+        {
+            numLocalAtoms = currentNumLocalAtoms;
+        }
+        else
+        {
+            MRMD_HOST_CHECK_EQUAL(numLocalAtoms, currentNumLocalAtoms);
+        }
+    };
+
     if (restorePos)
     {
-        read(fileId, "/particles/" + particleGroupName_ + "/" + posDataset + "/value", pos);
-        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, pos.size());
+        read(fileId,
+             "/particles/" + particleGroupName_ + "/" + posDataset + "/value",
+             pos,
+             frameIndex);
+        setNumLocalAtoms(pos.size(), 3);
     }
     std::vector<real_t> vel;
     if (restoreVel)
     {
-        read(fileId, "/particles/" + particleGroupName_ + "/" + velDataset + "/value", vel);
-        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, vel.size());
+        read(fileId,
+             "/particles/" + particleGroupName_ + "/" + velDataset + "/value",
+             vel,
+             frameIndex);
+        setNumLocalAtoms(vel.size(), 3);
     }
     std::vector<real_t> force;
     if (restoreForce)
     {
-        read(fileId, "/particles/" + particleGroupName_ + "/" + forceDataset + "/value", force);
-        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 3, force.size());
+        read(fileId,
+             "/particles/" + particleGroupName_ + "/" + forceDataset + "/value",
+             force,
+             frameIndex);
+        setNumLocalAtoms(force.size(), 3);
     }
     std::vector<idx_t> type;
     if (restoreType)
     {
-        read(fileId, "/particles/" + particleGroupName_ + "/" + typeDataset + "/value", type);
-        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, type.size());
+        read(fileId,
+             "/particles/" + particleGroupName_ + "/" + typeDataset + "/value",
+             type,
+             frameIndex);
+        setNumLocalAtoms(type.size(), 1);
     }
     std::vector<real_t> mass;
     if (restoreMass)
     {
-        read(fileId, "/particles/" + particleGroupName_ + "/" + massDataset + "/value", mass);
-        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, mass.size());
+        read(fileId,
+             "/particles/" + particleGroupName_ + "/" + massDataset + "/value",
+             mass,
+             frameIndex);
+        setNumLocalAtoms(mass.size(), 1);
     }
     std::vector<real_t> charge;
     if (restoreCharge)
     {
-        read(fileId, "/particles/" + particleGroupName_ + "/" + chargeDataset + "/value", charge);
-        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, charge.size());
+        read(fileId,
+             "/particles/" + particleGroupName_ + "/" + chargeDataset + "/value",
+             charge,
+             frameIndex);
+        setNumLocalAtoms(charge.size(), 1);
     }
     std::vector<real_t> relativeMass;
     if (restoreRelativeMass)
     {
         read(fileId,
              "/particles/" + particleGroupName_ + "/" + relativeMassDataset + "/value",
-             relativeMass);
-        MRMD_HOST_CHECK_EQUAL(pos.size() / 3 * 1, relativeMass.size());
+             relativeMass,
+             frameIndex);
+        setNumLocalAtoms(relativeMass.size(), 1);
     }
 
-    idx_t numLocalAtoms = idx_c(pos.size() / 3);
+    if (numLocalAtoms < 0)
+    {
+        numLocalAtoms = 0;
+    }
+
     data::HostAtoms h_atoms(numLocalAtoms);
     h_atoms.numLocalAtoms = numLocalAtoms;
     h_atoms.numGhostAtoms = 0;
@@ -139,7 +210,10 @@ void RestoreH5MD::restore(const std::string& filename,
 }
 #else
 template <typename T>
-void RestoreH5MD::read(hid_t /*fileId*/, const std::string& /*dataset*/, std::vector<T>& /*data*/)
+void RestoreH5MD::read(hid_t /*fileId*/,
+                       const std::string& /*dataset*/,
+                       std::vector<T>& /*data*/,
+                       const idx_t /*frameIndex*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 support not available!");
     exit(EXIT_FAILURE);
