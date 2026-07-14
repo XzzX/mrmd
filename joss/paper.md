@@ -28,37 +28,33 @@ bibliography: paper.bib
 
 # Summary
 
-The forces on stars, galaxies, and dark matter under external gravitational
-fields lead to the dynamical evolution of structures in the universe. The orbits
-of these bodies are therefore key to understanding the formation, history, and
-future state of galaxies. The field of "galactic dynamics," which aims to model
-the gravitating components of galaxies to study their structure and evolution,
-is now well-established, commonly taught, and frequently used in astronomy.
-Aside from toy problems and demonstrations, the majority of problems require
-efficient numerical tools, many of which require the same base code (e.g., for
-performing numerical orbit integration).
+The (Hamiltonian) adaptive resolution simulation ((H-)AdResS) scheme concurrently
+couples regions of different resolutions by spatially interpolating or switching between different 
+interparticle (potentials/) forces, e.g. atomistic Lennard-Jones and ideal gas. The method has 
+undergone substantial development over the past decades and is now commonly used to simulate open 
+atomistic systems exchanging particles and energy with a reservoir, where the microscopic and thermodynamic
+states of the reservoir only provide physically consistent boundary conditions for the atomistic
+subsystem. The framing of the method in terms of the open atomistic system has paved the way towards 
+non-equilibrium simulations with distinct thermodynamic reservoir states at opposing boundaries of 
+the atomistic region that could even fluctuate in accord with a fluid dynamical simulation on a 
+larger scale. However, the method requires very specific algorithms that are not immediately available, 
+difficult to maintain and challenging to further develop within the standard simulation packages of 
+molecular dynamics. 
 
 # Statement of need
 
-`Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
-enables wrapping low-level languages (e.g., C) for speed without losing
-flexibility or ease-of-use in the user-interface. The API for `Gala` was
-designed to provide a class-based and user-friendly interface to fast (C or
-Cython-optimized) implementations of common operations such as gravitational
-potential and force evaluation, orbit integration, dynamical transformations,
-and chaos indicators for nonlinear dynamics. `Gala` also relies heavily on and
-interfaces well with the implementations of physical units and astronomical
-coordinate systems in the `Astropy` package [@astropy] (`astropy.units` and
-`astropy.coordinates`).
+`MRMD` is a stand-alone C++ software package providing the algorithms necessary to set up and run AdResS
+simulations on CPU and GPU workstations and clusters. The software is organized functionally and exposes its 
+algorithms to the user in a C++ script interface. It is thus particularly suitable for testing and further 
+development of the AdResS method itself. The software comes with basic tools for pre- and postprocessing of 
+the simulations but can also parse input and generate output in formats such as GRO and H5MD and thus interface 
+to standard packages in molecular simulation such as `Gromacs` and `MDAnalysis`.
 
-`Gala` was designed to be used by both astronomical researchers and by
-students in courses on gravitational dynamics or astronomy. It has already been
-used in a number of scientific publications [@Pearson:2017] and has also been
-used in graduate courses on Galactic dynamics to, e.g., provide interactive
-visualizations of textbook material [@Binney:2008]. The combination of speed,
-design, and support for Astropy functionality in `Gala` will enable exciting
-scientific explorations of forthcoming data releases from the *Gaia* mission
-[@gaia] by students and experts alike.
+`MRMD` was designed to be used by researchers in the field of open molecular systems and developers of 
+the AdResS method. It has been used in a scientific publication concerned with linking the simulation method 
+with the theoretical model of the Liouville-type hierarchy [link CAMCoS paper] and, in turn, motivating 
+algorithmic improvements. The parallel and modular design built around AdResS will facilitate straight-
+forward development of the method and help in establishing AdResS as a standard tool of molecular simulation.    
 
 # State of the field                                                                                                                  
 
