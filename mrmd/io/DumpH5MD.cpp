@@ -507,6 +507,9 @@ void DumpH5MDImpl::dumpStep(const data::Subdomain& subdomain,
                             const idx_t step,
                             const real_t dt)
 {
+    MRMD_HOST_CHECK_GREATEREQUAL(
+        state_.fileId, 0, "DumpH5MD::dumpStep() called without an open HDF5 file");
+
     data::HostAtoms h_atoms(atoms);  // NOLINT
 
     updateCache(h_atoms);
