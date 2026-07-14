@@ -53,7 +53,7 @@ public:
                   const idx_t step,
                   const real_t dt);
 
-    void close() const;
+    void close();
 
     void dump(const std::string& filename,
               const data::Subdomain& subdomain,
@@ -485,7 +485,7 @@ void DumpH5MDImpl::open(const std::string& filename,
     }
 }
 
-void DumpH5MDImpl::close() const
+void DumpH5MDImpl::close()
 {
     closeParticleElement(state_.vel);
     closeParticleElement(state_.type);
