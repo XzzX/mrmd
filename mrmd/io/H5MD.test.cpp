@@ -21,11 +21,46 @@
 #include "RestoreH5MD.hpp"
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
+#include "hdf5.hpp"
 
 namespace mrmd
 {
 namespace io
 {
+#ifdef MRMD_ENABLE_HDF5
+namespace
+{
+std::vector<hsize_t> getDatasetExtents(const std::string& filename, const std::string& datasetPath)
+{
+    const hid_t fileId = CHECK_HDF5(H5Fopen(filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT));
+    const hid_t datasetId = CHECK_HDF5(H5Dopen(fileId, datasetPath.c_str(), H5P_DEFAULT));
+    const hid_t dataspaceId = CHECK_HDF5(H5Dget_space(datasetId));
+
+    const int rank = CHECK_HDF5(H5Sget_simple_extent_ndims(dataspaceId));
+    std::vector<hsize_t> dims(uint64_c(rank), 0);
+    CHECK_HDF5(H5Sget_simple_extent_dims(dataspaceId, dims.data(), nullptr));
+
+    CHECK_HDF5(H5Sclose(dataspaceId));
+    CHECK_HDF5(H5Dclose(datasetId));
+    CHECK_HDF5(H5Fclose(fileId));
+
+    return dims;
+}
+
+template <typename T>
+std::vector<T> readDataset1D(const std::string& filename,
+                             const std::string& datasetPath,
+                             const hsize_t expectedSize)
+{
+    std::vector<T> data(expectedSize);
+    const hid_t fileId = CHECK_HDF5(H5Fopen(filename.c_str(), H5F_ACC_RDONLY, H5P_DEFAULT));
+    CHECK_HDF5(H5LTread_dataset(fileId, datasetPath.c_str(), typeToHDF5<T>(), data.data()));
+    CHECK_HDF5(H5Fclose(fileId));
+    return data;
+}
+}  // namespace
+#endif
+
 data::Atoms getAtoms()
 {
     auto atoms = data::Atoms(10);
@@ -117,6 +152,7 @@ TEST(H5MD, dump)
 
 TEST(H5MD, dumpStepWithCustomDatasetsAndFlags)
 {
+    const std::string filename = "dummy_step.h5md";
     auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
     auto atoms1 = getAtoms();
 
@@ -129,9 +165,31 @@ TEST(H5MD, dumpStepWithCustomDatasetsAndFlags)
     dump.chargeDataset = "custom_charge";
     dump.relativeMassDataset = "custom_relative_mass";
 
-    dump.open("dummy_step.h5md", subdomain1, atoms1);
+    dump.open(filename, subdomain1, atoms1);
     dump.dumpStep(subdomain1, atoms1, 0, 0.001_r);
+    dump.dumpStep(subdomain1, atoms1, 7, 0.001_r);
     dump.close();
+
+#ifdef MRMD_ENABLE_HDF5
+    const auto positionValueExtents =
+        getDatasetExtents(filename, "/particles/atoms/" + dump.posDataset + "/value");
+    ASSERT_EQ(positionValueExtents.size(), 3);
+    EXPECT_EQ(positionValueExtents[0], 2);
+    EXPECT_EQ(positionValueExtents[1], 10);
+    EXPECT_EQ(positionValueExtents[2], 3);
+
+    const auto positionSteps =
+        readDataset1D<int64_t>(filename, "/particles/atoms/" + dump.posDataset + "/step", 2);
+    ASSERT_EQ(positionSteps.size(), 2);
+    EXPECT_EQ(positionSteps[0], 0);
+    EXPECT_EQ(positionSteps[1], 7);
+
+    const auto positionTimes =
+        readDataset1D<real_t>(filename, "/particles/atoms/" + dump.posDataset + "/time", 2);
+    ASSERT_EQ(positionTimes.size(), 2);
+    EXPECT_FLOAT_EQ(positionTimes[0], 0._r);
+    EXPECT_FLOAT_EQ(positionTimes[1], 0.007_r);
+#endif
 
     auto subdomain2 = data::Subdomain();
     auto atoms2 = data::Atoms(0);
@@ -143,7 +201,7 @@ TEST(H5MD, dumpStepWithCustomDatasetsAndFlags)
     restore.massDataset = dump.massDataset;
     restore.chargeDataset = dump.chargeDataset;
     restore.relativeMassDataset = dump.relativeMassDataset;
-    restore.restore("dummy_step.h5md", subdomain2, atoms2);
+    restore.restore(filename, subdomain2, atoms2);
 
     EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[0], subdomain2.ghostLayerThickness[0]);
     EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[1], subdomain2.ghostLayerThickness[1]);
@@ -159,23 +217,25 @@ TEST(H5MD, dumpStepWithCustomDatasetsAndFlags)
 
     auto h_atoms1 = data::HostAtoms(atoms1);  // NOLINT
     auto h_atoms2 = data::HostAtoms(atoms2);  // NOLINT
-    EXPECT_EQ(h_atoms1.numLocalAtoms, h_atoms2.numLocalAtoms);
+    EXPECT_EQ(2 * h_atoms1.numLocalAtoms, h_atoms2.numLocalAtoms);
     EXPECT_EQ(h_atoms1.numGhostAtoms, h_atoms2.numGhostAtoms);
     for (idx_t idx = 0; idx < h_atoms2.numLocalAtoms; ++idx)
     {
-        EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 0), h_atoms2.getPos()(idx, 0));
-        EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 1), h_atoms2.getPos()(idx, 1));
-        EXPECT_FLOAT_EQ(h_atoms1.getPos()(idx, 2), h_atoms2.getPos()(idx, 2));
+        const idx_t sourceIdx = idx % h_atoms1.numLocalAtoms;
+        EXPECT_FLOAT_EQ(h_atoms1.getPos()(sourceIdx, 0), h_atoms2.getPos()(idx, 0));
+        EXPECT_FLOAT_EQ(h_atoms1.getPos()(sourceIdx, 1), h_atoms2.getPos()(idx, 1));
+        EXPECT_FLOAT_EQ(h_atoms1.getPos()(sourceIdx, 2), h_atoms2.getPos()(idx, 2));
 
-        EXPECT_EQ(h_atoms1.getType()(idx), h_atoms2.getType()(idx));
-        EXPECT_FLOAT_EQ(h_atoms1.getCharge()(idx), h_atoms2.getCharge()(idx));
-        EXPECT_FLOAT_EQ(h_atoms1.getMass()(idx), h_atoms2.getMass()(idx));
-        EXPECT_FLOAT_EQ(h_atoms1.getRelativeMass()(idx), h_atoms2.getRelativeMass()(idx));
+        EXPECT_EQ(h_atoms1.getType()(sourceIdx), h_atoms2.getType()(idx));
+        EXPECT_FLOAT_EQ(h_atoms1.getCharge()(sourceIdx), h_atoms2.getCharge()(idx));
+        EXPECT_FLOAT_EQ(h_atoms1.getMass()(sourceIdx), h_atoms2.getMass()(idx));
+        EXPECT_FLOAT_EQ(h_atoms1.getRelativeMass()(sourceIdx), h_atoms2.getRelativeMass()(idx));
     }
 }
 
 TEST(H5MD, dumpStepRoundtripWithCustomDatasetNames)
 {
+    const std::string filename = "dummy_stream.h5md";
     auto subdomain1 = data::Subdomain({1_r, 2_r, 3_r}, {4_r, 6_r, 8_r}, 0.5_r);
     auto atoms1 = getAtoms();
 
@@ -188,9 +248,36 @@ TEST(H5MD, dumpStepRoundtripWithCustomDatasetNames)
     dump.posDataset = "pos_custom";
     dump.chargeDataset = "charge_custom";
 
-    dump.open("dummy_stream.h5md", subdomain1, atoms1);
+    dump.open(filename, subdomain1, atoms1);
     dump.dumpStep(subdomain1, atoms1, 17, 0.25_r);
     dump.close();
+
+#ifdef MRMD_ENABLE_HDF5
+    const auto edgesValueExtents = getDatasetExtents(filename, "/particles/atoms/box/edges/value");
+    ASSERT_EQ(edgesValueExtents.size(), 2);
+    EXPECT_EQ(edgesValueExtents[0], 1);
+    EXPECT_EQ(edgesValueExtents[1], 3);
+
+    const auto edgesSteps = readDataset1D<int64_t>(filename, "/particles/atoms/box/edges/step", 1);
+    ASSERT_EQ(edgesSteps.size(), 1);
+    EXPECT_EQ(edgesSteps[0], 17);
+
+    const auto edgesTimes = readDataset1D<real_t>(filename, "/particles/atoms/box/edges/time", 1);
+    ASSERT_EQ(edgesTimes.size(), 1);
+    EXPECT_FLOAT_EQ(edgesTimes[0], 4.25_r);
+
+    const auto chargeValueExtents =
+        getDatasetExtents(filename, "/particles/atoms/" + dump.chargeDataset + "/value");
+    ASSERT_EQ(chargeValueExtents.size(), 3);
+    EXPECT_EQ(chargeValueExtents[0], 1);
+    EXPECT_EQ(chargeValueExtents[1], 10);
+    EXPECT_EQ(chargeValueExtents[2], 1);
+
+    const auto chargeSteps =
+        readDataset1D<int64_t>(filename, "/particles/atoms/" + dump.chargeDataset + "/step", 1);
+    ASSERT_EQ(chargeSteps.size(), 1);
+    EXPECT_EQ(chargeSteps[0], 17);
+#endif
 
     auto subdomain2 = data::Subdomain();
     auto atoms2 = data::Atoms(0);
@@ -202,7 +289,7 @@ TEST(H5MD, dumpStepRoundtripWithCustomDatasetNames)
     restore.restoreRelativeMass = false;
     restore.posDataset = "pos_custom";
     restore.chargeDataset = "charge_custom";
-    restore.restore("dummy_stream.h5md", subdomain2, atoms2);
+    restore.restore(filename, subdomain2, atoms2);
 
     EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[0], subdomain2.ghostLayerThickness[0]);
     EXPECT_FLOAT_EQ(subdomain1.ghostLayerThickness[1], subdomain2.ghostLayerThickness[1]);
