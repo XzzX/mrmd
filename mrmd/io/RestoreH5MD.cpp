@@ -223,7 +223,8 @@ void RestoreH5MD::read(hid_t /*fileId*/,
 
 void RestoreH5MD::restore(const std::string& /*filename*/,
                           data::Subdomain& /*subdomain*/,
-                          data::Atoms& /*atoms*/)
+                          data::Atoms& /*atoms*/,
+                          const idx_t /*frameIndex*/)
 {
     MRMD_HOST_CHECK(false, "HDF5 support not available!");
     exit(EXIT_FAILURE);
