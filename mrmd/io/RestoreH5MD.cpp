@@ -64,9 +64,11 @@ void RestoreH5MD::read(hid_t fileId,
             dspace, H5S_SELECT_SET, offset.data(), nullptr, count.data(), nullptr));
 
         std::vector<hsize_t> memDims(dims.begin() + 1, dims.end());
-        auto totalSize = std::accumulate(memDims.begin(), memDims.end(), hsize_t(1), std::multiplies<>());
+        auto totalSize =
+            std::accumulate(memDims.begin(), memDims.end(), hsize_t(1), std::multiplies<>());
         data.resize(totalSize);
-        auto memSpace = CHECK_HDF5(H5Screate_simple(int_c(memDims.size()), memDims.data(), nullptr));
+        auto memSpace =
+            CHECK_HDF5(H5Screate_simple(int_c(memDims.size()), memDims.data(), nullptr));
 
         CHECK_HDF5(H5Dread(dset, typeToHDF5<T>(), memSpace, dspace, H5P_DEFAULT, data.data()));
         CHECK_HDF5(H5Sclose(memSpace));
