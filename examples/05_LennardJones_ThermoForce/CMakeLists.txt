@@ -13,42 +13,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_executable(05_LennardJones_EquilibrateBerendsen
-        05_LennardJones_EquilibrateBerendsen.cpp
+add_executable(05_00_LennardJones_EquilibrateBerendsen
+        05_00_LennardJones_EquilibrateBerendsen.cpp
         )
-target_link_libraries(05_LennardJones_EquilibrateBerendsen
+target_link_libraries(05_00_LennardJones_EquilibrateBerendsen
         PRIVATE mrmd CLI11::CLI11
         )
-add_executable(05_LennardJones_EquilibrateLangevin
-        05_LennardJones_EquilibrateLangevin.cpp
+add_executable(05_01_LennardJones_EquilibrateLangevin
+        05_01_LennardJones_EquilibrateLangevin.cpp
         )
-target_link_libraries(05_LennardJones_EquilibrateLangevin
-        PRIVATE mrmd CLI11::CLI11
-        )
-
-add_executable(05_LennardJones_ThermodynamicForce
-        05_LennardJones_ThermodynamicForce.cpp
-        )
-target_link_libraries(05_LennardJones_ThermodynamicForce
-        PRIVATE mrmd CLI11::CLI11
-        )
-add_executable(05_LennardJones_ThermodynamicForce_InitialGuess
-        05_LennardJones_ThermodynamicForce_InitialGuess.cpp
-        )
-target_link_libraries(05_LennardJones_ThermodynamicForce_InitialGuess
+target_link_libraries(05_01_LennardJones_EquilibrateLangevin
         PRIVATE mrmd CLI11::CLI11
         )
 
-add_executable(05_LennardJones_AtomisticProduction
-        05_LennardJones_AtomisticProduction.cpp
+add_executable(05_A02_LennardJones_AtomisticProduction
+        05_A02_LennardJones_AtomisticProduction.cpp
         )
-target_link_libraries(05_LennardJones_AtomisticProduction
+target_link_libraries(05_A02_LennardJones_AtomisticProduction
         PRIVATE mrmd CLI11::CLI11
         )
 
-add_executable(05_LennardJones_TracerProduction
-        05_LennardJones_TracerProduction.cpp
+add_executable(05_B02a_LennardJones_ThermodynamicForce
+        05_B02a_LennardJones_ThermodynamicForce.cpp
         )
-target_link_libraries(05_LennardJones_TracerProduction
+target_link_libraries(05_B02a_LennardJones_ThermodynamicForce
+        PRIVATE mrmd CLI11::CLI11
+        )
+add_executable(05_B02b_LennardJones_ThermodynamicForce_InitialGuess
+        05_B02b_LennardJones_ThermodynamicForce_InitialGuess.cpp
+        )
+target_link_libraries(05_B02b_LennardJones_ThermodynamicForce_InitialGuess
+        PRIVATE mrmd CLI11::CLI11
+        )
+
+add_executable(05_B03_LennardJones_TracerProduction
+        05_B03_LennardJones_TracerProduction.cpp
+        )
+target_link_libraries(05_B03_LennardJones_TracerProduction
         PRIVATE mrmd CLI11::CLI11
         )
