@@ -124,7 +124,7 @@ the interactions are then abruptly switched off, so that the interaction potenti
 
 \begin{align}
     U(r, x_i, x_j) = \begin{cases}
-            V(r) &\textrm{, for } x_i, x_j \in [-x_{\textrm{$\Delta$/TR}}, x_{\textrm{$\Delta$/TR}}] \\
+            V(r) &\textrm{, for } x_i, x_j \in [-x_{\Delta\textrm{/TR}}, x_{\Delta\textrm{/TR}}] \\
             0 &\textrm{, else } \\
             \end{cases}\textrm{,}
 \end{align}
@@ -144,7 +144,7 @@ is a radial potential force-capped beneath a radius $r_{\textrm{cap}}$ with $v(r
 such as the truncated and shifted Lennard-Jones potential. 
 
 It is emphasized that this does not necessarily comprise a Hamiltonian AdResS scheme in the classical 
-sense due to the discontinuities of such a potential at $\pm x_{\textrm{$\Delta$/TR}}$, but that the 
+sense due to the discontinuities of such a potential at $\pm x_{\Delta\textrm{/TR}}$, but that the 
 TR region anyways represent merely an algorithm to provide the $\Delta$ regions with the necessary 
 number of particles and fluctuations thereof such that they, in turn, can provide the AT region with 
 thermodynamically consistent boundary conditions. 
