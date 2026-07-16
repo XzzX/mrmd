@@ -17,3 +17,5 @@ add_subdirectory(00_IdealGas_NVE)
 add_subdirectory(01_LennardJones_NVT)
 add_subdirectory(02_LennardJones_NVE)
 add_subdirectory(04_LennardJones_IdealGas_LocalCap)
+add_subdirectory(05_LennardJones_ThermoForce)
+
