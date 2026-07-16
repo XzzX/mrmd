@@ -62,10 +62,10 @@ TEST(ThermoForce, dumpSingleForce)
 
     auto thermodynamicForce2 = restoreThermoForce("dummySingleForce.txt", subdomain);
 
-    ScalarView::HostMirror grid1 = Kokkos::create_mirror_view_and_copy(
-        ScalarView::HostMirror::memory_space{}, createGrid(thermodynamicForce1.getForce()));
-    ScalarView::HostMirror grid2 = Kokkos::create_mirror_view_and_copy(
-        ScalarView::HostMirror::memory_space{}, createGrid(thermodynamicForce2.getForce()));
+    ScalarView::host_mirror_type grid1 = Kokkos::create_mirror_view_and_copy(
+        ScalarView::host_mirror_type::memory_space{}, createGrid(thermodynamicForce1.getForce()));
+    ScalarView::host_mirror_type grid2 = Kokkos::create_mirror_view_and_copy(
+        ScalarView::host_mirror_type::memory_space{}, createGrid(thermodynamicForce2.getForce()));
     auto thermoForce1 =
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), thermodynamicForce1.getForce(0));
     auto thermoForce2 =
@@ -93,10 +93,10 @@ TEST(ThermoForce, dumpMultipleForces)
     auto thermodynamicForce2 =
         restoreThermoForce("dummyMultipleForces.txt", subdomain, targetDensities, forceModulations);
 
-    ScalarView::HostMirror grid1 = Kokkos::create_mirror_view_and_copy(
-        ScalarView::HostMirror::memory_space{}, createGrid(thermodynamicForce1.getForce()));
-    ScalarView::HostMirror grid2 = Kokkos::create_mirror_view_and_copy(
-        ScalarView::HostMirror::memory_space{}, createGrid(thermodynamicForce2.getForce()));
+    ScalarView::host_mirror_type grid1 = Kokkos::create_mirror_view_and_copy(
+        ScalarView::host_mirror_type::memory_space{}, createGrid(thermodynamicForce1.getForce()));
+    ScalarView::host_mirror_type grid2 = Kokkos::create_mirror_view_and_copy(
+        ScalarView::host_mirror_type::memory_space{}, createGrid(thermodynamicForce2.getForce()));
     auto thermoForce1 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
                                                             thermodynamicForce1.getForce().data);
     auto thermoForce2 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
