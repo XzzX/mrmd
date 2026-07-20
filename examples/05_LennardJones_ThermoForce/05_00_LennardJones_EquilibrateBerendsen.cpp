@@ -94,7 +94,7 @@ void equilibrateBerendsen(Config& config)
     // initialize
     auto subdomain =
         data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Ly, config.Lz}, config.neighborCutoff);
-    const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
+    const auto volume = subdomain.getVolume();
     auto atoms =
         util::fillDomainWithAtoms(subdomain, config.numAtoms, config.maxVelocity, config.mass);
     auto rho = real_c(atoms.numLocalAtoms) / volume;
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
     app.add_option("-y,--ylength", config.Ly, "y length of the box");
     app.add_option("-z,--zlength", config.Lz, "z length of the box");
     app.add_option("-N,--numAtoms", config.numAtoms, "number of atoms");
-    app.add_option("-T,--temperature", config.temperature, "temperature of the thermostat");
+    app.add_option("-T,--temperature", config.temperature, "thermostat target temperature");
     app.add_option("-o,--outint", config.outputInterval, "output interval");
     app.add_option("-f,--outfile", config.fileOut, "output file name");
 

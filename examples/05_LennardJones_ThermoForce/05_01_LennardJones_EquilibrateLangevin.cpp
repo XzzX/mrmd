@@ -40,45 +40,47 @@ using namespace mrmd;
 struct Config
 {
     // time parameters
-    idx_t nsteps = 100001;
-    real_t dt = 0.002;
+    idx_t nsteps = 100001;  ///< number of steps to simulate
+    real_t dt = 0.002_r;    ///< time step size in reduced units
 
     // input file parameters
-    std::string fileRestoreH5MD = "equilibrateBerendsen.h5md";
-
-    // system parameters
-    const std::string resName = "Argon";
-    const std::vector<std::string> typeNames = {"Ar"};
+    std::string fileRestoreH5MD = "equilibrateBerendsen.h5md"; ///< name of the file to restore the phase point from
 
     // interaction parameters
-    static constexpr real_t sigma = 1_r;
-    static constexpr real_t epsilon = 1_r;
-    static constexpr real_t rCut = 2.5_r;
-    static constexpr real_t rCap = 0.82417464_r;
-    static constexpr bool doShift = true;
+    static constexpr real_t sigma =
+        1_r;  ///< distance at which LJ potential is zero in reduced units
+    static constexpr real_t epsilon = 1_r;  ///< energy well depth of LJ potential in reduced units
+    static constexpr real_t mass = 1_r;     ///< mass of one atom in reduced units
+    static constexpr real_t r_cut = 2.5_r * sigma;  ///< cutoff radius for LJ potential
+    static constexpr real_t r_cap = 0_r;            ///< capping radius for LJ potential
+    static constexpr bool doShift = true;       ///< whether to shift the LJ potential to zero at the cutoff radius
 
     // pressure parameters
-    real_t pressure_averaging_coefficient = 0.02;
+    real_t pressure_averaging_coefficient =
+        0.02_r;  ///< coefficient for exponential moving average of pressure
 
     // thermostatting parameters
-    real_t temperature = 1.5_r;
+    real_t temperature = 1.5_r;  ///< target temperature for thermostat in reduced units
     real_t friction = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
-    real_t temperature_averaging_coefficient = 0.2_r;
+    real_t temperature_averaging_coefficient = 0.2_r;  ///< coefficient for exponential moving average of temperature
 
     // neighbor-list parameters
     static constexpr real_t skin = 0.3_r * sigma;          ///< skin thickness for neighbor list
-    static constexpr real_t neighborCutoff = rCut + skin;  ///< cutoff radius for neighbor list
+    static constexpr real_t neighborCutoff = r_cut + skin;  ///< cutoff radius for neighbor list
     static constexpr real_t cell_ratio =
         1_r;  ///< ratio of cell size on Cartesian grid to cutoff radius for neighbor list
     static constexpr idx_t estimatedMaxNeighbors =
         60;  ///< estimated maximum number of neighbors per atom
 
     // output parameters
-    bool bOutput = true;
-    idx_t outputInterval = 1000;
-    std::string fileOut = "equilibrateLangevin";
+    bool bOutput = true;                  ///< whether to output data files
+    idx_t outputInterval = -1;            ///< interval for data file output (-1: no output)
+    const std::string resName = "Argon";  ///< residue name for output files
+    const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
+
+    std::string fileOut = "equilibrateLangevin"; ///< base name for output files
     std::string fileOutH5MD = format("{0}.h5md", fileOut);
-    std::string fileOutGro = format("{0}.gro", fileOut);
+    std::string fileOutGro = format("{0}_final.gro", fileOut);
     std::string fileOutTF = format("{0}_tf.txt", fileOut);
     std::string fileOutFinalH5MD = format("{0}_final.h5md", fileOut);
 };
@@ -93,7 +95,7 @@ void equilibrateLangevin(Config& config)
     auto io = io::RestoreH5MD();
     io.restore(config.fileRestoreH5MD, subdomain, atoms);
 
-    const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
+    const auto volume = subdomain.getVolume();
     auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
@@ -102,7 +104,7 @@ void equilibrateLangevin(Config& config)
 
     // technical setup
     communication::GhostLayer ghostLayer;
-    action::LennardJones LJ(config.rCut, config.sigma, config.epsilon, 0.5_r * config.sigma);
+    action::LennardJones LJ(config.r_cut, config.sigma, config.epsilon, 0.5_r * config.sigma);
     HalfVerletList verletList;
     action::VelocityVerletLangevinThermostat langevinIntegrator(config.friction,
                                                                 config.temperature);
@@ -134,16 +136,6 @@ void equilibrateLangevin(Config& config)
             maxAtomDisplacement = 0_r;
 
             ghostLayer.exchangeRealAtoms(atoms, subdomain);
-
-            real_t gridDelta[3] = {
-                config.neighborCutoff, config.neighborCutoff, config.neighborCutoff};
-            LinkedCellList linkedCellList(atoms.getPos(),
-                                          0,
-                                          atoms.numLocalAtoms,
-                                          gridDelta,
-                                          subdomain.minCorner.data(),
-                                          subdomain.maxCorner.data());
-            //            atoms.permute(linkedCellList);
 
             ghostLayer.createGhostAtoms(atoms, subdomain);
             verletList.build(atoms.getPos(),
@@ -187,7 +179,7 @@ void equilibrateLangevin(Config& config)
                              atoms.numLocalAtoms,
                              atoms.numGhostAtoms);
 
-            // microstate output
+            // phase point output
             dumpH5MD.dumpStep(subdomain, atoms, step, config.dt);
         }
     }
@@ -196,7 +188,7 @@ void equilibrateLangevin(Config& config)
     {
         dumpH5MD.close();
 
-        // final microstates output
+        // final phase point output
         dumpH5MD.dump(config.fileOutFinalH5MD, subdomain, atoms);
 
         io::dumpGRO(config.fileOutGro,
@@ -231,14 +223,14 @@ int main(int argc, char* argv[])
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
     app.add_option("-o,--outint", config.outputInterval, "output interval");
     app.add_option("-i,--inpfile", config.fileRestoreH5MD, "input file name");
-    app.add_option("--temp", config.temperature, "target temperature");
-    app.add_option("--friction", config.friction, "friction coefficient for langevin thermostat");
+    app.add_option("-T,--temperature", config.temperature, "thermostat target temperature");
+    app.add_option("--friction", config.friction, "friction coefficient for thermostat");
     app.add_option("-f,--outfile", config.fileOut, "output file name");
 
     CLI11_PARSE(app, argc, argv);
 
     config.fileOutH5MD = format("{0}.h5md", config.fileOut);
-    config.fileOutGro = format("{0}.gro", config.fileOut);
+    config.fileOutGro = format("{0}_final.gro", config.fileOut);
     config.fileOutTF = format("{0}_tf.txt", config.fileOut);
     config.fileOutFinalH5MD = format("{0}_final.h5md", config.fileOut);
 
