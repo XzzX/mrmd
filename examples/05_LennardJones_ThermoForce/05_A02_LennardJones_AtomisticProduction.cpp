@@ -47,7 +47,9 @@ struct Config
     real_t dt = 0.002_r;       ///< time step size in reduced units
 
     // input file parameters
-    std::string fileRestoreH5MD = "equilibrateLangevin_final.h5md"; ///< name of the file to restore the initial phase point from
+    std::string fileRestoreH5MD =
+        "equilibrateLangevin_final.h5md";  ///< name of the file to restore the initial phase point
+                                           ///< from
 
     // interaction parameters
     static constexpr real_t sigma =
