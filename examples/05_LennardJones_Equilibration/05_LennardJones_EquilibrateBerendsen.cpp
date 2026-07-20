@@ -68,7 +68,7 @@ struct Config
     real_t Lx = 30.0_r * sigma;  ///< length of the simulation box in x-direction
     real_t Ly = 30.0_r * sigma;  ///< length of the simulation box in y-direction
     real_t Lz = 30.0_r * sigma;  ///< length of the simulation box in z-direction
-    idx_t numAtoms = 15000;      ///< number of atoms in the simulation box
+    idx_t numAtoms = 9990;       ///< number of atoms in the simulation box
 
     // neighbor-list parameters
     static constexpr real_t skin = 0.1_r * sigma;           ///< skin thickness for neighbor list
