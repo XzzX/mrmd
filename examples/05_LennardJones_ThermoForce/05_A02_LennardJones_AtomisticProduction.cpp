@@ -43,8 +43,8 @@ using namespace mrmd;
 struct Config
 {
     // simulation time parameters
-    idx_t nsteps = 40000001;  ///< number of steps to simulate
-    real_t dt = 0.002;        ///< time step size in reduced units
+    idx_t nsteps = 200000001;  ///< number of steps to simulate
+    real_t dt = 0.002_r;       ///< time step size in reduced units
 
     // input file parameters
     std::string fileRestoreH5MD = "equilibrateLangevin_final.h5md";
@@ -54,8 +54,6 @@ struct Config
         1_r;  ///< distance at which LJ potential is zero in reduced units
     static constexpr real_t epsilon = 1_r;  ///< energy well depth of LJ potential in reduced units
     static constexpr real_t mass = 1_r;     ///< mass of one atom in reduced units
-    static constexpr real_t maxVelocity =
-        1_r;  ///< maximum initial velocity component in reduced units
     static constexpr real_t r_cut = 2.5_r * sigma;  ///< cutoff radius for LJ potential
     real_t r_cap = 0_r;                             ///< capping radius for LJ potential
 
@@ -72,23 +70,19 @@ struct Config
         1.5_r;  ///< target temperature during equilibration for thermostat in reduced units
     real_t friction = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
 
-    // application regions
-    real_t thermostatRegionMin = 0_r;
-    real_t thermostatRegionMax = 15_r * sigma;
-
     // output parameters
     bool bOutput = true;                  ///< whether to output data files
     idx_t outputInterval = -1;            ///< interval for data file output (-1: no output)
     const std::string resName = "Argon";  ///< residue name for output files
     const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
 
-    std::string fileOut = "atomisticProduction";  ///< base name for output files
+    std::string fileOut = "productionAtomistic";  ///< base name for output files
     std::string fileOutH5MD = format("{0}.h5md", fileOut);
     std::string fileOutFinalGro = format("{0}_final.gro", fileOut);
     std::string fileOutFinalH5MD = format("{0}_final.h5md", fileOut);
 };
 
-void runAtomisticProduction(Config& config)
+void productionAtomistic(Config& config)
 {
     // initialize
     data::Subdomain subdomain;
@@ -122,11 +116,6 @@ void runAtomisticProduction(Config& config)
     std::cout << "x center: " << boxCenter[0] << std::endl;
     std::cout << "y center: " << boxCenter[1] << std::endl;
     std::cout << "z center: " << boxCenter[2] << std::endl;
-
-    // set up region predicate for thermostat application
-    util::IsInSymmetricSlab isInThermostatRegion({boxCenter[0], boxCenter[1], boxCenter[2]},
-                                                 config.thermostatRegionMin,
-                                                 config.thermostatRegionMax);
 
     // set up thermostat for temperature control
     action::VelocityVerletLangevinThermostat langevinIntegrator(config.friction,
@@ -167,8 +156,7 @@ void runAtomisticProduction(Config& config)
         countingPlane.startCounting(atoms);
 
         // integrate equations of motion with local Langevin thermostat during production phase
-        maxAtomDisplacement +=
-            langevinIntegrator.preForceIntegrate_apply_if(atoms, config.dt, isInThermostatRegion);
+        maxAtomDisplacement += langevinIntegrator.preForceIntegrate(atoms, config.dt);
 
         // stop counting particle flux across the plane and calculate flux
         flux += countingPlane.stopCounting(atoms);
@@ -294,15 +282,10 @@ int main(int argc, char* argv[])
     app.add_option("-i,--inpfile", config.fileRestoreH5MD, "input file name");
     app.add_option("-f,--outfile", config.fileOut, "output file name");
 
-    app.add_option("--temp", config.temperature, "target temperature");
+    app.add_option("-T,--temperature", config.temperature, "target temperature");
     app.add_option("--friction", config.friction, "friction coefficient for langevin thermostat");
 
     app.add_option("--rcap", config.r_cap, "capping radius for Lennard-Jones potential");
-
-    app.add_option(
-        "--thermostatmin", config.thermostatRegionMin, "thermostat region minimum coordinate");
-    app.add_option(
-        "--thermostatmax", config.thermostatRegionMax, "thermostat region maximum coordinate");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -311,7 +294,8 @@ int main(int argc, char* argv[])
     config.fileOutFinalH5MD = format("{0}_final.h5md", config.fileOut);
 
     if (config.outputInterval < 0) config.bOutput = false;
-    runAtomisticProduction(config);
+
+    productionAtomistic(config);
 
     Kokkos::finalize();
 
