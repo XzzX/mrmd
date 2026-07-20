@@ -83,10 +83,10 @@ struct Config
     const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
 
     std::string fileOut = "equilibrateLangevin";  ///< base name for output files
-    std::string fileOutH5MD = format("{0}.h5md", fileOut);
-    std::string fileOutGro = format("{0}_final.gro", fileOut);
-    std::string fileOutTF = format("{0}_tf.txt", fileOut);
-    std::string fileOutFinalH5MD = format("{0}_final.h5md", fileOut);
+    std::string fileOutH5MD;
+    std::string fileOutTF;
+    std::string fileOutFinalGRO;
+    std::string fileOutFinalH5MD;
 };
 
 void equilibrateLangevin(Config& config)
@@ -195,7 +195,7 @@ void equilibrateLangevin(Config& config)
         // final phase point output
         dumpH5MD.dump(config.fileOutFinalH5MD, subdomain, atoms);
 
-        io::dumpGRO(config.fileOutGro,
+        io::dumpGRO(config.fileOutFinalGRO,
                     atoms,
                     subdomain,
                     0,
@@ -234,9 +234,9 @@ int main(int argc, char* argv[])
     CLI11_PARSE(app, argc, argv);
 
     config.fileOutH5MD = format("{0}.h5md", config.fileOut);
-    config.fileOutGro = format("{0}_final.gro", config.fileOut);
     config.fileOutTF = format("{0}_tf.txt", config.fileOut);
     config.fileOutFinalH5MD = format("{0}_final.h5md", config.fileOut);
+    config.fileOutFinalGRO = format("{0}_final.gro", config.fileOut);
 
     if (config.outputInterval < 0) config.bOutput = false;
     equilibrateLangevin(config);

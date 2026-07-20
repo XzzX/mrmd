@@ -79,9 +79,9 @@ struct Config
     const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
 
     std::string fileOut = "productionAtomistic";  ///< base name for output files
-    std::string fileOutH5MD = format("{0}.h5md", fileOut);
-    std::string fileOutFinalGro = format("{0}_final.gro", fileOut);
-    std::string fileOutFinalH5MD = format("{0}_final.h5md", fileOut);
+    std::string fileOutH5MD;
+    std::string fileOutFinalGRO;
+    std::string fileOutFinalH5MD;
 };
 
 void productionAtomistic(Config& config)
@@ -243,7 +243,7 @@ void productionAtomistic(Config& config)
     {
         dumpH5MD.close();
 
-        // final microstates output
+        // final phase point output
         dumpH5MD.dump(config.fileOutFinalH5MD, subdomain, atoms);
 
         // close statistics file
@@ -251,7 +251,7 @@ void productionAtomistic(Config& config)
         auto time = timer.seconds();
         std::cout << time << std::endl;
 
-        io::dumpGRO(config.fileOutFinalGro,
+        io::dumpGRO(config.fileOutFinalGRO,
                     atoms,
                     subdomain,
                     0,
@@ -292,7 +292,7 @@ int main(int argc, char* argv[])
     CLI11_PARSE(app, argc, argv);
 
     config.fileOutH5MD = format("{0}.h5md", config.fileOut);
-    config.fileOutFinalGro = format("{0}_final.gro", config.fileOut);
+    config.fileOutFinalGRO = format("{0}_final.gro", config.fileOut);
     config.fileOutFinalH5MD = format("{0}_final.h5md", config.fileOut);
 
     if (config.outputInterval < 0) config.bOutput = false;

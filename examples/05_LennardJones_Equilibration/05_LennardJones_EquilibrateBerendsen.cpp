@@ -85,8 +85,8 @@ struct Config
     const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
 
     std::string fileOut = "equilibrateBerendsen";  ///< base name for output files
-    std::string fileOutH5MD = format("{0}_final.h5md", fileOut);
-    std::string fileOutGro = format("{0}_final.gro", fileOut);
+    std::string fileOutFinalGRO;
+    std::string fileOutFinalH5MD;
 };
 
 void equilibrateBerendsen(Config& config)
@@ -102,15 +102,6 @@ void equilibrateBerendsen(Config& config)
 
     // output management
     auto dump = io::DumpH5MD("J-Hizzle");
-    io::dumpGRO("equilibrateBerendsenInitial.gro",
-                atoms,
-                subdomain,
-                0_r,
-                "Argon",
-                config.resName,
-                config.typeNames,
-                false,
-                true);
 
     // technical setup
     communication::GhostLayer ghostLayer;
@@ -123,7 +114,8 @@ void equilibrateBerendsen(Config& config)
     util::ExponentialMovingAverage currentTemperature(config.temperature_averaging_coefficient);
     currentTemperature << analysis::getMeanKineticEnergy(atoms) * 2_r / 3_r;
 
-    // thermodynamic observables table
+    // ouput management 
+    auto dumpH5MD = io::DumpH5MD("J-Hizzle");
     if (config.bOutput)
     {
         util::printTable(
@@ -199,8 +191,10 @@ void equilibrateBerendsen(Config& config)
          << std::endl;
     fout.close();
 
-    dump.dump(config.fileOutH5MD, subdomain, atoms);
-    io::dumpGRO(config.fileOutGro,
+    // final phase point output
+    dumpH5MD.dump(config.fileOutFinalH5MD, subdomain, atoms);
+    
+    io::dumpGRO(config.fileOutFinalGRO,
                 atoms,
                 subdomain,
                 0,
@@ -230,8 +224,8 @@ int main(int argc, char* argv[])
 
     CLI11_PARSE(app, argc, argv);
 
-    config.fileOutH5MD = format("{0}_final.h5md", config.fileOut);
-    config.fileOutGro = format("{0}_final.gro", config.fileOut);
+    config.fileOutFinalGRO = format("{0}_final.gro", config.fileOut);
+    config.fileOutFinalH5MD = format("{0}_final.h5md", config.fileOut);
 
     if (config.outputInterval < 0) config.bOutput = false;
 
