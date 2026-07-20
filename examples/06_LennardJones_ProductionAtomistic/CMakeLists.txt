@@ -21,6 +21,6 @@ target_link_libraries(06_LennardJones_ProductionAtomistic
         )
 
 if (MRMD_ENABLE_HDF5)
-configure_file(equilibrateLangevin_final.h5md . COPYONLY)
+configure_file(../05_LennardJones_Equilibration/equilibrateLangevin_final.h5md . COPYONLY)
 add_test(NAME Example.06_LennardJones_ProductionAtomistic COMMAND ./06_LennardJones_ProductionAtomistic --nsteps 10)
 endif ()
