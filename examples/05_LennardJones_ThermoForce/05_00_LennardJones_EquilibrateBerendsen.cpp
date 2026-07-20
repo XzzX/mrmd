@@ -40,48 +40,53 @@ using namespace mrmd;
 
 struct Config
 {
-    // output parameters
-    bool bOutput = true;
-    std::string fileOut = "equilibrateBerendsen";
-    std::string fileOutH5MD = format("{0}.h5md", fileOut);
-    std::string fileOutGro = format("{0}.gro", fileOut);
-    idx_t outputInterval = 1000;
-
     // time parameters
-    idx_t nsteps = 100001;
-    real_t dt = 0.001;
-
-    // system parameters
-    const std::string resName = "Argon";
-    const std::vector<std::string> typeNames = {"Ar"};
+    idx_t nsteps = 100001;  ///< number of steps to simulate
+    real_t dt = 0.001_r;    ///< time step size in reduced units
 
     // interaction parameters
-    real_t sigma = 1_r;
-    real_t epsilon = 1_r;
-    real_t rCut = 2.5_r;
-    real_t rCap = 0.0_r;
-    bool doShift = true;
+    static constexpr real_t sigma =
+        1_r;  ///< distance at which LJ potential is zero in reduced units
+    static constexpr real_t epsilon = 1_r;  ///< energy well depth of LJ potential in reduced units
+    static constexpr real_t mass = 1_r;     ///< mass of one atom in reduced units
+    static constexpr real_t maxVelocity =
+        1_r;  ///< maximum initial velocity component in reduced units
+    static constexpr real_t r_cut = 2.5_r * sigma;  ///< cutoff radius for LJ potential
+    static constexpr real_t r_cap = 0_r;            ///< capping radius for LJ potential
 
     // pressure parameters
-    real_t pressure_averaging_coefficient = 0.02;
+    real_t pressure_averaging_coefficient =
+        0.02_r;  ///< coefficient for exponential moving average of pressure
 
     // thermostatting parameters
-    real_t temperature = 1.5_r;
-    real_t friction = 1.0_r;
-    real_t temperature_averaging_coefficient = 0.2_r;
-    idx_t thermostat_interval = 1;
+    real_t temperature = 1.5_r;  ///< target temperature for thermostat in reduced units
+    real_t friction = 1_r;       ///< friction coefficient for thermostat
+    real_t temperature_averaging_coefficient =
+        0.2_r;  ///< coefficient for exponential moving average of temperature
 
-    // box parameters
-    real_t Lx = 45.0_r;
-    real_t Ly = 30.0_r;
-    real_t Lz = 30.0_r;
-    idx_t numAtoms = 15000;
+    // system parameters
+    real_t Lx = 30.0_r * sigma;  ///< length of the simulation box in x-direction
+    real_t Ly = 30.0_r * sigma;  ///< length of the simulation box in y-direction
+    real_t Lz = 30.0_r * sigma;  ///< length of the simulation box in z-direction
+    idx_t numAtoms = 15000;      ///< number of atoms in the simulation box
 
     // neighbor-list parameters
-    real_t cell_ratio = 1.0_r;
-    real_t skin = 0.3;
-    real_t neighborCutoff = rCut + skin;
-    idx_t estimatedMaxNeighbors = 60;
+    static constexpr real_t skin = 0.1_r * sigma;           ///< skin thickness for neighbor list
+    static constexpr real_t neighborCutoff = r_cut + skin;  ///< cutoff radius for neighbor list
+    static constexpr real_t cell_ratio =
+        1_r;  ///< ratio of cell size on Cartesian grid to cutoff radius for neighbor list
+    static constexpr idx_t estimatedMaxNeighbors =
+        60;  ///< estimated maximum number of neighbors per atom
+
+    // output parameters
+    bool bOutput = true;                  ///< whether to output data files
+    idx_t outputInterval = -1;            ///< interval for data file output (-1: no output)
+    const std::string resName = "Argon";  ///< residue name for output files
+    const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
+
+    std::string fileOut = "equilibrateBerendsen";  ///< base name for output files
+    std::string fileOutH5MD = format("{0}.h5md", fileOut);
+    std::string fileOutGro = format("{0}.gro", fileOut);
 };
 
 void equilibrateBerendsen(Config& config)
@@ -90,7 +95,8 @@ void equilibrateBerendsen(Config& config)
     auto subdomain =
         data::Subdomain({0_r, 0_r, 0_r}, {config.Lx, config.Ly, config.Lz}, config.neighborCutoff);
     const auto volume = subdomain.diameter[0] * subdomain.diameter[1] * subdomain.diameter[2];
-    auto atoms = util::fillDomainWithAtoms(subdomain, config.numAtoms, 1_r, 1_r);
+    auto atoms =
+        util::fillDomainWithAtoms(subdomain, config.numAtoms, config.maxVelocity, config.mass);
     auto rho = real_c(atoms.numLocalAtoms) / volume;
     std::cout << "rho: " << rho << std::endl;
 
@@ -108,7 +114,7 @@ void equilibrateBerendsen(Config& config)
 
     // technical setup
     communication::GhostLayer ghostLayer;
-    action::LennardJones LJ(config.rCut, config.sigma, config.epsilon, 0.5_r * config.sigma);
+    action::LennardJones LJ(config.r_cut, config.sigma, config.epsilon, 0.5_r * config.sigma);
     HalfVerletList verletList;
     Kokkos::Timer timer;
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
@@ -130,13 +136,8 @@ void equilibrateBerendsen(Config& config)
     {
         maxAtomDisplacement += action::VelocityVerlet::preForceIntegrate(atoms, config.dt);
 
-        if (step % config.thermostat_interval == 0)
-        {
-            action::BerendsenThermostat::apply(atoms,
-                                               currentTemperature,
-                                               config.temperature,
-                                               config.friction);
-        }
+        action::BerendsenThermostat::apply(
+            atoms, currentTemperature, config.temperature, config.friction);
 
         if (maxAtomDisplacement >= config.skin * 0.5_r)
         {
@@ -219,12 +220,12 @@ int main(int argc, char* argv[])
     Config config;
     CLI::App app{"Lennard Jones Fluid benchmark application"};
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
-    app.add_option("-o,--output", config.outputInterval, "output interval");
-    app.add_option("--xlength", config.Lx, "x length of the box");
-    app.add_option("--ylength", config.Ly, "y length of the box");
-    app.add_option("--zlength", config.Lz, "z length of the box");
-    app.add_option("--numAtoms", config.numAtoms, "number of atoms");
-    app.add_option("--temp", config.temperature, "target temperature");
+    app.add_option("-x,--xlength", config.Lx, "x length of the box");
+    app.add_option("-y,--ylength", config.Ly, "y length of the box");
+    app.add_option("-z,--zlength", config.Lz, "z length of the box");
+    app.add_option("-N,--numAtoms", config.numAtoms, "number of atoms");
+    app.add_option("-T,--temperature", config.temperature, "temperature of the thermostat");
+    app.add_option("-o,--outint", config.outputInterval, "output interval");
     app.add_option("-f,--outfile", config.fileOut, "output file name");
 
     CLI11_PARSE(app, argc, argv);
