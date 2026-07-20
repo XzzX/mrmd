@@ -132,8 +132,8 @@ void productionAtomistic(Config& config)
     auto msd = 0_r;
 
     // set up variables for counting particle flux across the domain
-    analysis::CountingPlane countingPlane({boxCenter[0] + (10_r), boxCenter[1], boxCenter[2]},
-                                          {1_r, 0_r, 0_r});
+    analysis::CountingPlane countingPlane(
+        {boxCenter[0] + 10_r * config.sigma, boxCenter[1], boxCenter[2]}, {1_r, 0_r, 0_r});
     int64_t flux = 0;
 
     // output management
