@@ -13,19 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_executable(05_00_LennardJones_EquilibrateBerendsen
-        05_00_LennardJones_EquilibrateBerendsen.cpp
-        )
-target_link_libraries(05_00_LennardJones_EquilibrateBerendsen
-        PRIVATE mrmd CLI11::CLI11
-        )
-add_executable(05_01_LennardJones_EquilibrateLangevin
-        05_01_LennardJones_EquilibrateLangevin.cpp
-        )
-target_link_libraries(05_01_LennardJones_EquilibrateLangevin
-        PRIVATE mrmd CLI11::CLI11
-        )
-
 add_executable(05_A02_LennardJones_AtomisticProduction
         05_A02_LennardJones_AtomisticProduction.cpp
         )

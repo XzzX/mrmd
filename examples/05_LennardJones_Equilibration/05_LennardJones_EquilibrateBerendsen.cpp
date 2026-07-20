@@ -85,8 +85,8 @@ struct Config
     const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
 
     std::string fileOut = "equilibrateBerendsen";  ///< base name for output files
-    std::string fileOutH5MD = format("{0}.h5md", fileOut);
-    std::string fileOutGro = format("{0}.gro", fileOut);
+    std::string fileOutH5MD = format("{0}_final.h5md", fileOut);
+    std::string fileOutGro = format("{0}_final.gro", fileOut);
 };
 
 void equilibrateBerendsen(Config& config)
@@ -230,8 +230,8 @@ int main(int argc, char* argv[])
 
     CLI11_PARSE(app, argc, argv);
 
-    config.fileOutH5MD = format("{0}.h5md", config.fileOut);
-    config.fileOutGro = format("{0}.gro", config.fileOut);
+    config.fileOutH5MD = format("{0}_final.h5md", config.fileOut);
+    config.fileOutGro = format("{0}_final.gro", config.fileOut);
 
     if (config.outputInterval < 0) config.bOutput = false;
 
