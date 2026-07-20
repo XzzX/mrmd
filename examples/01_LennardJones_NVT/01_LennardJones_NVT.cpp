@@ -257,7 +257,7 @@ int main(int argc, char* argv[])  // NOLINT
     app.add_option("-n,--nsteps", config.nsteps, "total number of simulation steps");
     app.add_option("-L,--length", config.Lx, "simulation box diameter");
     app.add_option("-T,--temperature", config.temperature, "temperature of the thermostat");
-    app.add_option("-o,--output", config.outputInterval, "output interval");
+    app.add_option("-o,--outint", config.outputInterval, "output interval");
     CLI11_PARSE(app, argc, argv);
 
     // reset output parameter if output interval is negative
