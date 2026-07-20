@@ -101,10 +101,12 @@ struct Config
     const bool enforceSymmetry = true;  ///< whether to enforce symmetry in the thermodynamic force
 
     // application regions
-    real_t intRegionMin = 0_r;
-    real_t intRegionMax = 10_r * sigma + r_cut;
-    real_t thermoForceRegionMin = 10_r * sigma;
-    real_t thermoForceRegionMax = 14.5_r * sigma;
+    real_t intRegionMin = 0_r;                   ///< minimum x-coordinate of the interaction region
+    real_t intRegionMax = 10_r * sigma + r_cut;  ///< maximum x-coordinate of the interaction region
+    real_t thermoForceRegionMin =
+        10_r * sigma;  ///< minimum x-coordinate of the thermodynamic force region
+    real_t thermoForceRegionMax =
+        14.5_r * sigma;  ///< maximum x-coordinate of the thermodynamic force region
 
     // output parameters
     bool bOutput = true;                  ///< whether to output data files
