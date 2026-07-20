@@ -88,15 +88,17 @@ struct Config
     real_t friction = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
 
     // thermodynamic force parameters
-    idx_t densitySamplingInterval = 200;
-    idx_t densityUpdateInterval = 10000;
-    real_t densityBinWidth = 0.2_r * sigma;
-    real_t smoothingDamping = 1_r;
-    real_t smoothingInverseDamping = 1_r / smoothingDamping;
-    idx_t smoothingNeighbors = 0;
-    real_t smoothingRange = real_c(smoothingNeighbors) * densityBinWidth * smoothingDamping;
-    real_t thermodynamicForceModulation = 1_r;
-    const bool enforceSymmetry = true;
+    idx_t densitySamplingInterval = 200;     ///< interval for sampling density profile
+    idx_t densityUpdateInterval = 10000;     ///< interval for updating density profile
+    real_t densityBinWidth = 0.2_r * sigma;  ///< width of bins for density profile
+    real_t smoothingDamping = 1_r;           ///< damping factor for smoothing function
+    real_t smoothingInverseDamping = 1_r / smoothingDamping;  ///< inverse of the damping factor
+    idx_t smoothingNeighbors =
+        0;  ///< number of neighboring data points taken into account in smoothing
+    real_t smoothingRange = real_c(smoothingNeighbors) * densityBinWidth *
+                            smoothingDamping;   ///< range of smoothing function
+    real_t thermodynamicForceModulation = 2_r;  ///< modulation factor for the thermodynamic force
+    const bool enforceSymmetry = true;  ///< whether to enforce symmetry in the thermodynamic force
 
     // application regions
     real_t intRegionMin = 0_r;
