@@ -66,8 +66,8 @@ struct Config
     real_t pressure_averaging_coefficient = 0.02;
 
     // thermostatting parameters
-    real_t target_temperature = 1.5_r;
-    real_t temperature_relaxation_coefficient = 1.0_r;
+    real_t temperature = 1.5_r;
+    real_t friction = 1.0_r;
     real_t temperature_averaging_coefficient = 0.2_r;
     idx_t thermostat_interval = 1;
 
@@ -134,8 +134,8 @@ void equilibrateBerendsen(Config& config)
         {
             action::BerendsenThermostat::apply(atoms,
                                                currentTemperature,
-                                               config.target_temperature,
-                                               config.temperature_relaxation_coefficient);
+                                               config.temperature,
+                                               config.friction);
         }
 
         if (maxAtomDisplacement >= config.skin * 0.5_r)
@@ -224,7 +224,7 @@ int main(int argc, char* argv[])
     app.add_option("--ylength", config.Ly, "y length of the box");
     app.add_option("--zlength", config.Lz, "z length of the box");
     app.add_option("--numAtoms", config.numAtoms, "number of atoms");
-    app.add_option("--temp", config.target_temperature, "target temperature");
+    app.add_option("--temp", config.temperature, "target temperature");
     app.add_option("-f,--outfile", config.fileOut, "output file name");
 
     CLI11_PARSE(app, argc, argv);

@@ -68,9 +68,9 @@ struct Config
         60;  ///< estimated maximum number of neighbors per atom
 
     // thermostat parameters
-    real_t target_temperature =
+    real_t temperature =
         1.5_r;  ///< target temperature during equilibration for thermostat in reduced units
-    real_t gamma = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
+    real_t friction = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
 
     // application regions
     real_t thermostatRegionMin = 0_r;
@@ -129,8 +129,8 @@ void runAtomisticProduction(Config& config)
                                                  config.thermostatRegionMax);
 
     // set up thermostat for temperature control
-    action::VelocityVerletLangevinThermostat langevinIntegrator(config.gamma,
-                                                                config.target_temperature);
+    action::VelocityVerletLangevinThermostat langevinIntegrator(config.friction,
+                                                                config.temperature);
 
     // set up timer for runtime measurement
     Kokkos::Timer timer;
@@ -294,8 +294,8 @@ int main(int argc, char* argv[])
     app.add_option("-i,--inpfile", config.fileRestoreH5MD, "input file name");
     app.add_option("-f,--outfile", config.fileOut, "output file name");
 
-    app.add_option("--temp", config.target_temperature, "target temperature");
-    app.add_option("--friction", config.gamma, "friction coefficient for langevin thermostat");
+    app.add_option("--temp", config.temperature, "target temperature");
+    app.add_option("--friction", config.friction, "friction coefficient for langevin thermostat");
 
     app.add_option("--rcap", config.r_cap, "capping radius for Lennard-Jones potential");
 

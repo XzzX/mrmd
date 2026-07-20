@@ -77,7 +77,7 @@ struct Config
 
     // thermostat parameters
     real_t temperature = 1.5_r;  ///< target temperature for thermostat in reduced units
-    static constexpr real_t gamma = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
+    static constexpr real_t friction = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
 
     // output parameters
     bool bOutput = true;                  ///< whether to output data files
@@ -118,7 +118,7 @@ void runLennardJonesNVT(Config& config)
     action::LennardJones lennardJones(config.r_cut, config.sigma, config.epsilon, config.r_cap);
 
     // set up thermostat for temperature control
-    action::VelocityVerletLangevinThermostat integrator(config.gamma, config.temperature);
+    action::VelocityVerletLangevinThermostat integrator(config.friction, config.temperature);
 
     // set up timer for runtime measurement
     Kokkos::Timer timer;

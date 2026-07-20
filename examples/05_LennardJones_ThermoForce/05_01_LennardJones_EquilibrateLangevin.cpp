@@ -61,8 +61,8 @@ struct Config
     real_t pressure_averaging_coefficient = 0.02;
 
     // thermostatting parameters
-    real_t target_temperature = 1.5_r;
-    real_t gamma = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
+    real_t temperature = 1.5_r;
+    real_t friction = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
     real_t temperature_averaging_coefficient = 0.2_r;
 
     // neighbor-list parameters
@@ -104,8 +104,8 @@ void equilibrateLangevin(Config& config)
     communication::GhostLayer ghostLayer;
     action::LennardJones LJ(config.rCut, config.sigma, config.epsilon, 0.5_r * config.sigma);
     HalfVerletList verletList;
-    action::VelocityVerletLangevinThermostat langevinIntegrator(config.gamma,
-                                                                config.target_temperature);
+    action::VelocityVerletLangevinThermostat langevinIntegrator(config.friction,
+                                                                config.temperature);
     Kokkos::Timer timer;
     real_t maxAtomDisplacement = std::numeric_limits<real_t>::max();
     idx_t rebuildCounter = 0;
@@ -231,8 +231,8 @@ int main(int argc, char* argv[])
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
     app.add_option("-o,--outint", config.outputInterval, "output interval");
     app.add_option("-i,--inpfile", config.fileRestoreH5MD, "input file name");
-    app.add_option("--temp", config.target_temperature, "target temperature");
-    app.add_option("--friction", config.gamma, "friction coefficient for langevin thermostat");
+    app.add_option("--temp", config.temperature, "target temperature");
+    app.add_option("--friction", config.friction, "friction coefficient for langevin thermostat");
     app.add_option("-f,--outfile", config.fileOut, "output file name");
 
     CLI11_PARSE(app, argc, argv);
