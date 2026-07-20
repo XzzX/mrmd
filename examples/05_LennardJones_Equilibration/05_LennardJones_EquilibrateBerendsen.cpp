@@ -114,7 +114,7 @@ void equilibrateBerendsen(Config& config)
     util::ExponentialMovingAverage currentTemperature(config.temperature_averaging_coefficient);
     currentTemperature << analysis::getMeanKineticEnergy(atoms) * 2_r / 3_r;
 
-    // ouput management 
+    // ouput management
     auto dumpH5MD = io::DumpH5MD("J-Hizzle");
     if (config.bOutput)
     {
@@ -181,28 +181,30 @@ void equilibrateBerendsen(Config& config)
                              atoms.numGhostAtoms);
         }
     }
+    if (config.bOutput)
+    {
+        // final phase point output
+        dumpH5MD.dump(config.fileOutFinalH5MD, subdomain, atoms);
+
+        io::dumpGRO(config.fileOutFinalGRO,
+                    atoms,
+                    subdomain,
+                    0,
+                    config.resName,
+                    config.resName,
+                    config.typeNames,
+                    false,
+                    true);
+    }
+
+    // write performance data to file
     auto time = timer.seconds();
     std::cout << time << std::endl;
-
     auto cores = util::getEnvironmentVariable("OMP_NUM_THREADS");
-
     std::ofstream fout("ecab.perf", std::ofstream::app);
     fout << cores << ", " << time << ", " << atoms.numLocalAtoms << ", " << config.nsteps
          << std::endl;
     fout.close();
-
-    // final phase point output
-    dumpH5MD.dump(config.fileOutFinalH5MD, subdomain, atoms);
-    
-    io::dumpGRO(config.fileOutFinalGRO,
-                atoms,
-                subdomain,
-                0,
-                config.resName,
-                config.resName,
-                config.typeNames,
-                false,
-                true);
 }
 
 int main(int argc, char* argv[])

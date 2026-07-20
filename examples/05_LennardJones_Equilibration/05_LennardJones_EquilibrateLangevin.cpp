@@ -205,11 +205,11 @@ void equilibrateLangevin(Config& config)
                     false,
                     true);
     }
-    auto cores = util::getEnvironmentVariable("OMP_NUM_THREADS");
 
+    // write performance data to file
     auto time = timer.seconds();
     std::cout << time << std::endl;
-
+    auto cores = util::getEnvironmentVariable("OMP_NUM_THREADS");
     std::ofstream fout("ecab.perf", std::ofstream::app);
     fout << cores << ", " << time << ", " << atoms.numLocalAtoms << ", " << config.nsteps
          << std::endl;
