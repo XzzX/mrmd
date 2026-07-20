@@ -277,7 +277,7 @@ int main(int argc, char* argv[])
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
 
     Config config;
-    CLI::App app{"Lennard Jones Fluid benchmark application"};
+    CLI::App app{"Lennard-Jones atomistic production simulation"};
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
     app.add_option("-d,--tstep", config.dt, "time step");
     app.add_option("-o,--outint", config.outputInterval, "output interval");

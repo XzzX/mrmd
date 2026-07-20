@@ -413,7 +413,7 @@ int main(int argc, char* argv[])  // NOLINT
 
     // initialize simulation configuration with command line interface
     Config config;
-    CLI::App app{"Lennard Jones Fluid benchmark application"};
+    CLI::App app{"Lennard-Jones Thermodynamic Force Simulation with initial guess"};
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
     app.add_option("-d,--tstep", config.dt, "time step");
     app.add_option("-o,--outint", config.outputInterval, "output interval");

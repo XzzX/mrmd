@@ -58,7 +58,7 @@ struct Config
 {
     // time parameters
     idx_t nsteps = 200000001;  ///< number of steps to simulate
-    real_t dt = 0.002_r;        ///< time step size in reduced units
+    real_t dt = 0.002_r;       ///< time step size in reduced units
 
     // input file parameters
     std::string fileRestoreH5MD =
@@ -354,7 +354,8 @@ int main(int argc, char* argv[])  // NOLINT
 
     // initialize simulation configuration with command line interface
     Config config;
-    CLI::App app{"Lennard Jones Fluid benchmark application"};
+    CLI::App app{
+        "Lennard-Jones tracer production simulation with converged thermodynamic force input"};
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
     app.add_option("-d,--tstep", config.dt, "time step");
     app.add_option("-o,--outint", config.outputInterval, "output interval");
