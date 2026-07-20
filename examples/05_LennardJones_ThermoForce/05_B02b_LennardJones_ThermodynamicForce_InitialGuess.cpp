@@ -55,23 +55,25 @@ using namespace mrmd;
  */
 struct Config
 {
-    // simulation time parameters
-    idx_t nsteps = 40000001;  ///< number of steps to simulate
-    real_t dt = 0.002;        ///< time step size in reduced units
+    // time parameters
+    idx_t nsteps = 5000000 * 10 + 1;  ///< number of steps to simulate
+    real_t dt = 0.002_r;              ///< time step size in reduced units
 
     // input file parameters
-    std::string fileRestoreH5MD = "equilibrateLangevin_final.h5md";
-    std::string fileRestoreTF;
+    std::string fileRestoreH5MD =
+        "equilibrateLangevin_final.h5md";  ///< name of the file to restore the initial phase point
+                                           ///< from
+    std::string fileRestoreTF =
+        "thermodynamicForce_initialGuess.txt";  ///< name of the file to restore the initial
+                                                ///< thermodynamic force
 
     // interaction parameters
     static constexpr real_t sigma =
         1_r;  ///< distance at which LJ potential is zero in reduced units
     static constexpr real_t epsilon = 1_r;  ///< energy well depth of LJ potential in reduced units
     static constexpr real_t mass = 1_r;     ///< mass of one atom in reduced units
-    static constexpr real_t maxVelocity =
-        1_r;  ///< maximum initial velocity component in reduced units
     static constexpr real_t r_cut = 2.5_r * sigma;  ///< cutoff radius for LJ potential
-    real_t r_cap_inner = 0.82417464_r * sigma;      ///< capping radius for LJ potential
+    real_t r_cap = 0.82417464_r * sigma;            ///< capping radius for LJ potential
 
     // neighbor list parameters
     static constexpr real_t skin = 0.3_r * sigma;           ///< skin thickness for neighbor list
@@ -98,11 +100,9 @@ struct Config
     const bool enforceSymmetry = true;
 
     // application regions
-    real_t innerIntRegionMin = 0_r;
-    real_t innerIntRegionMax = 10_r * sigma + r_cut;
-    real_t thermostatRegionMin = innerIntRegionMax;
-    real_t thermostatRegionMax = 15_r * sigma;
-    real_t thermoForceRegionMin = innerIntRegionMax;
+    real_t intRegionMin = 0_r;
+    real_t intRegionMax = 10_r * sigma + r_cut;
+    real_t thermoForceRegionMin = 10_r * sigma;
     real_t thermoForceRegionMax = 14.5_r * sigma;
 
     // output parameters
@@ -111,7 +111,7 @@ struct Config
     const std::string resName = "Argon";  ///< residue name for output files
     const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
 
-    std::string fileOut = "thermodynamicForce";  ///< base name for output files
+    std::string fileOut = "thermodynamicForce_initialGuess";  ///< base name for output files
     std::string fileOutH5MD = format("{0}.h5md", fileOut);
     std::string fileOutFinalGro = format("{0}_final.gro", fileOut);
     std::string fileOutFinalH5MD = format("{0}_final.h5md", fileOut);
@@ -120,7 +120,7 @@ struct Config
     std::string fileOutFinalTF = format("{0}_final_tf.txt", fileOut);
 };
 
-void runLennardJones_idealGas_localCap(Config& config)
+void thermodynamicForce_initialGuess(Config& config)
 {
     // initialize
     data::Subdomain initialSubdomain;
@@ -172,7 +172,7 @@ void runLennardJones_idealGas_localCap(Config& config)
 
     // set up interaction potential and force calculation and application
     action::LennardJones lennardJonesInner(
-        config.r_cut, config.sigma, config.epsilon, config.r_cap_inner);
+        config.r_cut, config.sigma, config.epsilon, config.r_cap);
 
     // calculate and print box center coordinates
     const auto boxCenter = subdomain.getCenter();
@@ -182,12 +182,8 @@ void runLennardJones_idealGas_localCap(Config& config)
     std::cout << "z center: " << boxCenter[2] << std::endl;
 
     // set up different regions
-    util::IsInSymmetricSlab isInInnerIntRegion({boxCenter[0], boxCenter[1], boxCenter[2]},
-                                               config.innerIntRegionMin,
-                                               config.innerIntRegionMax);
-    util::IsInSymmetricSlab isInThermostatRegion({boxCenter[0], boxCenter[1], boxCenter[2]},
-                                                 config.thermostatRegionMin,
-                                                 config.thermostatRegionMax);
+    util::IsInSymmetricSlab isInIntRegion(
+        {boxCenter[0], boxCenter[1], boxCenter[2]}, config.intRegionMin, config.intRegionMax);
     util::IsInSymmetricSlab isInThermoForceRegion({boxCenter[0], boxCenter[1], boxCenter[2]},
                                                   config.thermoForceRegionMin,
                                                   config.thermoForceRegionMax,
@@ -232,11 +228,8 @@ void runLennardJones_idealGas_localCap(Config& config)
     // main simulation loop
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        // integrate equations of motion with local Langevin thermostat during production phase
-        maxAtomDisplacement += langevinIntegrator.preForceIntegrate_apply_if(
-            atoms, config.dt, KOKKOS_LAMBDA(const real_t x, const real_t y, const real_t z) {
-                return isInThermostatRegion(x, y, z);
-            });
+        // integrate equations of motion with Langevin thermostat
+        maxAtomDisplacement += langevinIntegrator.preForceIntegrate(atoms, config.dt);
 
         // check if neighbor list needs to be rebuilt
         if (maxAtomDisplacement >=
@@ -271,10 +264,6 @@ void runLennardJones_idealGas_localCap(Config& config)
             ghostLayer.updateGhostAtoms(atoms, subdomain);
         }
 
-        // reset forces to zero
-        auto force = atoms.getForce();
-        Cabana::deep_copy(force, 0_r);
-
         if (step % config.densitySamplingInterval == 0)
         {
             thermodynamicForce.sample(atoms);
@@ -299,13 +288,19 @@ void runLennardJones_idealGas_localCap(Config& config)
 
         if (step % config.densityUpdateInterval == 0 && step > 0)
         {
+            // update thermodynamic force in the update region based on the sampled density profile
             thermodynamicForce.update_if(
                 config.smoothingInverseDamping, config.smoothingRange, isInThermoForceRegion);
         }
 
+        // reset forces to zero
+        auto force = atoms.getForce();
+        Cabana::deep_copy(force, 0_r);
+
+        // apply thermodynamic force to atoms in the thermodynamic force region
         thermodynamicForce.applyInterpolated_if(atoms, isInThermoForceRegion);
 
-        // compute and apply forces
+        // compute forces and potential energy for atoms in the interaction region
         lennardJonesInner.apply_if(
             atoms,
             verletList,
@@ -315,7 +310,7 @@ void runLennardJones_idealGas_localCap(Config& config)
                           const real_t x2,
                           const real_t y2,
                           const real_t z2) {
-                return (isInInnerIntRegion(x1, y1, z1) && isInInnerIntRegion(x2, y2, z2));
+                return (isInIntRegion(x1, y1, z1) && isInIntRegion(x2, y2, z2));
             });
 
         // contribute forces calculated on ghost atoms back to real atoms
@@ -365,7 +360,7 @@ void runLennardJones_idealGas_localCap(Config& config)
                                 thermodynamicForce,
                                 0);
 
-            // microstate output
+            // phase point output
             dumpH5MD.dumpStep(subdomain, atoms, step, config.dt);
         }
     }
@@ -375,7 +370,7 @@ void runLennardJones_idealGas_localCap(Config& config)
         dumpThermoForce.close();
         dumpH5MD.close();
 
-        // final microstates output
+        // final phase point output
         dumpH5MD.dump(config.fileOutFinalH5MD, subdomain, atoms);
 
         // close statistics file
@@ -434,17 +429,10 @@ int main(int argc, char* argv[])  // NOLINT
     app.add_option("--neighbors", config.smoothingNeighbors, "density smoothing neighbors");
     app.add_option(
         "--forcemod", config.thermodynamicForceModulation, "thermodynamic force modulation");
-    app.add_option(
-        "--rcapinner", config.r_cap_inner, "capping radius for inner Lennard-Jones potential");
+    app.add_option("--rcap", config.r_cap, "capping radius for inner Lennard-Jones potential");
 
-    app.add_option(
-        "--innermin", config.innerIntRegionMin, "inner interacting region minimum coordinate");
-    app.add_option(
-        "--innermax", config.innerIntRegionMax, "inner interacting region maximum coordinate");
-    app.add_option(
-        "--thermostatmin", config.thermostatRegionMin, "thermostat region minimum coordinate");
-    app.add_option(
-        "--thermostatmax", config.thermostatRegionMax, "thermostat region maximum coordinate");
+    app.add_option("--innermin", config.intRegionMin, "interacting region minimum coordinate");
+    app.add_option("--innermax", config.intRegionMax, "interacting region maximum coordinate");
     app.add_option("--thermoforcemin",
                    config.thermoForceRegionMin,
                    "thermodynamic force region minimum coordinate");
@@ -467,7 +455,7 @@ int main(int argc, char* argv[])  // NOLINT
     if (config.outputInterval < 0) config.bOutput = false;
 
     // set up run simulation
-    runLennardJones_idealGas_localCap(config);
+    thermodynamicForce_initialGuess(config);
 
     // finalize
     Kokkos::finalize();
