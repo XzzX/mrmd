@@ -56,9 +56,9 @@ using namespace mrmd;
  */
 struct Config
 {
-    // simulation time parameters
-    idx_t nsteps = 40000001;  ///< number of steps to simulate
-    real_t dt = 0.002;        ///< time step size in reduced units
+    // time parameters
+    idx_t nsteps = 200000001;  ///< number of steps to simulate
+    real_t dt = 0.002_r;        ///< time step size in reduced units
 
     // input file parameters
     std::string fileRestoreH5MD =
