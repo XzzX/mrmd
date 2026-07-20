@@ -77,8 +77,7 @@ struct Config
         60;  ///< estimated maximum number of neighbors per atom
 
     // thermostat parameters
-    real_t temperature =
-        1.5_r;  ///< target temperature during equilibration for thermostat in reduced units
+    real_t temperature = 1.5_r;     ///< target temperature for thermostat in reduced units
     real_t friction = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
 
     // thermodynamic force parameters
