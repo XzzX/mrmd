@@ -219,7 +219,7 @@ void thermodynamicForce(Config& config)
     // main simulation loop
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        // integrate equations of motion with local Langevin thermostat during production phase
+        // integrate equations of motion with Langevin thermostat
         maxAtomDisplacement += langevinIntegrator.preForceIntegrate(atoms, config.dt);
 
         // check if neighbor list needs to be rebuilt
@@ -291,7 +291,7 @@ void thermodynamicForce(Config& config)
         // apply thermodynamic force to atoms in the thermodynamic force region
         thermodynamicForce.applyInterpolated_if(atoms, isInThermoForceRegion);
 
-        // compute forces and potential energy for atoms in the inner interaction region
+        // compute forces and potential energy for atoms in the interaction region
         lennardJones.apply_if(
             atoms,
             verletList,
