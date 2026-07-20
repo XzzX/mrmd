@@ -27,4 +27,8 @@ add_executable(05_LennardJones_EquilibrateLangevin
 target_link_libraries(05_LennardJones_EquilibrateLangevin
         PRIVATE mrmd CLI11::CLI11
         )
+
+if (MRMD_ENABLE_HDF5)
+configure_file(equilibrateBerendsen_final.h5md . COPYONLY)
 add_test(NAME Example.05_LennardJones_EquilibrateLangevin COMMAND ./05_LennardJones_EquilibrateLangevin --nsteps 10)
+endif ()
