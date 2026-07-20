@@ -210,8 +210,7 @@ void productionTracer(Config& config)
         countingPlane.startCounting(atoms);
 
         // integrate equations of motion with Langevin thermostat
-        maxAtomDisplacement +=
-            langevinIntegrator.preForceIntegrate(atoms, config.dt);
+        maxAtomDisplacement += langevinIntegrator.preForceIntegrate(atoms, config.dt);
 
         // stop counting particle flux across the plane and calculate flux
         flux += countingPlane.stopCounting(atoms);
@@ -366,13 +365,10 @@ int main(int argc, char* argv[])  // NOLINT
     app.add_option("--friction", config.friction, "friction coefficient for thermostat");
 
     app.add_option("--forceinp", config.fileRestoreTF, "input file for the thermodynamics force");
-    app.add_option(
-        "--rcap", config.r_cap, "capping radius for inner Lennard-Jones potential");
+    app.add_option("--rcap", config.r_cap, "capping radius for inner Lennard-Jones potential");
 
-    app.add_option(
-        "--intmin", config.intRegionMin, "interacting region minimum coordinate");
-    app.add_option(
-        "--intmax", config.intRegionMax, "interacting region maximum coordinate");
+    app.add_option("--intmin", config.intRegionMin, "interacting region minimum coordinate");
+    app.add_option("--intmax", config.intRegionMax, "interacting region maximum coordinate");
     app.add_option("--thermoforcemin",
                    config.thermoForceRegionMin,
                    "thermodynamic force region minimum coordinate");
