@@ -13,13 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_executable(05_A02_LennardJones_AtomisticProduction
-        05_A02_LennardJones_AtomisticProduction.cpp
-        )
-target_link_libraries(05_A02_LennardJones_AtomisticProduction
-        PRIVATE mrmd CLI11::CLI11
-        )
-
 add_executable(05_B02a_LennardJones_ThermodynamicForce
         05_B02a_LennardJones_ThermodynamicForce.cpp
         )

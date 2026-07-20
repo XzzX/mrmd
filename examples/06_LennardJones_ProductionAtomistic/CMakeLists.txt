@@ -13,9 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(00_IdealGas_NVE)
-add_subdirectory(01_LennardJones_NVT)
-add_subdirectory(02_LennardJones_NVE)
-add_subdirectory(04_LennardJones_IdealGas_LocalCap)
-add_subdirectory(05_LennardJones_Equilibration)
-add_subdirectory(06_LennardJones_ProductionAtomistic)
+add_executable(06_LennardJones_ProductionAtomistic
+        06_LennardJones_ProductionAtomistic.cpp
+        )
+target_link_libraries(06_LennardJones_ProductionAtomistic
+        PRIVATE mrmd CLI11::CLI11
+        )
+
+if (MRMD_ENABLE_HDF5)
+configure_file(equilibrateLangevin_final.h5md . COPYONLY)
+add_test(NAME Example.06_LennardJones_ProductionAtomistic COMMAND ./06_LennardJones_ProductionAtomistic --nsteps 10)
+endif ()
