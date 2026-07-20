@@ -420,8 +420,8 @@ int main(int argc, char* argv[])  // NOLINT
     app.add_option("-i,--inpfile", config.fileRestoreH5MD, "input file name");
     app.add_option("-f,--outfile", config.fileOut, "output file name");
 
-    app.add_option("--temp", config.temperature, "target temperature");
-    app.add_option("--friction", config.friction, "friction coefficient for langevin thermostat");
+    app.add_option("-T,--temperature", config.temperature, "thermostat target temperature");
+    app.add_option("--friction", config.friction, "friction coefficient for thermostat");
 
     app.add_option(
         "--forceguess", config.fileRestoreTF, "initial guess for the thermodynamics force");
