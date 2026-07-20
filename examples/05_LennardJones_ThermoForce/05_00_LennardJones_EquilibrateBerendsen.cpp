@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
 
     Config config;
-    CLI::App app{"Lennard Jones Fluid benchmark application"};
+    CLI::App app{"preliminary NVT equilibration of Lennard-Jones fluid with Berendsen thermostat"};
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
     app.add_option("-x,--xlength", config.Lx, "x length of the box");
     app.add_option("-y,--ylength", config.Ly, "y length of the box");

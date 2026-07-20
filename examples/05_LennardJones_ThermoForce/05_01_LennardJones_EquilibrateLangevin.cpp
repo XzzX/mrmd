@@ -44,7 +44,8 @@ struct Config
     real_t dt = 0.002_r;    ///< time step size in reduced units
 
     // input file parameters
-    std::string fileRestoreH5MD = "equilibrateBerendsen.h5md"; ///< name of the file to restore the phase point from
+    std::string fileRestoreH5MD =
+        "equilibrateBerendsen.h5md";  ///< name of the file to restore the phase point from
 
     // interaction parameters
     static constexpr real_t sigma =
@@ -53,19 +54,21 @@ struct Config
     static constexpr real_t mass = 1_r;     ///< mass of one atom in reduced units
     static constexpr real_t r_cut = 2.5_r * sigma;  ///< cutoff radius for LJ potential
     static constexpr real_t r_cap = 0_r;            ///< capping radius for LJ potential
-    static constexpr bool doShift = true;       ///< whether to shift the LJ potential to zero at the cutoff radius
+    static constexpr bool doShift =
+        true;  ///< whether to shift the LJ potential to zero at the cutoff radius
 
     // pressure parameters
     real_t pressure_averaging_coefficient =
         0.02_r;  ///< coefficient for exponential moving average of pressure
 
     // thermostatting parameters
-    real_t temperature = 1.5_r;  ///< target temperature for thermostat in reduced units
+    real_t temperature = 1.5_r;     ///< target temperature for thermostat in reduced units
     real_t friction = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
-    real_t temperature_averaging_coefficient = 0.2_r;  ///< coefficient for exponential moving average of temperature
+    real_t temperature_averaging_coefficient =
+        0.2_r;  ///< coefficient for exponential moving average of temperature
 
     // neighbor-list parameters
-    static constexpr real_t skin = 0.3_r * sigma;          ///< skin thickness for neighbor list
+    static constexpr real_t skin = 0.3_r * sigma;           ///< skin thickness for neighbor list
     static constexpr real_t neighborCutoff = r_cut + skin;  ///< cutoff radius for neighbor list
     static constexpr real_t cell_ratio =
         1_r;  ///< ratio of cell size on Cartesian grid to cutoff radius for neighbor list
@@ -78,7 +81,7 @@ struct Config
     const std::string resName = "Argon";  ///< residue name for output files
     const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
 
-    std::string fileOut = "equilibrateLangevin"; ///< base name for output files
+    std::string fileOut = "equilibrateLangevin";  ///< base name for output files
     std::string fileOutH5MD = format("{0}.h5md", fileOut);
     std::string fileOutGro = format("{0}_final.gro", fileOut);
     std::string fileOutTF = format("{0}_tf.txt", fileOut);
@@ -219,7 +222,7 @@ int main(int argc, char* argv[])
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
 
     Config config;
-    CLI::App app{"NVT equilibration run with Langevin thermostat"};
+    CLI::App app{"follow-up NVT equilibration run of Lennard-Jones fluid with Langevin thermostat"};
     app.add_option("-n,--nsteps", config.nsteps, "number of simulation steps");
     app.add_option("-o,--outint", config.outputInterval, "output interval");
     app.add_option("-i,--inpfile", config.fileRestoreH5MD, "input file name");
