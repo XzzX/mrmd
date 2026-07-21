@@ -13,11 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-add_subdirectory(00_IdealGas_NVE)
-add_subdirectory(01_LennardJones_NVT)
-add_subdirectory(02_LennardJones_NVE)
-add_subdirectory(04_LennardJones_IdealGas_LocalCap)
-add_subdirectory(05_LennardJones_Equilibration)
-add_subdirectory(06_LennardJones_ProductionAtomistic)
-add_subdirectory(07_LennardJones_ThermoForce)
-add_subdirectory(08_LennardJones_ProductionTracer)
+add_executable(08_LennardJones_ProductionTracer
+        08_LennardJones_ProductionTracer.cpp
+        )
+target_link_libraries(08_LennardJones_ProductionTracer
+        PRIVATE mrmd CLI11::CLI11
+        )
+
+if (MRMD_ENABLE_HDF5)
+configure_file(../05_LennardJones_Equilibration/equilibrateLangevin_final.h5md . COPYONLY)
+configure_file(../07_LennardJones_ThermoForce/thermodynamicForce_initialGuess.txt . COPYONLY)
+add_test(NAME Example.08_LennardJones_ProductionTracer COMMAND ./08_LennardJones_ProductionTracer --nsteps 10 --inpfile equilibrateLangevin_final.h5md --forceinp thermodynamicForce_initialGuess.txt)
+endif ()
