@@ -207,7 +207,7 @@ void equilibrateBerendsen(Config& config)
     fout.close();
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char* argv[])  // NOLINT
 {
     // initialize Kokkos environment
     Kokkos::ScopeGuard scope_guard(argc, argv);

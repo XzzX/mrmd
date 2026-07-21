@@ -279,7 +279,7 @@ void runLennardJones_idealGas_localCap(Config& config)
     fout.close();
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char* argv[])  // NOLINT
 {
     // initialize Kokkos
     Kokkos::ScopeGuard scope_guard(argc, argv);
