@@ -207,7 +207,7 @@ void equilibrateBerendsen(Config& config)
     fout.close();
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char* argv[])  // NOLINT
 {
     Kokkos::initialize(argc, argv);
 
