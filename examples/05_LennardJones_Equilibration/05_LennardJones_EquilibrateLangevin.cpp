@@ -216,7 +216,7 @@ void equilibrateLangevin(Config& config)
     fout.close();
 }
 
-int main(int argc, char* argv[])  // NOLINT
+int main(int argc, char* argv[])
 {
     // initialize Kokkos environment
     Kokkos::ScopeGuard scope_guard(argc, argv);
