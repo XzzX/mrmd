@@ -218,7 +218,8 @@ void equilibrateLangevin(Config& config)
 
 int main(int argc, char* argv[])  // NOLINT
 {
-    Kokkos::initialize(argc, argv);
+    // initialize Kokkos environment
+    Kokkos::ScopeGuard scope_guard(argc, argv);
 
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
 
@@ -239,9 +240,8 @@ int main(int argc, char* argv[])  // NOLINT
     config.fileOutFinalGRO = format("{0}_final.gro", config.fileOut);
 
     if (config.outputInterval < 0) config.bOutput = false;
-    equilibrateLangevin(config);
 
-    Kokkos::finalize();
+    equilibrateLangevin(config);
 
     return EXIT_SUCCESS;
 }

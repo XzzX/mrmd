@@ -209,7 +209,8 @@ void equilibrateBerendsen(Config& config)
 
 int main(int argc, char* argv[])  // NOLINT
 {
-    Kokkos::initialize(argc, argv);
+    // initialize Kokkos environment
+    Kokkos::ScopeGuard scope_guard(argc, argv);
 
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
 
@@ -232,8 +233,6 @@ int main(int argc, char* argv[])  // NOLINT
     if (config.outputInterval < 0) config.bOutput = false;
 
     equilibrateBerendsen(config);
-
-    Kokkos::finalize();
 
     return EXIT_SUCCESS;
 }

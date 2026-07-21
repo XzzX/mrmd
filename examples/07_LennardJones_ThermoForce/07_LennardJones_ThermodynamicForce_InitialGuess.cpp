@@ -407,8 +407,8 @@ void thermodynamicForce_initialGuess(Config& config)
 
 int main(int argc, char* argv[])  // NOLINT
 {
-    // initialize
-    Kokkos::initialize(argc, argv);
+    // initialize Kokkos environment
+    Kokkos::ScopeGuard scope_guard(argc, argv);
 
     // print Kokkos execution space
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
@@ -459,11 +459,7 @@ int main(int argc, char* argv[])  // NOLINT
 
     if (config.outputInterval < 0) config.bOutput = false;
 
-    // set up run simulation
     thermodynamicForce_initialGuess(config);
-
-    // finalize
-    Kokkos::finalize();
 
     return EXIT_SUCCESS;
 }

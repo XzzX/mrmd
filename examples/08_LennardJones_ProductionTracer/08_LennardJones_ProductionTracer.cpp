@@ -348,8 +348,8 @@ void productionTracer(Config& config)
 
 int main(int argc, char* argv[])  // NOLINT
 {
-    // initialize
-    Kokkos::initialize(argc, argv);
+    // initialize Kokkos environment
+    Kokkos::ScopeGuard scope_guard(argc, argv);
 
     // print Kokkos execution space
     std::cout << "execution space: " << typeid(Kokkos::DefaultExecutionSpace).name() << std::endl;
@@ -389,9 +389,6 @@ int main(int argc, char* argv[])  // NOLINT
 
     // set up run simulation
     productionTracer(config);
-
-    // finalize
-    Kokkos::finalize();
 
     return EXIT_SUCCESS;
 }
