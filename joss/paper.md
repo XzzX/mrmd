@@ -1,101 +1,77 @@
 ---
-title: 'Gala: A Python package for galactic dynamics'
+title: 'MRMD: A C++ package for Multi-Resolution Molecular Dynamics'
 tags:
-  - Python
-  - astronomy
-  - dynamics
-  - galactic dynamics
-  - milky way
-authors:
-  - name: Adrian M. Price-Whelan
-    orcid: 0000-0000-0000-0000
-    equal-contrib: true
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
-  - name: Author Without ORCID
-    equal-contrib: true # (This is how you can denote equal contributions between multiple authors)
-    affiliation: 2
-  - name: Author with no affiliation
-    corresponding: true # (This is how to denote the corresponding author)
-    affiliation: 3
-  - given-names: Ludwig
-    dropping-particle: van
-    surname: Beethoven
-    affiliation: 3
-affiliations:
- - name: Lyman Spitzer, Jr. Fellow, Princeton University, United States
-   index: 1
-   ror: 00hx57361
- - name: Institution Name, Country
-   index: 2
- - name: Independent Researcher, Country
-   index: 3
-date: 13 August 2017
-bibliography: paper.bib
+  - C++
+  - molecular dynamics
+  - adaptive resolution simulation
+  - open molecular systems
 
-# Optional fields if submitting to a AAS journal too, see this blog post:
-# https://blog.joss.theoj.org/2018/12/a-new-collaboration-with-aas-publishing
-aas-doi: 10.3847/xxxxx <- update this with the DOI from AAS once you know it.
-aas-journal: Astrophysical Journal <- The name of the AAS journal.
+authors:
+  - name: Sebastian Eibl
+    orcid: 0000-0002-1069-2720
+    #equal-contrib: true
+    affiliation: 1
+  - name: Julian Friedrich Hille
+    orcid: 0009-0008-1005-9053
+    #equal-contrib: true
+    affiliation: 2
+affiliations:
+ - name: Max Planck Computing and Data Facility, Germany
+   index: 1
+   ror: 03e21z229
+ - name: Freie Universität Berlin, Germany
+   index: 2
+   ror: 046ak2485 
+date: 13 July 2026
+bibliography: paper.bib
 ---
 
 # Summary
 
-The forces on stars, galaxies, and dark matter under external gravitational
-fields lead to the dynamical evolution of structures in the universe. The orbits
-of these bodies are therefore key to understanding the formation, history, and
-future state of galaxies. The field of "galactic dynamics," which aims to model
-the gravitating components of galaxies to study their structure and evolution,
-is now well-established, commonly taught, and frequently used in astronomy.
-Aside from toy problems and demonstrations, the majority of problems require
-efficient numerical tools, many of which require the same base code (e.g., for
-performing numerical orbit integration).
+The (Hamiltonian) adaptive resolution simulation ((H-)AdResS) scheme concurrently
+couples regions of different resolutions by spatially interpolating or switching between different 
+interparticle (potentials/) forces, e.g. atomistic Lennard-Jones and ideal gas [@praprotnik_adaptive_2005; @praprotnik_adaptive_2007; @potestio_hamiltonian_2013]. The method has 
+undergone substantial development over the past decades and is now commonly used to simulate open 
+atomistic systems exchanging particles and energy with a reservoir, where the microscopic and thermodynamic
+states of the reservoir only provide physically consistent boundary conditions for the atomistic
+subsystem [@wang_grand-canonical-like_2013; @delle_site_molecular_2019; @cortes-huerto_adaptive_2021]. The framing of the method in terms of the open atomistic system has paved the way towards 
+non-equilibrium simulations with distinct thermodynamic reservoir states at opposing boundaries of 
+the atomistic region that could even fluctuate in accord with a fluid dynamical simulation on a 
+larger scale [@heidari_open-boundary_2020; @klein_nonequilibrium_2021; @gholami_simulation_2022]. However, the method requires very specific algorithms that are not immediately available, 
+difficult to maintain and challenging to further develop within the standard simulation packages of 
+molecular dynamics. 
 
 # Statement of need
 
-`Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
-enables wrapping low-level languages (e.g., C) for speed without losing
-flexibility or ease-of-use in the user-interface. The API for `Gala` was
-designed to provide a class-based and user-friendly interface to fast (C or
-Cython-optimized) implementations of common operations such as gravitational
-potential and force evaluation, orbit integration, dynamical transformations,
-and chaos indicators for nonlinear dynamics. `Gala` also relies heavily on and
-interfaces well with the implementations of physical units and astronomical
-coordinate systems in the `Astropy` package [@astropy] (`astropy.units` and
-`astropy.coordinates`).
+`MRMD` is a stand-alone C++ software package providing the algorithms necessary to set up and run AdResS
+simulations on CPU and GPU workstations and clusters. The software is organized functionally and exposes its 
+algorithms to the user in a C++ script interface. It is thus particularly suitable for testing and further 
+development of the AdResS method itself. The software comes with basic tools for pre- and postprocessing of 
+the simulations but can also parse input and generate output in formats such as GRO and H5MD and thus interfaces 
+to standard packages in molecular simulation such as `Gromacs` and `MDAnalysis`.
 
-`Gala` was designed to be used by both astronomical researchers and by
-students in courses on gravitational dynamics or astronomy. It has already been
-used in a number of scientific publications [@Pearson:2017] and has also been
-used in graduate courses on Galactic dynamics to, e.g., provide interactive
-visualizations of textbook material [@Binney:2008]. The combination of speed,
-design, and support for Astropy functionality in `Gala` will enable exciting
-scientific explorations of forthcoming data releases from the *Gaia* mission
-[@gaia] by students and experts alike.
+`MRMD` was designed to be used by researchers in the field of open molecular systems and developers of 
+the AdResS method. It has been used in a scientific publication concerned with linking the simulation method 
+with the theoretical model of the Liouville-type hierarchy [link CAMCoS paper] and, in turn, motivating 
+algorithmic improvements. The parallel and modular design built around AdResS will facilitate straight-
+forward development of the method and help in establishing AdResS as a standard tool of molecular simulation.    
 
 # State of the field                                                                                                                  
 
-Several tools exist for galactic dynamics computations:                                                     
-`galpy` [@Bovy:2015] is a Python package with similar goals,
-providing orbit integration and potential classes for galactic dynamics.                                                              
-`NEMO` [@Teuben:1995] is a well-established, comprehensive stellar dynamics                                                           
-toolbox written primarily in C, offering extensive functionality but with a                                                           
-steeper learning curve and less integration with modern Python workflows.                                                             
-Other tools like `GalPot` provide specific Milky Way potential models but lack                                                        
-the broader dynamical analysis capabilities.                                                                                          
-                                                                                                                                        
-`Gala` was built rather than contributing to existing projects for several                                                            
-reasons. First, `Gala` was designed from the ground up to integrate seamlessly                                                        
-with the Astropy ecosystem, using `astropy.units` and `astropy.coordinates`                                                           
-as core dependencies rather than optional features. This tight integration                                                            
-enables natural workflows for astronomers already using Astropy. Second,                                                              
-`Gala`'s object-oriented API with consistent interfaces across subpackages                                                            
-(potentials, integrators, dynamics) provides a more modular and extensible                                                            
-design than alternatives available at the time. Third, `Gala` fills a specific                                                        
-niche between simple demonstration codes and full N-body simulation packages                                                          
-like `Gadget` [@Springel:2005] – it focuses on the common tasks in galactic                                                             
-dynamics research (orbit integration, potential evaluation, coordinate                                                                
-transformations) while maintaining both performance through C implementations                                                         
-and usability through its Python interface.  
+Since the establishment of AdResS in the mid-to-late 2000s,, the method was implemented 
+several times into standard packages of molecular dynamics, e.g. `Espresso++`, `Gromacs`, `Lammps` [@junghans_reference_2010; @fritsch_structure_2012; @heidari_accurate_2016]. 
+Despite the undeniable research impact of the method, the high cost of maintenance for core functionality exclusive to AdResS applications and the difficulties to separate them from low-level kernels led to instances of discontinued official support, e.g. in the case of `Gromacs`, and several versions of AdResS being maintained 
+as in-house and closed-source projects. This introduced entry barriers for interested outsiders and cumbered further development of the method. 
+
+In light of the growing field of non-equilibrium molecular simulation and the accessibility of software design 
+patterns for GPU and multi-node parallelization, AdResS is experiencing an increased interest again. This has 
+inspired implementations into packages of molecular dynamics, e.g. `ls1-mardyn` and `Lammps`, that reflect 
+the current state of the method [@pinzon_escobar_node-level_2025; @sudhakar_extending_2026]. 
+
+`MRMD`, in contrast, comprises a stand-alone, open-source and GPU and multi-core parallelized software package 
+implementing exclusively the AdResS method. Core functionalities specific to AdResS such as the change of molecular 
+resolution and the compensation of the associated numerical artifacts are therefore built into its very structure 
+and well-covered by unit and integration tests.
 
 # Software design
 
@@ -120,80 +96,81 @@ transformations that are relevant for Galactic dynamics and Milky Way research.
 
 # Research impact statement
 
-`Gala` has demonstrated significant research impact and grown both its user base
-and contributor community since its initial release. The package has evolved
-through contributions from over 18 developers beyond the original core developer
-(@adrn), with community members adding new features, reporting bugs, and
-suggesting new features.
+Being in its first release version and developed mostly as a two-person project, `MRMD` has 
+already been applied as the primary numerical tool of investigation in a study concerned 
+with improving the iterative procedure employed in the setup stage of any AdResS simulation
+[cite CAMCoS paper]. With regards to the FAIR principles of scientific data management,
+the simulations run in this publication have been integrated into the release version
+of `MRMD` as test-covered tutorial scripts and can be reproduced with minimal effort. 
 
-While `Gala` started as a tool primarily to support the core developer's
-research, it has expanded organically to support a range of applications across
-domains in astrophysics related to Milky Way and galactic dynamics. The package
-has been used in over 400 publications (according to Google Scholar) spanning
-topics in galactic dynamics such as modeling stellar streams [@Pearson:2017],
-Milky Way mass modeling, and interpreting kinematic and stellar population
-trends in the Galaxy. `Gala` is integrated within the Astropy ecosystem as an
-affiliated package and has built functionality that extends the widely-used
-`astropy.units` and `astropy.coordinates` subpackages. `Gala`'s impact extends
-beyond citations in research: Because of its focus on usability and user
-interface design, `Gala` has also been incorporated into graduate-level galactic
-dynamics curricula at multiple institutions.
-
-`Gala` has been downloaded over 100,000 times from PyPI and conda-forge yearly
-(or ~2,000 downloads per week) over the past few years, demonstrating a broad
-and active user community. Users span career stages from graduate students to
-faculty and other established researchers and represent institutions around the
-world. This broad adoption and active participation validate `Gala`'s role as
-core community infrastructure for galactic dynamics research.
+The release version of `MRMD` is shipped with algorithms for setting up and running AdResS 
+with smooth and abrupt changes of resolution for single- and multi-species systems of atomistic 
+or molecular composition. The tutorials, however, lead the user towards an AdResS simulation of 
+a single-component Lennard-Jones fluid coupled to a reservoir of non-interacting tracer 
+particles through abrupt interfaces as it was employed in the aforementioned study.
 
 # Mathematics
 
-Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
+We describe here the theory for the abrupt interface AdResS version for which examples are available in the release version of `MRMD`. The smooth interpolation common to other (H-)AdResS flavors is also already implemented in `MRMD`, but is not yet 
+available in test-covered example scripts. 
 
-Double dollars make self-standing equations:
+At the heart of AdResS being applied to simulate an open atomistically resolved system in 
+exchange with a reservoir through its boundary is the thermodynamic consistency of said reservoir. 
 
-$$\Theta(x) = \left\{\begin{array}{l}
-0\textrm{ if } x < 0\cr
-1\textrm{ else}
-\end{array}\right.$$
+Such a reservoir can be realized in a rectangular simulation domain by the atomistically resolved (AT)
+region being encapsuled to the left and right by buffer zones ($\Delta$ regions) within which the 
+particles are also interacting atomistically. Beyond the $\Delta$ regions, in the tracer (TR) region, 
+the interactions are then abruptly switched off, so that the interaction potential can be written as 
 
-You can also use plain \LaTeX for equations
-\begin{equation}\label{eq:fourier}
-\hat f(\omega) = \int_{-\infty}^{\infty} f(x) e^{i\omega x} dx
-\end{equation}
-and refer to \autoref{eq:fourier} from text.
+\begin{align}
+    U(r, x_i, x_j) = \begin{cases}
+            V(r) &\textrm{, for } x_i, x_j \in [-x_{\Delta\textrm{/TR}}, x_{\Delta\textrm{/TR}}] \\
+            0 &\textrm{, else } \\
+            \end{cases}\textrm{,}
+\end{align}
 
-# Citations
+where $x_i$ and $x_j$ are the positions of two particles $i$ and $j$ in $x$-direction, $r$ is the absolute 
+distance in between them and
 
-Citations to entries in paper.bib should be in
-[rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
-format.
+\begin{align}
+    V(r) = \begin{cases}
+            v(r_{\textrm{cap}}) - \frac{\partial v}{\partial r} \big|_{r_\textrm{cap}} r_{\textrm{cap}} + \frac{\partial v}{\partial r}\big|_{r_\textrm{cap}} r &\textrm{, for } r_{\textrm{cap}} \geq r \\
+            v(r) &\textrm{, for } r_{\textrm{cap}} < r \leq r_{\textrm{cut}} \\
+            0 &\textrm{, for } r_{\textrm{cut}} < r \\
+            \end{cases}\textrm{,}
+\end{align}
 
-If you want to cite a software repository URL (e.g. something on GitHub without a preferred
-citation) then you can do it with the example BibTeX entry below for @fidgit.
+is a radial potential force-capped beneath a radius $r_{\textrm{cap}}$ with $v(r)$ being a suitable pair-wise potential 
+such as the truncated and shifted Lennard-Jones potential. 
 
-For a quick reference, the following citation commands can be used:
-- `@author:2001`  ->  "Author et al. (2001)"
-- `[@author:2001]` -> "(Author et al., 2001)"
-- `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)"
+It is emphasized that this does not necessarily comprise a Hamiltonian AdResS scheme in the classical 
+sense due to the discontinuities of such a potential at $\pm x_{\Delta\textrm{/TR}}$, but that the 
+TR region anyways represents merely an algorithm to provide the $\Delta$ regions with the necessary 
+number of particles and fluctuations thereof such that they, in turn, can provide the AT region with 
+thermodynamically consistent boundary conditions. 
 
-# Figures
+The change of resolution, be it abrupt or smooth, introduces numerical artifacts that can be compensated 
+by a one-body thermodynamic force $F_{\textrm{th}}$. This force is calculated during the setup stage of 
+AdResS simulations in an iterative procedure 
 
-Figures can be included like this:
-![Caption for example figure.\label{fig:example}](figure.png)
-and referenced from text using \autoref{fig:example}.
+\begin{align}
+    F_{\textrm{th}}^{k + 1}(x) &= F_{\textrm{th}}^{k}(x) - c \nabla \rho^{k}(x) \textrm{,}
+\end{align}
 
-Figure sizes can be customized by adding an optional second parameter:
-![Caption for example figure.](figure.png){ width=20% }
+where each iteration $k$ comprises a short AdResS simulation with applied thermodynamic force $F_{\textrm{th}}^{k}(x)$, 
+which is incremented by the gradient of the density profile $\nabla \rho^{k}(x)$ averaged over this simulation weighted by 
+a user-defined convergence prefactor $c$. The procedure is considered converged when the density profile is flat to within 
+a desired tolerance. With the converged thermodynamic force, the AdResS production run can be started. 
 
 # AI usage disclosure
 
-No generative AI tools were used in the development of this software, the writing
+Generative AI tools were used in the development of this software, but not in the writing
 of this manuscript, or the preparation of supporting materials.
 
 # Acknowledgements
 
-We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
-Oh, and support from Kathryn Johnston during the genesis of this project.
+Julian F. Hille's contributions to this software have been funded by Deutsche Forschungsgemeinschaft (DFG) through grant CRC 1114 Scaling Cas-
+cades in Complex Systems, Project Number 235221301, Project C01 Adaptive coupling of scales in molecular dynamics
+and beyond to fluid dynamics.
 
 # References
