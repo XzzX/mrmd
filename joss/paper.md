@@ -30,14 +30,14 @@ bibliography: paper.bib
 
 The (Hamiltonian) adaptive resolution simulation ((H-)AdResS) scheme concurrently
 couples regions of different resolutions by spatially interpolating or switching between different 
-interparticle (potentials/) forces, e.g. atomistic Lennard-Jones and ideal gas. The method has 
+interparticle (potentials/) forces, e.g. atomistic Lennard-Jones and ideal gas `[@praprotnik_adaptive_2005; @praprotnik_adaptive_2007; @potestio_hamiltonian_2013]`. The method has 
 undergone substantial development over the past decades and is now commonly used to simulate open 
 atomistic systems exchanging particles and energy with a reservoir, where the microscopic and thermodynamic
 states of the reservoir only provide physically consistent boundary conditions for the atomistic
-subsystem. The framing of the method in terms of the open atomistic system has paved the way towards 
+subsystem `[@wang_grand-canonical-like_2013; @delle_site_molecular_2019, @cortes-huerto_adaptive_2021]`. The framing of the method in terms of the open atomistic system has paved the way towards 
 non-equilibrium simulations with distinct thermodynamic reservoir states at opposing boundaries of 
 the atomistic region that could even fluctuate in accord with a fluid dynamical simulation on a 
-larger scale. However, the method requires very specific algorithms that are not immediately available, 
+larger scale `[@heidari_open-boundary_2020; @klein_nonequilibrium_2021, @gholami_simulation_2022]`. However, the method requires very specific algorithms that are not immediately available, 
 difficult to maintain and challenging to further develop within the standard simulation packages of 
 molecular dynamics. 
 
@@ -59,17 +59,14 @@ forward development of the method and help in establishing AdResS as a standard 
 # State of the field                                                                                                                  
 
 Since the establishment of AdResS in the mid-to-late 2000s [cite original AdResS], the method was implemented 
-several times into standard packages of molecular dynamics, e.g. `Espresso++`, `Gromacs` and `Lampps`. 
-Despite the initial enthusiasm, official support was eventually cancelled due to the lack of interest in 
-the community and the high cost of maintenance for core functionality exclusive to AdResS applications that 
-proved difficult to separate from low-level kernels. This led to several versions of AdResS being maintained 
-as in-house and closed-source projects, which introduced barriers of entry for interested outsiders and eventually 
-led to the acquisition of enough technical debt so that further development became cumbersome. 
+several times into standard packages of molecular dynamics, e.g. `Espresso++`, `Gromacs`, `Lammps` `[@junghans_reference_2010, @fritsch_structure_2012, @heidari_accurate_2016]`. 
+Despite the undeniable research impact of the method, the high cost of maintenance for core functionality exclusive to AdResS applications and the difficulties to separate them from low-level kernels led to instances of discontinued official support, e.g. in the case of `Gromacs`, and several versions of AdResS being maintained 
+as in-house and closed-source projects. This introduced entry barriers for interested outsiders and cumbered further development of the method. 
 
 In light of the growing field of non-equilibrium molecular simulation and the accessibility of software design 
 patterns for GPU and multi-node parallelization, AdResS is experiencing an increased interest again. This has 
-inspired implementations into packages of molecular dynamics, e.g. `HalMD`, `MiRheo` and `ls1-mardyn`, that reflect 
-the current state of the method. 
+inspired implementations into packages of molecular dynamics, e.g. `ls1-mardyn` and `Lammps`, that reflect 
+the current state of the method `[@pinzon_escobar_node-level_2025; @sudhakar_extending_2026]`. 
 
 `MRMD`, in contrast, comprises a stand-alone, open-source and GPU and multi-core parallelized software package 
 implementing exclusively the AdResS method. Core functionalities specific to AdResS such as the change of molecular 
@@ -114,6 +111,9 @@ particles through abrupt interfaces as it was employed in the aforementioned stu
 
 # Mathematics
 
+We describe here the theory for the abrupt interface AdResS version for which examples are available in the release version of `MRMD`. The smooth interpolation common to other (H-)AdResS flavors is also already implemented in `MRMD`, but is not yet 
+available in test-covered example scripts. 
+
 At the heart of AdResS being applied to simulate an open atomistically resolved system in 
 exchange with a reservoir through its boundary is the thermodynamic consistency of said reservoir. 
 
@@ -145,7 +145,7 @@ such as the truncated and shifted Lennard-Jones potential.
 
 It is emphasized that this does not necessarily comprise a Hamiltonian AdResS scheme in the classical 
 sense due to the discontinuities of such a potential at $\pm x_{\Delta\textrm{/TR}}$, but that the 
-TR region anyways represent merely an algorithm to provide the $\Delta$ regions with the necessary 
+TR region anyways represents merely an algorithm to provide the $\Delta$ regions with the necessary 
 number of particles and fluctuations thereof such that they, in turn, can provide the AT region with 
 thermodynamically consistent boundary conditions. 
 
@@ -154,39 +154,13 @@ by a one-body thermodynamic force $F_{\textrm{th}}$. This force is calculated du
 AdResS simulations in an iterative procedure 
 
 \begin{align}
-    F_{\textrm{th}}^{k + 1}(x) &= F_{\textrm{th}}^{k}(x) - c \nabla \rho^{k}(x) \text{,}
+    F_{\textrm{th}}^{k + 1}(x) &= F_{\textrm{th}}^{k}(x) - c \nabla \rho^{k}(x) \textrm{,}
 \end{align}
 
 where each iteration $k$ comprises a short AdResS simulation with applied thermodynamic force $F_{\textrm{th}}^{k}(x)$, 
 which is incremented by the gradient of the density profile $\nabla \rho^{k}(x)$ averaged over this simulation weighted by 
 a user-defined convergence prefactor $c$. The procedure is considered converged when the density profile is flat to within 
 a desired tolerance. With the converged thermodynamic force, the AdResS production run can be started. 
-
-The smooth interpolation common to other (H-)AdResS flavors is also already implemented in `MRMD`, but is not yet 
-available in test-covered example scripts. 
-
-# Citations
-
-Citations to entries in paper.bib should be in
-[rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
-format.
-
-If you want to cite a software repository URL (e.g. something on GitHub without a preferred
-citation) then you can do it with the example BibTeX entry below for @fidgit.
-
-For a quick reference, the following citation commands can be used:
-- `@author:2001`  ->  "Author et al. (2001)"
-- `[@author:2001]` -> "(Author et al., 2001)"
-- `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)"
-
-# Figures
-
-Figures can be included like this:
-![Caption for example figure.\label{fig:example}](figure.png)
-and referenced from text using \autoref{fig:example}.
-
-Figure sizes can be customized by adding an optional second parameter:
-![Caption for example figure.](figure.png){ width=20% }
 
 # AI usage disclosure
 
