@@ -34,10 +34,10 @@ interparticle (potentials/) forces, e.g. atomistic Lennard-Jones and ideal gas [
 undergone substantial development over the past decades and is now commonly used to simulate open 
 atomistic systems exchanging particles and energy with a reservoir, where the microscopic and thermodynamic
 states of the reservoir only provide physically consistent boundary conditions for the atomistic
-subsystem [@wang_grand-canonical-like_2013; @delle_site_molecular_2019, @cortes-huerto_adaptive_2021]. The framing of the method in terms of the open atomistic system has paved the way towards 
+subsystem [@wang_grand-canonical-like_2013; @delle_site_molecular_2019; @cortes-huerto_adaptive_2021]. The framing of the method in terms of the open atomistic system has paved the way towards 
 non-equilibrium simulations with distinct thermodynamic reservoir states at opposing boundaries of 
 the atomistic region that could even fluctuate in accord with a fluid dynamical simulation on a 
-larger scale [@heidari_open-boundary_2020; @klein_nonequilibrium_2021, @gholami_simulation_2022]. However, the method requires very specific algorithms that are not immediately available, 
+larger scale [@heidari_open-boundary_2020; @klein_nonequilibrium_2021; @gholami_simulation_2022]. However, the method requires very specific algorithms that are not immediately available, 
 difficult to maintain and challenging to further develop within the standard simulation packages of 
 molecular dynamics. 
 
@@ -58,8 +58,8 @@ forward development of the method and help in establishing AdResS as a standard 
 
 # State of the field                                                                                                                  
 
-Since the establishment of AdResS in the mid-to-late 2000s [cite original AdResS], the method was implemented 
-several times into standard packages of molecular dynamics, e.g. `Espresso++`, `Gromacs`, `Lammps` [@junghans_reference_2010, @fritsch_structure_2012, @heidari_accurate_2016]. 
+Since the establishment of AdResS in the mid-to-late 2000s,, the method was implemented 
+several times into standard packages of molecular dynamics, e.g. `Espresso++`, `Gromacs`, `Lammps` [@junghans_reference_2010; @fritsch_structure_2012; @heidari_accurate_2016]. 
 Despite the undeniable research impact of the method, the high cost of maintenance for core functionality exclusive to AdResS applications and the difficulties to separate them from low-level kernels led to instances of discontinued official support, e.g. in the case of `Gromacs`, and several versions of AdResS being maintained 
 as in-house and closed-source projects. This introduced entry barriers for interested outsiders and cumbered further development of the method. 
 
