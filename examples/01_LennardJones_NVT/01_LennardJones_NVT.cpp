@@ -49,7 +49,7 @@ using namespace mrmd;
  */
 struct Config
 {
-    // simulation time parameters
+    // time parameters
     idx_t nsteps = 400001;               ///< number of steps to simulate
     static constexpr real_t dt = 0.002;  ///< time step size in reduced units
 
@@ -72,12 +72,13 @@ struct Config
         60;  ///< estimated maximum number of neighbors per atom
 
     // system parameters
-    static constexpr idx_t numAtoms = 16 * 16 * 16;  ///< number of atoms in the simulation
+    static constexpr idx_t numAtoms = 16 * 16 * 16;  ///< number of atoms in the simulation box
     real_t Lx = 20_r * sigma;                        ///< box edge length
 
     // thermostat parameters
     real_t temperature = 1.5_r;  ///< target temperature for thermostat in reduced units
-    static constexpr real_t gamma = 0.04_r / dt;  ///< friction coefficient for Langevin thermostat
+    static constexpr real_t friction =
+        0.04_r / dt;  ///< friction coefficient for Langevin thermostat
 
     // output parameters
     bool bOutput = true;                  ///< whether to output data files
@@ -118,7 +119,7 @@ void runLennardJonesNVT(Config& config)
     action::LennardJones lennardJones(config.r_cut, config.sigma, config.epsilon, config.r_cap);
 
     // set up thermostat for temperature control
-    action::VelocityVerletLangevinThermostat integrator(config.gamma, config.temperature);
+    action::VelocityVerletLangevinThermostat integrator(config.friction, config.temperature);
 
     // set up timer for runtime measurement
     Kokkos::Timer timer;
@@ -255,11 +256,8 @@ int main(int argc, char* argv[])  // NOLINT
     CLI::App app{"Lennard Jones Fluid NVT benchmark application"};
     app.add_option("-n,--nsteps", config.nsteps, "total number of simulation steps");
     app.add_option("-L,--length", config.Lx, "simulation box diameter");
-    app.add_option(
-        "-T,--temperature",
-        config.temperature,
-        "temperature of the Langevin thermostat (negative numbers deactivate the thermostat)");
-    app.add_option("-o,--output", config.outputInterval, "output interval");
+    app.add_option("-T,--temperature", config.temperature, "thermostat target temperature");
+    app.add_option("-o,--outint", config.outputInterval, "output interval");
     CLI11_PARSE(app, argc, argv);
 
     // reset output parameter if output interval is negative
