@@ -75,24 +75,19 @@ and well-covered by unit and integration tests.
 
 # Software design
 
-`Gala`'s design philosophy is based on three core principles: (1) to provide a
-user-friendly, modular, object-oriented API, (2) to use community tools and
-standards (e.g., Astropy for coordinates and units handling), and (3) to use
-low-level code (C/C++/Cython) for performance while keeping the user interface
-in Python. Within each of the main subpackages in `gala` (`gala.potential`,
-`gala.dynamics`, `gala.integrate`, etc.), we try to maintain a consistent API
-for classes and functions. For example, all potential classes share a common
-base class and implement methods for computing the potential, forces, density,
-and other derived quantities at given positions. This also works for
-compositions of potentials (i.e., multi-component potential models), which
-share the potential base class but also act as a dictionary-like container for
-different potential components. As another example, all integrators implement a
-common interface for numerically integrating orbits. The integrators and core
-potential functions are all implemented in C without support for units, but the
-Python layer handles unit conversions and prepares data to dispatch to the C
-layer appropriately.Within the coordinates subpackage, we extend Astropy's
-coordinate classes to add more specialized coordinate frames and
-transformations that are relevant for Galactic dynamics and Milky Way research.
+The design of `MRMD` is heavily influenced by the following principles: 
+1) portability, 2) data oriented programming, and 3) self-documenting code.
+To achieve wide-spread use with few obstacles `MRMD` uses the Kokkos Performance Portability library. 
+This allows `MRMD` to run on different current and future hardware architectures, including modern state-of-the-art GPUs from Nvidia and AMD.
+And at the same time only a single code base has to be maintained.
+The software design itself focuses on separating code and data. 
+A few data-only containers are used to hold the simulation state, e.g. `data::Atoms` for the positions, velocities, etc of all atoms within the simulation. 
+A separate set of functions takes these data containers as inputs and modifies them inplace, e.g. `action::VelocityVerlet`. 
+For performance reasons the data containers are not treated as immutable objects.
+A precise naming scheme with a clear folder structure and the avoidance of abbreviations together with literature references within the source code serves as the main point of documentation.
+Detailed examples are tested in the CI at every commit to ensure everything is working and up-to-date.
+
+
 
 # Research impact statement
 
