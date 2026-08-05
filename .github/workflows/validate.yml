@@ -211,6 +211,8 @@ jobs:
             -B mrmd-build \
             -DCMAKE_C_COMPILER=hipcc \
             -DCMAKE_CXX_COMPILER=hipcc \
+            -DCMAKE_C_FLAGS="--gcc-install-dir=/usr/lib/gcc/x86_64-linux-gnu/15" \
+            -DCMAKE_CXX_FLAGS="--gcc-install-dir=/usr/lib/gcc/x86_64-linux-gnu/15" \
             -DCMAKE_BUILD_TYPE=Debug \
             -DMRMD_VERBOSE_ASSERTS=ON \
             -DMRMD_WERROR=ON \
