@@ -21,19 +21,27 @@ namespace mrmd
 {
 namespace data
 {
-TEST(ATOMS, getNumTypes)
-{
-    Atoms atoms(100);
-    atoms.numLocalAtoms = 100;
 
+data::Atoms getAtoms()
+{
+    idx_t numAtoms = 100;
+    data::Atoms atoms(numAtoms);
+    atoms.numLocalAtoms = numAtoms;
     auto type = atoms.getType();
-    auto policy = Kokkos::RangePolicy<>(0, atoms.size());
-    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
+
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
         type(idx) = idx % 10 - 1;  // types from -1 to 8
     };
-    Kokkos::parallel_for("getNumTypes", policy, kernel);
+    Kokkos::parallel_for("setTypes", policy, kernel);
     Kokkos::fence();
+    return atoms;
+}
+
+TEST(ATOMS, getNumTypes)
+{
+    auto atoms = getAtoms();
     EXPECT_EQ(atoms.getNumTypes(), 9);  // types are zero-indexed, so 9 types in total
 }
 }  // namespace data

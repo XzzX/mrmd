@@ -140,11 +140,11 @@ public:
         auto typeSlice = type;  // avoid capturing this pointer
 
         auto policy = Kokkos::RangePolicy<>(0, numLocalAtoms);
-        auto kernel = KOKKOS_LAMBDA(const idx_t idx, idx_t& localMaxType)
+        auto kernel = KOKKOS_LAMBDA(const idx_t& idx, idx_t& localMaxType)
         {
             if (typeSlice(idx) > localMaxType) localMaxType = typeSlice(idx);
         };
-        Kokkos::parallel_reduce(policy, kernel, maxType);
+        Kokkos::parallel_reduce(policy, kernel, Kokkos::Max<idx_t>(maxType));
         Kokkos::fence();
         return maxType + 1;
     }
