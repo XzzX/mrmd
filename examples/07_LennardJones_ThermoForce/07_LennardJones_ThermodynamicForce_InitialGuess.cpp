@@ -228,7 +228,7 @@ void thermodynamicForce_initialGuess(Config& config)
         util::printTableSep("step", "time", "T", "Ek", "E0", "E", "p", "msd", "Nlocal", "Nghost");
         dumpDens.open(config.fileOutDens);
         dumpDens.dumpScalarView(Kokkos::create_mirror_view_and_copy(
-            Kokkos::HostSpace(), data::createGrid(densityProfile.getAverageDensityProfile())));
+            Kokkos::HostSpace(), data::createGrid(densityProfile.getAverageProfile())));
         // thermodynamic force
         dumpThermoForce.open(config.fileOutTF);
         dumpThermoForce.dumpScalarView(Kokkos::create_mirror_view_and_copy(
@@ -285,14 +285,14 @@ void thermodynamicForce_initialGuess(Config& config)
         {
             // density profile output
             auto densityProfileView = Kokkos::create_mirror_view_and_copy(
-                Kokkos::HostSpace(), densityProfile.getAverageDensityProfile(0));
+                Kokkos::HostSpace(), densityProfile.getAverageProfile(0));
             dumpDens.dumpScalarView(densityProfileView);
         }
 
         if (step % config.densityUpdateInterval == 0 && step > 0)
         {
             // update thermodynamic force in the update region based on the sampled density profile
-            thermodynamicForce.update_if(densityProfile.getAverageDensityProfile(),
+            thermodynamicForce.update_if(densityProfile.getAverageProfile(),
                                          config.smoothingInverseDamping,
                                          config.smoothingRange,
                                          isInThermoForceRegion);

@@ -56,8 +56,8 @@ public:
         numberOfSamples_++;
     }
 
-    inline auto getAverageDensityProfile() const { return averageProfile_; }
-    inline auto getAverageDensityProfile(const idx_t& typeId) const
+    inline auto getAverageProfile() const { return averageProfile_; }
+    inline auto getAverageProfile(const idx_t& typeId) const
     {
         assert(typeId < numTypes_);
         assert(typeId >= 0);
