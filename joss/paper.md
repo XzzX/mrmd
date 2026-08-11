@@ -75,19 +75,23 @@ and well-covered by unit and integration tests.
 
 # Software design
 
-The design of `MRMD` is heavily influenced by the following principles: 
-1) portability, 2) data oriented programming, and 3) self-documenting code.
-To achieve wide-spread use with few obstacles `MRMD` uses the Kokkos Performance Portability library. 
-This allows `MRMD` to run on different current and future hardware architectures, including modern state-of-the-art GPUs from Nvidia and AMD.
-And at the same time only a single code base has to be maintained.
+The design of `MRMD` is heavily influenced by the following three principles: 
+1) portability, 2) data-oriented programming, and 3) self-documenting code.
+To facilitate widespread use with minimal obstacles `MRMD` uses the Kokkos Performance Portability Library. 
+This enables `MRMD` to run on various current and future hardware architectures, including modern state-of-the-art GPUs from Nvidia and AMD.
+At the same time, only a single code base needs to be maintained. 
+We use CI jobs to continously monitor the building and execution process for different compilers and architectures.
+
 The software design itself focuses on separating code and data. 
-A few data-only containers are used to hold the simulation state, e.g. `data::Atoms` for the positions, velocities, etc of all atoms within the simulation. 
-A separate set of functions takes these data containers as inputs and modifies them inplace, e.g. `action::VelocityVerlet`. 
-For performance reasons the data containers are not treated as immutable objects.
-A precise naming scheme with a clear folder structure and the avoidance of abbreviations together with literature references within the source code serves as the main point of documentation.
-Detailed examples are tested in the CI at every commit to ensure everything is working and up-to-date.
+A few data-only containers are used to hold the simulation state: For example, `data::Atoms` holds the positions, velocities, and other information of all atoms within the simulation. 
+A separate set of functions takes these data containers as inputs and modifies them in place, e.g. `action::VelocityVerlet`. 
+For performance reasons, the data containers are not treated as immutable objects.
 
+A precise naming scheme with a clear folder structure, and the avoidance of abbreviations together with literature references within the source code serves as the main point of documentation.
+Static code analysis using `clang-tidy` and automatic source code formatting using `clang-format` ensure consistency over the whole code base.
+Detailed examples serve as the main entry point for new users and are tested in the CI at every commit to ensure that everything is working correctly and is up to date.
 
+Other third-party libraries are used to extend features or improve usability, namely: `CLI11` for command-line interaction, `YAML-CPP` for config file parsing, `Cabana` for neighbour lists, and `Googletest` for testing.
 
 # Research impact statement
 
