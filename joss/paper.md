@@ -13,7 +13,6 @@ authors:
     affiliation: 1
   - name: Julian F. Hille
     orcid: 0009-0008-1005-9053
-    equal-contrib: false
     affiliation: 2
 affiliations:
  - name: Max Planck Computing and Data Facility, Germany
