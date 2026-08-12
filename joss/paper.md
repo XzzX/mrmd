@@ -9,7 +9,6 @@ tags:
 authors:
   - name: Sebastian Eibl
     orcid: 0000-0002-1069-2720
-    equal-contrib: true
     affiliation: 1
   - name: Julian F. Hille
     orcid: 0009-0008-1005-9053
