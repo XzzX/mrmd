@@ -78,14 +78,14 @@ The design of `MRMD` is heavily influenced by the following three principles:
 To facilitate widespread use with minimal obstacles `MRMD` uses the Kokkos Performance Portability Library. 
 This enables `MRMD` to run on various current and future hardware architectures, including modern state-of-the-art GPUs from Nvidia and AMD.
 At the same time, only a single code base needs to be maintained. 
-We use CI jobs to continously monitor the building and execution process for different compilers and architectures.
+We use CI jobs to continuously monitor the building and execution process for different compilers and architectures.
 
 The software design itself focuses on separating code and data. 
 A few data-only containers are used to hold the simulation state: For example, `data::Atoms` holds the positions, velocities, and other information of all atoms within the simulation. 
 A separate set of functions takes these data containers as inputs and modifies them in place, e.g. `action::VelocityVerlet`. 
 For performance reasons, the data containers are not treated as immutable objects.
 
-A precise naming scheme with a clear folder structure, and the avoidance of abbreviations together with literature references within the source code serves as the main point of documentation.
+A precise naming scheme with a clear folder structure, and the avoidance of abbreviations together with literature references within the source code serve as the main point of documentation.
 Static code analysis using `clang-tidy` and automatic source code formatting using `clang-format` ensure consistency over the whole code base.
 Detailed examples serve as the main entry point for new users and are tested in the CI at every commit to ensure that everything is working correctly and is up to date.
 
