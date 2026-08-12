@@ -1,58 +1,31 @@
-gpu:
+nvidia:
+  image: gitlab-registry.mpcdf.mpg.de/mpcdf/ci-module-image/nvhpcsdk_25-openmpi_5_0:2025
   tags:
-    - cobra
+    - gpu-nvidia
   script:
     - module purge
-    - module load cmake/3.22 doxygen git
-    - module load gcc/10 cuda/11.2 openmpi/4 hdf5-mpi/1.12.0
-    - module load anaconda/3/2021.11
-    - git --version
-    - cmake --version
+    - module load cmake/3.30 git gcc/13 nvhpcsdk/25
     - |
-      cmake -S . -B mrmd-build \
-      -DCMAKE_PREFIX_PATH=~/software/kokkos-gpu \
-      -DCMAKE_BUILD_TYPE=Debug \
-      -DCabana_ENABLE_CAJITA=OFF \
-      -DMRMD_WERROR=ON
-    - cmake --build mrmd-build --target all -j 32
-    - cd mrmd-build
-    - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 ctest --output-on-failure -j 2
+      cmake \
+        -S . \
+        -B mrmd-build \
+        -DCMAKE_C_COMPILER=gcc \
+        -DCMAKE_CXX_COMPILER=g++ \
+        -DCMAKE_BUILD_TYPE=Debug \
+        -DMRMD_VERBOSE_ASSERTS=ON \
+        -DMRMD_WERROR=ON \
+        -DKokkos_ENABLE_DEBUG=ON \
+        -DKokkos_ENABLE_DEBUG_BOUNDS_CHECK=ON \
+        -DKokkos_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK=ON \
+        -DKokkos_ENABLE_HWLOC=OFF \
+        -DKokkos_ENABLE_SERIAL=ON \
+        -DKokkos_ENABLE_OPENMP=ON \
+        -DKokkos_ENABLE_CUDA=ON 
+    - cmake --build mrmd-build --target gmock gmock_main gtest gtest_main kokkoscontainers kokkoscore kokkossimd yaml-cpp yaml-cpp-parse yaml-cpp-read yaml-cpp-sandbox --parallel 2
+    - cmake --build mrmd-build --target all --parallel 2
+    - cd mrmd-build && ctest --output-on-failure --parallel 2
   variables:
     OMP_PROC_BIND: "spread"
     OMP_PLACES: "threads"
     CXX: "g++"
     CC: "gcc"
-
-benchmark:
-  tags:
-    - cobra
-
-  script:
-    - module purge
-    - module load cmake/3.22 doxygen git
-    - module load gcc/10 cuda/11.2 openmpi/4 hdf5-mpi/1.12.0
-    - module load anaconda/3/2021.11
-    - git --version
-    - cmake --version
-
-    - cmake -S . -B mrmd-cpu -DCMAKE_PREFIX_PATH=~/software/kokkos-cpu -DCMAKE_BUILD_TYPE=Release -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON -DMRMD_VECTOR_LENGTH=4
-    - cmake --build mrmd-cpu --target LennardJones -j 32
-    - srun --nodes=1 --ntasks=1 --cpus-per-task=40 --time=15:00 mrmd-cpu/examples/LennardJones/LennardJones --nsteps 5001 --output 2500 --length 60
-    - python3 mrmd-cpu/examples/LennardJones/push_performance.py Skylake
-
-    - cmake -S . -B mrmd-gpu -DCMAKE_PREFIX_PATH=~/software/kokkos-gpu -DCMAKE_BUILD_TYPE=Release -DCabana_ENABLE_CAJITA=OFF -DMRMD_WERROR=ON -DMRMD_VECTOR_LENGTH=32
-    - cmake --build mrmd-gpu --target LennardJones -j 32
-    - srun --nodes=1 --ntasks=1 --cpus-per-task=1 --partition=gpudev --gres=gpu:v100:1 --constraint="gpu" --time=15:00 mrmd-gpu/examples/LennardJones/LennardJones --nsteps 5001 --output 2500 --length 60
-    - python3 mrmd-gpu/examples/LennardJones/push_performance.py V100
-
-  artifacts:
-    paths:
-      - Skylake.json
-      - V100.json
-
-  variables:
-    OMP_PROC_BIND: "spread"
-    OMP_PLACES: "threads"
-    CXX: "g++"
-    CC: "gcc"
-    KOKKOS_PROFILE_LIBRARY: "/u/seibl/software/kokkos-tools/profiling/simple-kernel-timer-json/kp_kernel_timer_json.so"
