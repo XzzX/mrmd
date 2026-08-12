@@ -42,8 +42,8 @@ molecular dynamics.
 # Statement of need
 
 `MRMD` is a stand-alone C++ software package providing the algorithms necessary to set up and run AdResS
-simulations on CPU and GPU workstations and clusters. The software is organized functionally and exposes its 
-algorithms to the user in a C++ script interface. It is thus particularly suitable for testing and further 
+simulations. The software provides all algorithms as building blocks that can be combined via a C++ interface. 
+It is thus particularly suitable for testing and further 
 development of the AdResS method itself. The software comes with basic tools for pre- and postprocessing of 
 the simulations but can also parse input and generate output in formats such as GRO and H5MD and thus interfaces 
 to standard packages in molecular simulation such as `Gromacs` and `MDAnalysis`.
@@ -83,13 +83,14 @@ We use CI jobs to continuously monitor the building and execution process for di
 The software design itself focuses on separating code and data. 
 A few data-only containers are used to hold the simulation state: For example, `data::Atoms` holds the positions, velocities, and other information of all atoms within the simulation. 
 A separate set of functions takes these data containers as inputs and modifies them in place, e.g. `action::VelocityVerlet`. 
-For performance reasons, the data containers are not treated as immutable objects.
+For performance reasons, the data containers are not treated as immutable objects but are modified by the algorithms directly.
+All pieces are exposed to the user and can be combined freely to develop new simulation methods.
 
 A precise naming scheme with a clear folder structure, and the avoidance of abbreviations together with literature references within the source code serve as the main point of documentation.
 Static code analysis using `clang-tidy` and automatic source code formatting using `clang-format` ensure consistency over the whole code base.
 Detailed examples serve as the main entry point for new users and are tested in the CI at every commit to ensure that everything is working correctly and is up to date.
 
-Other third-party libraries are used to extend features or improve usability, namely: `CLI11` for command-line interaction, `YAML-CPP` for config file parsing, `Cabana` for neighbour lists, and `Googletest` for testing.
+Other third-party libraries are used to extend features or improve usability, namely: `CLI11` for command-line interaction, `YAML-CPP` for config file parsing, `Cabana` for neighbour lists, `HDF5` for IO, and `Googletest` for testing.
 
 # Research impact statement
 
@@ -165,6 +166,8 @@ Generative AI tools were used in the development of this software, but not in th
 of this manuscript, or the preparation of supporting materials.
 
 # Acknowledgements
+
+We thank Christoph Junghans for his valuable input and discussions.
 
 Julian F. Hille's contributions to this software have been funded by Deutsche Forschungsgemeinschaft (DFG) through grant CRC 1114 Scaling Cascades in Complex Systems, Project Number 235221301, Project C01 Adaptive coupling of scales in molecular dynamics
 and beyond to fluid dynamics.
