@@ -115,7 +115,7 @@ At the heart of AdResS being applied to simulate an open atomistically resolved 
 exchange with a reservoir through its boundary is the thermodynamic consistency of said reservoir. 
 
 Such a reservoir can be realized in a rectangular simulation domain by the atomistically resolved (AT)
-region being encapsuled to the left and right by buffer zones ($\Delta$ regions) within which the 
+region being encapsulated to the left and right by buffer zones ($\Delta$ regions) within which the 
 particles are also interacting atomistically. Beyond the $\Delta$ regions, in the tracer (TR) region, 
 the interactions are then abruptly switched off, so that the interaction potential can be written as 
 
