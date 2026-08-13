@@ -57,9 +57,10 @@ forward development of the method and help in establishing AdResS as a standard 
 # State of the field                                                                                                                  
 
 Since the establishment of AdResS in the mid-to-late 2000s,, the method was implemented 
-several times into standard packages of molecular dynamics, e.g. `Espresso++`, `Gromacs`, `Lammps` [@junghans_reference_2010; @Junghans2017; @fritsch_structure_2012; @heidari_accurate_2016; @Guzman2019ESPResSoPP; @xu2026espressopp]. 
-Despite the undeniable research impact of the method, the high cost of maintenance for core functionality exclusive to AdResS applications and the difficulties to separate them from low-level kernels led to instances of discontinued official support, e.g. in the case of `Gromacs`, and several versions of AdResS being maintained 
-as in-house and closed-source projects. This introduced entry barriers for interested outsiders and cumbered further development of the method. 
+several times into standard packages of molecular dynamics, e.g. `Espresso++`, `Gromacs`, `Lammps` [@junghans_reference_2010; @fritsch_structure_2012; @heidari_accurate_2016; @Guzman2019ESPResSoPP; @xu2026espressopp]. 
+Despite the undeniable research impact of the method, the high cost of maintenance for core functionality exclusive to AdResS applications and the difficulties to separate them from low-level kernels led to instances of discontinued official support, e.g. in the case of `Gromacs`. Furthermore the added complexity and non optimal scaling often results in sub-par performance compared to fully atomistic simulations [@Junghans2017].
+This leads to several versions of AdResS being maintained as in-house and closed-source projects.  
+This introduced entry barriers for interested outsiders and cumbered further development of the method. 
 
 In light of the growing field of non-equilibrium molecular simulation and the accessibility of software design 
 patterns for GPU and multi-node parallelization, AdResS is experiencing an increased interest again. This has 
