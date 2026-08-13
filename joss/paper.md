@@ -57,7 +57,7 @@ forward development of the method and help in establishing AdResS as a standard 
 # State of the field                                                                                                                  
 
 Since the establishment of AdResS in the mid-to-late 2000s,, the method was implemented 
-several times into standard packages of molecular dynamics, e.g. `Espresso++`, `Gromacs`, `Lammps` [@junghans_reference_2010; @fritsch_structure_2012; @heidari_accurate_2016]. 
+several times into standard packages of molecular dynamics, e.g. `Espresso++`, `Gromacs`, `Lammps` [@junghans_reference_2010; @Junghans2017; @fritsch_structure_2012; @heidari_accurate_2016; @Guzman2019ESPResSoPP; @xu2026espressopp]. 
 Despite the undeniable research impact of the method, the high cost of maintenance for core functionality exclusive to AdResS applications and the difficulties to separate them from low-level kernels led to instances of discontinued official support, e.g. in the case of `Gromacs`, and several versions of AdResS being maintained 
 as in-house and closed-source projects. This introduced entry barriers for interested outsiders and cumbered further development of the method. 
 
@@ -167,7 +167,9 @@ of this manuscript, or the preparation of supporting materials.
 
 # Acknowledgements
 
-We thank Christoph Junghans for his valuable input and discussions.
+We thank Christoph Junghans for his insightful discussions, valuable input, and helpful support. 
+
+We are also grateful to Torsten Stuehn and the Max Planck Institute for Polymer Research for their support and valuable contributions.
 
 Julian F. Hille's contributions to this software have been funded by Deutsche Forschungsgemeinschaft (DFG) through grant CRC 1114 Scaling Cascades in Complex Systems, Project Number 235221301, Project C01 Adaptive coupling of scales in molecular dynamics
 and beyond to fluid dynamics.
