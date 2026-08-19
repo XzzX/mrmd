@@ -168,7 +168,7 @@ of this manuscript, or the preparation of supporting materials.
 
 # Acknowledgements
 
-We thank Christoph Junghans for his insightful discussions, valuable input, and helpful support. 
+We thank Christoph Junghans and Rupert Klein for insightful discussions, their valuable input, and helpful support. 
 
 We are also grateful to Torsten Stuehn and the Max Planck Institute for Polymer Research for their support and valuable contributions.
 
