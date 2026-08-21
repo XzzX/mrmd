@@ -116,6 +116,7 @@ struct Config
     std::string fileOutTF;
     std::string fileOutDens;
     std::string fileOutFinalTF;
+    std::string fileOutPlaneWiseMassDens;
 };
 
 void thermodynamicForce(Config& config)
@@ -188,6 +189,11 @@ void thermodynamicForce(Config& config)
         atoms.getNumTypes(),
         AXIS::X);
 
+    analysis::PlaneWiseMassDensityProfile planeWiseMassDensityProfile(atoms,
+                                                             subdomain,
+                                                             config.densityBinWidth,
+                                                             AXIS::X);
+
     // set up thermodynamic force for density control
     action::ThermodynamicForce thermodynamicForce({rho},
                                                   subdomain,
@@ -207,6 +213,7 @@ void thermodynamicForce(Config& config)
     // output management
     io::DumpProfile dumpDens;
     io::DumpProfile dumpThermoForce;
+    io::DumpProfile dumpPlaneWiseMassDens;
     real_t densityBinVolume =
         subdomain.diameter[1] * subdomain.diameter[2] * config.densityBinWidth;
     auto dumpH5MD = io::DumpH5MD("J-Hizzle");
@@ -223,6 +230,10 @@ void thermodynamicForce(Config& config)
         dumpThermoForce.open(config.fileOutTF);
         dumpThermoForce.dumpScalarView(Kokkos::create_mirror_view_and_copy(
             Kokkos::HostSpace(), data::createGrid(thermodynamicForce.getForce())));
+        // plane-wise mass density
+        dumpPlaneWiseMassDens.open(config.fileOutPlaneWiseMassDens);
+        dumpPlaneWiseMassDens.dumpScalarView(Kokkos::create_mirror_view_and_copy(
+            Kokkos::HostSpace(), data::createGrid(planeWiseMassDensityProfile.getAverageProfile())));
         // microstate
         dumpH5MD.open(config.fileOutH5MD, subdomain, atoms);
     }
@@ -230,8 +241,19 @@ void thermodynamicForce(Config& config)
     // main simulation loop
     for (auto step = 0; step < config.nsteps; ++step)
     {
+        if (step % config.densitySamplingInterval == 0)
+        {
+            // update density profile with current particle positions
+            planeWiseMassDensityProfile.startMeasuringCrossingParticles(atoms);
+        }
         // integrate equations of motion with Langevin thermostat
         maxAtomDisplacement += langevinIntegrator.preForceIntegrate(atoms, config.dt);
+
+        if (step % config.densitySamplingInterval == 0)
+        {
+            // update density profile with current particle positions
+            planeWiseMassDensityProfile.stopMeasuringCrossingParticles(atoms, subdomain, config.dt);
+        }
 
         // check if neighbor list needs to be rebuilt
         if (maxAtomDisplacement >=
@@ -277,6 +299,11 @@ void thermodynamicForce(Config& config)
             auto densityProfileView = Kokkos::create_mirror_view_and_copy(
                 Kokkos::HostSpace(), densityProfile.getAverageProfile(0));
             dumpDens.dumpScalarView(densityProfileView);
+
+            // plane-wise mass density output
+            auto planeWiseMassDensityProfileView = Kokkos::create_mirror_view_and_copy(
+                Kokkos::HostSpace(), planeWiseMassDensityProfile.getAverageProfile(0));
+            dumpPlaneWiseMassDens.dumpScalarView(planeWiseMassDensityProfileView);
         }
 
         if (step % config.densityUpdateInterval == 0 && step > 0)
@@ -366,6 +393,7 @@ void thermodynamicForce(Config& config)
     {
         dumpDens.close();
         dumpThermoForce.close();
+        dumpPlaneWiseMassDens.close();
         dumpH5MD.close();
 
         // final phase point output
@@ -373,8 +401,6 @@ void thermodynamicForce(Config& config)
 
         // close statistics file
         fStat.close();
-        auto time = timer.seconds();
-        std::cout << time << std::endl;
 
         io::dumpGRO(config.fileOutFinalGRO,
                     atoms,
@@ -443,6 +469,7 @@ int main(int argc, char* argv[])
     config.fileOutH5MD = format("{0}.h5md", config.fileOut);
     config.fileOutTF = format("{0}_tf.txt", config.fileOut);
     config.fileOutDens = format("{0}_dens.txt", config.fileOut);
+    config.fileOutPlaneWiseMassDens = format("{0}_plane_wise_mass_dens.txt", config.fileOut);
     config.fileOutFinalGRO = format("{0}_final.gro", config.fileOut);
     config.fileOutFinalH5MD = format("{0}_final.h5md", config.fileOut);
     config.fileOutFinalTF = format("{0}_final_tf.txt", config.fileOut);
