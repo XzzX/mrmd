@@ -138,7 +138,7 @@ jobs:
   nvcc-debug-build:
     strategy:
       matrix:
-        CONTAINER: [ 'nvcc-13' ]
+        CONTAINER: [ 'nvcc-13.0', 'nvcc-13.3' ]
         USE_SHARED_SPACE: [ 'ON', 'OFF' ]
 
     runs-on: ubuntu-latest
