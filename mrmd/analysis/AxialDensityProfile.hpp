@@ -78,23 +78,26 @@ public:
         assert(typeId >= 0);
         return Kokkos::subview(averageMassDensityProfile_.data, Kokkos::ALL(), typeId);
     }
-    
+
     void stopMeasuringCrossingParticles(const data::Atoms& atoms,
-                                        const data::Subdomain subdomain,
+                                        const data::Subdomain& subdomain,
                                         const real_t dt)
     {
         MRMD_HOST_CHECK_EQUAL(
-            atomsBeforeMeasurement_.size(),
-            atoms.size(),
+            atomsBeforeMeasurement_.numLocalAtoms,
+            atoms.numLocalAtoms,
             "The number of particles is not allowed to change between "
             "startMeasuringCrossingParticles and stopMeasuringCrossingParticles.");
-        auto numAtoms = atoms.numLocalAtoms + atoms.numGhostAtoms;
+        auto numAtoms = atoms.numLocalAtoms;  // TODO: check if this is correct, or if we need to
+                                              // include ghost atoms as well
         auto numTypes = atoms.getNumTypes();
         auto positionsBefore = atomsBeforeMeasurement_.getPos();
         auto positionsAfter = atoms.getPos();
-        auto velocities = atoms.getVel();
+        auto velocitiesBefore = atomsBeforeMeasurement_.getVel();
+        auto velocitiesAfter = atoms.getVel();
         auto types = atoms.getType();
         auto masses = atoms.getMass();
+        auto axis = axis_;
 
         data::MultiHistogram instantaneousMassDensityProfile("instantaneous-mass-density-profile",
                                                              averageMassDensityProfile_.min,
@@ -108,8 +111,8 @@ public:
         {
             MRMD_DEVICE_ASSERT_GREATEREQUAL(types(idx), 0);
             MRMD_DEVICE_ASSERT_LESS(types(idx), numTypes);
-            auto posBefore = positionsBefore(idx, to_underlying(axis_));
-            auto posAfter = positionsAfter(idx, to_underlying(axis_));
+            auto posBefore = positionsBefore(idx, to_underlying(axis));
+            auto posAfter = positionsAfter(idx, to_underlying(axis));
             auto lower = posBefore < posAfter ? posBefore : posAfter;
             auto upper = posBefore < posAfter ? posAfter : posBefore;
 
@@ -124,8 +127,12 @@ public:
             auto access = scatter.access();
             for (auto bin = firstBin; bin <= lastBin; ++bin)
             {
-                access(bin, types(idx)) +=
-                    masses(idx) / Kokkos::abs(velocities(idx, to_underlying(axis_)));
+                // calculate when the particle crossed the plane of the bin
+                auto binPos = instantaneousMassDensityProfile.getBinPosition(bin);
+                auto percentage = Kokkos::abs((binPos - posBefore) / (posAfter - posBefore));
+                auto velocity = (1_r - percentage) * velocitiesBefore(idx, to_underlying(axis)) +
+                                percentage * velocitiesAfter(idx, to_underlying(axis));
+                access(bin, types(idx)) += masses(idx) / Kokkos::abs(velocity);
             }
         };
         Kokkos::parallel_for(policy, kernel);
@@ -146,6 +153,7 @@ public:
             0,
             "Cannot reset AxialAverageProfile because no samples have been taken yet.");
 
+        atomsBeforeMeasurement_ = data::Atoms(0);
         Kokkos::deep_copy(averageMassDensityProfile_.data, 0_r);
         numberOfSamples_ = 0;
     }

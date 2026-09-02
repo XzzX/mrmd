@@ -189,10 +189,8 @@ void thermodynamicForce(Config& config)
         atoms.getNumTypes(),
         AXIS::X);
 
-    analysis::PlaneWiseMassDensityProfile planeWiseMassDensityProfile(atoms,
-                                                             subdomain,
-                                                             config.densityBinWidth,
-                                                             AXIS::X);
+    analysis::PlaneWiseMassDensityProfile planeWiseMassDensityProfile(
+        atoms, subdomain, config.densityBinWidth, AXIS::X);
 
     // set up thermodynamic force for density control
     action::ThermodynamicForce thermodynamicForce({rho},
@@ -233,7 +231,8 @@ void thermodynamicForce(Config& config)
         // plane-wise mass density
         dumpPlaneWiseMassDens.open(config.fileOutPlaneWiseMassDens);
         dumpPlaneWiseMassDens.dumpScalarView(Kokkos::create_mirror_view_and_copy(
-            Kokkos::HostSpace(), data::createGrid(planeWiseMassDensityProfile.getAverageProfile())));
+            Kokkos::HostSpace(),
+            data::createGrid(planeWiseMassDensityProfile.getAverageProfile())));
         // microstate
         dumpH5MD.open(config.fileOutH5MD, subdomain, atoms);
     }
@@ -241,19 +240,14 @@ void thermodynamicForce(Config& config)
     // main simulation loop
     for (auto step = 0; step < config.nsteps; ++step)
     {
-        if (step % config.densitySamplingInterval == 0)
+        if (step > 0 && step % config.densitySamplingInterval == 0)
         {
             // update density profile with current particle positions
             planeWiseMassDensityProfile.startMeasuringCrossingParticles(atoms);
         }
+
         // integrate equations of motion with Langevin thermostat
         maxAtomDisplacement += langevinIntegrator.preForceIntegrate(atoms, config.dt);
-
-        if (step % config.densitySamplingInterval == 0)
-        {
-            // update density profile with current particle positions
-            planeWiseMassDensityProfile.stopMeasuringCrossingParticles(atoms, subdomain, config.dt);
-        }
 
         // check if neighbor list needs to be rebuilt
         if (maxAtomDisplacement >=
@@ -299,11 +293,6 @@ void thermodynamicForce(Config& config)
             auto densityProfileView = Kokkos::create_mirror_view_and_copy(
                 Kokkos::HostSpace(), densityProfile.getAverageProfile(0));
             dumpDens.dumpScalarView(densityProfileView);
-
-            // plane-wise mass density output
-            auto planeWiseMassDensityProfileView = Kokkos::create_mirror_view_and_copy(
-                Kokkos::HostSpace(), planeWiseMassDensityProfile.getAverageProfile(0));
-            dumpPlaneWiseMassDens.dumpScalarView(planeWiseMassDensityProfileView);
         }
 
         if (step % config.densityUpdateInterval == 0 && step > 0)
@@ -343,6 +332,22 @@ void thermodynamicForce(Config& config)
 
         // integrate equations of motion after force calculation
         langevinIntegrator.postForceIntegrate(atoms, config.dt);
+
+        if (step > 0 && step % config.densitySamplingInterval == 0)
+        {
+            // update density profile with current particle positions
+            planeWiseMassDensityProfile.stopMeasuringCrossingParticles(atoms, subdomain, config.dt);
+        }
+
+        if (step > 0 && step % config.densityUpdateInterval == 0)
+        {
+            // output plane-wise mass density profile
+            auto planeWiseMassDensityProfileView = Kokkos::create_mirror_view_and_copy(
+                Kokkos::HostSpace(), planeWiseMassDensityProfile.getAverageProfile(0));
+            dumpPlaneWiseMassDens.dumpScalarView(planeWiseMassDensityProfileView);
+
+            planeWiseMassDensityProfile.reset();
+        }
 
         // handle output and statistics
         if (config.bOutput && (step % config.outputInterval == 0))
