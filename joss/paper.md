@@ -110,8 +110,7 @@ particles through abrupt interfaces as it was employed in the aforementioned stu
 
 # Mathematics
 
-We describe here the theory for the abrupt interface AdResS version for which examples are available in the release version of `MRMD`. The smooth interpolation common to other (H-)AdResS flavors is also already implemented in `MRMD`, but is not yet 
-available in test-covered example scripts. 
+We describe here the theory for the abrupt interface AdResS version for which examples are available in the release version of `MRMD`. The smooth interpolation common to other (H-)AdResS flavors is also already implemented in `MRMD`. 
 
 At the heart of AdResS being applied to simulate an open atomistically resolved system in 
 exchange with a reservoir through its boundary is the thermodynamic consistency of said reservoir. 
