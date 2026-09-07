@@ -81,7 +81,7 @@ include(FetchContent)
 FetchContent_Declare(
     Kokkos
     GIT_REPOSITORY https://github.com/kokkos/kokkos.git
-    GIT_TAG d9397f95a04a0334d327647e64ab7f1882ca0664 #5.2.0
+    GIT_TAG 89f0b12e43583d02bd19739810ceadcedf1ccd56 #5.2.1
     OVERRIDE_FIND_PACKAGE
     SYSTEM
 )
