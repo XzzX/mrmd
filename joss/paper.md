@@ -45,7 +45,7 @@ molecular dynamics.
 simulations. The software provides all algorithms as building blocks that can be combined via a C++ interface. 
 It is thus particularly suitable for testing and further 
 development of the AdResS method itself. The software comes with basic tools for pre- and postprocessing of 
-the simulations but can also parse input and generate output in formats such as GRO and H5MD and thus interfaces 
+the simulations but can also parse input and generate output in formats such as GRO and H5MD [@DEBUYL20141546] and thus interfaces 
 to standard packages in molecular simulation such as `Gromacs` and `MDAnalysis`.
 
 `MRMD` was designed to be used by researchers in the field of open molecular systems and developers of 
@@ -56,7 +56,7 @@ forward development of the method and help in establishing AdResS as a standard 
 
 # State of the field                                                                                                                  
 
-Since the establishment of AdResS in the mid-to-late 2000s,, the method was implemented 
+Since the establishment of AdResS in the mid-to-late 2000s, the method was implemented 
 several times into standard packages of molecular dynamics, e.g. `Espresso++`, `Gromacs`, `Lammps` [@junghans_reference_2010; @fritsch_structure_2012; @heidari_accurate_2016; @Guzman2019ESPResSoPP; @xu2026espressopp]. 
 Despite the undeniable research impact of the method, the high cost of maintenance for core functionality exclusive to AdResS applications and the difficulties to separate them from low-level kernels led to instances of discontinued official support, e.g. in the case of `Gromacs`. Furthermore the added complexity and non optimal scaling often results in sub-par performance compared to fully atomistic simulations [@Junghans2017].
 This leads to several versions of AdResS being maintained as in-house and closed-source projects.  
@@ -67,7 +67,7 @@ patterns for GPU and multi-node parallelization, AdResS is experiencing an incre
 inspired implementations into packages of molecular dynamics, e.g. `ls1-mardyn` and `Lammps`, that reflect 
 the current state of the method [@pinzon_escobar_node-level_2025; @sudhakar_extending_2026]. 
 
-`MRMD`, in contrast, comprises a stand-alone, open-source and GPU and multi-core parallelized software package 
+`MRMD`, in contrast, is a stand-alone and open-source software package 
 implementing exclusively the AdResS method. Core functionalities specific to AdResS such as the change of molecular 
 resolution and the compensation of the associated numerical artifacts are therefore built into its very structure 
 and well-covered by unit and integration tests.
@@ -91,20 +91,20 @@ A precise naming scheme with a clear folder structure, and the avoidance of abbr
 Static code analysis using `clang-tidy` and automatic source code formatting using `clang-format` ensure consistency over the whole code base.
 Detailed examples serve as the main entry point for new users and are tested in the CI at every commit to ensure that everything is working correctly and is up to date.
 
-Other third-party libraries are used to extend features or improve usability, namely: `CLI11` for command-line interaction, `YAML-CPP` for config file parsing, `Cabana` for neighbour lists, `HDF5` for IO, and `Googletest` for testing.
+Other third-party libraries are used to extend features or improve usability, namely: `CLI11` for command-line interaction, `YAML-CPP` for config file parsing, `Cabana` [@Slattery2022] for neighbour lists, `HDF5` for IO, and `Googletest` for testing.
 
 # Research impact statement
 
-Being in its first release version and developed mostly as a two-person project, `MRMD` has 
+`MRMD` has 
 already been applied as the primary numerical tool of investigation in a study concerned 
 with improving the iterative procedure employed in the setup stage of any AdResS simulation
 [@hille_reframing_2026]. With regards to the FAIR principles of scientific data management,
-the simulations run in this publication have been integrated into the release version
+the simulations have been integrated into the release version
 of `MRMD` as test-covered tutorial scripts and can be reproduced with minimal effort. 
 
-The release version of `MRMD` is shipped with algorithms for setting up and running AdResS 
+The release version of `MRMD` ships with algorithms for setting up and running AdResS 
 with smooth and abrupt changes of resolution for single- and multi-species systems of atomistic 
-or molecular composition. The tutorials, however, lead the user towards an AdResS simulation of 
+or molecular composition. The tutorials lead the user towards an AdResS simulation of 
 a single-component Lennard-Jones fluid coupled to a reservoir of non-interacting tracer 
 particles through abrupt interfaces as it was employed in the aforementioned study.
 
