@@ -109,6 +109,10 @@ or molecular composition. The tutorials lead the user towards an AdResS simulati
 a single-component Lennard-Jones fluid coupled to a reservoir of non-interacting tracer 
 particles through abrupt interfaces as it was employed in the aforementioned study.
 
+With its simulation, analysis and io facilities, `MRMD` is well-equipped for further studies 
+of the AdResS boundary, which will only increase in significance when extending towards non-equilibrium 
+simulations with reservoirs having distinct thermodynamic states that may even change with time.  
+
 # Mathematics
 
 We describe here the theory for the abrupt interface AdResS version for which examples are available in the release version of `MRMD`. The smooth interpolation common to other (H-)AdResS flavors is also already implemented in `MRMD`. 
