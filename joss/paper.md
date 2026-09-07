@@ -100,7 +100,8 @@ already been applied as the primary numerical tool of investigation in a study c
 with improving the iterative procedure employed in the setup stage of any AdResS simulation
 [@hille_reframing_2026]. With regards to the FAIR principles of scientific data management,
 the simulations have been integrated into the release version
-of `MRMD` as test-covered tutorial scripts and can be reproduced with minimal effort. 
+of `MRMD` as test-covered tutorial scripts and can be reproduced with minimal effort. The 
+resulting data has been published to Zenodo[@hille_numerical_2026]
 
 The release version of `MRMD` ships with algorithms for setting up and running AdResS 
 with smooth and abrupt changes of resolution for single- and multi-species systems of atomistic 
