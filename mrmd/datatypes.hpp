@@ -98,16 +98,6 @@ using real_t = double;
 using Point3D = Kokkos::Array<real_t, 3>;
 using Vector3D = Kokkos::Array<real_t, 3>;
 
-KOKKOS_INLINE_FUNCTION constexpr real_t operator""_r(const long double val)
-{
-    return static_cast<real_t>(val);
-}
-
-KOKKOS_INLINE_FUNCTION constexpr real_t operator""_r(const unsigned long long val)
-{
-    return static_cast<real_t>(val);
-}
-
 template <typename T>
 KOKKOS_INLINE_FUNCTION constexpr real_t real_c(T t)
 {
@@ -211,3 +201,13 @@ concept TwoPositionsPredicate = std::predicate<F,
                                                >;
 
 }  // namespace mrmd
+
+KOKKOS_INLINE_FUNCTION constexpr mrmd::real_t operator""_r(const long double val)
+{
+    return static_cast<mrmd::real_t>(val);
+}
+
+KOKKOS_INLINE_FUNCTION constexpr mrmd::real_t operator""_r(const unsigned long long val)
+{
+    return static_cast<mrmd::real_t>(val);
+}
