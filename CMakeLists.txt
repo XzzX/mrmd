@@ -107,7 +107,7 @@ FetchContent_MakeAvailable(YAML_CPP)
 FetchContent_Declare(
         Cabana
         GIT_REPOSITORY https://github.com/ECP-copa/Cabana.git
-        GIT_TAG 44c43577c905626d1d38c257f89c305dad6e7e37 #0.8
+        GIT_TAG 2e52143b6c06f37502e7cddd37f50dcb374f1906 #dev
         SYSTEM
 )
 FetchContent_MakeAvailable(Cabana)
