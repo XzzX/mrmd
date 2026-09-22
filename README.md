@@ -2,9 +2,16 @@
 ![GitHub License](https://img.shields.io/github/license/xzzx/mrmd)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17698862.svg)](https://doi.org/10.5281/zenodo.17698862)
 
-# MRMD
+# MRMD - **M**ulti **R**esolution **M**olecular **D**ynamics
 
-**M**ulti **R**esolution **M**olecular **D**ynamics
+MRMD is a stand-alone, open-source C++ package implementing the (Hamiltonian) adaptive resolution
+simulation ((H-)AdResS) method, which concurrently couples regions of different resolution — e.g.
+atomistic Lennard-Jones and ideal gas — to simulate open molecular systems that exchange particles
+and energy with a reservoir.
+
+The software exposes all of its algorithms as composable building blocks,
+facilitating both running AdResS simulations and developing the
+method itself.
 
 # How to Build
 
