@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,22 +24,41 @@ namespace util
 class IsInSymmetricSlab
 {
 private:
-    const Point3D center_;
+    const real_t center_;
     const real_t slabMin_;
     const real_t slabMax_;
+    const AXIS axis_;
+    const real_t tolerance_;
 
 public:
     KOKKOS_INLINE_FUNCTION
-    bool operator()(const real_t& x, const real_t& /*y*/, const real_t& /*z*/) const
+    bool operator()(const real_t& x, const real_t& y, const real_t& z) const
     {
-        auto dx = x - center_[0];
+        auto dx = Point3D{x, y, z}[to_underlying(axis_)] - center_;
         auto absDx = std::abs(dx);
 
-        return (absDx >= slabMin_ && absDx <= slabMax_);
+        return (absDx >= slabMin_ - tolerance_ && absDx <= slabMax_ + tolerance_);
     }
 
-    IsInSymmetricSlab(const Point3D& center, const real_t slabMin, const real_t slabMax)
-        : center_(center), slabMin_(slabMin), slabMax_(slabMax)
+    KOKKOS_INLINE_FUNCTION
+    bool operator()(const real_t& coord) const
+    {
+        auto dx = coord - center_;
+        auto absDx = std::abs(dx);
+
+        return (absDx >= slabMin_ - tolerance_ && absDx <= slabMax_ + tolerance_);
+    }
+
+    IsInSymmetricSlab(const Point3D& center,
+                      const real_t slabMin,
+                      const real_t slabMax,
+                      const AXIS axis = AXIS::X,
+                      const real_t tolerance = 0_r)
+        : center_(center[to_underlying(axis)]),
+          slabMin_(slabMin),
+          slabMax_(slabMax),
+          axis_(axis),
+          tolerance_(tolerance)
     {
     }
 };

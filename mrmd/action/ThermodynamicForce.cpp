@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,7 +41,7 @@ ThermodynamicForce::ThermodynamicForce(const std::vector<real_t>& targetDensity,
       enforceSymmetry_(enforceSymmetry),
       usePeriodicity_(usePeriodicity)
 {
-    MRMD_HOST_CHECK_LESSEQUAL(
+    MRMD_HOST_CHECK_FLOAT_EQUAL(
         force_.binSize, requestedDensityBinWidth, "requested bin size is not achieved");
 
     MRMD_HOST_CHECK_EQUAL(targetDensity.size(), thermodynamicForceModulation.size());
@@ -86,26 +87,7 @@ void ThermodynamicForce::sample(data::Atoms& atoms)
 
 void ThermodynamicForce::update(const real_t& smoothingSigma, const real_t& smoothingIntensity)
 {
-    MRMD_HOST_CHECK_GREATER(densityProfileSamples_, 0);
-
-    if (enforceSymmetry_)
-    {
-        densityProfile_.makeSymmetric();
-    }
-
-    auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
-    densityProfile_.scale(normalizationFactor);
-
-    auto smoothedDensityProfile =
-        data::smoothen(densityProfile_, smoothingSigma, smoothingIntensity, usePeriodicity_);
-    auto smoothedDensityGradient = data::gradient(smoothedDensityProfile, usePeriodicity_);
-    smoothedDensityGradient.scale(forceFactor_);
-
-    force_ -= smoothedDensityGradient;
-
-    // reset sampling data
-    Kokkos::deep_copy(densityProfile_.data, 0_r);
-    densityProfileSamples_ = 0;
+    update_if(smoothingSigma, smoothingIntensity, KOKKOS_LAMBDA(const real_t) { return true; });
 }
 
 void ThermodynamicForce::apply(const data::Atoms& atoms) const

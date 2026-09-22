@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -61,7 +62,7 @@ struct Subdomain
     }
     Subdomain(const Point3D& minCornerArg,
               const Point3D& maxCornerArg,
-              real_t ghostLayerThicknessArg)
+              const real_t& ghostLayerThicknessArg)
         : Subdomain(
               minCornerArg,
               maxCornerArg,

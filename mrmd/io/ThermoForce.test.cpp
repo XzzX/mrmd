@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -62,9 +63,9 @@ TEST(ThermoForce, dumpSingleForce)
     auto thermodynamicForce2 = restoreThermoForce("dummySingleForce.txt", subdomain);
 
     ScalarView::HostMirror grid1 = Kokkos::create_mirror_view_and_copy(
-        Kokkos::HostSpace(), createGrid(thermodynamicForce1.getForce()));
+        ScalarView::HostMirror::memory_space{}, createGrid(thermodynamicForce1.getForce()));
     ScalarView::HostMirror grid2 = Kokkos::create_mirror_view_and_copy(
-        Kokkos::HostSpace(), createGrid(thermodynamicForce2.getForce()));
+        ScalarView::HostMirror::memory_space{}, createGrid(thermodynamicForce2.getForce()));
     auto thermoForce1 =
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), thermodynamicForce1.getForce(0));
     auto thermoForce2 =
@@ -93,9 +94,9 @@ TEST(ThermoForce, dumpMultipleForces)
         restoreThermoForce("dummyMultipleForces.txt", subdomain, targetDensities, forceModulations);
 
     ScalarView::HostMirror grid1 = Kokkos::create_mirror_view_and_copy(
-        Kokkos::HostSpace(), createGrid(thermodynamicForce1.getForce()));
+        ScalarView::HostMirror::memory_space{}, createGrid(thermodynamicForce1.getForce()));
     ScalarView::HostMirror grid2 = Kokkos::create_mirror_view_and_copy(
-        Kokkos::HostSpace(), createGrid(thermodynamicForce2.getForce()));
+        ScalarView::HostMirror::memory_space{}, createGrid(thermodynamicForce2.getForce()));
     auto thermoForce1 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),
                                                             thermodynamicForce1.getForce().data);
     auto thermoForce2 = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(),

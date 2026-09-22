@@ -1,4 +1,5 @@
 # Copyright 2024 Sebastian Eibl
+# Copyright 2026 Julian Friedrich Hille
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,9 +15,8 @@
 
 mrmd_add_test(NAME test.io.DumpCSV
               FILES DumpCSV.test.cpp)
-configure_file(DumpGRO.test.gro ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
-mrmd_add_test(NAME test.io.DumpGRO
-              FILES DumpGRO.test.cpp)
+mrmd_add_test(NAME test.io.GRO
+              FILES GRO.test.cpp)
 mrmd_add_test(NAME test.io.ThermoForce
               FILES ThermoForce.test.cpp)
 

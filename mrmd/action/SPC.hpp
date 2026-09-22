@@ -29,9 +29,7 @@ struct Energy
     real_t LJ = 0_r;
     real_t coulomb = 0_r;
 
-    KOKKOS_INLINE_FUNCTION
     Energy() = default;
-    KOKKOS_INLINE_FUNCTION
     Energy(const Energy& rhs) = default;
 
     KOKKOS_INLINE_FUNCTION

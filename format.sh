@@ -14,4 +14,4 @@
 # limitations under the License.
 
 
-git ls-files -- mrmd*.cpp mrmd*.hpp | xargs clang-format-18 -i -style=file
+git ls-files -- *.cpp *.hpp | xargs clang-format-18 -i -style=file

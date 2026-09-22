@@ -23,11 +23,27 @@ namespace analysis
 /**
  * @return total kinetic energy of all local atoms
  */
-real_t getKineticEnergy(data::Atoms& atoms);
+real_t getKineticEnergy(data::Atoms& atoms)
+{
+    auto vel = atoms.getVel();
+    auto mass = atoms.getMass();
+    real_t velSqr = 0_r;
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx, real_t& sum)
+    {
+        sum += mass(idx) *
+               (vel(idx, 0) * vel(idx, 0) + vel(idx, 1) * vel(idx, 1) + vel(idx, 2) * vel(idx, 2));
+    };
+    Kokkos::parallel_reduce("getKineticEnergy", policy, kernel, velSqr);
+    return 0.5_r * velSqr;
+}
 
 /**
  * @return average kinetic energy per local atom
  */
-real_t getMeanKineticEnergy(data::Atoms& atoms);
+real_t getMeanKineticEnergy(data::Atoms& atoms)
+{
+    return getKineticEnergy(atoms) / real_c(atoms.numLocalAtoms);
+}
 }  // namespace analysis
 }  // namespace mrmd

@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,6 +22,7 @@
 #include "data/MultiHistogram.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
+#include "util/interpolation.hpp"
 #include "weighting_function/Slab.hpp"
 
 namespace mrmd
@@ -67,6 +69,14 @@ public:
     template <OnePositionPredicate Pred>
     void apply_if(const data::Atoms& atoms, const Pred& pred) const;
 
+    template <OneCoordinatePredicate Pred>
+    void update_if(const real_t& smoothingSigma,
+                   const real_t& smoothingIntensity,
+                   const Pred& pred);
+
+    template <OnePositionPredicate Pred>
+    void applyInterpolated_if(const data::Atoms& atoms, const Pred& pred) const;
+
     std::vector<real_t> getMuLeft() const;
     std::vector<real_t> getMuRight() const;
 
@@ -108,6 +118,100 @@ void ThermodynamicForce::apply_if(const data::Atoms& atoms, const Pred& pred) co
         }
     };
     Kokkos::parallel_for("ThermodynamicForce::apply_if", policy, kernel);
+    Kokkos::fence();
+}
+
+template <OneCoordinatePredicate Pred>
+void ThermodynamicForce::update_if(const real_t& smoothingSigma,
+                                   const real_t& smoothingIntensity,
+                                   const Pred& pred)
+{
+    MRMD_HOST_CHECK_GREATER(densityProfileSamples_, 0);
+
+    if (enforceSymmetry_)
+    {
+        densityProfile_.makeSymmetric();
+    }
+
+    auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
+    densityProfile_.scale(normalizationFactor);
+
+    auto smoothedDensityProfile =
+        data::smoothen(densityProfile_, smoothingSigma, smoothingIntensity, usePeriodicity_);
+    auto smoothedDensityGradient = data::gradient(smoothedDensityProfile, usePeriodicity_);
+    smoothedDensityGradient.scale(forceFactor_);
+
+    data::replace_if_bin_position(
+        smoothedDensityGradient, KOKKOS_LAMBDA(const real_t x) { return !pred(x); }, 0_r);
+
+    force_ -= smoothedDensityGradient;
+
+    // reset sampling data
+    Kokkos::deep_copy(densityProfile_.data, 0_r);
+    densityProfileSamples_ = 0;
+}
+
+template <OnePositionPredicate Pred>
+void ThermodynamicForce::applyInterpolated_if(const data::Atoms& atoms, const Pred& pred) const
+{
+    auto atomsPos = atoms.getPos();
+    auto atomsForce = atoms.getForce();
+    auto atomsType = atoms.getType();
+
+    auto forceHistogram = force_;  // avoid capturing this pointer
+
+    auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
+    auto kernel = KOKKOS_LAMBDA(const idx_t idx)
+    {
+        auto xPos = atomsPos(idx, 0);
+        if (!pred(atomsPos(idx, 0), atomsPos(idx, 1), atomsPos(idx, 2))) return;
+        auto bin = forceHistogram.getBin(xPos);
+
+        if (bin != -1)
+        {
+            auto atomType = atomsType(idx);
+            MRMD_DEVICE_ASSERT_LESS(atomType, forceHistogram.numHistograms);
+
+            // centered interpolation: switch neighboring bins at the bin center
+            auto binStart = forceHistogram.min + real_c(bin) * forceHistogram.binSize;
+            auto fracInBin = (xPos - binStart) * forceHistogram.inverseBinSize;
+
+            idx_t leftBinIdx;
+            idx_t rightBinIdx;
+            real_t factor;
+
+            if (fracInBin < 0.5_r)
+            {
+                leftBinIdx = bin - 1;
+                rightBinIdx = bin;
+                factor = fracInBin + 0.5_r;
+            }
+            else
+            {
+                leftBinIdx = bin;
+                rightBinIdx = bin + 1;
+                factor = fracInBin - 0.5_r;
+            }
+
+            // interpolate if both neighbors are valid, otherwise clamp to the current bin
+            if (leftBinIdx >= 0 && rightBinIdx < forceHistogram.numBins)
+            {
+                auto inputLeft = forceHistogram.data(leftBinIdx, atomType);
+                auto inputRight = forceHistogram.data(rightBinIdx, atomType);
+                MRMD_DEVICE_ASSERT(!std::isnan(inputLeft));
+                MRMD_DEVICE_ASSERT(!std::isnan(inputRight));
+
+                atomsForce(idx, 0) += util::lerp(inputLeft, inputRight, factor);
+            }
+            else
+            {
+                auto input = forceHistogram.data(bin, atomType);
+                MRMD_DEVICE_ASSERT(!std::isnan(input));
+                atomsForce(idx, 0) += input;
+            }
+        }
+    };
+    Kokkos::parallel_for("ThermodynamicForce::applyInterpolated_if", policy, kernel);
     Kokkos::fence();
 }
 

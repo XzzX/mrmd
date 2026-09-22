@@ -21,11 +21,8 @@ struct EnergyAndVirialReducer
     real_t energy = 0_r;
     real_t virial = 0_r;
 
-    KOKKOS_INLINE_FUNCTION
     EnergyAndVirialReducer() = default;
-    KOKKOS_INLINE_FUNCTION
     EnergyAndVirialReducer(const EnergyAndVirialReducer& rhs) = default;
-    KOKKOS_INLINE_FUNCTION
     EnergyAndVirialReducer& operator=(const EnergyAndVirialReducer& rhs) = default;
 
     KOKKOS_INLINE_FUNCTION

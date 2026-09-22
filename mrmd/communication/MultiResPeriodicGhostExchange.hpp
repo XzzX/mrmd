@@ -31,11 +31,9 @@ struct DoubleCounter
     idx_t atoms = 0;
     idx_t molecules = 0;
 
-    KOKKOS_INLINE_FUNCTION
     DoubleCounter() = default;
     KOKKOS_INLINE_FUNCTION
     DoubleCounter(idx_t newAtoms, idx_t newMolecules) : atoms(newAtoms), molecules(newMolecules) {}
-    KOKKOS_INLINE_FUNCTION
     DoubleCounter(const DoubleCounter& rhs) = default;
 
     KOKKOS_INLINE_FUNCTION

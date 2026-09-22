@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -20,6 +21,8 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_ScatterView.hpp>
 #include <cstdint>
+
+#include "cmake.hpp"
 
 namespace mrmd
 {
@@ -160,10 +163,19 @@ using MultiScatterView = Kokkos::Experimental::ScatterView<real_t**>;
 using VectorView = Kokkos::View<real_t* [3]>;
 using VectorScatterView = Kokkos::Experimental::ScatterView<real_t* [3]>;
 
+#ifdef MRMD_USE_SHARED_SPACE
+static_assert(Kokkos::has_shared_space,
+              "MRMD_USE_SHARED_SPACE is defined but Kokkos does not have a shared space");
+using HostType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace, Kokkos::SharedSpace>;
+
+using DeviceType = Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::SharedSpace>;
+#else
 using HostType = Kokkos::Device<Kokkos::DefaultHostExecutionSpace,
                                 Kokkos::DefaultHostExecutionSpace::memory_space>;
+
 using DeviceType =
     Kokkos::Device<Kokkos::DefaultExecutionSpace, Kokkos::DefaultExecutionSpace::memory_space>;
+#endif
 using LinkedCellList = Cabana::LinkedCellList<typename DeviceType::memory_space>;
 using VerletList [[deprecated]] = Cabana::VerletList<Kokkos::DefaultExecutionSpace::memory_space,
                                                      Cabana::HalfNeighborTag,

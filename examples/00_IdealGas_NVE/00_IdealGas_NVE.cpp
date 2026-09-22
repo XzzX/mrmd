@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -72,7 +73,7 @@ void runIdealGas(const Config& config)
     std::cout << time << std::endl;
 }
 
-int main(int argc, char* argv[])  // NOLINT
+int main(int argc, char* argv[])
 {
     // initialize Kokkos environment
     Kokkos::ScopeGuard scope_guard(argc, argv);

@@ -22,7 +22,6 @@
 #include "Cabana_NeighborList.hpp"
 #include "action/BerendsenBarostat.hpp"
 #include "action/BerendsenThermostat.hpp"
-#include "action/LangevinThermostat.hpp"
 #include "action/LennardJones.hpp"
 #include "action/VelocityVerlet.hpp"
 #include "analysis/KineticEnergy.hpp"
@@ -106,8 +105,7 @@ struct Input
 
 std::ostream& operator<<(std::ostream& os, const Input& input)
 {
-    os << "T: " << input.targetTemperature << " | "
-       << "p: " << input.targetPressure;
+    os << "T: " << input.targetTemperature << " | " << "p: " << input.targetPressure;
     return os;
 }
 

@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -56,7 +57,7 @@ TEST(interpolate, preZeroInner)
     Kokkos::deep_copy(histogramRef.data, h_dataRef);
 
     util::updateInterpolate(histogramTarget, histogramInput);
-    h_dataTarget = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogramTarget.data);
+    Kokkos::deep_copy(h_dataTarget, histogramTarget.data);
 
     for (auto idx = 0; idx < 30; ++idx)
     {
@@ -110,7 +111,7 @@ TEST(interpolate, nonZeroWithBoundary)
     Kokkos::deep_copy(histogramRef.data, h_dataRef);
 
     util::updateInterpolate(histogramTarget, histogramInput);
-    h_dataTarget = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), histogramTarget.data);
+    Kokkos::deep_copy(h_dataTarget, histogramTarget.data);
 
     for (auto idx = 0; idx < 30; ++idx)
     {

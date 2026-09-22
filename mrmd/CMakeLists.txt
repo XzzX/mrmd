@@ -28,9 +28,6 @@ target_link_libraries(mrmd
     PRIVATE
     )
 if (MRMD_ENABLE_HDF5)
-target_link_libraries(mrmd PUBLIC MPI::MPI_C MPI::MPI_CXX)
-endif()
-if (MRMD_ENABLE_HDF5)
     target_link_libraries(mrmd PUBLIC hdf5::hdf5 hdf5::hdf5_hl)
 endif ()
 target_include_directories(mrmd

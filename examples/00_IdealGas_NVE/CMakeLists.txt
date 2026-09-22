@@ -1,4 +1,5 @@
 # Copyright 2024 Sebastian Eibl
+# Copyright 2026 Julian Friedrich Hille
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,3 +19,5 @@ add_executable(00_IdealGas_NVE
 target_link_libraries(00_IdealGas_NVE
         PRIVATE mrmd CLI11::CLI11
         )
+
+add_test(NAME Example.00_IdealGas_NVE COMMAND ./00_IdealGas_NVE --nsteps 10)
