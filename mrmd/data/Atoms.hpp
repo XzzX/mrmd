@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -65,7 +66,7 @@ public:
     KOKKOS_FORCEINLINE_FUNCTION vel_t getVel() const { return vel; }
     KOKKOS_FORCEINLINE_FUNCTION force_t getForce() const { return force; }
     KOKKOS_FORCEINLINE_FUNCTION type_t getType() const { return type; }
-    KOKKOS_FORCEINLINE_FUNCTION charge_t getMass() const { return mass; }
+    KOKKOS_FORCEINLINE_FUNCTION mass_t getMass() const { return mass; }
     KOKKOS_FORCEINLINE_FUNCTION charge_t getCharge() const { return charge; }
     KOKKOS_FORCEINLINE_FUNCTION relative_mass_t getRelativeMass() const { return relativeMass; }
 
@@ -133,6 +134,21 @@ public:
     }
     template <class DEVICE_TYPE_SRC, bool DEVICE_SRC>
     explicit GeneralAtoms(const GeneralAtoms<DEVICE_TYPE_SRC, DEVICE_SRC>& atoms);
+
+    idx_t getNumTypes() const
+    {
+        idx_t maxType = 0;      // assume contiguous types starting from 0
+        auto typeSlice = type;  // avoid capturing this pointer
+
+        auto policy = Kokkos::RangePolicy<>(0, numLocalAtoms);
+        auto kernel = KOKKOS_LAMBDA(const idx_t& idx, idx_t& localMaxType)
+        {
+            if (typeSlice(idx) > localMaxType) localMaxType = typeSlice(idx);
+        };
+        Kokkos::parallel_reduce(policy, kernel, Kokkos::Max<idx_t>(maxType));
+        Kokkos::fence();
+        return maxType + 1;
+    }
 
 private:
     AtomsT atoms_;

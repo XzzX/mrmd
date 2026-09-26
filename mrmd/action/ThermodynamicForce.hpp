@@ -33,9 +33,6 @@ class ThermodynamicForce
 {
 private:
     data::MultiHistogram force_;
-    data::MultiHistogram densityProfile_;
-    idx_t densityProfileSamples_ = 0;
-    real_t binVolume_;
     const std::vector<real_t> targetDensity_;
     const std::vector<real_t> thermodynamicForceModulation_;
     idx_t numTypes_;
@@ -53,24 +50,18 @@ public:
         return Kokkos::subview(force_.data, Kokkos::ALL(), typeId);
     }
     inline void setForce(const MultiView& forces) const { Kokkos::deep_copy(force_.data, forces); }
-    inline auto getDensityProfile() const { return densityProfile_; }
-    inline auto getDensityProfile(const idx_t& typeId) const
-    {
-        assert(typeId < numTypes_);
-        assert(typeId >= 0);
-        return Kokkos::subview(densityProfile_.data, Kokkos::ALL(), typeId);
-    }
-    inline const auto& getNumberOfDensityProfileSamples() const { return densityProfileSamples_; }
 
-    void sample(data::Atoms& atoms);
-    void update(const real_t& smoothingSigma, const real_t& smoothingIntensity);
+    void update(const data::MultiHistogram& densityProfile,
+                const real_t& smoothingSigma,
+                const real_t& smoothingIntensity);
     void apply(const data::Atoms& atoms) const;
 
     template <OnePositionPredicate Pred>
     void apply_if(const data::Atoms& atoms, const Pred& pred) const;
 
     template <OneCoordinatePredicate Pred>
-    void update_if(const real_t& smoothingSigma,
+    void update_if(const data::MultiHistogram& densityProfile,
+                   const real_t& smoothingSigma,
                    const real_t& smoothingIntensity,
                    const Pred& pred);
 
@@ -82,14 +73,14 @@ public:
 
     ThermodynamicForce(const std::vector<real_t>& targetDensity,
                        const data::Subdomain& subdomain,
-                       const real_t& requestedDensityBinWidth,
+                       const real_t& requestedBinWidth,
                        const std::vector<real_t>& thermodynamicForceModulation,
                        const bool enforceSymmetry = false,
                        const bool usePeriodicity = false);
 
     ThermodynamicForce(const real_t targetDensity,
                        const data::Subdomain& subdomain,
-                       const real_t& requestedDensityBinWidth,
+                       const real_t& requestedBinWidth,
                        const real_t thermodynamicForceModulation,
                        const bool enforceSymmetry = false,
                        const bool usePeriodicity = false);
@@ -122,33 +113,36 @@ void ThermodynamicForce::apply_if(const data::Atoms& atoms, const Pred& pred) co
 }
 
 template <OneCoordinatePredicate Pred>
-void ThermodynamicForce::update_if(const real_t& smoothingSigma,
+void ThermodynamicForce::update_if(const data::MultiHistogram& densityProfileArg,
+                                   const real_t& smoothingSigma,
                                    const real_t& smoothingIntensity,
                                    const Pred& pred)
 {
-    MRMD_HOST_CHECK_GREATER(densityProfileSamples_, 0);
+    MRMD_HOST_CHECK_EQUAL(force_.numBins,
+                          densityProfileArg.numBins,
+                          "force and density profile must have the same number of bins");
+    MRMD_HOST_CHECK_EQUAL(force_.numHistograms,
+                          densityProfileArg.numHistograms,
+                          "force and density profile must have the same number of histograms");
+    MRMD_HOST_CHECK_FLOAT_EQUAL(force_.binSize,
+                                densityProfileArg.binSize,
+                                "bin sizes of force and density profile must match");
+
+    data::MultiHistogram densityProfile("densityProfile", densityProfileArg);
 
     if (enforceSymmetry_)
     {
-        densityProfile_.makeSymmetric();
+        densityProfile.makeSymmetric();
     }
 
-    auto normalizationFactor = 1_r / (binVolume_ * real_c(densityProfileSamples_));
-    densityProfile_.scale(normalizationFactor);
-
     auto smoothedDensityProfile =
-        data::smoothen(densityProfile_, smoothingSigma, smoothingIntensity, usePeriodicity_);
+        data::smoothen(densityProfile, smoothingSigma, smoothingIntensity, usePeriodicity_);
     auto smoothedDensityGradient = data::gradient(smoothedDensityProfile, usePeriodicity_);
     smoothedDensityGradient.scale(forceFactor_);
-
     data::replace_if_bin_position(
         smoothedDensityGradient, KOKKOS_LAMBDA(const real_t x) { return !pred(x); }, 0_r);
 
     force_ -= smoothedDensityGradient;
-
-    // reset sampling data
-    Kokkos::deep_copy(densityProfile_.data, 0_r);
-    densityProfileSamples_ = 0;
 }
 
 template <OnePositionPredicate Pred>

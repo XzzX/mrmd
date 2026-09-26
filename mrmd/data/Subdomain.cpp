@@ -56,6 +56,13 @@ void checkInvariants([[maybe_unused]] const Subdomain& subdomain)
 
 real_t Subdomain::getVolume() const { return diameter[0] * diameter[1] * diameter[2]; }
 
+real_t Subdomain::getAreaNormalToAxis(const AXIS& axis) const
+{
+    const auto dim1 = (to_underlying(axis) + 1) % DIMENSIONS;
+    const auto dim2 = (to_underlying(axis) + 2) % DIMENSIONS;
+    return diameter[dim1] * diameter[dim2];
+}
+
 Point3D Subdomain::getCenter() const
 {
     Point3D center;
