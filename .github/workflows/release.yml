@@ -39,25 +39,31 @@ jobs:
           cmake --build build --parallel
           ctest --test-dir build --output-on-failure
 
-      - name: Commit, tag, push
+      - name: Commit and push
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions@github-actions"
           git add CMakeLists.txt
           git diff --cached --quiet || git commit -m "Release v${{ inputs.version }}"
-          git tag -a "v${{ inputs.version }}" -m "Release v${{ inputs.version }}"
-          git push origin HEAD --follow-tags
+          git push origin HEAD
 
       - name: Create source archive
         run: |
           git archive --format=tar.gz --prefix="${{ github.event.repository.name }}-${{ inputs.version }}/" \
-            -o "${{ github.event.repository.name }}-${{ inputs.version }}.tar.gz" "v${{ inputs.version }}"
+            -o "${{ github.event.repository.name }}-${{ inputs.version }}.tar.gz" HEAD
 
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "v${{ inputs.version }}" \
-            --title "v${{ inputs.version }}" \
-            --generate-notes \
-            ./*.tar.gz
+          release_tag="v${{ inputs.version }}"
+          archive="${{ github.event.repository.name }}-${{ inputs.version }}.tar.gz"
+          target_commit="$(git rev-parse HEAD)"
+          if gh release view "$release_tag" >/dev/null 2>&1; then
+            gh release upload "$release_tag" "$archive" --clobber
+          else
+            gh release create "$release_tag" "$archive" \
+              --title "$release_tag" \
+              --generate-notes \
+              --target "$target_commit"
+          fi
