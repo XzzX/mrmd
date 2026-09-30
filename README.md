@@ -81,6 +81,31 @@ cd mrmd-build
 ctest --parallel 4 --output-on-failure
 ```
 
+## Installing the Library
+
+MRMD can be installed and consumed as a library from other CMake projects:
+
+```bash
+cmake --install mrmd-build --prefix /path/to/install
+```
+
+Downstream projects locate it with `find_package` and link against the
+`mrmd::mrmd` target:
+
+```cmake
+find_package(mrmd REQUIRED)
+
+add_executable(my_app main.cpp)
+target_link_libraries(my_app PRIVATE mrmd::mrmd)
+```
+
+When configuring the downstream project, point CMake at the install
+location:
+
+```bash
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/install
+```
+
 # Tutorial
 
 The [`examples`](examples) directory contains a series of self-contained simulations that build on each other,
