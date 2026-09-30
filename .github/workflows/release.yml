@@ -26,6 +26,21 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Validate existing release tag
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          release_tag="v$VERSION"
+          if git rev-parse --verify --quiet "refs/tags/$release_tag" >/dev/null; then
+            tag_commit="$(git rev-list -n 1 "$release_tag")"
+            head_commit="$(git rev-parse HEAD)"
+            cmake_version="$(sed -nE '/^project\(/,/\)/ s/.*VERSION ([0-9]+(\.[0-9]+)*).*/\1/p' CMakeLists.txt)"
+            [[ "$tag_commit" == "$head_commit" && "$cmake_version" == "$VERSION" ]] || {
+              echo "::error::Tag $release_tag already identifies a different release"
+              exit 1
+            }
+          fi
+
       - name: Set version in CMakeLists.txt
         run: |
           # replaces VERSION x.y.z inside the project(...) call, even if it spans several lines
