@@ -135,6 +135,53 @@ jobs:
         working-directory: mrmd-build
         run: ctest --output-on-failure --parallel 2
 
+  install:
+    runs-on: ubuntu-latest
+    container: xzzx/devel:ubuntu-minimal
+    steps:
+      - name: versions
+        run: |
+          cat /etc/os-release
+          echo $PATH
+          git --version
+          cmake --version
+
+      - uses: actions/checkout@v6
+        with:
+          path: 'mrmd'
+
+      - name: Configure
+        run: |
+          cmake \
+            -S mrmd \
+            -B mrmd-build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DMRMD_ENABLE_TESTING=OFF \
+            -DMRMD_WERROR=ON \
+            -DKokkos_ENABLE_HWLOC=ON \
+            -DKokkos_ENABLE_SERIAL=ON \
+            -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/mrmd-install \
+
+      - name: build library
+        run: cmake --build mrmd-build --target mrmd --parallel 2
+
+      - name: install library
+        run: cmake --install mrmd-build
+
+      - name: Configure consumer
+        run: |
+          cmake \
+            -S mrmd/tests/install \
+            -B consumer-build \
+            -DCMAKE_PREFIX_PATH=${{ github.workspace }}/mrmd-install
+
+      - name: build consumer
+        run: cmake --build consumer-build --parallel 2
+
+      - name: run consumer
+        working-directory: consumer-build
+        run: ./00_IdealGas_NVE --nsteps 10
+
   nvcc-debug-build:
     strategy:
       matrix:

@@ -24,6 +24,7 @@ project(mrmd
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(TestFunctions)
+include(GNUInstallDirs)
 
 # set C++ standard
 set(CMAKE_CXX_STANDARD 20)
@@ -119,6 +120,7 @@ FetchContent_Declare(
         GIT_TAG 52eb8108c5bdec04579160ae17225d66034bd723 #1.17.0
         SYSTEM
 )
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
