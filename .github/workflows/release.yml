@@ -13,11 +13,14 @@ permissions:
 
 jobs:
   release:
+    if: github.ref_type == 'branch' && github.ref_name == github.event.repository.default_branch
     runs-on: ubuntu-latest
     steps:
       - name: Validate version
+        env:
+          VERSION: ${{ inputs.version }}
         run: |
-          [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Bad version"; exit 1; }
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Bad version"; exit 1; }
 
       - uses: actions/checkout@v7
         with:
