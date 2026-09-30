@@ -1,0 +1,47 @@
+# Doxygen configuration for MRMD. Only non-default values are listed.
+# Configured by CMake, see docs/CMakeLists.txt.
+
+PROJECT_NAME           = MRMD
+PROJECT_NUMBER         = @PROJECT_VERSION@
+PROJECT_BRIEF          = "@PROJECT_DESCRIPTION@"
+OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@
+STRIP_FROM_PATH        = @PROJECT_SOURCE_DIR@
+STRIP_FROM_INC_PATH    = @PROJECT_SOURCE_DIR@/mrmd
+
+#---------------------------------------------------------------------------
+# Build and input
+#---------------------------------------------------------------------------
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+WARN_IF_UNDOCUMENTED   = NO
+INPUT                  = @PROJECT_SOURCE_DIR@/README.md \
+                         @PROJECT_SOURCE_DIR@/mrmd
+FILE_PATTERNS          = *.hpp *.cpp *.md
+RECURSIVE              = YES
+EXCLUDE_PATTERNS       = *.test.cpp \
+                         */mrmd/test/* \
+                         */gtest_main*
+EXAMPLE_PATH           = @PROJECT_SOURCE_DIR@/examples
+USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/README.md
+
+#---------------------------------------------------------------------------
+# HTML output with doxygen-awesome-css
+#---------------------------------------------------------------------------
+GENERATE_LATEX         = NO
+GENERATE_TREEVIEW      = YES
+DISABLE_INDEX          = NO
+FULL_SIDEBAR           = NO
+HTML_COLORSTYLE        = LIGHT
+HTML_HEADER            = @CMAKE_CURRENT_SOURCE_DIR@/header.html
+HTML_EXTRA_STYLESHEET  = @AWESOME_CSS_DIR@/doxygen-awesome.css \
+                         @AWESOME_CSS_DIR@/doxygen-awesome-sidebar-only.css \
+                         @AWESOME_CSS_DIR@/doxygen-awesome-sidebar-only-darkmode-toggle.css
+HTML_EXTRA_FILES       = @AWESOME_CSS_DIR@/doxygen-awesome-darkmode-toggle.js \
+                         @AWESOME_CSS_DIR@/doxygen-awesome-fragment-copy-button.js
+
+#---------------------------------------------------------------------------
+# Diagrams
+#---------------------------------------------------------------------------
+HAVE_DOT               = @MRMD_DOXYGEN_HAVE_DOT@
+DOT_IMAGE_FORMAT       = svg
+INTERACTIVE_SVG        = YES
