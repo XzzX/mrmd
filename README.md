@@ -1,5 +1,6 @@
 ![Build Status](https://img.shields.io/github/actions/workflow/status/xzzx/mrmd/validate.yml?branch=main&label=main)
 ![GitHub License](https://img.shields.io/github/license/xzzx/mrmd)
+[![Documentation](https://img.shields.io/badge/docs-doxygen-blue)](https://xzzx.github.io/mrmd/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17698862.svg)](https://doi.org/10.5281/zenodo.17698862)
 
 # MRMD - **M**ulti **R**esolution **M**olecular **D**ynamics
@@ -44,6 +45,7 @@ These are fetched and built automatically by CMake:
 
 | Flag                  | Description                                | Default |
 | --------------------- | ------------------------------------------ | ------- |
+| MRMD_BUILD_DOCS       | Build the Doxygen documentation (`docs`)   | OFF     |
 | MRMD_ENABLE_COVERAGE  | Enable code coverage (clang only)          | OFF     |
 | MRMD_ENABLE_HDF5      | Enable HDF5 / H5MD support                 | OFF     |
 | MRMD_ENABLE_TESTING   | Build tests and add them to ctest          | ON      |
@@ -106,6 +108,19 @@ location:
 cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/install
 ```
 
+## Building the Documentation
+
+The API documentation is published at <https://xzzx.github.io/mrmd/>. To build it
+locally, install [Doxygen](https://www.doxygen.nl/) (and optionally
+[Graphviz](https://graphviz.org/) for diagrams) and run:
+
+```bash
+cmake -S mrmd -B mrmd-build -DMRMD_BUILD_DOCS=ON
+cmake --build mrmd-build --target docs
+```
+
+The HTML output is written to `mrmd-build/docs/html/index.html`.
+
 # Tutorial
 
 The [`examples`](examples) directory contains a series of self-contained simulations that build on each other,
@@ -136,8 +151,8 @@ If you use MRMD in your research, please cite it using the metadata in [CITATION
 
 # Authors
 
-- Sebastian Eibl ([@XzzX](https://github.com/XzzX)) — [ORCID](https://orcid.org/0000-0002-1069-2720)
-- Julian Friedrich Hille ([@J-Hizzle](https://github.com/J-Hizzle)) — [ORCID](https://orcid.org/0009-0008-1005-9053)
+- Sebastian Eibl ([\@XzzX](https://github.com/XzzX)) — [ORCID](https://orcid.org/0000-0002-1069-2720)
+- Julian Friedrich Hille ([\@J-Hizzle](https://github.com/J-Hizzle)) — [ORCID](https://orcid.org/0009-0008-1005-9053)
 
 # License
 
