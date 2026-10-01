@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 3.25)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 project(mrmd
-        VERSION 0.2.0
+        VERSION 0.4.0
         DESCRIPTION "Multi Resolution Molecular Dynamics"
         HOMEPAGE_URL https://github.com/XzzX/mrmd
         LANGUAGES C CXX)
