@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
 
 jobs:
   release:
@@ -48,11 +49,17 @@ jobs:
           grep -n "VERSION" CMakeLists.txt | head
           git diff --exit-code CMakeLists.txt && echo "::warning::Version unchanged" || true
 
-      - name: Build and test (sanity check before releasing)
+      - name: Check that validate pipeline passed for this commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-          cmake --build build --parallel
-          ctest --test-dir build --output-on-failure
+          sha="$(git rev-parse HEAD)"
+          conclusion="$(gh run list --workflow validate.yml --commit "$sha" --event push \
+            --json conclusion --jq '[.[] | select(.conclusion == "success")] | length')"
+          [[ "$conclusion" -ge 1 ]] || {
+            echo "::error::No successful validate run found for commit $sha"
+            exit 1
+          }
 
       - name: Commit and push
         run: |
