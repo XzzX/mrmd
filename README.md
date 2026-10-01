@@ -143,6 +143,32 @@ as its own executable in `mrmd-build/examples/<name>`. Work through them in orde
 
 Contributions are welcome! Please open an issue to discuss a bug or feature request before submitting a pull request. When contributing code, follow the existing code style (enforced via `.clang-format`) and ensure all tests pass.
 
+## Quality-of-life tooling: automatic formatting
+
+[`format.sh`](format.sh) formats all tracked C++ sources (`*.cpp`, `*.hpp`) in place according to
+[`.clang-format`](.clang-format). It is also wired up as a [pre-commit](https://pre-commit.com/) hook in
+[`.pre-commit-config.yaml`](.pre-commit-config.yaml), so formatting happens automatically on every commit.
+
+Run it manually from the repository root:
+
+```bash
+./format.sh
+```
+
+Enable the commit hook once per clone:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+Hard dependencies of the script:
+
+- `clang-format-18` — exactly this versioned binary name must be on your `PATH`; a plain `clang-format` or a
+  different version will not be picked up
+
+The pre-commit hook additionally requires [`pre-commit`](https://pre-commit.com/) itself.
+
 # Citation
 
 If you use MRMD in your research, please cite it using the metadata in [CITATION.cff](CITATION.cff) or the following:
