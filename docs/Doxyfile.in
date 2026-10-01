@@ -23,6 +23,7 @@ EXCLUDE_PATTERNS       = *.test.cpp \
                          */gtest_main*
 EXAMPLE_PATH           = @PROJECT_SOURCE_DIR@/examples
 USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/README.md
+JAVADOC_AUTOBRIEF      = YES
 
 #---------------------------------------------------------------------------
 # HTML output with doxygen-awesome-css
