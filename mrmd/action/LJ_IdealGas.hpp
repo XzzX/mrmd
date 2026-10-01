@@ -84,7 +84,7 @@ public:
      * Loop over molecules
      *
      * @param alpha first molecule index
-     * @param sumEnergy accumulation variable 
+     * @param sumEnergy accumulation variable
      */
     KOKKOS_FUNCTION void operator()(const idx_t& alpha, real_t& sumEnergy) const;
 
