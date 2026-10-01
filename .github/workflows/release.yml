@@ -23,9 +23,16 @@ jobs:
         run: |
           [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Bad version"; exit 1; }
 
+      - uses: actions/create-github-app-token@v1
+        id: app
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          token: ${{ steps.app.outputs.token }}
 
       - name: Validate existing release tag
         env:
@@ -64,7 +71,7 @@ jobs:
       - name: Commit and push
         run: |
           git config user.name  "github-actions[bot]"
-          git config user.email "github-actions@github-actions"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add CMakeLists.txt
           git diff --cached --quiet || git commit -m "Release v${{ inputs.version }}"
           git push origin HEAD
