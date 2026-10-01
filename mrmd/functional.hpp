@@ -20,18 +20,30 @@ namespace mrmd
 {
 namespace bin_op
 {
+///
+/// GPU compatible binary operator to performan an addition.
+///
 struct Add
 {
     KOKKOS_INLINE_FUNCTION real_t operator()(real_t x, real_t y) const { return x + y; }
 };
+///
+/// GPU compatible binary operator to performan a subtraction.
+///
 struct Sub
 {
     KOKKOS_INLINE_FUNCTION real_t operator()(real_t x, real_t y) const { return x - y; }
 };
+///
+/// GPU compatible binary operator to performan a multiplication.
+///
 struct Mul
 {
     KOKKOS_INLINE_FUNCTION real_t operator()(real_t x, real_t y) const { return x * y; }
 };
+///
+/// GPU compatible binary operator to performan a division.
+///
 struct Div
 {
     KOKKOS_INLINE_FUNCTION real_t operator()(real_t x, real_t y) const { return x / y; }

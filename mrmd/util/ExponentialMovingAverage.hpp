@@ -20,6 +20,11 @@ namespace mrmd
 {
 namespace util
 {
+///
+/// Calculates the exponential moving average (EMA) for values added with append.
+///
+/// https://en.wikipedia.org/wiki/Exponential_smoothing
+///
 class ExponentialMovingAverage
 {
 private:
