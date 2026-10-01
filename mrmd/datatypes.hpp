@@ -194,8 +194,8 @@ using HalfNeighborList = Cabana::NeighborList<HalfVerletList>;
 using FullNeighborList = Cabana::NeighborList<FullVerletList>;
 
 ///
-/// Concept for predicates that take one coordinate as input, e.g. for spatially selective updating
-/// of histogram bins
+/// @brief Concept for predicates that take one coordinate as input, e.g. 
+/// for spatially selective updating of histogram bins.
 ///
 template <typename F>
 concept OneCoordinatePredicate = std::predicate<F,
@@ -203,8 +203,8 @@ concept OneCoordinatePredicate = std::predicate<F,
                                                 >;
 
 ///
-/// Concept for predicates that take one position as input, e.g. for spatially selective application
-/// of forces or thermostats.
+/// @brief Concept for predicates that take one position as input, e.g. 
+/// for spatially selective application of forces or thermostats.
 ///
 template <typename F>
 concept OnePositionPredicate = std::predicate<F,
@@ -214,8 +214,8 @@ concept OnePositionPredicate = std::predicate<F,
                                               >;
 
 ///
-/// Concept for predicates that take two positions as input, e.g. for conditions based on relative
-/// positions of two atoms
+/// @brief Concept for predicates that take two positions as input, e.g. 
+/// for conditions based on relative positions of two atoms.
 ///
 template <typename F>
 concept TwoPositionsPredicate = std::predicate<F,
