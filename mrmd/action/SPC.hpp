@@ -137,6 +137,7 @@ public:
      * Loop over molecules
      *
      * @param alpha first molecule index
+     * @param sumEnergy accumulation variable
      */
     KOKKOS_INLINE_FUNCTION void operator()(CalcInteractions,
                                            const idx_t& alpha,
