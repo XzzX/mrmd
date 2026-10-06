@@ -30,7 +30,7 @@ public:
 
     void close();
 
-    void dumpScalarView(const ScalarView::HostMirror& dataProfile,
+    void dumpScalarView(const ScalarView::host_mirror_type& dataProfile,
                         const real_t& normalizationFactor = 1_r);
 
 private:
@@ -38,8 +38,8 @@ private:
 };
 
 void dumpSingleProfile(const std::string& filename,
-                       const ScalarView::HostMirror& grid,
-                       const ScalarView::HostMirror& dataProfile,
+                       const ScalarView::host_mirror_type& grid,
+                       const ScalarView::host_mirror_type& dataProfile,
                        const real_t& normalizationFactor = 1_r);
 }  // namespace io
 }  // namespace mrmd
