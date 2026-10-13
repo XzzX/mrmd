@@ -25,7 +25,7 @@ RECURSIVE              = YES
 EXCLUDE_PATTERNS       = *.test.cpp \
                          */mrmd/test/* \
                          */gtest_main*
-EXAMPLE_PATH           = @PROJECT_SOURCE_DIR@/examples
+EXAMPLE_PATH           = @PROJECT_SOURCE_DIR@
 USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/README.md
 JAVADOC_AUTOBRIEF      = YES
 

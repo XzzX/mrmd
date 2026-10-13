@@ -37,11 +37,13 @@ TEST(ExponentialMovingAverage, cast)
 
 TEST(ExponentialMovingAverage, sum)
 {
+    //! [example]
     ExponentialMovingAverage exp(0.1_r);
     exp.append(2_r);
     EXPECT_FLOAT_EQ(exp, 2_r);
     exp.append(3_r);
     EXPECT_FLOAT_EQ(exp, 2.1_r);
+    //! [example]
 }
 
 TEST(ExponentialMovingAverage, operator)
