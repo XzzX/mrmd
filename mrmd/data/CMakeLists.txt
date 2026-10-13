@@ -1,4 +1,5 @@
 # Copyright 2024 Sebastian Eibl
+# Copyright 2026 Julian Friedrich Hille
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,3 +24,6 @@ mrmd_add_test(NAME test.data.MultiHistogram
 
 mrmd_add_test(NAME test.data.Subdomain
         FILES Subdomain.test.cpp)
+
+mrmd_add_test(NAME test.data.Atoms
+        FILES Atoms.test.cpp)

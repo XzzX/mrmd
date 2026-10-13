@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,19 +19,21 @@ namespace mrmd
 {
 namespace analysis
 {
-data::MultiHistogram getAxialDensityProfile(const idx_t numAtoms,
-                                            const data::Atoms::pos_t& positions,
-                                            const data::Atoms::type_t& types,
-                                            const int64_t numTypes,
-                                            const real_t min,
-                                            const real_t max,
-                                            const int64_t numBins,
-                                            const AXIS axis)
+data::MultiHistogram getAxialParticleNumberProfile(const data::Atoms& atoms,
+                                                   const real_t min,
+                                                   const real_t max,
+                                                   const idx_t numBins,
+                                                   const AXIS axis)
 {
     MRMD_HOST_CHECK_GREATEREQUAL(max, min);
-    MRMD_HOST_CHECK_GREATER(numTypes, 0);
 
-    data::MultiHistogram histogram("density-profile", min, max, numBins, numTypes);
+    auto numAtoms = atoms.numLocalAtoms + atoms.numGhostAtoms;
+    auto numTypes = atoms.getNumTypes();
+    auto positions = atoms.getPos();
+    auto types = atoms.getType();
+
+    data::MultiHistogram histogram(
+        "get-axial-particle-number-profile", min, max, numBins, numTypes);
     MultiScatterView scatter(histogram.data);
 
     auto policy = Kokkos::RangePolicy<>(0, numAtoms);
@@ -49,6 +52,5 @@ data::MultiHistogram getAxialDensityProfile(const idx_t numAtoms,
 
     return histogram;
 }
-
 }  // namespace analysis
 }  // namespace mrmd
