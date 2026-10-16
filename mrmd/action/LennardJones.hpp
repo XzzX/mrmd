@@ -95,6 +95,19 @@ public:
 
 namespace mrmd::action
 {
+/**
+ * @class LennardJones
+ * @brief Implements the Lennard-Jones potential.
+ *
+ * This class provides methods to compute the force and energy between two particles
+ * using the Lennard-Jones potential, which models van der Waals interactions with a
+ * repulsive and an attractive term. The class provides facilities to handle potential
+ * shifting, force capping and to evaluate the potential energy and forces depending
+ * on the positions of the interacting particles (see ref. [1]).
+ *
+ * References:
+ * [1] DOI: 10.48550/arXiv.2607.24574
+ */
 class LennardJones
 {
 private:
