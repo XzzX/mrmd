@@ -21,6 +21,17 @@
 
 namespace mrmd::action::impl
 {
+/**
+ * @class CappedLennardJones
+ * @brief Low-level implementation of the Capped Lennard-Jones potential.
+ *
+ * This class implements methods to compute the Lennard-Jones force and energy
+ * at a given distance squared. Force capping and potential shifting are available.
+ *
+ * References:
+ * [1] DOI: 10.48550/arXiv.2607.24574
+ */
+
 class CappedLennardJonesPotential
 {
 public:
@@ -97,13 +108,12 @@ namespace mrmd::action
 {
 /**
  * @class LennardJones
- * @brief Implements the Lennard-Jones potential.
+ * @brief Superclass for the application of the Lennard-Jones potential.
  *
- * This class provides methods to compute the force and energy between two particles
- * using the Lennard-Jones potential, which models van der Waals interactions with a
- * repulsive and an attractive term. The class provides facilities to handle potential
- * shifting, force capping and to evaluate the potential energy and forces depending
- * on the positions of the interacting particles (see ref. [1]).
+ * This superclass provides methods to apply the Lennard-Jones force and energy to a
+ * system of particles. The class provides facilities to handle potential
+ * shifting, force capping and to evaluate the potential energy and forces only in
+ * parts of the simulation domain (see ref. [1]).
  *
  * References:
  * [1] DOI: 10.48550/arXiv.2607.24574
