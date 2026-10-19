@@ -31,6 +31,14 @@ void updateMeanCompensationEnergy(data::MultiHistogram& compensationEnergy,
                                   data::MultiHistogram& meanCompensationEnergy,
                                   const real_t runningAverageFactor = 10_r);
 
+/**
+ * @class LJ_IdealGas
+ * @brief High-level interface for running an AdResS simulation of a Lennard-Jones fluid
+ * coupled to an ideal gas.
+ *
+ * References:
+ * -DOI: 10.1063/1.5143268
+ */
 class LJ_IdealGas
 {
 private:
