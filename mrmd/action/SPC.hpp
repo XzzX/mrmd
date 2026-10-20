@@ -58,6 +58,14 @@ namespace mrmd
 {
 namespace action
 {
+/**
+ * @class SPC
+ * @brief High-level interface for running a simulation with the SPC water model including bond
+ * constraints.
+ *
+ * References:
+ * - DOI: 10.1021/j100308a038
+ */
 class SPC
 {
 private:
