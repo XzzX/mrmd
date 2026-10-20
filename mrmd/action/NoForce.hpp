@@ -19,6 +19,11 @@
 
 namespace mrmd::action
 {
+/**
+ * @class NoForce
+ * @brief Class that should be taken as inspiration for implementing new forces.
+ *
+ */
 class NoForce
 {
 private:
