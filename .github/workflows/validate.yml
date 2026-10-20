@@ -12,6 +12,10 @@ jobs:
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
+    env:
+      OMP_PROC_BIND: spread
+      OMP_PLACES: threads
+
     steps:
       - name: versions
         run: |
@@ -60,6 +64,10 @@ jobs:
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
+    env:
+      OMP_PROC_BIND: spread
+      OMP_PLACES: threads
+
     steps:
       - name: versions
         run: |
@@ -101,6 +109,9 @@ jobs:
   minimal-build:
     runs-on: ubuntu-latest
     container: xzzx/devel:ubuntu-minimal
+    env:
+      OMP_PROC_BIND: spread
+      OMP_PLACES: threads
     steps:
       - name: versions
         run: |
@@ -138,6 +149,9 @@ jobs:
   install:
     runs-on: ubuntu-latest
     container: xzzx/devel:ubuntu-minimal
+    env:
+      OMP_PROC_BIND: spread
+      OMP_PLACES: threads
     steps:
       - name: versions
         run: |
@@ -190,6 +204,10 @@ jobs:
 
     runs-on: ubuntu-latest
     container: xzzx/devel:${{ matrix.CONTAINER }}
+    env:
+      OMP_PROC_BIND: spread
+      OMP_PLACES: threads
+
     steps:
       - name: versions
         run: |
@@ -233,6 +251,10 @@ jobs:
   clang-tidy:
     runs-on: ubuntu-latest
     container: xzzx/devel:clang-18
+    env:
+      OMP_PROC_BIND: spread
+      OMP_PLACES: threads
+
     steps:
       - name: versions
         run: |
