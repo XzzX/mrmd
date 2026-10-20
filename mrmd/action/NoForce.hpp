@@ -21,7 +21,8 @@ namespace mrmd::action
 {
 /**
  * @class NoForce
- * @brief Class that should be taken as inspiration for implementing new forces.
+ * @brief Class that doesn't serve a functional purpose, but should be taken as inspiration for
+ * implementing new forces.
  *
  */
 class NoForce
