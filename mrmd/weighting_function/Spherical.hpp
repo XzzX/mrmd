@@ -22,6 +22,9 @@ namespace mrmd
 {
 namespace weighting_function
 {
+/**
+ * Applies the weighting function to a spherical simulation geometry.
+ */
 class Spherical
 {
 private:

@@ -23,6 +23,9 @@ namespace mrmd
 {
 namespace util
 {
+/// @brief GPU compatible random number generator.
+///
+/// Use @ref draw to get new random number.
 struct Random
 {
     // The GeneratorPool
