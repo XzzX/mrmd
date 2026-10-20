@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,7 +24,6 @@ namespace mrmd::action
  * @class NoForce
  * @brief Class that doesn't serve a functional purpose, but should be taken as inspiration for
  * implementing new forces.
- *
  */
 class NoForce
 {
