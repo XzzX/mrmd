@@ -22,7 +22,6 @@
 namespace mrmd::action::impl
 {
 /**
- * @class CappedLennardJones
  * @brief Low-level implementation of the Capped Lennard-Jones potential.
  *
  * This class implements methods to compute the Lennard-Jones force and energy
@@ -106,7 +105,6 @@ public:
 namespace mrmd::action
 {
 /**
- * @class LennardJones
  * @brief Superclass for the application of the Lennard-Jones potential.
  *
  * This superclass provides methods to apply the Lennard-Jones force and energy to a

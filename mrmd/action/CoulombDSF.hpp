@@ -26,7 +26,6 @@ namespace impl
 {
 
 /**
- * @class CoulombDSF
  * @brief Implements the Coulomb potential with the Damped Shifted Force (DSF) method.
  *
  * This class provides methods to compute the force and energy between two charged particles

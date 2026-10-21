@@ -30,7 +30,6 @@ namespace action
 namespace impl
 {
 /**
- * @class Shake
  * @brief Implements the the application of a SHAKE/RATTLE constraint correction to a pair of atoms.
  */
 class Shake
@@ -161,7 +160,6 @@ public:
 }  // namespace impl
 
 /**
- * @class MoleculeConstraints
  * @brief Implements the application of SHAKE/RATTLE position and velocity constraints to a group of
  * molecules.
  *

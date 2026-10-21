@@ -27,7 +27,6 @@ namespace impl
 {
 
 /**
- * @class Coulomb
  * @brief Implements the Coulomb potential.
  *
  * This class provides methods to compute the force and energy between two charged particles
