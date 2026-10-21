@@ -33,8 +33,8 @@ void updateMeanCompensationEnergy(data::MultiHistogram& compensationEnergy,
                                   const real_t runningAverageFactor = 10_r);
 
 /**
- * @brief High-level interface for running an AdResS simulation of a Lennard-Jones fluid
- * coupled to an ideal gas.
+ * @brief High-level interface for applying the pair-wise potential in an H-AdResS simulation of a
+ * Lennard-Jones fluid coupled to an ideal gas.
  *
  * References:
  * -DOI: 10.1063/1.5143268

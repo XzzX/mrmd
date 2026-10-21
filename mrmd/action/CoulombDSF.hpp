@@ -33,7 +33,7 @@ namespace impl
  * factor and a force shift for improved computational efficiency and accuracy in simulations.
  *
  * References:
- * - DOI: 10.1140/epjst/e2016-60151-6
+ * -DOI: 10.1140/epjst/e2016-60151-6
  */
 class CoulombDSF
 {

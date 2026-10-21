@@ -160,12 +160,12 @@ public:
 }  // namespace impl
 
 /**
- * @brief Implements the application of SHAKE/RATTLE position and velocity constraints to a group of
- * molecules.
+ * @brief High-level interface for the application of SHAKE/RATTLE position and velocity constraints
+ * to given molecules.
  *
  * References:
- * - SHAKE algorithm (DOI: 10.1016/0021-9991(77)90098-5)
- * - RATTLE algorithm (DOI: 10.1016/0021-9991(83)90014-1)
+ * -SHAKE algorithm (DOI: 10.1016/0021-9991(77)90098-5)
+ * -RATTLE algorithm (DOI: 10.1016/0021-9991(83)90014-1)
  */
 class MoleculeConstraints
 {

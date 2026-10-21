@@ -60,11 +60,11 @@ namespace mrmd
 namespace action
 {
 /**
- * @brief High-level interface for running a simulation with the SPC water model including bond
- * constraints.
+ * @brief High-level interface for applying the pair-wise potential of the SPC water model to given
+ * molecules and provides methods for enforcing geometric constraints.
  *
  * References:
- * - DOI: 10.1021/j100308a038
+ * -DOI: 10.1021/j100308a038
  */
 class SPC
 {
