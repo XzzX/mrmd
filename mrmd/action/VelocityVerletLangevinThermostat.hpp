@@ -83,16 +83,16 @@ real_t VelocityVerletLangevinThermostat::preForceIntegrate_apply_if(data::Atoms&
         dx[1] = pos(idx, 1);
         dx[2] = pos(idx, 2);
 
-        action::updateKick(vel(idx, 0),
-                           vel(idx, 1),
-                           vel(idx, 2),
-                           force(idx, 0),
-                           force(idx, 1),
-                           force(idx, 2),
-                           dtHalf,
-                           mass(idx));
+        impl::updateKick(vel(idx, 0),
+                         vel(idx, 1),
+                         vel(idx, 2),
+                         force(idx, 0),
+                         force(idx, 1),
+                         force(idx, 2),
+                         dtHalf,
+                         mass(idx));
 
-        action::updateDrift(
+        impl::updateDrift(
             pos(idx, 0), pos(idx, 1), pos(idx, 2), vel(idx, 0), vel(idx, 1), vel(idx, 2), dtHalf);
 
         if (pred(pos(idx, 0), pos(idx, 1), pos(idx, 2)))
@@ -101,22 +101,22 @@ real_t VelocityVerletLangevinThermostat::preForceIntegrate_apply_if(data::Atoms&
             auto randGen = RNG.get_state();
 
             // Apply the Ornstein-Uhlenbeck process to the velocity
-            action::updateOrnsteinUhlenbeck(vel(idx, 0),
-                                            vel(idx, 1),
-                                            vel(idx, 2),
-                                            dtFull,
-                                            mass(idx),
-                                            zeta,
-                                            temperature,
-                                            randGen.normal(),
-                                            randGen.normal(),
-                                            randGen.normal());
+            impl::updateOrnsteinUhlenbeck(vel(idx, 0),
+                                          vel(idx, 1),
+                                          vel(idx, 2),
+                                          dtFull,
+                                          mass(idx),
+                                          zeta,
+                                          temperature,
+                                          randGen.normal(),
+                                          randGen.normal(),
+                                          randGen.normal());
 
             // Give the state back, which will allow another thread to acquire it
             RNG.free_state(randGen);
         }
 
-        action::updateDrift(
+        impl::updateDrift(
             pos(idx, 0), pos(idx, 1), pos(idx, 2), vel(idx, 0), vel(idx, 1), vel(idx, 2), dtHalf);
 
         dx[0] -= pos(idx, 0);
