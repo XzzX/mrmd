@@ -52,6 +52,7 @@ KOKKOS_INLINE_FUNCTION real_t powInt(const real_t& x, const idx_t n)
  *
  * accuracy: 1.5x10^-7
  *
+ * @param x evaluation point
  * @param expX2 intermediate value std::exp(-x * x)
  */
 KOKKOS_INLINE_FUNCTION real_t approxErfc(const real_t& x, real_t& expX2)

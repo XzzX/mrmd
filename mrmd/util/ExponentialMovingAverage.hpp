@@ -20,6 +20,14 @@ namespace mrmd
 {
 namespace util
 {
+///
+/// Calculates the exponential moving average (EMA) for values added with @ref append.
+///
+/// Reference: https://en.wikipedia.org/wiki/Exponential_smoothing
+///
+/// Example:
+/// @snippet ExponentialMovingAverage.test.cpp example
+///
 class ExponentialMovingAverage
 {
 private:
