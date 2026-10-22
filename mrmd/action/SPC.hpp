@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,6 +59,13 @@ namespace mrmd
 {
 namespace action
 {
+/**
+ * @brief High-level interface for applying the pair-wise potential of the SPC water model to given
+ * molecules and for enforcing geometric constraints.
+ *
+ * References:
+ * -DOI: 10.1021/j100308a038
+ */
 class SPC
 {
 private:

@@ -29,6 +29,13 @@ namespace mrmd
 {
 namespace action
 {
+/**
+ * @brief High-level interface for calculating and applying the one-body thermodynamic force of
+ * AdResS.
+ *
+ * References:
+ * -DOI: 10.1063/1.5031206
+ */
 class ThermodynamicForce
 {
 private:
