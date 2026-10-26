@@ -1,5 +1,5 @@
 // Copyright 2024 Sebastian Eibl
-//
+// Copyright 2026 Julian Friedrich Hille
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -26,6 +26,13 @@ namespace mrmd
 {
 namespace action
 {
+/**
+ * @brief Integrator that updates the positions and velocities of atoms using the BAOAB Langevin
+ * dynamics algorithm.
+ *
+ * References:
+ * -DOI: 10.1093/amrx/abs010
+ */
 class VelocityVerletLangevinThermostat
 {
 private:

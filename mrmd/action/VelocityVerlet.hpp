@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +24,13 @@ namespace mrmd
 {
 namespace action
 {
+/**
+ * @brief Integrator that updates the positions and velocities of atoms using the Velocity Verlet
+ * algorithm.
+ *
+ * References:
+ * -DOI: 10.1063/1.442716
+ */
 class VelocityVerlet
 {
 public:

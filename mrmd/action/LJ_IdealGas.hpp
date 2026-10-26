@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,6 +32,13 @@ void updateMeanCompensationEnergy(data::MultiHistogram& compensationEnergy,
                                   data::MultiHistogram& meanCompensationEnergy,
                                   const real_t runningAverageFactor = 10_r);
 
+/**
+ * @brief High-level interface for applying the pair-wise potential in an H-AdResS simulation of a
+ * Lennard-Jones fluid coupled to an ideal gas.
+ *
+ * References:
+ * -DOI: 10.1063/1.5143268
+ */
 class LJ_IdealGas
 {
 private:
