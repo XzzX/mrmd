@@ -3,7 +3,7 @@
 [![Documentation](https://img.shields.io/badge/docs-doxygen-blue)](https://xzzx.github.io/mrmd/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17698862.svg)](https://doi.org/10.5281/zenodo.17698862)
 
-# MRMD - **M**ulti **R**esolution **M**olecular **D**ynamics
+# MRMD - Multi Resolution Molecular Dynamics
 
 MRMD is a stand-alone, open-source C++ package implementing the (Hamiltonian) adaptive resolution
 simulation ((H-)AdResS) method, which concurrently couples regions of different resolution — e.g.
