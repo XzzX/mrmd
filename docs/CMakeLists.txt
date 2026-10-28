@@ -30,8 +30,14 @@ endif ()
 
 configure_file(Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
+add_custom_target(tutorial_index
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/gen_tutorial_index.py
+          ${CMAKE_SOURCE_DIR}/examples ${CMAKE_BINARY_DIR}/docs/tutorials.dox --recursive)
+
 add_custom_target(docs
         COMMAND Doxygen::doxygen ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen"
         VERBATIM)
+add_dependencies(docs tutorial_index)
+

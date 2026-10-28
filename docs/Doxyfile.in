@@ -18,8 +18,9 @@ WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = NO
 WARN_IF_DOC_ERROR      = YES
 WARN_AS_ERROR          = YES
-INPUT                  = @PROJECT_SOURCE_DIR@/README.md \
+INPUT                  = @CMAKE_BINARY_DIR@/docs/tutorials.dox \
                          @PROJECT_SOURCE_DIR@/docs \
+                         @PROJECT_SOURCE_DIR@/examples \
                          @PROJECT_SOURCE_DIR@/mrmd
 FILE_PATTERNS          = *.hpp *.cpp *.md *.dox
 RECURSIVE              = YES
@@ -30,8 +31,8 @@ EXCLUDE_SYMBOLS        = impl \
                          *::impl \
                          *::impl::*
 EXAMPLE_PATH           = @PROJECT_SOURCE_DIR@
-USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/README.md
 JAVADOC_AUTOBRIEF      = YES
+FILTER_PATTERNS        = *examples*.cpp="python3 @CMAKE_CURRENT_SOURCE_DIR@/tutorial_filter.py"
 
 #---------------------------------------------------------------------------
 # HTML output with doxygen-awesome-css
