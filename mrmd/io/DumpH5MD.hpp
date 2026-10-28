@@ -24,9 +24,20 @@ namespace mrmd::io
 {
 namespace impl
 {
+/**
+ * @brief Stores all information for H5MD dump.
+ *
+ * If HDF5 is disabled, this class can be skipped and all HDF5 dependencies are gone.
+ */
 class DumpH5MDImpl;
-}
+}  // namespace impl
 
+/**
+ * @brief Handles dumping trajectory data in H5MD format.
+ *
+ * References:
+ * -DOI: 10.1016/j.cpc.2014.01.018
+ */
 class DumpH5MD
 {
 public:
