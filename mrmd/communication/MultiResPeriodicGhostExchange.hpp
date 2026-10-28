@@ -1,5 +1,5 @@
 // Copyright 2024 Sebastian Eibl
-//
+// Copyright 2026 Julian Friedrich Hille
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -57,7 +57,10 @@ DoubleCounter operator+(const DoubleCounter& lhs, const DoubleCounter& rhs)
 {
     return DoubleCounter(lhs.atoms + rhs.atoms, lhs.molecules + rhs.molecules);
 }
-
+/**
+ * @brief Handles the exchange of ghost atoms at periodic boundaries in a multi-resolution
+ * simulation.
+ */
 class MultiResPeriodicGhostExchange
 {
 private:
