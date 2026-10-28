@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -23,6 +24,9 @@ namespace mrmd
 {
 namespace analysis
 {
+/**
+ * @brief Calculates the mean square displacement of particles over time.
+ */
 class MeanSquareDisplacement
 {
 private:
