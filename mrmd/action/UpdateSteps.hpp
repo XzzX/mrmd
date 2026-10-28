@@ -18,9 +18,7 @@
 
 #include "datatypes.hpp"
 
-namespace mrmd
-{
-namespace action
+namespace mrmd::action::impl
 {
 KOKKOS_INLINE_FUNCTION
 void updateKick(real_t& vel_x,
@@ -77,6 +75,4 @@ void updateOrnsteinUhlenbeck(real_t& vel_x,
     vel_y += sigma * rand_y;
     vel_z += sigma * rand_z;
 }
-
-}  // namespace action
-}  // namespace mrmd
+}  // namespace mrmd::action::impl
