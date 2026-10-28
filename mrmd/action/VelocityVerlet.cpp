@@ -40,16 +40,16 @@ real_t VelocityVerlet::preForceIntegrate(data::Atoms& atoms, const real_t dt)
         dx[1] = pos(idx, 1);
         dx[2] = pos(idx, 2);
 
-        action::updateKick(vel(idx, 0),
-                           vel(idx, 1),
-                           vel(idx, 2),
-                           force(idx, 0),
-                           force(idx, 1),
-                           force(idx, 2),
-                           dtHalf,
-                           mass(idx));
+        impl::updateKick(vel(idx, 0),
+                         vel(idx, 1),
+                         vel(idx, 2),
+                         force(idx, 0),
+                         force(idx, 1),
+                         force(idx, 2),
+                         dtHalf,
+                         mass(idx));
 
-        action::updateDrift(
+        impl::updateDrift(
             pos(idx, 0), pos(idx, 1), pos(idx, 2), vel(idx, 0), vel(idx, 1), vel(idx, 2), dtFull);
 
         dx[0] -= pos(idx, 0);
@@ -76,14 +76,14 @@ void VelocityVerlet::postForceIntegrate(data::Atoms& atoms, const real_t dt)
     auto policy = Kokkos::RangePolicy<>(0, atoms.numLocalAtoms);
     auto kernel = KOKKOS_LAMBDA(const idx_t& idx)
     {
-        action::updateKick(vel(idx, 0),
-                           vel(idx, 1),
-                           vel(idx, 2),
-                           force(idx, 0),
-                           force(idx, 1),
-                           force(idx, 2),
-                           dtHalf,
-                           mass(idx));
+        impl::updateKick(vel(idx, 0),
+                         vel(idx, 1),
+                         vel(idx, 2),
+                         force(idx, 0),
+                         force(idx, 1),
+                         force(idx, 2),
+                         dtHalf,
+                         mass(idx));
     };
     Kokkos::parallel_for("VelocityVerlet::postForceIntegrate", policy, kernel);
     Kokkos::fence();
