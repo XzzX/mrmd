@@ -1,4 +1,5 @@
 // Copyright 2025 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +20,12 @@
 
 namespace mrmd::analysis
 {
-/// Counts particles that cross a defined plane between two time steps.
+/**
+ * @brief Counts particles that cross a defined plane between two time steps.
+ *
+ * References:
+ * -DOI: 10.48550/arXiv.2607.24574
+ */
 class CountingPlane
 {
     Point3D pointOnPlane_;
