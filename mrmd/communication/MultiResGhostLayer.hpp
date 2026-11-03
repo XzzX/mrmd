@@ -1,5 +1,5 @@
 // Copyright 2024 Sebastian Eibl
-//
+// Copyright 2026 Julian Friedrich Hille
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -26,6 +26,10 @@ namespace mrmd
 {
 namespace communication
 {
+/**
+ * @brief High-level interface for managing ghost atoms at the periodic boundaries in a
+ * multi-resolution simulation.
+ */
 class MultiResGhostLayer
 {
 private:
