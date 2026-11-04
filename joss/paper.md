@@ -26,6 +26,15 @@ bibliography: paper.bib
 
 # Summary
 
+`MRMD` is a stand-alone C++ software package providing the algorithms necessary to set up and run AdResS
+simulations. The software provides all algorithms as building blocks that can be combined via a C++ interface. 
+It is thus particularly suitable for testing and further 
+development of the AdResS method itself. The software comes with basic tools for pre- and postprocessing of 
+the simulations but can also parse input and generate output in formats such as GRO and H5MD [@DEBUYL20141546] and thus interfaces 
+to standard packages in molecular simulation such as `Gromacs` and `MDAnalysis`.
+
+# Statement of need
+
 The (Hamiltonian) adaptive resolution simulation ((H-)AdResS) scheme concurrently
 couples regions of different resolutions by spatially interpolating or switching between different 
 interparticle (potentials/) forces, e.g. atomistic Lennard-Jones and ideal gas [@praprotnik_adaptive_2005; @praprotnik_adaptive_2007; @potestio_hamiltonian_2013]. The method has 
@@ -36,18 +45,10 @@ subsystem [@wang_grand-canonical-like_2013; @delle_site_molecular_2019; @cortes-
 non-equilibrium simulations with distinct thermodynamic reservoir states at opposing boundaries of 
 the atomistic region that could even fluctuate in accord with a fluid dynamical simulation on a 
 larger scale [@heidari_open-boundary_2020; @klein_nonequilibrium_2021; @gholami_simulation_2022]. However, the method requires very specific algorithms that are not immediately available, 
-difficult to maintain and challenging to further develop within the standard simulation packages of 
-molecular dynamics. 
-
-# Statement of need
-
-`MRMD` is a stand-alone C++ software package providing the algorithms necessary to set up and run AdResS
-simulations. The software provides all algorithms as building blocks that can be combined via a C++ interface. 
-It is thus particularly suitable for testing and further 
-development of the AdResS method itself. The software comes with basic tools for pre- and postprocessing of 
-the simulations but can also parse input and generate output in formats such as GRO and H5MD [@DEBUYL20141546] and thus interfaces 
-to standard packages in molecular simulation such as `Gromacs` and `MDAnalysis`.
-
+difficult to maintain and challenging to develop further within the standard simulation packages of 
+molecular dynamics. In contrast, the philosophy behind `MRMD` is to provide all these algorithms within one
+stand-alone C++ package.
+ 
 `MRMD` was designed to be used by researchers in the field of open molecular systems and developers of 
 the AdResS method. It has been used in a scientific publication concerned with linking the simulation method 
 with the theoretical model of the Liouville-type hierarchy [@hille_reframing_2026] and, in turn, motivating 
@@ -70,7 +71,7 @@ the current state of the method [@pinzon_escobar_node-level_2025; @sudhakar_exte
 `MRMD`, in contrast, is a stand-alone and open-source software package 
 implementing exclusively the AdResS method. Core functionalities specific to AdResS such as the change of molecular 
 resolution and the compensation of the associated numerical artifacts are therefore built into its very structure 
-and well-covered by unit and integration tests.
+and are well-covered by unit and integration tests.
 
 # Software design
 
