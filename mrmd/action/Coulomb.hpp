@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,6 +25,13 @@ namespace action
 {
 namespace impl
 {
+
+/**
+ * @brief Implements the Coulomb potential.
+ *
+ * This class provides methods to compute the force and energy between two charged particles
+ * using the standard Coulomb potential.
+ */
 class Coulomb
 {
 public:

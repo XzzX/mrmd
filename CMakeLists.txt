@@ -17,13 +17,14 @@ cmake_minimum_required(VERSION 3.25)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 project(mrmd
-        VERSION 0.2.0
+        VERSION 0.4.0
         DESCRIPTION "Multi Resolution Molecular Dynamics"
         HOMEPAGE_URL https://github.com/XzzX/mrmd
         LANGUAGES C CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(TestFunctions)
+include(GNUInstallDirs)
 
 # set C++ standard
 set(CMAKE_CXX_STANDARD 20)
@@ -33,6 +34,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(MRMD_ENABLE_HDF5 "Enable HDF5 support." OFF)
 option(MRMD_ENABLE_MPI "Enable MPI support." OFF)
+option(MRMD_BUILD_DOCS "Build the Doxygen documentation (target: docs)." OFF)
 option(MRMD_ENABLE_COVERAGE "Enable code coverage. (clang)" OFF)
 option(MRMD_ENABLE_TESTING "Build tests and add them to ctest." ON)
 option(MRMD_USE_SHARED_SPACE "Use shared space for Kokkos." OFF)
@@ -119,6 +121,7 @@ FetchContent_Declare(
         GIT_TAG 52eb8108c5bdec04579160ae17225d66034bd723 #1.17.0
         SYSTEM
 )
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 enable_testing()
@@ -126,3 +129,7 @@ enable_testing()
 add_subdirectory(mrmd)
 add_subdirectory(examples)
 add_subdirectory(tests)
+
+if (MRMD_BUILD_DOCS)
+    add_subdirectory(docs)
+endif()

@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,8 +30,7 @@ namespace action
 namespace impl
 {
 /**
- * SHAKE algorithm (DOI: 10.1016/0021-9991(77)90098-5)
- * RATTLE algorithm (DOI: 10.1016/0021-9991(83)90014-1)
+ * @brief Implements the the application of a SHAKE/RATTLE constraint correction to a pair of atoms.
  */
 class Shake
 {
@@ -159,6 +159,14 @@ public:
 };
 }  // namespace impl
 
+/**
+ * @brief High-level interface for the application of SHAKE/RATTLE position and velocity constraints
+ * to given molecules.
+ *
+ * References:
+ * -SHAKE algorithm (DOI: 10.1016/0021-9991(77)90098-5)
+ * -RATTLE algorithm (DOI: 10.1016/0021-9991(83)90014-1)
+ */
 class MoleculeConstraints
 {
 private:

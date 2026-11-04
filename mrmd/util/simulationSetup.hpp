@@ -23,6 +23,15 @@ namespace mrmd
 {
 namespace util
 {
+///
+/// Helper function to provide an initial atoms ensamble.
+///
+/// @param subdomain Area where to place atoms.
+/// @param numAtoms How many atoms to place.
+/// @param maxVelocity Maximial initial absolute velocity of the atoms.
+/// @param inputMass Mass of the atoms.
+/// @return Atoms data structure with all atoms initialized.
+///
 data::Atoms fillDomainWithAtoms(const data::Subdomain& subdomain,
                                 const idx_t& numAtoms,
                                 const real_t& maxVelocity,

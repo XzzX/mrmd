@@ -24,6 +24,12 @@ namespace mrmd
 {
 namespace weighting_function
 {
+/**
+ * Applies the weighting function to a slab simulation geometry.
+ *
+ * Two modes are supported. One with a smooth fine-coarse interface
+ * and one with an abrupt interface.
+ */
 class Slab
 {
 public:

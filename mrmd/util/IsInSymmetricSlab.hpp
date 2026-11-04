@@ -21,6 +21,7 @@ namespace mrmd
 {
 namespace util
 {
+/// @brief Predicate to check if a point is within an axis-aligned slab.
 class IsInSymmetricSlab
 {
 private:

@@ -1,8 +1,9 @@
 ![Build Status](https://img.shields.io/github/actions/workflow/status/xzzx/mrmd/validate.yml?branch=main&label=main)
 ![GitHub License](https://img.shields.io/github/license/xzzx/mrmd)
+[![Documentation](https://img.shields.io/badge/docs-doxygen-blue)](https://xzzx.github.io/mrmd/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17698862.svg)](https://doi.org/10.5281/zenodo.17698862)
 
-# MRMD - **M**ulti **R**esolution **M**olecular **D**ynamics
+# MRMD - Multi Resolution Molecular Dynamics
 
 MRMD is a stand-alone, open-source C++ package implementing the (Hamiltonian) adaptive resolution
 simulation ((H-)AdResS) method, which concurrently couples regions of different resolution — e.g.
@@ -44,6 +45,7 @@ These are fetched and built automatically by CMake:
 
 | Flag                  | Description                                | Default |
 | --------------------- | ------------------------------------------ | ------- |
+| MRMD_BUILD_DOCS       | Build the Doxygen documentation (`docs`)   | OFF     |
 | MRMD_ENABLE_COVERAGE  | Enable code coverage (clang only)          | OFF     |
 | MRMD_ENABLE_HDF5      | Enable HDF5 / H5MD support                 | OFF     |
 | MRMD_ENABLE_TESTING   | Build tests and add them to ctest          | ON      |
@@ -81,6 +83,44 @@ cd mrmd-build
 ctest --parallel 4 --output-on-failure
 ```
 
+## Installing the Library
+
+MRMD can be installed and consumed as a library from other CMake projects:
+
+```bash
+cmake --install mrmd-build --prefix /path/to/install
+```
+
+Downstream projects locate it with `find_package` and link against the
+`mrmd::mrmd` target:
+
+```cmake
+find_package(mrmd REQUIRED)
+
+add_executable(my_app main.cpp)
+target_link_libraries(my_app PRIVATE mrmd::mrmd)
+```
+
+When configuring the downstream project, point CMake at the install
+location:
+
+```bash
+cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/install
+```
+
+## Building the Documentation
+
+The API documentation is published at <https://xzzx.github.io/mrmd/>. To build it
+locally, install [Doxygen](https://www.doxygen.nl/) (and optionally
+[Graphviz](https://graphviz.org/) for diagrams) and run:
+
+```bash
+cmake -S mrmd -B mrmd-build -DMRMD_BUILD_DOCS=ON
+cmake --build mrmd-build --target docs
+```
+
+The HTML output is written to `mrmd-build/docs/html/index.html`.
+
 # Tutorial
 
 The [`examples`](examples) directory contains a series of self-contained simulations that build on each other,
@@ -103,6 +143,32 @@ as its own executable in `mrmd-build/examples/<name>`. Work through them in orde
 
 Contributions are welcome! Please open an issue to discuss a bug or feature request before submitting a pull request. When contributing code, follow the existing code style (enforced via `.clang-format`) and ensure all tests pass.
 
+## Quality-of-life tooling: automatic formatting
+
+[`format.sh`](format.sh) formats all tracked C++ sources (`*.cpp`, `*.hpp`) in place according to
+[`.clang-format`](.clang-format). It is also wired up as a [pre-commit](https://pre-commit.com/) hook in
+[`.pre-commit-config.yaml`](.pre-commit-config.yaml), so formatting happens automatically on every commit.
+
+Run it manually from the repository root:
+
+```bash
+./format.sh
+```
+
+Enable the commit hook once per clone:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+Hard dependencies of the script:
+
+- `clang-format-18` — exactly this versioned binary name must be on your `PATH`; a plain `clang-format` or a
+  different version will not be picked up
+
+The pre-commit hook additionally requires [`pre-commit`](https://pre-commit.com/) itself.
+
 # Citation
 
 If you use MRMD in your research, please cite it using the metadata in [CITATION.cff](CITATION.cff) or the following:
@@ -111,8 +177,8 @@ If you use MRMD in your research, please cite it using the metadata in [CITATION
 
 # Authors
 
-- Sebastian Eibl ([@XzzX](https://github.com/XzzX)) — [ORCID](https://orcid.org/0000-0002-1069-2720)
-- Julian Friedrich Hille ([@J-Hizzle](https://github.com/J-Hizzle)) — [ORCID](https://orcid.org/0009-0008-1005-9053)
+- Sebastian Eibl ([\@XzzX](https://github.com/XzzX)) — [ORCID](https://orcid.org/0000-0002-1069-2720)
+- Julian Friedrich Hille ([\@J-Hizzle](https://github.com/J-Hizzle)) — [ORCID](https://orcid.org/0009-0008-1005-9053)
 
 # License
 

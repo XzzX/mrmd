@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: clang-format
+        name: Run clang-format
+        entry: ./format.sh
+        language: system
+        pass_filenames: false   # set true to receive staged filenames as args
+        always_run: true        # run even if no matching files changed
