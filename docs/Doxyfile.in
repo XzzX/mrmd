@@ -48,6 +48,7 @@ HTML_EXTRA_STYLESHEET  = @AWESOME_CSS_DIR@/doxygen-awesome.css \
                          @AWESOME_CSS_DIR@/doxygen-awesome-sidebar-only-darkmode-toggle.css
 HTML_EXTRA_FILES       = @AWESOME_CSS_DIR@/doxygen-awesome-darkmode-toggle.js \
                          @AWESOME_CSS_DIR@/doxygen-awesome-fragment-copy-button.js
+USE_MATHJAX            = YES
 
 #---------------------------------------------------------------------------
 # Diagrams
