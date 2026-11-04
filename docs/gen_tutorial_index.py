@@ -9,6 +9,10 @@ characters replaced by "_"). Files are listed in natural filename order,
 so prefix them with numbers (1_basics.cpp, 2_advanced.cpp, 10_extras.cpp)
 to control the order in the navigation.
 
+If a tutorial starts with a block of prose lines (marker "//>", see
+tutorial_filter.py), the first line is the title and the following prose
+lines are the description, which is shown below the link in the overview.
+
 The output file is only rewritten when its content changes, so build
 systems don't trigger unnecessary Doxygen runs.
 """
@@ -21,6 +25,31 @@ from pathlib import Path
 def page_name(path: Path) -> str:
     # Must match the naming used in tutorial_filter.py
     return "tut_" + re.sub(r"\W", "_", path.stem)
+
+
+def read_description(path: Path, marker: str) -> list:
+    """Return the prose lines directly after the title line at the top of the file.
+
+    The block ends at the first line that is not a prose line. Empty marker
+    lines ("//>") are kept as blank lines, i.e. paragraph breaks.
+    """
+    prose = re.compile(r"^\s*" + re.escape(marker) + r">* ?(.*)$")  # tolerate "//>>"
+    lines = path.read_text(encoding="utf-8").splitlines()
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    if not lines or not prose.match(lines[0]):
+        return []  # no title line, so no description block either
+    desc = []
+    for line in lines[1:]:
+        m = prose.match(line)
+        if not m:
+            break
+        desc.append(m.group(1).rstrip())
+    while desc and not desc[0]:
+        desc.pop(0)
+    while desc and not desc[-1]:
+        desc.pop()
+    return desc
 
 
 def natural_key(path: Path):
@@ -39,6 +68,7 @@ def main() -> int:
     ap.add_argument("--page", default="tutorials", help='parent page name (default: "tutorials")')
     ap.add_argument("--title", default="Tutorials", help='parent page title (default: "Tutorials")')
     ap.add_argument("--intro", default="", help="optional intro text above the list")
+    ap.add_argument("--marker", default="//>", help='prose marker used in the tutorials (default: "//>")')
     args = ap.parse_args()
 
     if not args.tutorial_dir.is_dir():
@@ -63,12 +93,19 @@ def main() -> int:
             return 1
         seen[name] = f
 
-    lines = ["/**", f"\\page {args.page} {args.title}", ""]
+    lines = [f"\\page {args.page} {args.title}", ""]
     if args.intro:
         lines += [args.intro, ""]
-    lines += [f"- \\subpage {page_name(f)}" for f in files]
-    lines += ["*/", ""]
-    content = "\n".join(lines)
+    for f in files:
+        lines.append(f"- \\subpage {page_name(f)}")
+        desc = read_description(f, args.marker)
+        if desc:
+            # Indented continuation lines keep the description inside the list item
+            lines.append("")
+            lines += ["  " + d if d else "" for d in desc]
+            lines.append("")
+    # Emit as /// line comments, so description text can't end a /** */ block early
+    content = "\n".join("/// " + l if l else "///" for l in lines) + "\n"
 
     if args.output.exists() and args.output.read_text(encoding="utf-8") == content:
         print(f"{args.output} is up to date ({len(files)} tutorials)")
