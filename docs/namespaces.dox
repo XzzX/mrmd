@@ -1,0 +1,51 @@
+// docs/namespaces.dox
+
+/**
+ * \namespace mrmd
+ * Top-level namespace of MRMD.
+ */
+
+/**
+ * \namespace mrmd::action
+ * Everything to evolve the simulation physically.
+ */
+
+/**
+ * \namespace mrmd::analysis
+ * Everything to analyze/evaluate the current state of the simulation.
+ */
+
+/**
+ * \namespace mrmd::assert
+ * Host/Device asserts with verbose logs.
+ */
+
+/**
+ * \namespace mrmd::communication
+ * Everything related to ghost particles (periodic boundary conditions).
+ */
+
+/**
+ * \namespace mrmd::data
+ * All fundamental data containers used in MRMD.
+ */
+
+/**
+ * \namespace mrmd::io
+ * Save/Load simulation data.
+ */
+
+/**
+ * \namespace mrmd::test
+ * Setup helpers for easier test writing.
+ */
+
+/**
+ * \namespace mrmd::util
+ * Utility functions, e.g. angle handling, interpolation, random numbers, ...
+ */
+
+/**
+ * \namespace mrmd::weighting_function
+ * Weighting functions for different interfaces and region geometries.
+ */

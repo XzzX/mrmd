@@ -22,6 +22,9 @@ namespace mrmd
 {
 namespace util
 {
+/// @brief Dump a scalar view to a text file.
+/// @param filename output filename
+/// @param view view that should be written to file
 void dumpView(const std::string& filename, const ScalarView& view)
 {
     auto data = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), view);
@@ -33,6 +36,9 @@ void dumpView(const std::string& filename, const ScalarView& view)
     fout.close();
 }
 
+/// @brief Dump a multi view to a text file.
+/// @param filename output filename
+/// @param view view that should be written to file
 void dumpView(const std::string& filename, const MultiView& view)
 {
     auto data = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), view);

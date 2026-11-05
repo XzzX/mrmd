@@ -23,6 +23,9 @@ namespace mrmd
 {
 namespace io
 {
+/**
+ * @brief Handles dumping profile data to a file.
+ */
 class DumpProfile
 {
 public:

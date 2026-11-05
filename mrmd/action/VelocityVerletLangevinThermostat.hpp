@@ -1,5 +1,5 @@
 // Copyright 2024 Sebastian Eibl
-//
+// Copyright 2026 Julian Friedrich Hille
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -26,6 +26,13 @@ namespace mrmd
 {
 namespace action
 {
+/**
+ * @brief Integrator that updates the positions and velocities of atoms using the BAOAB Langevin
+ * dynamics algorithm.
+ *
+ * References:
+ * -DOI: 10.1093/amrx/abs010
+ */
 class VelocityVerletLangevinThermostat
 {
 private:
@@ -83,16 +90,16 @@ real_t VelocityVerletLangevinThermostat::preForceIntegrate_apply_if(data::Atoms&
         dx[1] = pos(idx, 1);
         dx[2] = pos(idx, 2);
 
-        action::updateKick(vel(idx, 0),
-                           vel(idx, 1),
-                           vel(idx, 2),
-                           force(idx, 0),
-                           force(idx, 1),
-                           force(idx, 2),
-                           dtHalf,
-                           mass(idx));
+        impl::updateKick(vel(idx, 0),
+                         vel(idx, 1),
+                         vel(idx, 2),
+                         force(idx, 0),
+                         force(idx, 1),
+                         force(idx, 2),
+                         dtHalf,
+                         mass(idx));
 
-        action::updateDrift(
+        impl::updateDrift(
             pos(idx, 0), pos(idx, 1), pos(idx, 2), vel(idx, 0), vel(idx, 1), vel(idx, 2), dtHalf);
 
         if (pred(pos(idx, 0), pos(idx, 1), pos(idx, 2)))
@@ -101,22 +108,22 @@ real_t VelocityVerletLangevinThermostat::preForceIntegrate_apply_if(data::Atoms&
             auto randGen = RNG.get_state();
 
             // Apply the Ornstein-Uhlenbeck process to the velocity
-            action::updateOrnsteinUhlenbeck(vel(idx, 0),
-                                            vel(idx, 1),
-                                            vel(idx, 2),
-                                            dtFull,
-                                            mass(idx),
-                                            zeta,
-                                            temperature,
-                                            randGen.normal(),
-                                            randGen.normal(),
-                                            randGen.normal());
+            impl::updateOrnsteinUhlenbeck(vel(idx, 0),
+                                          vel(idx, 1),
+                                          vel(idx, 2),
+                                          dtFull,
+                                          mass(idx),
+                                          zeta,
+                                          temperature,
+                                          randGen.normal(),
+                                          randGen.normal(),
+                                          randGen.normal());
 
             // Give the state back, which will allow another thread to acquire it
             RNG.free_state(randGen);
         }
 
-        action::updateDrift(
+        impl::updateDrift(
             pos(idx, 0), pos(idx, 1), pos(idx, 2), vel(idx, 0), vel(idx, 1), vel(idx, 2), dtHalf);
 
         dx[0] -= pos(idx, 0);

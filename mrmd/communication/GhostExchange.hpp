@@ -1,4 +1,5 @@
 // Copyright 2024 Sebastian Eibl
+// Copyright 2026 Julian Friedrich Hille
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -25,6 +26,9 @@ namespace communication
 {
 namespace impl
 {
+/**
+ * @brief Handles the exchange of ghost atoms at periodic boundaries.
+ */
 class GhostExchange
 {
 private:

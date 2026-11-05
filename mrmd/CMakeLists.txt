@@ -32,7 +32,8 @@ if (MRMD_ENABLE_HDF5)
 endif ()
 target_include_directories(mrmd
         PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+        PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        PUBLIC $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/mrmd>)
 
 if (MRMD_WERROR)
     target_compile_options(mrmd PRIVATE "-Werror")
@@ -64,14 +65,30 @@ install(TARGETS mrmd
         )
 install(EXPORT mrmd-export
         NAMESPACE mrmd::
-        DESTINATION lib/cmake/mrmd
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/mrmd
         FILE mrmdTargets.cmake
         )
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         TYPE INCLUDE
         FILES_MATCHING PATTERN "*.hpp")
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/mrmdConfig.cmake
-        DESTINATION lib/cmake/mrmd)
+install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/cmake.hpp
+        ${CMAKE_CURRENT_BINARY_DIR}/version.hpp
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/mrmd)
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/mrmdConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/mrmdConfig.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/mrmd)
+write_basic_package_version_file(
+        ${CMAKE_CURRENT_BINARY_DIR}/mrmdConfigVersion.cmake
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMinorVersion)
+install(FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/mrmdConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/mrmdConfigVersion.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/mrmd)
 
 if (BUILD_TESTING AND MRMD_ENABLE_TESTING)
     add_library(mrmd_test_main gtest_main.test.cpp)
