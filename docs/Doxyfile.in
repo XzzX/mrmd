@@ -33,6 +33,7 @@ EXCLUDE_SYMBOLS        = impl \
 EXAMPLE_PATH           = @PROJECT_SOURCE_DIR@
 JAVADOC_AUTOBRIEF      = YES
 FILTER_PATTERNS        = *examples*.cpp="python3 @CMAKE_CURRENT_SOURCE_DIR@/tutorial_filter.py"
+LAYOUT_FILE            = @CMAKE_CURRENT_SOURCE_DIR@/DoxygenLayout.xml
 
 #---------------------------------------------------------------------------
 # HTML output with doxygen-awesome-css
