@@ -1,4 +1,7 @@
-// 08_LennardJones_ProductionTracer
+//> 08_LennardJones_ProductionTracer
+//> Production run for the Lennard-Jones fluid coupled to a tracer gas of non-interacting particles
+//> with a converged thermodynamic force obtained from a previous thermodynamic force iteration.
+//> Output is stored in TXT and H5MD files.
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -38,9 +41,7 @@
 
 using namespace mrmd;
 
-/**
- * Configuration for the Argon NVE example simulation.
- */
+//> Configuration for the production run simulation with a converged thermodynamic force.
 struct Config
 {
     // time parameters
@@ -95,6 +96,7 @@ struct Config
     std::string fileOutFinalH5MD;
 };
 
+//> Simulation logic goes here
 void productionTracer(Config& config)
 {
     // initialize
@@ -331,6 +333,7 @@ void productionTracer(Config& config)
     fout.close();
 }
 
+//> Main function for the simulation
 int main(int argc, char* argv[])
 {
     // initialize Kokkos environment
