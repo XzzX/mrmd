@@ -1,6 +1,6 @@
 //> 02_LennardJones_NVT
 //> Minimal Lennard-Jones simulation in the NVT (canonical) ensemble with output of observables and
-// final phase position in GRO format.
+//> final phase position in GRO format.
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
