@@ -25,7 +25,6 @@
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
-#include "initialization.hpp"
 #include "io/DumpH5MD.hpp"
 #include "io/RestoreGRO.hpp"
 #include "util/EnvironmentVariables.hpp"

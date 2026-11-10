@@ -25,7 +25,6 @@
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
-#include "initialization.hpp"
 #include "io/DumpGRO.hpp"
 #include "util/EnvironmentVariables.hpp"
 #include "util/PrintTable.hpp"
