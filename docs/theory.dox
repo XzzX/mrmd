@@ -1,0 +1,54 @@
+/**
+@page theory Theory
+
+We describe here the theory for the abrupt interface AdResS version for which examples are available in the release version of `MRMD`. The smooth interpolation common to other (H-)AdResS flavors is also already implemented in `MRMD`, but is not yet 
+available in test-covered example scripts. 
+
+At the heart of AdResS being applied to simulate an open atomistically resolved system in 
+exchange with a reservoir through its boundary is the thermodynamic consistency of said reservoir. 
+
+Such a reservoir can be realized in a rectangular simulation domain by the atomistically resolved (AT)
+region being encapsuled to the left and right by buffer zones (\f$\Delta\f$ regions) within which the 
+particles are also interacting atomistically. Beyond the \f$\Delta\f$ regions, in the tracer (TR) region, 
+the interactions are then abruptly switched off, so that the interaction potential can be written as 
+
+\f[
+    U(r, x_i, x_j) = \begin{cases}
+            V(r) &\textrm{, for } x_i, x_j \in [-x_{\Delta\textrm{/TR}}, x_{\Delta\textrm{/TR}}] \\
+            0 &\textrm{, else } \\
+            \end{cases}\textrm{,}
+\f]
+
+where \f$x_i\f$ and \f$x_j\f$ are the positions of two particles \f$i\f$ and \f$j\f$ in \f$x\f$-direction, \f$r\f$ is the absolute 
+distance in between them and
+
+\f[
+    V(r) = \begin{cases}
+            v(r_{\textrm{cap}}) - \frac{\partial v}{\partial r} \big|_{r_\textrm{cap}} r_{\textrm{cap}} + \frac{\partial v}{\partial r}\big|_{r_\textrm{cap}} r &\textrm{, for } r_{\textrm{cap}} \geq r \\
+            v(r) &\textrm{, for } r_{\textrm{cap}} < r \leq r_{\textrm{cut}} \\
+            0 &\textrm{, for } r_{\textrm{cut}} < r \\
+            \end{cases}\textrm{,}
+\f]
+
+is a radial potential force-capped beneath a radius \f$r_{\textrm{cap}}\f$ with \f$v(r)\f$ being a suitable pair-wise potential 
+such as the truncated and shifted Lennard-Jones potential. 
+
+It is emphasized that this does not necessarily comprise a Hamiltonian AdResS scheme in the classical 
+sense due to the discontinuities of such a potential at \f$\pm x_{\Delta\textrm{/TR}}\f$, but that the 
+TR region anyways represents merely an algorithm to provide the \f$\Delta\f$ regions with the necessary 
+number of particles and fluctuations thereof such that they, in turn, can provide the AT region with 
+thermodynamically consistent boundary conditions. 
+
+The change of resolution, be it abrupt or smooth, introduces numerical artifacts that can be compensated 
+by a one-body thermodynamic force \f$F_{\textrm{th}}\f$. This force is calculated during the setup stage of 
+AdResS simulations in an iterative procedure 
+
+\f[
+    F_{\textrm{th}}^{k + 1}(x) = F_{\textrm{th}}^{k}(x) - c \nabla \rho^{k}(x) \textrm{,}
+\f]
+
+where each iteration \f$k\f$ comprises a short AdResS simulation with applied thermodynamic force \f$F_{\textrm{th}}^{k}(x)\f$, 
+which is incremented by the gradient of the density profile \f$\nabla \rho^{k}(x)\f$ averaged over this simulation weighted by 
+a user-defined convergence prefactor \f$c\f$. The procedure is considered converged when the density profile is flat to within 
+a desired tolerance. With the converged thermodynamic force, the AdResS production run can be started.
+*/

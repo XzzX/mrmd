@@ -1,4 +1,6 @@
-// 00_IdealGas_NVE
+//> 00_IdealGas_NVE
+//> Minimal ideal gas (non-interacting particles) simulation in the NVE (microcanonical) ensemble.
+//> Introduces the simulation domain, ghost layer, and the velocity-Verlet integrator.
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -14,13 +16,14 @@
 
 using namespace mrmd;
 
-// Configuration for the ideal gas example simulation in NVE ensemble.
+//> Configuration for the ideal gas example simulation in NVE ensemble.
 struct Config
 {
     idx_t nsteps = 2001;  ///< number of steps to simulate
     real_t dt = 0.005;    ///< time step size in reduced units
 };
 
+//> Simulation logic goes here
 void runIdealGas(const Config& config)
 {
     // initialize simulation domain
@@ -58,6 +61,7 @@ void runIdealGas(const Config& config)
     std::cout << time << std::endl;
 }
 
+//> Setting up the MRMD environment
 int main(int argc, char* argv[])
 {
     // initialize Kokkos environment
