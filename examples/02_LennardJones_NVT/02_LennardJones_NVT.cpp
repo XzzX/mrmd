@@ -77,6 +77,7 @@ struct Config
     std::string fileOutFinalGRO = format("{0}_final.gro", fileOut);
 };
 
+//> Simulation logic goes here
 void runLennardJonesNVT(Config& config)
 {
     // initialize simulation domain
