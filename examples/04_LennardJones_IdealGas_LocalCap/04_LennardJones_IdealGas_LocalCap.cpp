@@ -1,4 +1,6 @@
-// 04_LennardJones_IdealGas_LocalCap
+//> 04_LennardJones_IdealGas_LocalCap
+//> Simulation of Lennard-Jones particles in contact with an ideal gas with a force capping applied
+//> in the transition zone.
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -31,9 +33,7 @@
 
 using namespace mrmd;
 
-/**
- * Configuration for the Argon NVE example simulation.
- */
+//> Configuration for the Argon NVE example simulation.
 struct Config
 {
     // simulation time parameters
@@ -77,6 +77,7 @@ struct Config
     const std::vector<std::string> typeNames = {"Ar"};  ///< atom type names for output files
 };
 
+//> Simulation logic goes here
 void runLennardJones_idealGas_localCap(Config& config)
 {
     // initialize simulation domain
@@ -266,6 +267,7 @@ void runLennardJones_idealGas_localCap(Config& config)
     fout.close();
 }
 
+//> Main function for the simulation
 int main(int argc, char* argv[])
 {
     // initialize Kokkos
