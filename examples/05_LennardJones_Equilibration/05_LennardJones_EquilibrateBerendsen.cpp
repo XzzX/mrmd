@@ -1,4 +1,4 @@
-//> 05_LennardJones_EquilibrationBerendsen
+//> 05_LennardJones_EquilibrateBerendsen
 //> Equilibration simulation of a Lennard-Jones system using the Berendsen thermostat as a
 //> first step towards running an AdResS simulation. The particles are initialized with random
 //> positions and velocities inside a rectangular simulation box with user-defined dimensions and
