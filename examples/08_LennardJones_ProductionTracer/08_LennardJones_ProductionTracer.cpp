@@ -1,7 +1,7 @@
 //> 08_LennardJones_ProductionTracer
 //> Production run for the Lennard-Jones fluid coupled to a tracer gas of non-interacting particles
 //> with a converged thermodynamic force obtained from a previous thermodynamic force iteration.
-//> Output is stored in TXT and H5MD files.
+//> Output is stored in GRO and H5MD files.
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
