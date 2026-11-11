@@ -1,4 +1,7 @@
-// 07_LennardJones_ThermoForce
+//> 07_LennardJones_ThermodynamicForce
+//> Thermodynamic force iteration run for the Lennard-Jones fluid coupled to a tracer gas of
+//> non-interacting particles and starting with zero thermodynamic force. The final
+//> thermodynamic force is dumped into a TXT file.
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -36,6 +39,7 @@
 
 using namespace mrmd;
 
+//> Configuration for the thermodynamic force iteration simulation.
 struct Config
 {
     // time parameters
@@ -103,6 +107,7 @@ struct Config
     std::string fileOutFinalTF;
 };
 
+//> Simulation logic goes here
 void thermodynamicForce(Config& config)
 {
     // initialize
@@ -354,8 +359,6 @@ void thermodynamicForce(Config& config)
 
         // close statistics file
         fStat.close();
-        auto time = timer.seconds();
-        std::cout << time << std::endl;
 
         io::dumpGRO(config.fileOutFinalGRO,
                     atoms,
@@ -381,6 +384,7 @@ void thermodynamicForce(Config& config)
     fout.close();
 }
 
+//> Main function for the simulation
 int main(int argc, char* argv[])
 {
     // initialize Kokkos environment
