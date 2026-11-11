@@ -30,9 +30,18 @@ endif ()
 
 configure_file(Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
+# The introductory prose for the generated tutorial overview page is passed as a
+# file path, not as text: a multi-line argument does not survive the generated
+# build rules.
+#
+# --strict fails the build if a tutorial lost its "//> <Title>" line, which would
+# otherwise silently publish a page titled with a sentence fragment.
 add_custom_target(tutorial_index
     COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/gen_tutorial_index.py
-          ${CMAKE_SOURCE_DIR}/examples ${CMAKE_BINARY_DIR}/docs/tutorials.dox --recursive)
+          ${CMAKE_SOURCE_DIR}/examples ${CMAKE_BINARY_DIR}/docs/tutorials.dox
+          --recursive --strict
+          --intro-file ${CMAKE_CURRENT_SOURCE_DIR}/tutorials_intro.txt
+    VERBATIM)
 
 add_custom_target(docs
         COMMAND Doxygen::doxygen ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile

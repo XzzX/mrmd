@@ -1,5 +1,6 @@
-//> Minimal Lennard-Jones simulation in the NVE (microcanonical) ensemble starting from a restored
-//> phase position > read from a GRO file with output of observables and > final phase position in
+//> 03_LennardJones_NVE
+//> Minimal Lennard-Jones simulation in the NVE (microcanonical) ensemble starting from a phase
+//> position restored from a GRO file, with output of observables and the final phase position in
 //> H5MD format.
 
 #include <CLI/App.hpp>

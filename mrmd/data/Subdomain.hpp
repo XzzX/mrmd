@@ -26,13 +26,21 @@ namespace mrmd
 namespace data
 {
 /**
- * |X|O|OOOOOOOOOO
- * |X|O|OOOOOOOOOO
- * |X|O+----------  <-- minInnerCorner
- * |X|OOOOOOOOOOOO
- * |X+------------  <-- minCorner
- * |XXXXXXXXXXXXXX
- * +--------------  <-- minGhostCorner
+ * @brief Axis-aligned simulation box with a surrounding ghost layer.
+ *
+ * Stores minCorner, maxCorner and ghostLayerThickness, and derives the ghost and inner
+ * corners from them. The three regions nest as follows along one axis, with @c X marking
+ * the ghost layer and @c O the owned region:
+ *
+ * @verbatim
+   |X|O|OOOOOOOOOO
+   |X|O|OOOOOOOOOO
+   |X|O+----------  <-- minInnerCorner
+   |X|OOOOOOOOOOOO
+   |X+------------  <-- minCorner
+   |XXXXXXXXXXXXXX
+   +--------------  <-- minGhostCorner
+   @endverbatim
  */
 struct Subdomain
 {

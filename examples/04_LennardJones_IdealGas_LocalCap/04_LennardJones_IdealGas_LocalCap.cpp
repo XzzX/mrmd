@@ -32,7 +32,7 @@
 
 using namespace mrmd;
 
-//> Configuration for the Argon NVE example simulation.
+//> Configuration for the Lennard-Jones/ideal-gas contact simulation with local force capping.
 struct Config
 {
     // simulation time parameters

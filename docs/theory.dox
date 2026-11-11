@@ -1,16 +1,35 @@
 /**
 @page theory Theory
 
-We describe here the theory for the abrupt interface AdResS version for which examples are available in the release version of `MRMD`. The smooth interpolation common to other (H-)AdResS flavors is also already implemented in `MRMD`, but is not yet 
-available in test-covered example scripts. 
+We describe here the theory for the abrupt interface AdResS version for which examples are
+available in the release version of `MRMD`. The smooth interpolation common to other (H-)AdResS
+flavors is also already implemented in `MRMD` — see mrmd::weighting_function::Slab and
+mrmd::weighting_function::Spherical — but is not yet available in test-covered example scripts.
 
-At the heart of AdResS being applied to simulate an open atomistically resolved system in 
-exchange with a reservoir through its boundary is the thermodynamic consistency of said reservoir. 
+@section theory_symbols Notation
 
-Such a reservoir can be realized in a rectangular simulation domain by the atomistically resolved (AT)
-region being encapsuled to the left and right by buffer zones (\f$\Delta\f$ regions) within which the 
-particles are also interacting atomistically. Beyond the \f$\Delta\f$ regions, in the tracer (TR) region, 
-the interactions are then abruptly switched off, so that the interaction potential can be written as 
+| Symbol | Meaning |
+| ------ | ------- |
+| \f$x_i\f$, \f$x_j\f$ | positions of particles \f$i\f$ and \f$j\f$ along the \f$x\f$-axis |
+| \f$r\f$ | absolute distance between two particles |
+| \f$x_{\Delta\textrm{/TR}}\f$ | position of the interface between the \f$\Delta\f$ and the TR region |
+| \f$v(r)\f$ | underlying pair potential, e.g. truncated and shifted Lennard-Jones |
+| \f$r_{\textrm{cap}}\f$ | radius below which the force is capped |
+| \f$r_{\textrm{cut}}\f$ | cutoff radius of the pair potential |
+| \f$F_{\textrm{th}}\f$ | one-body thermodynamic force |
+| \f$\rho\f$ | particle density profile |
+| \f$c\f$ | user-defined convergence prefactor of the thermodynamic force iteration |
+
+@section theory_adress Abrupt interface AdResS
+
+At the heart of AdResS being applied to simulate an open atomistically resolved system in
+exchange with a reservoir through its boundary is the thermodynamic consistency of said reservoir.
+
+Such a reservoir can be realized in a rectangular simulation domain by the atomistically resolved
+(AT) region being encapsuled to the left and right by buffer zones (\f$\Delta\f$ regions) within
+which the particles are also interacting atomistically. Beyond the \f$\Delta\f$ regions, in the
+tracer (TR) region, the interactions are then abruptly switched off, so that the interaction
+potential can be written as
 
 \f[
     U(r, x_i, x_j) = \begin{cases}
@@ -19,8 +38,23 @@ the interactions are then abruptly switched off, so that the interaction potenti
             \end{cases}\textrm{,}
 \f]
 
-where \f$x_i\f$ and \f$x_j\f$ are the positions of two particles \f$i\f$ and \f$j\f$ in \f$x\f$-direction, \f$r\f$ is the absolute 
-distance in between them and
+where \f$x_i\f$ and \f$x_j\f$ are the positions of two particles \f$i\f$ and \f$j\f$ in
+\f$x\f$-direction and \f$r\f$ is the absolute distance in between them.
+
+It is emphasized that this does not necessarily comprise a Hamiltonian AdResS scheme in the
+classical sense due to the discontinuities of such a potential at
+\f$\pm x_{\Delta\textrm{/TR}}\f$, but that the TR region anyways represents merely an algorithm to
+provide the \f$\Delta\f$ regions with the necessary number of particles and fluctuations thereof
+such that they, in turn, can provide the AT region with thermodynamically consistent boundary
+conditions.
+
+The coupling of an atomistically resolved region to an ideal gas of non-interacting tracers follows
+Ref. [10.1063/1.5143268](https://doi.org/10.1063/1.5143268) and is implemented in
+mrmd::action::LJ_IdealGas. @ref tut_08_LennardJones_ProductionTracer runs the resulting setup.
+
+@section theory_capping Force-capped interaction potential
+
+The pair potential itself is
 
 \f[
     V(r) = \begin{cases}
@@ -30,25 +64,42 @@ distance in between them and
             \end{cases}\textrm{,}
 \f]
 
-is a radial potential force-capped beneath a radius \f$r_{\textrm{cap}}\f$ with \f$v(r)\f$ being a suitable pair-wise potential 
-such as the truncated and shifted Lennard-Jones potential. 
+that is, a radial potential force-capped beneath a radius \f$r_{\textrm{cap}}\f$ with \f$v(r)\f$
+being a suitable pair-wise potential such as the truncated and shifted Lennard-Jones potential.
 
-It is emphasized that this does not necessarily comprise a Hamiltonian AdResS scheme in the classical 
-sense due to the discontinuities of such a potential at \f$\pm x_{\Delta\textrm{/TR}}\f$, but that the 
-TR region anyways represents merely an algorithm to provide the \f$\Delta\f$ regions with the necessary 
-number of particles and fluctuations thereof such that they, in turn, can provide the AT region with 
-thermodynamically consistent boundary conditions. 
+Capping keeps the integration stable when particles that were inserted or that crossed the
+interface end up overlapping. It is applied through mrmd::action::LennardJones and
+mrmd::action::LJ_IdealGas, and demonstrated in @ref tut_04_LennardJones_IdealGas_LocalCap.
 
-The change of resolution, be it abrupt or smooth, introduces numerical artifacts that can be compensated 
-by a one-body thermodynamic force \f$F_{\textrm{th}}\f$. This force is calculated during the setup stage of 
-AdResS simulations in an iterative procedure 
+@section theory_thermoforce Thermodynamic force iteration
+
+The change of resolution, be it abrupt or smooth, introduces numerical artifacts that can be
+compensated by a one-body thermodynamic force \f$F_{\textrm{th}}\f$. This force is calculated
+during the setup stage of AdResS simulations in an iterative procedure
 
 \f[
     F_{\textrm{th}}^{k + 1}(x) = F_{\textrm{th}}^{k}(x) - c \nabla \rho^{k}(x) \textrm{,}
 \f]
 
-where each iteration \f$k\f$ comprises a short AdResS simulation with applied thermodynamic force \f$F_{\textrm{th}}^{k}(x)\f$, 
-which is incremented by the gradient of the density profile \f$\nabla \rho^{k}(x)\f$ averaged over this simulation weighted by 
-a user-defined convergence prefactor \f$c\f$. The procedure is considered converged when the density profile is flat to within 
-a desired tolerance. With the converged thermodynamic force, the AdResS production run can be started.
+where each iteration \f$k\f$ comprises a short AdResS simulation with applied thermodynamic force
+\f$F_{\textrm{th}}^{k}(x)\f$, which is incremented by the gradient of the density profile
+\f$\nabla \rho^{k}(x)\f$ averaged over this simulation weighted by a user-defined convergence
+prefactor \f$c\f$. The procedure is considered converged when the density profile is flat to within
+a desired tolerance. With the converged thermodynamic force, the AdResS production run can be
+started.
+
+The iteration follows Ref. [10.1063/1.5031206](https://doi.org/10.1063/1.5031206) and is
+implemented in mrmd::action::ThermodynamicForce.
+@ref tut_07_LennardJones_ThermodynamicForce runs it from a zero initial force, and
+@ref tut_07_LennardJones_ThermodynamicForce_InitialGuess starts from a precomputed guess to
+shorten the convergence.
+
+@section theory_references References
+
+- Coupling of an atomistically resolved region to an ideal gas:
+  [10.1063/1.5143268](https://doi.org/10.1063/1.5143268)
+- Thermodynamic force for adaptive resolution simulations:
+  [10.1063/1.5031206](https://doi.org/10.1063/1.5031206)
+- The MRMD implementation and its validation:
+  [arXiv:2607.24574](https://doi.org/10.48550/arXiv.2607.24574)
 */
