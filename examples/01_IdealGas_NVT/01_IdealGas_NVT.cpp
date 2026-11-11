@@ -1,4 +1,5 @@
-// 01_IdealGas_NVT
+//> 01_IdealGas_NVT
+//> Minimal ideal gas simulation in the NVT (canonical) ensemble.
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -14,7 +15,7 @@
 
 using namespace mrmd;
 
-// Configuration for the ideal gas example simulation in NVE ensemble.
+//> Configuration for the ideal gas example simulation in NVT ensemble.
 struct Config
 {
     idx_t nsteps = 2001;                 ///< number of steps to simulate
@@ -27,6 +28,7 @@ struct Config
         0.04_r / dt;  ///< friction coefficient for Langevin thermostat
 };
 
+//> Simulation logic goes here
 void runIdealGas(const Config& config)
 {
     // initialize simulation domain
@@ -67,6 +69,7 @@ void runIdealGas(const Config& config)
     std::cout << time << std::endl;
 }
 
+//> Main function for the simulation
 int main(int argc, char* argv[])
 {
     // initialize Kokkos environment

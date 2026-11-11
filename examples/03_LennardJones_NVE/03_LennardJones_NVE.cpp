@@ -1,4 +1,6 @@
-// 03_LennardJones_NVE
+//> Minimal Lennard-Jones simulation in the NVE (microcanonical) ensemble starting from a restored
+//> phase position > read from a GRO file with output of observables and > final phase position in
+//> H5MD format.
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -23,7 +25,6 @@
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
-#include "initialization.hpp"
 #include "io/DumpH5MD.hpp"
 #include "io/RestoreGRO.hpp"
 #include "util/EnvironmentVariables.hpp"
@@ -31,9 +32,7 @@
 
 using namespace mrmd;
 
-/**
- * Configuration for the Argon NVE example simulation.
- */
+//> Configuration for the Argon NVE example simulation.
 struct Config
 {
     // input file parameters
@@ -71,6 +70,7 @@ struct Config
     std::string fileOutFinalH5MD = format("{0}_final.h5md", fileOut);
 };
 
+//> Simulation logic goes here
 void runLennardJonesNVE(Config& config)
 {
     // initialize simulation domain
@@ -223,6 +223,7 @@ void runLennardJonesNVE(Config& config)
     fout.close();
 }
 
+//> Main function for the simulation
 int main(int argc, char* argv[])
 {
     // initialize Kokkos environment

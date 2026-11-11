@@ -1,4 +1,8 @@
-// 05_LennardJones_EquilibrationBerendsen
+//> 05_LennardJones_EquilibrateBerendsen
+//> Equilibration simulation of a Lennard-Jones system using the Berendsen thermostat as a
+//> first step towards running an AdResS simulation. The particles are initialized with random
+//> positions and velocities inside a rectangular simulation box with user-defined dimensions and
+//> number of particles. The final phase position is dumped into both GRO and H5MD output files.
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -25,6 +29,7 @@
 
 using namespace mrmd;
 
+//> Configuration for the Lennard-Jones equilibration simulation using the Berendsen thermostat.
 struct Config
 {
     // time parameters
@@ -76,6 +81,7 @@ struct Config
     std::string fileOutFinalH5MD;
 };
 
+//> Simulation logic goes here
 void equilibrateBerendsen(Config& config)
 {
     // initialize
@@ -194,6 +200,7 @@ void equilibrateBerendsen(Config& config)
     fout.close();
 }
 
+//> Main function for the simulation
 int main(int argc, char* argv[])
 {
     // initialize Kokkos environment
