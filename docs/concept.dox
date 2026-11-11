@@ -3,31 +3,80 @@
 
 The design of `MRMD` is heavily influenced by the following three principles:
 1) portability, 2) data-oriented programming, and 3) self-documenting code.
-To facilitate widespread use with minimal obstacles `MRMD` uses the Kokkos Performance Portability Library.
-This enables `MRMD` to run on various current and future hardware architectures, including modern state-of-the-art GPUs from Nvidia and AMD.
-At the same time, only a single code base needs to be maintained.
-We use CI jobs to continuously monitor the building and execution process for different compilers and architectures.
 
-The software design itself focuses on separating code and data.
-A few data-only containers are used to hold the simulation state: For example, @ref mrmd::data::Atoms holds the positions, velocities, and other information of all atoms within the simulation.
-A separate set of functions takes these data containers as inputs and modifies them in place, e.g. mrmd::action::VelocityVerlet .
-For performance reasons, the data containers are not treated as immutable objects but are modified by the algorithms directly.
-All pieces are exposed to the user and can be combined freely to develop new simulation methods.
+@section concept_portability Portability
 
-A precise naming scheme with a clear folder structure, and the avoidance of abbreviations together with literature references within the source code serve as the main point of documentation.
-Static code analysis using `clang-tidy` and automatic source code formatting using `clang-format` ensure consistency over the whole code base.
-Detailed examples serve as the main entry point for new users and are tested in the CI at every commit to ensure that everything is working correctly and is up to date.
+To facilitate widespread use with minimal obstacles `MRMD` uses the Kokkos Performance Portability
+Library. This enables `MRMD` to run on various current and future hardware architectures, including
+modern state-of-the-art GPUs from Nvidia and AMD. At the same time, only a single code base needs
+to be maintained. We use CI jobs to continuously monitor the building and execution process for
+different compilers and architectures. Selecting a backend is described in @ref getting_started.
 
-Reference:
- - @ref mrmd::action
- - @ref mrmd::analysis
- - @ref mrmd::assert
- - @ref mrmd::communication
- - @ref mrmd::data
- - @ref mrmd::io
- - @ref mrmd::test
- - @ref mrmd::util
- - @ref mrmd::weighting_function
- - @ref mrmd::toSI
- - @ref mrmd::bin_op
+@section concept_data Data-oriented programming
+
+The software design itself focuses on separating code and data. A few data-only containers are used
+to hold the simulation state: for example, mrmd::data::Atoms holds the positions, velocities, and
+other information of all atoms within the simulation, and mrmd::data::Subdomain describes the box
+they live in. A separate set of functions takes these data containers as inputs and modifies them
+in place, e.g. mrmd::action::VelocityVerlet.
+
+For performance reasons, the data containers are not treated as immutable objects but are modified
+by the algorithms directly. All pieces are exposed to the user and can be combined freely to
+develop new simulation methods. @ref tutorials shows this in practice: each example is a flat
+sequence of actions applied to the same containers, and moving from a plain Lennard-Jones fluid to
+an adaptive resolution simulation is a matter of adding and swapping actions rather than
+restructuring the program.
+
+@section concept_selfdocumenting Self-documenting code
+
+A precise naming scheme with a clear folder structure, and the avoidance of abbreviations together
+with literature references within the source code serve as the main point of documentation.
+Static code analysis using `clang-tidy` and automatic source code formatting using `clang-format`
+ensure consistency over the whole code base.
+Detailed examples serve as the main entry point for new users and are tested in the CI at every
+commit to ensure that everything is working correctly and is up to date.
+
+Every non-trivial method carries the reference it was implemented from, so the documentation of an
+algorithm is the paper that defines it:
+
+| Method | Implementation | Reference |
+| ------ | -------------- | --------- |
+| Velocity Verlet integration | mrmd::action::VelocityVerlet | [10.1063/1.442716](https://doi.org/10.1063/1.442716) |
+| Langevin thermostat (BAOAB) | mrmd::action::VelocityVerletLangevinThermostat | [10.1093/amrx/abs010](https://doi.org/10.1093/amrx/abs010) |
+| Berendsen thermostat and barostat | mrmd::action::BerendsenThermostat, mrmd::action::BerendsenBarostat | [10.1063/1.448118](https://doi.org/10.1063/1.448118) |
+| Thermodynamic force | mrmd::action::ThermodynamicForce | [10.1063/1.5031206](https://doi.org/10.1063/1.5031206) |
+| Lennard-Jones / ideal gas coupling | mrmd::action::LJ_IdealGas | [10.1063/1.5143268](https://doi.org/10.1063/1.5143268) |
+| SHAKE and RATTLE constraints | mrmd::action::MoleculeConstraints | [10.1016/0021-9991(77)90098-5](https://doi.org/10.1016/0021-9991(77)90098-5), [10.1016/0021-9991(83)90014-1](https://doi.org/10.1016/0021-9991(83)90014-1) |
+| SPC water model | mrmd::action::SPC | [10.1021/j100308a038](https://doi.org/10.1021/j100308a038) |
+| Damped shifted force Coulomb | used by mrmd::action::SPC | [10.1140/epjst/e2016-60151-6](https://doi.org/10.1140/epjst/e2016-60151-6) |
+| H5MD trajectory format | mrmd::io::DumpH5MD, mrmd::io::RestoreH5MD | [10.1016/j.cpc.2014.01.018](https://doi.org/10.1016/j.cpc.2014.01.018) |
+| MRMD itself | mrmd::action::LennardJones, mrmd::analysis::CountingPlane | [arXiv:2607.24574](https://doi.org/10.48550/arXiv.2607.24574) |
+
+@section concept_reference Namespace reference
+
+| Namespace | Contents |
+| --------- | -------- |
+| mrmd | Fundamental types (`real_t`, `idx_t`, mrmd::Point3D, mrmd::Vector3D), constants, and mrmd::initialize() / mrmd::finalize() |
+| mrmd::action | Everything to evolve the simulation physically: integrators, thermostats, barostats, force kernels, constraints |
+| mrmd::analysis | Everything to evaluate the current state: energies, pressure, momentum, density profiles |
+| mrmd::communication | Ghost particles and periodic boundary conditions, in single and multiple resolution |
+| mrmd::data | All fundamental data containers: atoms, molecules, subdomain, histograms |
+| mrmd::io | Reading and writing simulation data: CSV, GRO, H5MD, LAMMPS, profiles, thermodynamic forces |
+| mrmd::util | Utility functions: angles, interpolation, random numbers, simulation setup helpers |
+| mrmd::weighting_function | Weighting functions for different interfaces and region geometries |
+| mrmd::toSI | Conversion factors from the internal unit system to SI |
+| mrmd::bin_op | GPU compatible binary operators used by the reduction helpers |
+
+Several algorithms are grouped into nested namespaces rather than classes, which is also how they
+are called: mrmd::action::BerendsenThermostat, mrmd::action::BerendsenBarostat,
+mrmd::action::UpdateMolecules, mrmd::action::ContributeMoleculeForceToAtoms,
+mrmd::communication::PeriodicMapping, mrmd::communication::UpdateGhostAtoms and
+mrmd::communication::AccumulateForce.
+
+Assertions are provided as macros (`MRMD_HOST_CHECK_*`, `MRMD_DEVICE_ASSERT_*`,
+`MRMD_NORMAL_CHECK_*`) in `mrmd/assert/`, backed by the ::assumption namespace when
+`MRMD_VERBOSE_ASSERTS` is enabled.
+
+See @ref theory for the physics these pieces implement, and @ref tutorials for complete programs
+that use them.
 */

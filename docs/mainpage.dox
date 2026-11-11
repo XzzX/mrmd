@@ -9,4 +9,75 @@ and energy with a reservoir.
 The software exposes all of its algorithms as composable building blocks,
 facilitating both running AdResS simulations and developing the
 method itself.
+
+@section mainpage_highlights What you get
+
+- **One code base, many architectures.** All kernels are written against the
+  [Kokkos](https://github.com/kokkos/kokkos) performance portability library, so the same source
+  runs on serial CPUs, OpenMP and Nvidia or AMD GPUs. See @ref concept.
+- **Composable actions on plain data.** Simulation state lives in a handful of containers such as
+  mrmd::data::Atoms and mrmd::data::Subdomain; algorithms such as mrmd::action::VelocityVerlet are
+  free functions that take those containers and modify them in place. Nothing is hidden behind a
+  framework, so new methods can be assembled from existing pieces.
+- **AdResS out of the box.** Region weighting (mrmd::weighting_function::Slab,
+  mrmd::weighting_function::Spherical), the iterative thermodynamic force
+  (mrmd::action::ThermodynamicForce) and multi-resolution ghost exchange
+  (mrmd::communication::MultiResGhostLayer) are part of the library, not of a driver script.
+  See @ref theory.
+
+@section mainpage_glance MRMD at a glance
+
+A complete ideal gas simulation in the NVE ensemble — this is
+@ref tut_00_IdealGas_NVE, trimmed to its essentials:
+
+@code{.cpp}
+using namespace mrmd;
+
+// a 100x100x100 box with a ghost layer of thickness 1, filled with 100000 atoms
+auto subdomain = data::Subdomain({0_r, 0_r, 0_r}, {100_r, 100_r, 100_r}, 1_r);
+auto atoms = util::fillDomainWithAtoms(subdomain, 100000, 1_r, 1_r);
+
+communication::GhostLayer ghostLayer;
+
+for (auto i = 0; i < 2001; ++i)
+{
+    action::VelocityVerlet::preForceIntegrate(atoms, 0.005_r);
+    ghostLayer.exchangeRealAtoms(atoms, subdomain);   // periodic boundary conditions
+    // force kernels would go here
+    action::VelocityVerlet::postForceIntegrate(atoms, 0.005_r);
+
+    if (i % 100 == 0) io::dumpCSV("atoms_" + std::to_string(i) + ".csv", atoms);
+}
+@endcode
+
+Adding interactions means adding one more action to the loop; moving to multiple resolutions means
+swapping the ghost layer and adding a weighting function. Nothing else about the structure changes.
+
+@section mainpage_next Where to go next
+
+- @subpage getting_started — requirements, build options, picking a Kokkos backend, and running
+  your first simulation.
+- @subpage concept — the three design principles behind MRMD and a map of the namespaces.
+- @subpage theory — the abrupt-interface AdResS scheme and the thermodynamic force iteration.
+- @subpage tutorials — eleven worked examples that build on each other, from a minimal ideal gas
+  up to a full multi-resolution production workflow.
+
+The API reference is reachable from the sidebar; mrmd::data is a good place to start reading it,
+followed by mrmd::action.
+
+@section mainpage_citing Citing MRMD
+
+If you use MRMD in your research, please cite it as
+
+> Sebastian Eibl and Julian Friedrich Hille. *Multi Resolution Molecular Dynamics (MRMD)*.
+> doi:[10.5281/zenodo.17698862](https://doi.org/10.5281/zenodo.17698862)
+
+Machine-readable metadata is in `CITATION.cff` in the repository root.
+
+@section mainpage_project Project
+
+- Source code: https://github.com/XzzX/mrmd
+- Authors: Sebastian Eibl ([ORCID](https://orcid.org/0000-0002-1069-2720)) and
+  Julian Friedrich Hille ([ORCID](https://orcid.org/0009-0008-1005-9053))
+- License: Apache License 2.0
 */

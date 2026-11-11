@@ -18,8 +18,13 @@ PROSE = re.compile(r"^\s*" + re.escape(MARKER) + r">* ?(.*)$")  # ">*": tolerate
 path = sys.argv[1]
 lines = open(path, encoding="utf-8").read().splitlines()
 
-name = "tut_" + re.sub(r"\W", "_", os.path.splitext(os.path.basename(path))[0])
-title = name
+# This transformation must stay byte-identical to page_name() in
+# gen_tutorial_index.py, otherwise the \subpage references there stop resolving.
+stem = os.path.splitext(os.path.basename(path))[0]
+name = "tut_" + re.sub(r"\W", "_", stem)
+# Fall back to the readable filename rather than the "tut_..." page id, so a file
+# without a title line never publishes an identifier as its heading.
+title = stem.replace("_", " ")
 
 # Take the title only from a prose line that is the very first non-blank line,
 # so prose further down is never swallowed.
@@ -32,7 +37,19 @@ for i, line in enumerate(lines):
         del lines[i]
     break
 
-out = [f"\\page {name} {title}", ""]
+# Relative path of the tutorial inside the repository, for the provenance note.
+rel = os.path.join(os.path.basename(os.path.dirname(os.path.abspath(path))),
+                   os.path.basename(path))
+
+out = [
+    f"\\page {name} {title}",
+    "",
+    "@note This page is generated from `examples/" + rel + "`. Build and run it with",
+    "`cmake --build mrmd-build --target " + stem + "` followed by",
+    "`./mrmd-build/examples/" + os.path.dirname(rel) + "/" + stem + "`. Pass `--help` to see the",
+    "available command line options.",
+    "",
+]
 code = []
 
 def flush_code():

@@ -10,6 +10,11 @@ STRIP_FROM_INC_PATH    = @PROJECT_SOURCE_DIR@/mrmd
 
 #---------------------------------------------------------------------------
 # Build and input
+#
+# WARN_AS_ERROR = YES means any warning fails the docs build, including ones
+# that come from a file written for a different Doxygen version. Keep
+# DoxygenLayout.xml and header.html version neutral, and do not add tags that
+# only exist in a newer Doxygen than the one CI installs.
 #---------------------------------------------------------------------------
 EXTRACT_ALL            = YES
 EXTRACT_STATIC         = YES
@@ -27,9 +32,15 @@ RECURSIVE              = YES
 EXCLUDE_PATTERNS       = *.test.cpp \
                          */mrmd/test/* \
                          */gtest_main*
-EXCLUDE_SYMBOLS        = impl \
-                         *::impl \
-                         *::impl::*
+# data::impl holds GeneralAtoms/GeneralMolecules, the real definitions behind
+# data::Atoms and data::Molecules, so it has to stay visible. Everything else
+# called impl really is an implementation detail.
+EXCLUDE_SYMBOLS        = mrmd::action::impl* \
+                         mrmd::analysis::impl* \
+                         mrmd::communication::impl* \
+                         mrmd::io::impl* \
+                         mrmd::util::impl* \
+                         mrmd::weighting_function::impl*
 EXAMPLE_PATH           = @PROJECT_SOURCE_DIR@
 JAVADOC_AUTOBRIEF      = YES
 FILTER_PATTERNS        = *examples*.cpp="python3 @CMAKE_CURRENT_SOURCE_DIR@/tutorial_filter.py"
@@ -42,6 +53,8 @@ GENERATE_LATEX         = NO
 GENERATE_TREEVIEW      = YES
 DISABLE_INDEX          = NO
 FULL_SIDEBAR           = NO
+# wide enough for the longest tutorial title in the sidebar
+TREEVIEW_WIDTH         = 335
 HTML_COLORSTYLE        = LIGHT
 HTML_HEADER            = @CMAKE_CURRENT_SOURCE_DIR@/header.html
 HTML_EXTRA_STYLESHEET  = @AWESOME_CSS_DIR@/doxygen-awesome.css \

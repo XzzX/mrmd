@@ -1,0 +1,141 @@
+/**
+@page getting_started Getting Started
+
+This page covers building MRMD, the options you are likely to need, and running your first
+simulation. The repository `README.md` carries the same instructions in a shorter form.
+
+@section getting_started_requirements Requirements
+
+MRMD needs only a compiler and CMake; every other mandatory dependency is fetched and built
+automatically during configuration.
+
+- A C++ compiler with C++20 support
+- [CMake](https://cmake.org/) >= 3.25
+
+Fetched automatically, at the pinned versions:
+
+| Dependency | Version | Purpose |
+| ---------- | ------- | ------- |
+| [Kokkos](https://github.com/kokkos/kokkos)    | 4.7.1  | performance portability, backend selection |
+| [Cabana](https://github.com/ECP-copa/Cabana)  | 0.7    | AoSoA particle containers and neighbor lists |
+| [CLI11](https://github.com/CLIUtils/CLI11)    | 2.6.1  | command line parsing in the examples |
+| [yaml-cpp](https://github.com/jbeder/yaml-cpp)| 0.8.0  | configuration files |
+| [googletest](https://github.com/google/googletest) | 1.17.0 | unit tests |
+
+Found on the system rather than fetched, and therefore optional:
+
+- [HDF5](https://www.hdfgroup.org/solutions/hdf5/) — enables all H5MD input and output. Without it
+  the H5MD paths of @ref tutorials 03 and 05 through 08 are unavailable and their tests are not
+  registered.
+- MPI — enabled with `MRMD_ENABLE_MPI`.
+- [Doxygen](https://www.doxygen.nl/) and optionally [Graphviz](https://graphviz.org/) — only needed
+  to build this documentation.
+
+@section getting_started_build Building
+
+@code{.sh}
+git clone https://github.com/XzzX/mrmd
+cmake -S mrmd \
+      -B mrmd-build \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DKokkos_ENABLE_SERIAL=ON \
+      -DKokkos_ENABLE_OPENMP=ON \
+      -DKokkos_ARCH_NATIVE=ON
+cmake --build mrmd-build --parallel 8
+@endcode
+
+Then run the first example:
+
+@code{.sh}
+cd mrmd-build/examples/00_IdealGas_NVE
+./00_IdealGas_NVE
+@endcode
+
+Every example accepts `--help` and takes its parameters from the command line, so you can shorten a
+run with `--nsteps 10` while trying things out.
+
+@section getting_started_options Build options
+
+MRMD specific options:
+
+| Option | Default | Description |
+| ------ | ------- | ----------- |
+| `MRMD_BUILD_DOCS`       | OFF | Build this documentation (target `docs`) |
+| `MRMD_ENABLE_COVERAGE`  | OFF | Enable code coverage (clang only) |
+| `MRMD_ENABLE_HDF5`      | OFF | Enable HDF5 / H5MD support |
+| `MRMD_ENABLE_MPI`       | OFF | Enable MPI support |
+| `MRMD_ENABLE_TESTING`   | ON  | Build tests and register them with ctest |
+| `MRMD_USE_SHARED_SPACE` | OFF | Use Kokkos shared space |
+| `MRMD_VEC_REPORT`       | OFF | Report loop vectorization |
+| `MRMD_VERBOSE_ASSERTS`  | OFF | Verbose asserts (CPU only) |
+| `MRMD_WERROR`           | OFF | Treat compiler warnings as errors |
+| `MRMD_VECTOR_LENGTH`    | 1   | Vector length of the AoSoA particle containers |
+
+In addition to the standard CMake build types, MRMD defines `DebugOptimized`, which combines the
+debug flags with `-O3`. It is useful together with `MRMD_VERBOSE_ASSERTS` and the Kokkos debug
+options when a simulation misbehaves but a plain `Debug` build is too slow to reach the problem.
+
+@section getting_started_backends Choosing a Kokkos backend
+
+The target architecture and the execution backend are selected through Kokkos, not through MRMD.
+Enable one or more backends with `Kokkos_ENABLE_*` and name the architecture with `Kokkos_ARCH_*`.
+
+For a CPU build using all cores of the build machine:
+
+@code{.sh}
+-DKokkos_ENABLE_SERIAL=ON -DKokkos_ENABLE_OPENMP=ON -DKokkos_ARCH_NATIVE=ON
+@endcode
+
+For an Nvidia GPU:
+
+@code{.sh}
+-DKokkos_ENABLE_SERIAL=ON -DKokkos_ENABLE_OPENMP=ON -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
+@endcode
+
+Each example prints the execution space it was compiled for on startup, which is the quickest way
+to confirm the backend you intended is the one in use.
+
+@section getting_started_tests Running the tests
+
+@code{.sh}
+cd mrmd-build
+ctest --parallel 4 --output-on-failure
+@endcode
+
+The examples are part of the test suite: each is registered as `Example.<name>` and executed with a
+small step count, so a passing `ctest` run also means every tutorial on this site still compiles
+and runs.
+
+@section getting_started_install Using MRMD as a library
+
+@code{.sh}
+cmake --install mrmd-build --prefix /path/to/install
+@endcode
+
+Downstream CMake projects locate it with `find_package` and link the `mrmd::mrmd` target:
+
+@code{.cmake}
+find_package(mrmd REQUIRED)
+
+add_executable(my_app main.cpp)
+target_link_libraries(my_app PRIVATE mrmd::mrmd)
+@endcode
+
+Point CMake at the install location with `-DCMAKE_PREFIX_PATH=/path/to/install` when configuring
+the downstream project.
+
+@section getting_started_docs Building this documentation
+
+@code{.sh}
+cmake -S mrmd -B mrmd-build -DMRMD_BUILD_DOCS=ON
+cmake --build mrmd-build --target docs
+@endcode
+
+The HTML output is written to `mrmd-build/docs/html/index.html`. The published copy lives at
+<https://xzzx.github.io/mrmd/>.
+
+@section getting_started_next Next steps
+
+Work through the @ref tutorials in order. They start from a minimal ideal gas and build up to a
+full multi-resolution production workflow, and each one is a complete, runnable program.
+*/

@@ -52,9 +52,32 @@ def read_description(path: Path, marker: str) -> list:
     return desc
 
 
+MAX_TITLE_LEN = 60  # a title is a label, not a sentence
+
+
+def read_title(path: Path, marker: str) -> str:
+    """Return the tutorial's title line, or "" if it does not have a usable one.
+
+    A title is the first non-blank line of the file, it has to be a prose line,
+    and it has to look like a label rather than the opening of a sentence.
+    """
+    prose = re.compile(r"^\s*" + re.escape(marker) + r">* ?(.*)$")
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        m = prose.match(line)
+        if not m:
+            return ""
+        title = m.group(1).strip()
+        return title if 0 < len(title) <= MAX_TITLE_LEN else ""
+    return ""
+
+
 def natural_key(path: Path):
-    # Sort "2_x" before "10_x"
-    return [int(t) if t.isdigit() else t.lower()
+    # Sort "2_x" before "10_x". Each token becomes a (kind, number, text) tuple so
+    # that a digit token is never compared against a text token, which would raise
+    # TypeError inside sorted().
+    return [(0, int(t), "") if t.isdigit() else (1, 0, t.lower())
             for t in re.split(r"(\d+)", str(path))]
 
 
@@ -68,8 +91,20 @@ def main() -> int:
     ap.add_argument("--page", default="tutorials", help='parent page name (default: "tutorials")')
     ap.add_argument("--title", default="Tutorials", help='parent page title (default: "Tutorials")')
     ap.add_argument("--intro", default="", help="optional intro text above the list")
+    ap.add_argument("--intro-file", type=Path, default=None,
+                    help="read the intro text from this file instead of the command line, "
+                         "which avoids quoting a multi-line string through the build system")
     ap.add_argument("--marker", default="//>", help='prose marker used in the tutorials (default: "//>")')
+    ap.add_argument("--strict", action="store_true",
+                    help="fail if a tutorial has no title line, instead of publishing a page "
+                         "titled with a sentence fragment")
     args = ap.parse_args()
+
+    if args.intro_file:
+        if not args.intro_file.is_file():
+            print(f"error: {args.intro_file} is not a file", file=sys.stderr)
+            return 1
+        args.intro = args.intro_file.read_text(encoding="utf-8").strip()
 
     if not args.tutorial_dir.is_dir():
         print(f"error: {args.tutorial_dir} is not a directory", file=sys.stderr)
@@ -93,9 +128,22 @@ def main() -> int:
             return 1
         seen[name] = f
 
+    if args.strict:
+        bad = [f for f in files if not read_title(f, args.marker)]
+        if bad:
+            for f in bad:
+                print(f"error: {f} has no '{args.marker} <Title>' line as its first "
+                      f"non-blank line", file=sys.stderr)
+            print("error: every tutorial must start with a short title line, otherwise its "
+                  "first sentence is used as the page title", file=sys.stderr)
+            return 1
+
     lines = [f"\\page {args.page} {args.title}", ""]
     if args.intro:
-        lines += [args.intro, ""]
+        # Split: every output line gets its own "///" prefix below, so an intro
+        # passed as one string with embedded newlines would leave all but its
+        # first line outside the comment block.
+        lines += [l.rstrip() for l in args.intro.splitlines()] + [""]
     for f in files:
         lines.append(f"- \\subpage {page_name(f)}")
         desc = read_description(f, args.marker)

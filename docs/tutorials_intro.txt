@@ -1,0 +1,14 @@
+The tutorials below build on each other and are meant to be read in order. Each one is a complete,
+runnable program: it is compiled as its own executable under `mrmd-build/examples/<name>`, it
+accepts its parameters on the command line (`--help` lists them), and it is executed as part of the
+test suite on every commit, so what you see here always compiles and runs.
+
+Several of them consume files produced by an earlier one, so running them out of order will fail on
+a missing input:
+
+- 02 writes the GRO configuration that 03 restores.
+- 05 (Berendsen) writes the H5MD checkpoint that 05 (Langevin) restores, which in turn feeds 06.
+- 07 writes the converged thermodynamic force that 08 applies.
+
+Everything involving H5MD — that is 03 and 05 through 08 — requires a build configured with
+`-DMRMD_ENABLE_HDF5=ON`. See @ref getting_started.
