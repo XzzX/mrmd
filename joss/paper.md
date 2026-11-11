@@ -26,6 +26,15 @@ bibliography: paper.bib
 
 # Summary
 
+`MRMD` is a stand-alone C++ software package providing the algorithms necessary to set up and run AdResS
+simulations. The software provides all algorithms as building blocks that can be combined via a C++ interface. 
+It is thus particularly suitable for testing and further 
+development of the AdResS method itself. The software comes with basic tools for pre- and postprocessing of 
+the simulations but can also parse input and generate output in formats such as GRO and H5MD [@DEBUYL20141546] and thus interfaces 
+to standard packages in molecular simulation such as `Gromacs` and `MDAnalysis`.
+
+# Statement of need
+
 The (Hamiltonian) adaptive resolution simulation ((H-)AdResS) scheme concurrently
 couples regions of different resolutions by spatially interpolating or switching between different 
 interparticle (potentials/) forces, e.g. atomistic Lennard-Jones and ideal gas [@praprotnik_adaptive_2005; @praprotnik_adaptive_2007; @potestio_hamiltonian_2013]. The method has 
@@ -36,18 +45,10 @@ subsystem [@wang_grand-canonical-like_2013; @delle_site_molecular_2019; @cortes-
 non-equilibrium simulations with distinct thermodynamic reservoir states at opposing boundaries of 
 the atomistic region that could even fluctuate in accord with a fluid dynamical simulation on a 
 larger scale [@heidari_open-boundary_2020; @klein_nonequilibrium_2021; @gholami_simulation_2022]. However, the method requires very specific algorithms that are not immediately available, 
-difficult to maintain and challenging to further develop within the standard simulation packages of 
-molecular dynamics. 
-
-# Statement of need
-
-`MRMD` is a stand-alone C++ software package providing the algorithms necessary to set up and run AdResS
-simulations. The software provides all algorithms as building blocks that can be combined via a C++ interface. 
-It is thus particularly suitable for testing and further 
-development of the AdResS method itself. The software comes with basic tools for pre- and postprocessing of 
-the simulations but can also parse input and generate output in formats such as GRO and H5MD [@DEBUYL20141546] and thus interfaces 
-to standard packages in molecular simulation such as `Gromacs` and `MDAnalysis`.
-
+difficult to maintain and challenging to develop further within the standard simulation packages of 
+molecular dynamics. In contrast, the philosophy behind `MRMD` is to provide all these algorithms within one
+stand-alone C++ package.
+ 
 `MRMD` was designed to be used by researchers in the field of open molecular systems and developers of 
 the AdResS method. It has been used in a scientific publication concerned with linking the simulation method 
 with the theoretical model of the Liouville-type hierarchy [@hille_reframing_2026] and, in turn, motivating 
@@ -70,7 +71,7 @@ the current state of the method [@pinzon_escobar_node-level_2025; @sudhakar_exte
 `MRMD`, in contrast, is a stand-alone and open-source software package 
 implementing exclusively the AdResS method. Core functionalities specific to AdResS such as the change of molecular 
 resolution and the compensation of the associated numerical artifacts are therefore built into its very structure 
-and well-covered by unit and integration tests.
+and are well-covered by unit and integration tests.
 
 # Software design
 
@@ -112,58 +113,6 @@ particles through abrupt interfaces as it was employed in the aforementioned stu
 With its simulation, analysis and io facilities, `MRMD` is well-equipped for further studies 
 of the AdResS boundary, which will only increase in significance when extending towards non-equilibrium 
 simulations with reservoirs having distinct thermodynamic states that may even change with time.  
-
-# Mathematics
-
-We describe here the theory for the abrupt interface AdResS version for which examples are available in the release version of `MRMD`. The smooth interpolation common to other (H-)AdResS flavors is also already implemented in `MRMD`. 
-
-At the heart of AdResS being applied to simulate an open atomistically resolved system in 
-exchange with a reservoir through its boundary is the thermodynamic consistency of said reservoir. 
-
-Such a reservoir can be realized in a rectangular simulation domain by the atomistically resolved (AT)
-region being encapsulated to the left and right by buffer zones ($\Delta$ regions) within which the 
-particles are also interacting atomistically. Beyond the $\Delta$ regions, in the tracer (TR) region, 
-the interactions are then abruptly switched off, so that the interaction potential can be written as 
-
-\begin{align}
-    U(r, x_i, x_j) = \begin{cases}
-            V(r) &\textrm{, for } x_i, x_j \in [-x_{\Delta\textrm{/TR}}, x_{\Delta\textrm{/TR}}] \\
-            0 &\textrm{, else } \\
-            \end{cases}\textrm{,}
-\end{align}
-
-where $x_i$ and $x_j$ are the positions of two particles $i$ and $j$ in $x$-direction, $r$ is the absolute 
-distance in between them and
-
-\begin{align}
-    V(r) = \begin{cases}
-            v(r_{\textrm{cap}}) - \frac{\partial v}{\partial r} \big|_{r_\textrm{cap}} r_{\textrm{cap}} + \frac{\partial v}{\partial r}\big|_{r_\textrm{cap}} r &\textrm{, for } r_{\textrm{cap}} \geq r \\
-            v(r) &\textrm{, for } r_{\textrm{cap}} < r \leq r_{\textrm{cut}} \\
-            0 &\textrm{, for } r_{\textrm{cut}} < r \\
-            \end{cases}\textrm{,}
-\end{align}
-
-is a radial potential force-capped beneath a radius $r_{\textrm{cap}}$ with $v(r)$ being a suitable pair-wise potential 
-such as the truncated and shifted Lennard-Jones potential. 
-
-It is emphasized that this does not necessarily comprise a Hamiltonian AdResS scheme in the classical 
-sense due to the discontinuities of such a potential at $\pm x_{\Delta\textrm{/TR}}$, but that the 
-TR region anyways represents merely an algorithm to provide the $\Delta$ regions with the necessary 
-number of particles and fluctuations thereof such that they, in turn, can provide the AT region with 
-thermodynamically consistent boundary conditions. 
-
-The change of resolution, be it abrupt or smooth, introduces numerical artifacts that can be compensated 
-by a one-body thermodynamic force $F_{\textrm{th}}$. This force is calculated during the setup stage of 
-AdResS simulations in an iterative procedure 
-
-\begin{align}
-    F_{\textrm{th}}^{k + 1}(x) &= F_{\textrm{th}}^{k}(x) - c \nabla \rho^{k}(x) \textrm{,}
-\end{align}
-
-where each iteration $k$ comprises a short AdResS simulation with applied thermodynamic force $F_{\textrm{th}}^{k}(x)$, 
-which is incremented by the gradient of the density profile $\nabla \rho^{k}(x)$ averaged over this simulation weighted by 
-a user-defined convergence prefactor $c$. The procedure is considered converged when the density profile is flat to within 
-a desired tolerance. With the converged thermodynamic force, the AdResS production run can be started. 
 
 # AI usage disclosure
 
