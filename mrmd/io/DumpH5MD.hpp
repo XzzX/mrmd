@@ -35,8 +35,7 @@ class DumpH5MDImpl;
 /**
  * @brief Handles dumping trajectory data in H5MD format.
  *
- * References:
- * -DOI: 10.1016/j.cpc.2014.01.018
+ * @reference{H5MD trajectory format,10.1016/j.cpc.2014.01.018}
  */
 class DumpH5MD
 {

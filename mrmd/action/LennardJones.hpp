@@ -27,8 +27,7 @@ namespace mrmd::action::impl
  * This class implements methods to compute the Lennard-Jones force and energy
  * at a given distance squared. Force capping and potential shifting are available.
  *
- * References:
- * -DOI: 10.48550/arXiv.2607.24574
+ * @reference{MRMD,10.48550/arXiv.2607.24574}
  */
 class CappedLennardJonesPotential
 {
@@ -112,8 +111,7 @@ namespace mrmd::action
  * shifting, force capping and to evaluate the potential energy and forces only in
  * parts of the simulation domain.
  *
- * References:
- * -DOI: 10.48550/arXiv.2607.24574
+ * @reference{MRMD,10.48550/arXiv.2607.24574}
  */
 class LennardJones
 {

@@ -14,52 +14,14 @@ The software exposes all of its algorithms as composable building blocks,
 facilitating both running AdResS simulations and developing the
 method itself.
 
-# How to Build
+# Quickstart
+
+For exhaustive installation instructions see the documentation.
 
 ## Requirements
 
-### Infrastructure
-
 - A C++ compiler with C++20 support
 - [CMake](https://cmake.org/) >= 3.25
-
-### Libraries
-
-#### Integrated libraries
-
-These are fetched and built automatically by CMake:
-
-- [CLI11](https://github.com/CLIUtils/CLI11.git)
-- [yaml-cpp](https://github.com/jbeder/yaml-cpp.git)
-- [Kokkos](https://github.com/kokkos/kokkos) — specify flags for your target architecture and backend
-- [Cabana](https://github.com/ECP-copa/Cabana.git)
-- [googletest](https://github.com/google/googletest.git)
-
-#### Optional libraries
-
-- [HDF5](https://www.hdfgroup.org/solutions/hdf5/) — required for H5MD I/O support
-
-## CMake configuration options
-
-### MRMD specific options
-
-| Flag                  | Description                                | Default |
-| --------------------- | ------------------------------------------ | ------- |
-| MRMD_BUILD_DOCS       | Build the Doxygen documentation (`docs`)   | OFF     |
-| MRMD_ENABLE_COVERAGE  | Enable code coverage (clang only)          | OFF     |
-| MRMD_ENABLE_HDF5      | Enable HDF5 / H5MD support                 | OFF     |
-| MRMD_ENABLE_TESTING   | Build tests and add them to ctest          | ON      |
-| MRMD_USE_SHARED_SPACE | Use shared space for Kokkos.               | OFF     |
-| MRMD_VEC_REPORT       | Enable reporting of loop vectorization     | OFF     |
-| MRMD_VERBOSE_ASSERTS  | Verbose asserts (CPU only)                 | OFF     |
-| MRMD_WERROR           | Treat warnings as errors                   | OFF     |
-
-### Kokkos specific options
-
-| Flag              | Description                | Options                   |
-| ----------------- | -------------------------- | ------------------------- |
-| Kokkos_ENABLE_\*  | Enable Kokkos backends     | SERIAL, OPENMP, CUDA, ... |
-| Kokkos_ARCH_\*    | Select target architecture | AMPERE80, NATIVE, ...     |
 
 ## Build Instructions
 
@@ -89,23 +51,6 @@ MRMD can be installed and consumed as a library from other CMake projects:
 
 ```bash
 cmake --install mrmd-build --prefix /path/to/install
-```
-
-Downstream projects locate it with `find_package` and link against the
-`mrmd::mrmd` target:
-
-```cmake
-find_package(mrmd REQUIRED)
-
-add_executable(my_app main.cpp)
-target_link_libraries(my_app PRIVATE mrmd::mrmd)
-```
-
-When configuring the downstream project, point CMake at the install
-location:
-
-```bash
-cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/install
 ```
 
 ## Building the Documentation

@@ -24,8 +24,9 @@ namespace action
 namespace BerendsenThermostat
 {
 /**
- * Berendsen Thermostat
- * DOI: 10.1063/1.448118
+ * @brief Berendsen thermostat.
+ *
+ * @reference{Berendsen thermostat,10.1063/1.448118}
  */
 void apply(data::Atoms& atoms,
            const real_t& currentTemperature,
