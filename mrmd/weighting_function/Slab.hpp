@@ -30,7 +30,7 @@ namespace weighting_function
  * Two modes are supported. One with a smooth interpolation of the potentials between
  * the atomistic and coarse-grained regions and one with an abrupt interface.
  *
- * @reference{H-AdResS weighting function in slab geometry, 10.1103/PhysRevLett.110.108301}
+ * @reference{H-AdResS weighting function in slab geometry,10.1103/PhysRevLett.110.108301}
  */
 class Slab
 {

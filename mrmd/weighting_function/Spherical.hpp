@@ -25,7 +25,7 @@ namespace weighting_function
 /**
  * @brief Applies the weighting function to a spherical simulation geometry.
  *
- * @reference{H-AdResS weighting function in spherical geometry, 10.1021/acs.jctc.8b00002}
+ * @reference{H-AdResS weighting function in spherical geometry,10.1021/acs.jctc.8b00002}
  */
 class Spherical
 {
