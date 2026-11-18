@@ -14,13 +14,13 @@ automatically during configuration.
 
 Fetched automatically, at the pinned versions:
 
-| Dependency | Version | Purpose |
-| ---------- | ------- | ------- |
-| [Kokkos](https://github.com/kokkos/kokkos)    | 4.7.1  | performance portability, backend selection |
-| [Cabana](https://github.com/ECP-copa/Cabana)  | 0.7    | AoSoA particle containers and neighbor lists |
-| [CLI11](https://github.com/CLIUtils/CLI11)    | 2.6.1  | command line parsing in the examples |
-| [yaml-cpp](https://github.com/jbeder/yaml-cpp)| 0.8.0  | configuration files |
-| [googletest](https://github.com/google/googletest) | 1.17.0 | unit tests |
+| Dependency | Purpose |
+| ---------- | ------- |
+| [Kokkos](https://github.com/kokkos/kokkos)         | performance portability, backend selection |
+| [Cabana](https://github.com/ECP-copa/Cabana)       | AoSoA particle containers and neighbor lists |
+| [CLI11](https://github.com/CLIUtils/CLI11)         | command line parsing in the examples |
+| [yaml-cpp](https://github.com/jbeder/yaml-cpp)     | configuration files |
+| [googletest](https://github.com/google/googletest) | unit tests |
 
 Found on the system rather than fetched, and therefore optional:
 
@@ -63,10 +63,8 @@ MRMD specific options:
 | `MRMD_BUILD_DOCS`       | OFF | Build this documentation (target `docs`) |
 | `MRMD_ENABLE_COVERAGE`  | OFF | Enable code coverage (clang only) |
 | `MRMD_ENABLE_HDF5`      | OFF | Enable HDF5 / H5MD support |
-| `MRMD_ENABLE_MPI`       | OFF | Enable MPI support |
 | `MRMD_ENABLE_TESTING`   | ON  | Build tests and register them with ctest |
 | `MRMD_USE_SHARED_SPACE` | OFF | Use Kokkos shared space |
-| `MRMD_VEC_REPORT`       | OFF | Report loop vectorization |
 | `MRMD_VERBOSE_ASSERTS`  | OFF | Verbose asserts (CPU only) |
 | `MRMD_WERROR`           | OFF | Treat compiler warnings as errors |
 | `MRMD_VECTOR_LENGTH`    | 1   | Vector length of the AoSoA particle containers |
