@@ -71,6 +71,7 @@ The HTML output is written to `mrmd-build/docs/html/index.html`.
 The [`examples`](examples) directory contains a series of self-contained simulations that build on each other,
 from a minimal, non-interacting system up to a full multi-resolution production workflow. Each example is built
 as its own executable in `mrmd-build/examples/<name>`. Work through them in numerical order to get familiar with MRMD.
+See the documentation under `mrmd-build/docs/html/tutorials.html` for further details. 
 
 # Contributing
 
