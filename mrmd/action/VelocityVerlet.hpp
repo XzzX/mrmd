@@ -28,8 +28,7 @@ namespace action
  * @brief Integrator that updates the positions and velocities of atoms using the Velocity Verlet
  * algorithm.
  *
- * References:
- * -DOI: 10.1063/1.442716
+ * @reference{Velocity Verlet integration,10.1063/1.442716}
  */
 class VelocityVerlet
 {

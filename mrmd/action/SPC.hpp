@@ -63,8 +63,8 @@ namespace action
  * @brief High-level interface for applying the pair-wise potential of the SPC water model to given
  * molecules and for enforcing geometric constraints.
  *
- * References:
- * -DOI: 10.1021/j100308a038
+ * @reference{SPC water model,10.1021/j100308a038}
+ * @reference{Damped shifted force Coulomb,10.1140/epjst/e2016-60151-6}
  */
 class SPC
 {
@@ -116,7 +116,7 @@ public:
     static constexpr real_t chargeH = +0.41_r;
 
     // LJ parameters for O-O interaction
-    // DOI: 10.1021/j100308a038
+    // @reference{SPC water model,10.1021/j100308a038}
     static constexpr real_t sigma = 0.31655578901998815_r;   ///< unit: nm
     static constexpr real_t epsilon = 0.6501695808187486_r;  ///< unit: kJ / mol
     static constexpr real_t rc = 1.2_r;                      ///< unit: nm

@@ -1,7 +1,7 @@
 # Doxygen configuration for MRMD. Only non-default values are listed.
 # Configured by CMake, see docs/CMakeLists.txt.
 
-PROJECT_NAME           = MRMD
+PROJECT_NAME           = "Multi Resolution Molecular Dynamics"
 PROJECT_NUMBER         = @PROJECT_VERSION@
 PROJECT_BRIEF          = "@PROJECT_DESCRIPTION@"
 OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@
@@ -10,6 +10,11 @@ STRIP_FROM_INC_PATH    = @PROJECT_SOURCE_DIR@/mrmd
 
 #---------------------------------------------------------------------------
 # Build and input
+#
+# WARN_AS_ERROR = YES means any warning fails the docs build, including ones
+# that come from a file written for a different Doxygen version. Keep
+# DoxygenLayout.xml and header.html version neutral, and do not add tags that
+# only exist in a newer Doxygen than the one CI installs.
 #---------------------------------------------------------------------------
 EXTRACT_ALL            = YES
 EXTRACT_STATIC         = YES
@@ -18,8 +23,14 @@ WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = NO
 WARN_IF_DOC_ERROR      = YES
 WARN_AS_ERROR          = YES
-INPUT                  = @CMAKE_BINARY_DIR@/docs/tutorials.dox \
-                         @PROJECT_SOURCE_DIR@/docs \
+# The narrative pages are listed one by one because Doxygen adds pages to the
+# navigation tree in input order. A new .dox page must be added here as well.
+INPUT                  = @PROJECT_SOURCE_DIR@/docs/mainpage.dox \
+                         @PROJECT_SOURCE_DIR@/docs/getting_started.dox \
+                         @PROJECT_SOURCE_DIR@/docs/concept.dox \
+                         @PROJECT_SOURCE_DIR@/docs/theory.dox \
+                         @CMAKE_BINARY_DIR@/docs/tutorials.dox \
+                         @PROJECT_SOURCE_DIR@/docs/namespaces.dox \
                          @PROJECT_SOURCE_DIR@/examples \
                          @PROJECT_SOURCE_DIR@/mrmd
 FILE_PATTERNS          = *.hpp *.cpp *.md *.dox
@@ -27,11 +38,22 @@ RECURSIVE              = YES
 EXCLUDE_PATTERNS       = *.test.cpp \
                          */mrmd/test/* \
                          */gtest_main*
-EXCLUDE_SYMBOLS        = impl \
-                         *::impl \
-                         *::impl::*
+# data::impl holds GeneralAtoms/GeneralMolecules, the real definitions behind
+# data::Atoms and data::Molecules, so it has to stay visible. Everything else
+# called impl really is an implementation detail.
+EXCLUDE_SYMBOLS        = mrmd::action::impl* \
+                         mrmd::analysis::impl* \
+                         mrmd::communication::impl* \
+                         mrmd::io::impl* \
+                         mrmd::util::impl* \
+                         mrmd::weighting_function::impl*
 EXAMPLE_PATH           = @PROJECT_SOURCE_DIR@
 JAVADOC_AUTOBRIEF      = YES
+# @reference{<method>,<doi>} marks the paper an algorithm was implemented from.
+# Every use is collected on the generated "Literature References" page
+# (@ref references). Use it in all source comments that cite a paper, also in
+# plain // comments, so that one grep finds every reference.
+ALIASES                = "reference{2}=\xrefitem references \"Reference\" \"Literature References\" \1: <a href=\"https://doi.org/\2\">\2</a>"
 FILTER_PATTERNS        = *examples*.cpp="python3 @CMAKE_CURRENT_SOURCE_DIR@/tutorial_filter.py"
 LAYOUT_FILE            = @CMAKE_CURRENT_SOURCE_DIR@/DoxygenLayout.xml
 
@@ -40,8 +62,11 @@ LAYOUT_FILE            = @CMAKE_CURRENT_SOURCE_DIR@/DoxygenLayout.xml
 #---------------------------------------------------------------------------
 GENERATE_LATEX         = NO
 GENERATE_TREEVIEW      = YES
+@MRMD_DOXYGEN_VERSION_SPECIFIC@
 DISABLE_INDEX          = NO
 FULL_SIDEBAR           = NO
+# wide enough for the longest tutorial title in the sidebar
+TREEVIEW_WIDTH         = 335
 HTML_COLORSTYLE        = LIGHT
 HTML_HEADER            = @CMAKE_CURRENT_SOURCE_DIR@/header.html
 HTML_EXTRA_STYLESHEET  = @AWESOME_CSS_DIR@/doxygen-awesome.css \

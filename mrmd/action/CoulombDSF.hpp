@@ -32,8 +32,7 @@ namespace impl
  * using the DSF method. The DSF method modifies the Coulomb potential to include a damping
  * factor and a force shift for improved computational efficiency and accuracy in simulations.
  *
- * References:
- * -DOI: 10.1140/epjst/e2016-60151-6
+ * @reference{Damped shifted force Coulomb,10.1140/epjst/e2016-60151-6}
  */
 class CoulombDSF
 {
@@ -46,8 +45,7 @@ private:
 
 public:
     /**
-     *  DOI: 10.1140/epjst/e2016-60151-6
-     *  eq 16
+     * @reference{Damped shifted force Coulomb (eq. 16),10.1140/epjst/e2016-60151-6}
      */
     KOKKOS_INLINE_FUNCTION
     real_t computeForce(const real_t& distSqr, const real_t q1, const real_t q2) const
@@ -61,8 +59,7 @@ public:
     }
 
     /**
-     *  DOI: 10.1140/epjst/e2016-60151-6
-     *  eq 15
+     * @reference{Damped shifted force Coulomb (eq. 15),10.1140/epjst/e2016-60151-6}
      */
     KOKKOS_INLINE_FUNCTION
     real_t computeEnergy(const real_t& distSqr, const real_t q1, const real_t q2) const
