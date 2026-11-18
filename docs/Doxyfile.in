@@ -62,6 +62,7 @@ LAYOUT_FILE            = @CMAKE_CURRENT_SOURCE_DIR@/DoxygenLayout.xml
 #---------------------------------------------------------------------------
 GENERATE_LATEX         = NO
 GENERATE_TREEVIEW      = YES
+@MRMD_DOXYGEN_VERSION_SPECIFIC@
 DISABLE_INDEX          = NO
 FULL_SIDEBAR           = NO
 # wide enough for the longest tutorial title in the sidebar

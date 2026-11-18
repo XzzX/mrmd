@@ -28,6 +28,16 @@ else ()
     set(MRMD_DOXYGEN_HAVE_DOT NO)
 endif ()
 
+# Doxygen >= 1.14 shows a page outline in a right-hand panel, but only on pages
+# that have sections. Those pages get a narrower content column than the others,
+# so turn it off. Older versions warn about the unknown tag, so set it only where
+# it exists.
+if (DOXYGEN_VERSION VERSION_GREATER_EQUAL 1.14)
+    set(MRMD_DOXYGEN_VERSION_SPECIFIC "PAGE_OUTLINE_PANEL     = NO")
+else ()
+    set(MRMD_DOXYGEN_VERSION_SPECIFIC "")
+endif ()
+
 configure_file(Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
 # The introductory prose for the generated tutorial overview page is passed as a
