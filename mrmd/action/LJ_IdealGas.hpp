@@ -36,8 +36,7 @@ void updateMeanCompensationEnergy(data::MultiHistogram& compensationEnergy,
  * @brief High-level interface for applying the pair-wise potential in an H-AdResS simulation of a
  * Lennard-Jones fluid coupled to an ideal gas.
  *
- * References:
- * -DOI: 10.1063/1.5143268
+ * @reference{Lennard-Jones / ideal gas coupling,10.1063/1.5143268}
  */
 class LJ_IdealGas
 {

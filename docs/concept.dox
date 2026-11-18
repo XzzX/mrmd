@@ -37,20 +37,8 @@ Detailed examples serve as the main entry point for new users and are tested in 
 commit to ensure that everything is working correctly and is up to date.
 
 Every non-trivial method carries the reference it was implemented from, so the documentation of an
-algorithm is the paper that defines it:
-
-| Method | Implementation | Reference |
-| ------ | -------------- | --------- |
-| Velocity Verlet integration | mrmd::action::VelocityVerlet | [10.1063/1.442716](https://doi.org/10.1063/1.442716) |
-| Langevin thermostat (BAOAB) | mrmd::action::VelocityVerletLangevinThermostat | [10.1093/amrx/abs010](https://doi.org/10.1093/amrx/abs010) |
-| Berendsen thermostat and barostat | mrmd::action::BerendsenThermostat, mrmd::action::BerendsenBarostat | [10.1063/1.448118](https://doi.org/10.1063/1.448118) |
-| Thermodynamic force | mrmd::action::ThermodynamicForce | [10.1063/1.5031206](https://doi.org/10.1063/1.5031206) |
-| Lennard-Jones / ideal gas coupling | mrmd::action::LJ_IdealGas | [10.1063/1.5143268](https://doi.org/10.1063/1.5143268) |
-| SHAKE and RATTLE constraints | mrmd::action::MoleculeConstraints | [10.1016/0021-9991(77)90098-5](https://doi.org/10.1016/0021-9991(77)90098-5), [10.1016/0021-9991(83)90014-1](https://doi.org/10.1016/0021-9991(83)90014-1) |
-| SPC water model | mrmd::action::SPC | [10.1021/j100308a038](https://doi.org/10.1021/j100308a038) |
-| Damped shifted force Coulomb | used by mrmd::action::SPC | [10.1140/epjst/e2016-60151-6](https://doi.org/10.1140/epjst/e2016-60151-6) |
-| H5MD trajectory format | mrmd::io::DumpH5MD, mrmd::io::RestoreH5MD | [10.1016/j.cpc.2014.01.018](https://doi.org/10.1016/j.cpc.2014.01.018) |
-| MRMD itself | mrmd::action::LennardJones, mrmd::analysis::CountingPlane | [arXiv:2607.24574](https://doi.org/10.48550/arXiv.2607.24574) |
+algorithm is the paper that defines it. These references are written next to the code with
+`@reference{<method>,<doi>}` and collected automatically on the @ref references page.
 
 @section concept_reference Namespace reference
 

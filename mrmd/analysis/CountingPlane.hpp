@@ -23,8 +23,7 @@ namespace mrmd::analysis
 /**
  * @brief Counts particles that cross a defined plane between two time steps.
  *
- * References:
- * -DOI: 10.48550/arXiv.2607.24574
+ * @reference{MRMD,10.48550/arXiv.2607.24574}
  */
 class CountingPlane
 {

@@ -25,8 +25,9 @@ namespace action
 namespace BerendsenBarostat
 {
 /**
- * Berendsen Barostat
- * DOI: 10.1063/1.448118
+ * @brief Berendsen barostat.
+ *
+ * @reference{Berendsen barostat,10.1063/1.448118}
  */
 void apply(data::Atoms& atoms,
            const real_t& currentPressure,

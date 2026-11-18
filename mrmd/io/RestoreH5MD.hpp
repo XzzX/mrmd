@@ -27,8 +27,7 @@ namespace mrmd::io
 /**
  * @brief Handles restoring trajectory data from H5MD format.
  *
- * References:
- * -DOI: 10.1016/j.cpc.2014.01.018
+ * @reference{H5MD trajectory format,10.1016/j.cpc.2014.01.018}
  */
 class RestoreH5MD
 {
