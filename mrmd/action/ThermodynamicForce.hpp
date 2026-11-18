@@ -33,7 +33,7 @@ namespace action
  * @brief High-level interface for calculating and applying the one-body thermodynamic force of
  * AdResS.
  *
- * @reference{Thermodynamic force,10.1063/1.5031206}
+ * @reference{Thermodynamic force,10.1103/PhysRevLett.108.170602}
  */
 class ThermodynamicForce
 {
