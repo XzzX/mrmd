@@ -10,7 +10,7 @@ The software exposes all of its algorithms as composable building blocks,
 facilitating both running AdResS simulations and developing the
 method itself.
 
-@section mainpage_highlights What you get
+<h2>What you get</h2>
 
 - **One code base, many architectures.** All kernels are written against the
   [Kokkos](https://github.com/kokkos/kokkos) performance portability library, so the same source
@@ -25,19 +25,21 @@ method itself.
   (@ref mrmd::communication::MultiResGhostLayer) are part of the library.
   See @ref theory.
 
-@section mainpage_next Where to go next
+<h2>Where to go next</h2>
 
-- @subpage getting_started — requirements, build options, picking a Kokkos backend, and running
+- @ref getting_started — requirements, build options, picking a Kokkos backend, and running
   your first simulation.
-- @subpage concept — the three design principles behind MRMD and a map of the namespaces.
-- @subpage theory — the abrupt-interface AdResS scheme and the thermodynamic force iteration.
-- @subpage tutorials — eleven worked examples that build on each other, from a minimal ideal gas
+- @ref concept — the three design principles behind MRMD and a map of the namespaces.
+- @ref theory — the abrupt-interface AdResS scheme and the thermodynamic force iteration.
+- @ref tutorials — eleven worked examples that build on each other, from a minimal ideal gas
   up to a full multi-resolution production workflow.
+- @ref references — every publication cited in the source, with a link back to the code that
+  implements it.
 
 The API reference is reachable from the sidebar; @ref mrmd::data is a good place to start reading it,
 followed by @ref mrmd::action.
 
-@section mainpage_citing Citing MRMD
+<h2>Citing MRMD</h2>
 
 If you use MRMD in your research, please cite it as
 
@@ -46,7 +48,7 @@ If you use MRMD in your research, please cite it as
 
 Machine-readable metadata is in `CITATION.cff` in the repository root.
 
-@section mainpage_project Project
+<h2>Project</h2>
 
 - Source code: https://github.com/XzzX/mrmd
 - Authors: Sebastian Eibl ([ORCID](https://orcid.org/0000-0002-1069-2720)) and

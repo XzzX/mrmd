@@ -1,7 +1,7 @@
 # Doxygen configuration for MRMD. Only non-default values are listed.
 # Configured by CMake, see docs/CMakeLists.txt.
 
-PROJECT_NAME           = MRMD
+PROJECT_NAME           = "Multi Resolution Molecular Dynamics"
 PROJECT_NUMBER         = @PROJECT_VERSION@
 PROJECT_BRIEF          = "@PROJECT_DESCRIPTION@"
 OUTPUT_DIRECTORY       = @CMAKE_CURRENT_BINARY_DIR@
@@ -23,8 +23,14 @@ WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = NO
 WARN_IF_DOC_ERROR      = YES
 WARN_AS_ERROR          = YES
-INPUT                  = @CMAKE_BINARY_DIR@/docs/tutorials.dox \
-                         @PROJECT_SOURCE_DIR@/docs \
+# The narrative pages are listed one by one because Doxygen adds pages to the
+# navigation tree in input order. A new .dox page must be added here as well.
+INPUT                  = @PROJECT_SOURCE_DIR@/docs/mainpage.dox \
+                         @PROJECT_SOURCE_DIR@/docs/getting_started.dox \
+                         @PROJECT_SOURCE_DIR@/docs/concept.dox \
+                         @PROJECT_SOURCE_DIR@/docs/theory.dox \
+                         @CMAKE_BINARY_DIR@/docs/tutorials.dox \
+                         @PROJECT_SOURCE_DIR@/docs/namespaces.dox \
                          @PROJECT_SOURCE_DIR@/examples \
                          @PROJECT_SOURCE_DIR@/mrmd
 FILE_PATTERNS          = *.hpp *.cpp *.md *.dox

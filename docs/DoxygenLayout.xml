@@ -8,11 +8,16 @@
      first tag an older Doxygen does not know turns into a failed docs build. -->
 <doxygenlayout version="1.0">
   <navindex>
-    <!-- Getting Started, Concept, Theory and Tutorials are \subpage entries of the
-         main page, so they already appear below it in the navigation tree, nested
-         and with their own section headings. Listing them here as well would show
-         each of them twice, once without its children. -->
+    <!-- The navigation tree is flat: the project name is the root and links to the
+         main page, and every narrative page sits directly below it, followed by the
+         API reference. Two things keep it that way:
+         - mainpage.dox has no \section and no \subpage. Either one makes Doxygen add
+           the main page as an extra node below the root, with its headings as
+           children. Use plain <h2> headings and \ref links there instead.
+         - The "pages" tab lists every top-level page, including the generated
+           Literature References page, in the order of INPUT in Doxyfile.in. -->
     <tab type="mainpage" visible="yes" title="Overview"/>
+    <tab type="pages" visible="yes" title="" intro=""/>
     <tab type="usergroup" title="API reference">
       <tab type="namespaces" visible="yes" title="">
         <tab type="namespacelist"    visible="yes" title="" intro=""/>
