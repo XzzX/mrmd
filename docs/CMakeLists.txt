@@ -38,6 +38,48 @@ else ()
     set(MRMD_DOXYGEN_VERSION_SPECIFIC "")
 endif ()
 
+# docs/DoxygenLayout.xml only customizes the navigation tree. Doxygen does not
+# reliably fall back to its defaults for the parts a layout file leaves out:
+# 1.15 renders class, namespace and file pages empty. A full `doxygen -l` dump
+# checked into the repository is no fix either, because it is tied to the
+# version that wrote it. So take the default layout of the Doxygen in use and
+# swap in our navindex element.
+set(MRMD_DOXYGEN_LAYOUT ${CMAKE_CURRENT_BINARY_DIR}/DoxygenLayout.xml)
+execute_process(
+    COMMAND ${DOXYGEN_EXECUTABLE} -l DoxygenLayout.default.xml
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    RESULT_VARIABLE _layout_result
+    OUTPUT_QUIET
+)
+if (NOT _layout_result EQUAL 0)
+    message(FATAL_ERROR "`doxygen -l` failed with exit code ${_layout_result}")
+endif ()
+file(READ ${CMAKE_CURRENT_BINARY_DIR}/DoxygenLayout.default.xml _layout_default)
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/DoxygenLayout.xml _layout_custom)
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/DoxygenLayout.xml)
+
+# Cut out the navindex element with string(FIND): the custom block contains
+# backslashes, which string(REGEX REPLACE) would interpret in the replacement.
+function(mrmd_navindex_bounds text out_begin out_end)
+    string(FIND "${text}" "<navindex>" _begin)
+    string(FIND "${text}" "</navindex>" _end)
+    if (_begin EQUAL -1 OR _end EQUAL -1)
+        message(FATAL_ERROR "no <navindex> element found in a Doxygen layout")
+    endif ()
+    string(LENGTH "</navindex>" _close)
+    math(EXPR _end "${_end} + ${_close}")
+    set(${out_begin} ${_begin} PARENT_SCOPE)
+    set(${out_end} ${_end} PARENT_SCOPE)
+endfunction()
+
+mrmd_navindex_bounds("${_layout_custom}" _cb _ce)
+math(EXPR _clen "${_ce} - ${_cb}")
+string(SUBSTRING "${_layout_custom}" ${_cb} ${_clen} _navindex)
+mrmd_navindex_bounds("${_layout_default}" _db _de)
+string(SUBSTRING "${_layout_default}" 0 ${_db} _head)
+string(SUBSTRING "${_layout_default}" ${_de} -1 _tail)
+file(WRITE ${MRMD_DOXYGEN_LAYOUT} "${_head}${_navindex}${_tail}")
+
 configure_file(Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
 # The introductory prose for the generated tutorial overview page is passed as a
