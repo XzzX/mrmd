@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Minimal layout: only the navigation index is customized. Everything else falls
-     back to Doxygen's built-in defaults, which keeps this file portable across
-     Doxygen versions.
+<!-- Only the navindex element of this file is used. docs/CMakeLists.txt splices
+     it into the default layout of the installed Doxygen (`doxygen -l`), so the
+     layout of class, namespace and file pages always matches that version.
 
-     Do NOT replace this with the output of `doxygen -l`. A full dump pins the file
-     to one Doxygen version, and docs/Doxyfile.in sets WARN_AS_ERROR = YES, so the
-     first tag an older Doxygen does not know turns into a failed docs build. -->
+     Do NOT add other elements here, and do NOT replace this with the output of
+     `doxygen -l`: a full dump is tied to the version that wrote it, and
+     WARN_AS_ERROR = YES turns any tag another version does not know into a
+     failed docs build. -->
 <doxygenlayout version="1.0">
   <navindex>
     <!-- The navigation tree is flat: the project name is the root and links to the
