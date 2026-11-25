@@ -67,7 +67,8 @@ DISABLE_INDEX          = NO
 FULL_SIDEBAR           = NO
 # wide enough for the longest tutorial title in the sidebar
 TREEVIEW_WIDTH         = 335
-HTML_COLORSTYLE        = LIGHT
+# Keep Doxygen's own colors responsive to the Awesome dark-mode class too.
+HTML_COLORSTYLE        = TOGGLE
 HTML_HEADER            = @CMAKE_CURRENT_SOURCE_DIR@/header.html
 HTML_EXTRA_STYLESHEET  = @AWESOME_CSS_DIR@/doxygen-awesome.css \
                          @AWESOME_CSS_DIR@/doxygen-awesome-sidebar-only.css \
