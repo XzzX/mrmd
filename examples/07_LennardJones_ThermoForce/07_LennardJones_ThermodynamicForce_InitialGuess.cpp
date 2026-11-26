@@ -1,4 +1,7 @@
-// 07_LennardJones_ThermodynamicForce_InitialGuess
+//> 07_LennardJones_ThermodynamicForce_InitialGuess
+//> Thermodynamic force iteration run for the Lennard-Jones fluid coupled to a tracer gas of
+//> non-interacting particles and starting from an initial guess for the force. The final
+//> thermodynamic force is dumped into a TXT file.
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -37,9 +40,7 @@
 
 using namespace mrmd;
 
-/**
- * Configuration for the Argon NVE example simulation.
- */
+//> Configuration for the thermodynamic force iteration simulation.
 struct Config
 {
     // time parameters
@@ -110,6 +111,7 @@ struct Config
     std::string fileOutFinalTF;
 };
 
+//> Simulation logic goes here
 void thermodynamicForce_initialGuess(Config& config)
 {
     // initialize
@@ -365,8 +367,6 @@ void thermodynamicForce_initialGuess(Config& config)
 
         // close statistics file
         fStat.close();
-        auto time = timer.seconds();
-        std::cout << time << std::endl;
 
         io::dumpGRO(config.fileOutFinalGRO,
                     atoms,
@@ -392,6 +392,7 @@ void thermodynamicForce_initialGuess(Config& config)
     fout.close();
 }
 
+//> Main function for the simulation
 int main(int argc, char* argv[])
 {
     // initialize Kokkos environment

@@ -25,10 +25,12 @@ namespace mrmd
 namespace weighting_function
 {
 /**
- * Applies the weighting function to a slab simulation geometry.
+ * @brief Applies the H-AdResS weighting function to a slab simulation geometry.
  *
- * Two modes are supported. One with a smooth fine-coarse interface
- * and one with an abrupt interface.
+ * Two modes are supported. One with a smooth interpolation of the potentials between
+ * the atomistic and coarse-grained regions and one with an abrupt interface.
+ *
+ * @reference{H-AdResS weighting function in slab geometry,10.1103/PhysRevLett.110.108301}
  */
 class Slab
 {

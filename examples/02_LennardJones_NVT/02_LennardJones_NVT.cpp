@@ -1,4 +1,6 @@
-// 02_LennardJones_NVT
+//> 02_LennardJones_NVT
+//> Minimal Lennard-Jones simulation in the NVT (canonical) ensemble with output of observables and
+//> final phase position in GRO format.
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -23,7 +25,6 @@
 #include "data/Atoms.hpp"
 #include "data/Subdomain.hpp"
 #include "datatypes.hpp"
-#include "initialization.hpp"
 #include "io/DumpGRO.hpp"
 #include "util/EnvironmentVariables.hpp"
 #include "util/PrintTable.hpp"
@@ -31,9 +32,7 @@
 
 using namespace mrmd;
 
-/**
- * Configuration for the Argon NVE example simulation.
- */
+//> Configuration for the Argon NVT example simulation.
 struct Config
 {
     // time parameters
@@ -77,6 +76,7 @@ struct Config
     std::string fileOutFinalGRO = format("{0}_final.gro", fileOut);
 };
 
+//> Simulation logic goes here
 void runLennardJonesNVT(Config& config)
 {
     // initialize simulation domain
@@ -230,6 +230,7 @@ void runLennardJonesNVT(Config& config)
     fout.close();
 }
 
+//> Main function for the simulation
 int main(int argc, char* argv[])
 {
     // initialize Kokkos environment

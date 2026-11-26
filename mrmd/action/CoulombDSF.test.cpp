@@ -45,8 +45,7 @@ constexpr real_t coulombEnergyDSF(
 real_t coulombForceDSF(
     const real_t r, const real_t q1, const real_t q2, const real_t alpha, const real_t rc)
 {
-    // DOI: 10.1140/epjst/e2016-60151-6
-    // equation 16
+    // @reference{Damped shifted force Coulomb (eq. 16),10.1140/epjst/e2016-60151-6}
 
     real_t prefac = 138.935458_r * q1 * q2;
     auto distSqr = r * r;

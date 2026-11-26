@@ -61,7 +61,7 @@ void runIdealGas(const Config& config)
     std::cout << time << std::endl;
 }
 
-//> Setting up the MRMD environment
+//> Main function for the simulation
 int main(int argc, char* argv[])
 {
     // initialize Kokkos environment

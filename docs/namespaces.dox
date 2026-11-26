@@ -1,51 +1,149 @@
 // docs/namespaces.dox
+//
+// Namespace descriptions. JAVADOC_AUTOBRIEF is on, so a brief ends at the first
+// period followed by whitespace. Always use an explicit \brief and keep it free
+// of abbreviations like "e.g." or the brief is silently cut in half.
 
 /**
  * \namespace mrmd
- * Top-level namespace of MRMD.
+ * \brief Top-level namespace of MRMD.
+ *
+ * Besides the sub-namespaces listed below it holds the fundamental types and constants shared by
+ * all of them: \c real_t and \c idx_t, mrmd::Point3D and mrmd::Vector3D, mrmd::DIMENSIONS and
+ * mrmd::VECTOR_LENGTH, as well as mrmd::initialize() and mrmd::finalize().
  */
 
 /**
  * \namespace mrmd::action
- * Everything to evolve the simulation physically.
+ * \brief Everything to evolve the simulation physically.
+ *
+ * Integrators, thermostats and barostats, pair and bonded force kernels, constraints, and the
+ * adaptive resolution machinery around the thermodynamic force.
  */
 
 /**
  * \namespace mrmd::analysis
- * Everything to analyze/evaluate the current state of the simulation.
- */
-
-/**
- * \namespace mrmd::assert
- * Host/Device asserts with verbose logs.
+ * \brief Everything to analyze or evaluate the current state of the simulation.
+ *
+ * Kinetic energy, pressure, system momentum, density profiles, mean square displacement and
+ * particle counting across a plane.
  */
 
 /**
  * \namespace mrmd::communication
- * Everything related to ghost particles (periodic boundary conditions).
+ * \brief Everything related to ghost particles and periodic boundary conditions.
+ *
+ * Single resolution and multi-resolution ghost layers, periodic mapping, ghost position updates
+ * and the accumulation of ghost forces back onto the real particles.
  */
 
 /**
  * \namespace mrmd::data
- * All fundamental data containers used in MRMD.
+ * \brief All fundamental data containers used in MRMD.
+ *
+ * The simulation state lives here: mrmd::data::Atoms and mrmd::data::Molecules for the particles,
+ * mrmd::data::Subdomain for the box geometry, and the histogram types used by the analysis and
+ * thermodynamic force code.
  */
 
 /**
  * \namespace mrmd::io
- * Save/Load simulation data.
+ * \brief Save and load simulation data.
+ *
+ * CSV and GRO dumps, H5MD trajectories (requires HDF5), density and thermodynamic force profiles,
+ * and restore paths for GRO, H5MD, LAMMPS and plain text files.
  */
 
 /**
  * \namespace mrmd::test
- * Setup helpers for easier test writing.
+ * \brief Setup helpers for easier test writing.
+ *
+ * Only used by the unit tests and deliberately excluded from this documentation.
  */
 
 /**
  * \namespace mrmd::util
- * Utility functions, e.g. angle handling, interpolation, random numbers, ...
+ * \brief Utility functions used throughout the library.
+ *
+ * Angle handling, interpolation, random numbers, small math helpers, moving averages and the
+ * simulation setup helpers used by the examples.
  */
 
 /**
  * \namespace mrmd::weighting_function
- * Weighting functions for different interfaces and region geometries.
+ * \brief Weighting functions for different interfaces and region geometries.
+ *
+ * Slab and spherical geometries, plus the predicates that decide whether a position lies in the
+ * atomistic, hybrid or coarse-grained region.
+ */
+
+/**
+ * \namespace mrmd::toSI
+ * \brief Conversion factors from the internal unit system to SI units.
+ */
+
+/**
+ * \namespace mrmd::bin_op
+ * \brief GPU compatible binary operators.
+ *
+ * Addition, subtraction, multiplication and division as functors, for use in Kokkos kernels and
+ * reductions where a plain operator cannot be passed.
+ */
+
+/**
+ * \namespace assumption
+ * \brief Verbose assertion backend, enabled by the CMake option MRMD_VERBOSE_ASSERTS.
+ *
+ * The assertions themselves are macros in \c mrmd/assert/ (\c MRMD_HOST_CHECK_*,
+ * \c MRMD_DEVICE_ASSERT_* and \c MRMD_NORMAL_CHECK_*). This namespace holds the comparison helpers
+ * they expand to, which print both operands when a check fails. Verbose asserts are only available
+ * on the host.
+ */
+
+// Namespaces used as the call syntax for a single algorithm, e.g.
+// action::BerendsenThermostat::apply(...). They carry no state and exist to keep
+// the call site readable.
+
+/**
+ * \namespace mrmd::action::BerendsenThermostat
+ * \brief Weak-coupling thermostat that rescales velocities towards a target temperature.
+ */
+
+/**
+ * \namespace mrmd::action::BerendsenBarostat
+ * \brief Weak-coupling barostat that rescales the simulation box towards a target pressure.
+ */
+
+/**
+ * \namespace mrmd::action::UpdateMolecules
+ * \brief Recomputes molecule positions from the positions of their constituent atoms.
+ */
+
+/**
+ * \namespace mrmd::action::ContributeMoleculeForceToAtoms
+ * \brief Distributes a force acting on a molecule onto its constituent atoms.
+ */
+
+/**
+ * \namespace mrmd::communication::PeriodicMapping
+ * \brief Maps atoms that left the subdomain back into it across the periodic boundaries.
+ */
+
+/**
+ * \namespace mrmd::communication::UpdateGhostAtoms
+ * \brief Refreshes the positions of existing ghost atoms without rebuilding the ghost layer.
+ */
+
+/**
+ * \namespace mrmd::communication::AccumulateForce
+ * \brief Adds the forces accumulated on ghost atoms back onto their real counterparts.
+ */
+
+/**
+ * \namespace mrmd::data::impl
+ * \brief Implementation of the particle containers, parameterized over the memory space.
+ *
+ * mrmd::data::Atoms and mrmd::data::Molecules are aliases for instantiations of
+ * mrmd::data::impl::GeneralAtoms and mrmd::data::impl::GeneralMolecules, so this namespace is
+ * documented even though the other impl namespaces are not.
  */

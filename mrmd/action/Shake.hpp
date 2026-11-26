@@ -163,9 +163,8 @@ public:
  * @brief High-level interface for the application of SHAKE/RATTLE position and velocity constraints
  * to given molecules.
  *
- * References:
- * -SHAKE algorithm (DOI: 10.1016/0021-9991(77)90098-5)
- * -RATTLE algorithm (DOI: 10.1016/0021-9991(83)90014-1)
+ * @reference{SHAKE constraints,10.1016/0021-9991(77)90098-5}
+ * @reference{RATTLE constraints,10.1016/0021-9991(83)90014-1}
  */
 class MoleculeConstraints
 {

@@ -1,4 +1,6 @@
-// 06_LennardJones_ProductionAtomistics
+//> 06_LennardJones_ProductionAtomistic
+//> Production run for a full-atomistic Lennard-Jones fluid as reference to an AdResS simulation.
+//> The trajectory is stored in an H5MD file.
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>
@@ -27,6 +29,7 @@
 
 using namespace mrmd;
 
+//> Configuration for the full-atomistic Lennard-Jones production simulation in NVT ensemble.
 struct Config
 {
     // time parameters
@@ -71,6 +74,7 @@ struct Config
     std::string fileOutFinalH5MD;
 };
 
+//> Simulation logic goes here
 void productionAtomistic(Config& config)
 {
     // initialize
@@ -235,8 +239,6 @@ void productionAtomistic(Config& config)
 
         // close statistics file
         fStat.close();
-        auto time = timer.seconds();
-        std::cout << time << std::endl;
 
         io::dumpGRO(config.fileOutFinalGRO,
                     atoms,
@@ -259,6 +261,7 @@ void productionAtomistic(Config& config)
     fout.close();
 }
 
+//> Main function for the simulation
 int main(int argc, char* argv[])
 {
     // initialize Kokkos environment

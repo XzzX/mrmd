@@ -30,8 +30,7 @@ namespace action
  * @brief Integrator that updates the positions and velocities of atoms using the BAOAB Langevin
  * dynamics algorithm.
  *
- * References:
- * -DOI: 10.1093/amrx/abs010
+ * @reference{Langevin thermostat (BAOAB),10.1093/amrx/abs010}
  */
 class VelocityVerletLangevinThermostat
 {
